@@ -18,16 +18,25 @@
       font-size: 16px;
       margin: 10px;
       cursor: pointer;
+      box-shadow: 0 4px 0 #3a2f00;
+    }
+    button:active {
+      transform: translateY(2px);
+      box-shadow: none;
     }
   </style>
 </head>
 <body>
   <h2>📢 Kanalga aʼzo boʻling</h2>
   <p>Iltimos, mini ilovadan foydalanish uchun kanalga aʼzo boʻling:</p>
-  <a href="https://t.me/Kosonacademy="_blank">
+
+  <!-- TO‘G‘RI href va target -->
+  <a href="https://t.me/KosonAcademy" target="_blank">
     <button>🔗 Kanalga oʻtish</button>
   </a>
+
   <br>
+
   <button onclick="checkMembership()">✅ Aʼzoligimni tekshirish</button>
   <p id="status"></p>
 
@@ -36,15 +45,21 @@
     Telegram.WebApp.expand();
 
     async function checkMembership() {
-      const userId = Telegram.WebApp.initDataUnsafe.user.id;
+      const userId = Telegram.WebApp.initDataUnsafe.user?.id;
+
+      if (!userId) {
+        document.getElementById("status").textContent = "❌ Foydalanuvchi aniqlanmadi. Iltimos, Telegram ilovasi ichidan foydalaning.";
+        return;
+      }
 
       const res = await fetch(`/check-membership?user_id=${userId}`);
       const data = await res.json();
 
       const statusEl = document.getElementById("status");
 
-      if (data.status === "member" || data.status === "administrator") {
+      if (data.status === "member" || data.status === "administrator" || data.status === "creator") {
         statusEl.textContent = "✅ Siz kanalga aʼzosiz! Davom etishingiz mumkin.";
+        // Istasangiz: window.location.href = "/asosiy.html"
       } else {
         statusEl.textContent = "❌ Iltimos, avval kanalga aʼzo bo‘ling.";
       }
