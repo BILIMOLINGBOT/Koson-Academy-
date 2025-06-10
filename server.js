@@ -5,7 +5,7 @@ const app = express();
 
 // .env dan token va kanal nomini olish
 const BOT_TOKEN = process.env.BOT_TOKEN;
-const CHANNEL_USERNAME = process.env.CHANNEL_USERNAME;
+const @kosonacademy= process.env.CHANNEL_USERNAME;
 
 app.use(cors());
 app.use(express.static("public"));
