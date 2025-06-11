@@ -3,74 +3,83 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Kanal aʼzoligini tekshirish</title>
+  <title>Kanal a'zoligini tekshirish</title>
   <style>
     body {
-      font-family: sans-serif;
-      text-align: center;
+      font-family: 'Segoe UI', sans-serif;
       background-color: #fff3b0;
-      padding: 30px;
-    }
-    .panel {
-      background-color: white;
-      border-radius: 12px;
+      color: #333;
+      margin: 0;
       padding: 20px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .container {
       max-width: 400px;
-      margin: 0 auto;
+      margin: auto;
+      background: #fff;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
-    .status {
-      font-size: 18px;
-      margin-top: 20px;
+    .logo {
+      width: 80px;
+      margin-bottom: 16px;
     }
-    button {
+    h2 {
+      color: #4d3f00;
+      margin-bottom: 12px;
+    }
+    p {
+      margin-bottom: 20px;
+      font-size: 16px;
+    }
+    a.join-button {
+      display: inline-block;
       background-color: #4d3f00;
       color: white;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
+      padding: 12px 20px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: bold;
+      margin-bottom: 16px;
+      transition: background 0.3s;
     }
-    button:hover {
+    a.join-button:hover {
       background-color: #3b3000;
+    }
+    button#checkMembership {
+      background-color: #34A853;
+      color: white;
+      padding: 12px 20px;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button#checkMembership:hover {
+      background-color: #2b8d45;
     }
   </style>
 </head>
 <body>
-  <div class="panel">
-    <h2>Kanalga aʼzo bo‘lganingizni tekshiring</h2>
-    <p>Davom etish uchun quyidagi kanalga aʼzo bo‘ling:</p>
-    <p><strong><a href="https://t.me/KosonAcademy" target="_blank">@KosonAcademy</a></strong></p>
-    <button onclick="checkMembership()">Aʼzoligimni tekshirish</button>
-    <div id="status" class="status"></div>
+  <div class="container">
+    <img src="https://cdn-icons-png.flaticon.com/512/2111/2111646.png" alt="Telegram" class="logo" />
+    <h2>Kanalga a'zo bo'ling</h2>
+    <p>Davom etish uchun quyidagi kanalda aʼzo bo‘lishingiz kerak:</p>
+    <a href="https://t.me/KosonAcademy" class="join-button" target="_blank">Kanalga o'tish</a>
+    <br />
+    <button id="checkMembership">Aʼzoligimni tekshirish</button>
   </div>
 
   <script>
-    async function checkMembership() {
-      const tg = window.Telegram.WebApp;
-      const userId = tg.initDataUnsafe.user.id;
+    const tg = window.Telegram.WebApp;
 
-      const res = await fetch("https://YOUR_BACKEND_URL/check", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          user_id: userId
-        })
-      });
-
-      const data = await res.json();
-      const statusDiv = document.getElementById("status");
-
-      if (data.status === "member") {
-        statusDiv.innerHTML = "✅ Siz kanalga aʼzo bo‘lgansiz. Davom etishingiz mumkin.";
-        setTimeout(() => {
-          tg.close(); // yoki window.location.href = 'main.html';
-        }, 1500);
-      } else {
-        statusDiv.innerHTML = "❌ Siz hali kanalga aʼzo emassiz. Iltimos, oldin kanalga aʼzo bo‘ling.";
-      }
-    }
+    document.getElementById('checkMembership').addEventListener('click', () => {
+      // Telegram botga yuborish uchun signal
+      tg.sendData('check_membership');
+    });
   </script>
 </body>
 </html>
