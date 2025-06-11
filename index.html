@@ -84,12 +84,11 @@
     const tg = window.Telegram.WebApp;
 
     document.getElementById('checkMembership').addEventListener('click', () => {
-      // Botga signal yuboriladi
+      // Telegram botga signal yuboriladi
       tg.sendData('check_membership');
     });
 
-    // Agar kerak bo‘lsa: a’zolik yo‘qligida sahifada xabar ko‘rsatish
-    // Bu funksiya botdan 'not_subscribed' javob kelsa ishlatiladi
+    // Bu funksiya agar bot 'not_subscribed' xabarini qaytarsa ishlatiladi
     function showNotSubscribedMessage() {
       document.getElementById("status").innerHTML = `
         ❌ Siz hali kanalga aʼzo emassiz.<br><br>
@@ -100,6 +99,26 @@
         ✅ Shunda siz darslarni davom ettira olasiz.
       `;
     }
+
+    // Bu funksiya agar bot 'subscribed' javobi yuborsa ishlatiladi
+    function proceedToLessons() {
+      document.getElementById("status").style.color = '#2e7d32';
+      document.getElementById("status").innerHTML = `
+        ✅ Tabriklaymiz! Siz kanalga aʼzo bo‘lgansiz.<br>
+        Darslar sahifasiga yoʻnaltirilmoqdasiz...
+      `;
+      // Masalan, sahifani boshqa URLga yo‘naltirish
+      setTimeout(() => {
+        window.location.href = "lessons.html"; // o'zgartiring kerakli manzilga
+      }, 2000);
+    }
+
+    // Telegram WebApp orqali qaytgan ma'lumotga javob yozish uchun: 
+    // Bu qism botdan qaytgan `tg.WebApp.onEvent('data')` orqali ishga tushadi
+    // Ammo bu faqatgina botdan qaytgan signal bo‘lsa ishlaydi.
+    // Agar siz botdan `WebApp.sendData` orqali tekshiruv qilib, `WebApp.sendMessage` bilan
+    // qaytarayotgan bo‘lsangiz, `Telegram.WebApp.onEvent` bilan tinglang (JS side).
+
   </script>
 </body>
 </html>
