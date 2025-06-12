@@ -24,10 +24,10 @@ const db = getFirestore(app);
 initializeAuth();
 setupNavigation();
 setupProgress();
-loadLessons();
+loadLessons(db);
 
-// ✅ Darslarni yuklovchi funksiya
-async function loadLessons() {
+// ✅ Darslarni yuklash funksiyasi (A2, B1, B2 darajalari uchun)
+async function loadLessons(db) {
   const levels = ['a2', 'b1', 'b2'];
   const levelMap = {
     a2: 'lessons/a2-lessons.html',
@@ -36,7 +36,7 @@ async function loadLessons() {
   };
 
   for (const level of levels) {
-    const container = document.getElementById(`${level}-level`);
+    const container = document.getElementById(`${level}-lessons`);
     const url = levelMap[level];
 
     if (!container) continue;
