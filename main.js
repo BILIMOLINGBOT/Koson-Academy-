@@ -1,5 +1,8 @@
+// Firebase modullarini import qilish
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// Ichki modullarni import qilish
 import { initializeAuth } from "./auth.js";
 import { setupNavigation } from "./navigation.js";
 import { setupProgress } from "./progress.js";
@@ -20,7 +23,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Modul funksiyalarini ishga tushirish
+// Loyihani boshlash
 initializeAuth();
 setupNavigation();
 setupProgress();
@@ -51,3 +54,18 @@ async function loadLessons(db) {
     }
   }
 }
+
+// ✅ Telegram WebApp tayyor bo‘lganda salomlashish
+window.Telegram.WebApp.ready(() => {
+  const user = Telegram.WebApp.initDataUnsafe.user;
+  const welcomeText = document.getElementById("welcome-text");
+
+  if (welcomeText) {
+    welcomeText.innerText = user ? `Salom, ${user.first_name}!` : "Salom, xush kelibsiz!";
+  }
+});
+
+// ✅ "Kirish" tugmasi bosilganda Telegram botga yo‘naltirish
+window.openBot = function () {
+  window.open("https://t.me/KosonAcademyBot", "_blank");
+};
