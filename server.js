@@ -1,44 +1,11 @@
-import express from 'express';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import dotenv from 'dotenv';
-
-// .env faylni o‘qish
-dotenv.config();
-
-// Fayl yo‘llarini aniqlash
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Express ilovasini yaratish
+// Placeholder for server-side logic
+// This app uses Firebase, so no traditional server is needed
+// Below is a basic Node.js server example if needed in the future
+const express = require('express');
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-// JSON body parser
-app.use(express.json());
+app.use(express.static('public')); // Serve static files (HTML, CSS, JS)
 
-// Statik fayllar (public papkadan xizmat ko‘rsatish)
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Telegram foydalanuvchi ma’lumotlarini qabul qilish
-app.post('/api/user', (req, res) => {
-  const { id, name, username, photo } = req.body;
-
-  console.log('📩 Telegram foydalanuvchisi:');
-  console.log(`🆔 ID: ${id}`);
-  console.log(`👤 Ismi: ${name}`);
-  console.log(`🔗 Username: @${username}`);
-  console.log(`🖼️ Profil rasmi: ${photo}`);
-
-  res.status(200).json({ message: 'Foydalanuvchi maʼlumotlari qabul qilindi.' });
-});
-
-// 404 - Topilmagan sahifa uchun
-app.use((req, res) => {
-  res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
-});
-
-// Serverni ishga tushurish
-app.listen(PORT, () => {
-  console.log(`🚀 Server running at http://localhost:${PORT}`);
+app.listen(3000, () => {
+  console.log('Server running on http://localhost:3000');
 });
