@@ -24,5 +24,3 @@ initializeAuth();
 setupNavigation();
 setupProgress();
 loadLessons(db);
-
-import { loadA1Lessons } from './lessons.js';
