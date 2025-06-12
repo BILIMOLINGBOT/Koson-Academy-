@@ -26,7 +26,3 @@ setupProgress();
 loadLessons(db);
 
 import { loadA1Lessons } from './lessons.js';
-
-document.addEventListener('DOMContentLoaded', () => {
-  loadA1Lessons();
-});
