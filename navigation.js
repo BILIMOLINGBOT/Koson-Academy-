@@ -1,26 +1,23 @@
-import { t } from "./i18n.js";
+export function setupNavigation() {
+  // Section navigation
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+      document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+      item.classList.add('active');
+      const target = item.getAttribute('data-target');
+      document.getElementById(target).classList.add('active');
+    });
+  });
 
-const nav = document.querySelector('.navigation');
-
-const tabs = ['home', 'lessons', 'results', 'settings'];
-tabs.forEach(tab => {
-  const btn = document.createElement('button');
-  btn.classList.add('nav-item');
-  btn.dataset.target = tab;
-  btn.innerHTML = `<div>${t(tab)}</div>`;
-  btn.addEventListener('click', () => showSection(tab));
-  nav.appendChild(btn);
-});
-
-export function showSection(name) {
-  tabs.forEach(tab => {
-    document.getElementById(tab).classList.toggle('active', tab === name);
-    document.querySelector(`.nav-item[data-target="${tab}"]`).classList.toggle('active', tab === name);
+  // Level tabs
+  document.querySelectorAll('.level-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.level-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.level-content').forEach(c => c.classList.remove('active'));
+      tab.classList.add('active');
+      const level = tab.getAttribute('data-level');
+      document.getElementById(`${level}-level`).classList.add('active');
+    });
   });
 }
-
-window.addEventListener('langChanged', () => {
-  document.querySelectorAll('.nav-item').forEach(btn => {
-    btn.querySelector('div').textContent = t(btn.dataset.target);
-  });
-});
