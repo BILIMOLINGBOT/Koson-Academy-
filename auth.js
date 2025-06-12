@@ -1,45 +1,35 @@
-import { getAuth, signInAnonymously } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.20.0/firebase-app.js";
+import { getDatabase, ref, get, set, update } from "https://www.gstatic.com/firebasejs/9.20.0/firebase-database.js";
 
-export async function initAuth(db) {
-  const auth = getAuth();
-  const telegramUser = window.Telegram.WebApp.initDataUnsafe.user;
-  let userId = telegramUser?.id?.toString() || 'anonymous';
+const firebaseConfig = { /* sizning config */ };
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
-  try {
-    if (!telegramUser) {
-      const anonymousUser = await signInAnonymously(auth);
-      userId = anonymousUser.user.uid;
-    }
+// Telegram auth
+window.Telegram.WebApp.ready();
+const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
+const telegramId = tgUser.id;
+const profileRef = ref(db, `users/${telegramId}`);
 
-    // Telegram initData server tomonida tekshirish (Node.js serverida)
-    const response = await fetch('/api/verify-telegram', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(window.Telegram.WebApp.initData)
+export async function initUser() {
+  const snapshot = await get(profileRef);
+  if (!snapshot.exists()) {
+    await set(profileRef, {
+      id: telegramId,
+      name: tgUser.username || tgUser.first_name,
+      photo: tgUser.photo_url || '',
+      points: 0,
+      completedLessons: []
     });
-    if (!response.ok) throw new Error('Telegram autentifikatsiyasi muvaffaqiyatsiz');
-
-    // Foydalanuvchi ma'lumotlarini Firestore'da saqlash
-    const userDoc = doc(db, 'users', userId);
-    const userSnap = await getDoc(userDoc);
-    if (!userSnap.exists()) {
-      await setDoc(userDoc, {
-        username: telegramUser?.username || telegramUser?.first_name || 'Foydalanuvchi',
-        photo_url: telegramUser?.photo_url || '/assets/images/default-user.png',
-        completedLessons: [],
-        points: 0,
-        lastActive: new Date().toISOString(),
-        language: telegramUser?.language_code || 'uz'
-      });
-    }
-
-    // UI'ni yangilash
-    const userData = (await getDoc(userDoc)).data();
-    document.getElementById('userPhoto').src = userData.photo_url;
-    document.getElementById('userName').innerText = userData.username;
-  } catch (error) {
-    console.error('Autentifikatsiya xatosi:', error);
-    window.Telegram.WebApp.showAlert('Autentifikatsiya xatosi yuz berdi.');
   }
+  const data = (await get(profileRef)).val();
+  return data;
+}
+
+export async function updatePoints(points) {
+  await update(profileRef, { points });
+}
+
+export async function updateCompletedLessons(list) {
+  await update(profileRef, { completedLessons: list });
 }
