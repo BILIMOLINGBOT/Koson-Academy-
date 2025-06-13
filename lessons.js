@@ -1,11 +1,15 @@
 import { getDocs, collection } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-export async function loadLessons(db) {
+// completedLessons va showClosedLessonMessage agar boshqa faylda bo‘lsa, import qilish kerak
+// import { completedLessons, showClosedLessonMessage } from "./progress.js";
+
+export async function loadLessons(db, level) {
   const lessonContainerForLessonsPage = document.getElementById("lessonContainerForLessonsPage");
   if (lessonContainerForLessonsPage) {
     try {
       const querySnapshot = await getDocs(collection(db, "lessons"));
       lessonContainerForLessonsPage.innerHTML = "";
+
       const categories = {
         "To be fe'li": [],
         "Present Continuous": [],
@@ -14,9 +18,12 @@ export async function loadLessons(db) {
         "Past Simple": [],
         "Past Continuous": []
       };
+
       querySnapshot.forEach((doc) => {
         const lesson = doc.data();
-        if (lesson.level === "A1") {
+
+        // Faqat kerakli darajadagi darslarni yuklaydi
+        if (lesson.level === level) {
           if (lesson.title.includes("To be")) categories["To be fe'li"].push(lesson);
           else if (lesson.title.includes("Present continues")) categories["Present Continuous"].push(lesson);
           else if (lesson.title.includes("Present simple")) categories["Present Simple"].push(lesson);
@@ -25,22 +32,30 @@ export async function loadLessons(db) {
           else if (lesson.title.includes("Past continuous")) categories["Past Continuous"].push(lesson);
         }
       });
+
       for (const [category, lessons] of Object.entries(categories)) {
         if (lessons.length > 0) {
           const categoryDiv = document.createElement("div");
           categoryDiv.className = "lesson-group";
-          categoryDiv.innerHTML = `<div class="lesson-group-title">${category}</div><div class="button-container"></div>`;
+          categoryDiv.innerHTML = `
+            <div class="lesson-group-title">${category}</div>
+            <div class="button-container"></div>
+          `;
+
           const buttonContainer = categoryDiv.querySelector(".button-container");
-          lessons.forEach(lesson => {
+          lessons.forEach((lesson) => {
             const a = document.createElement("a");
             a.href = `lesson${lesson.id}.html`;
             a.className = `button ${completedLessons.has(lesson.id.toString()) ? '' : 'closed'}`;
             a.innerText = lesson.title;
+
             if (!completedLessons.has(lesson.id.toString())) {
-              a.addEventListener('click', showClosedLessonMessage);
+              a.addEventListener("click", showClosedLessonMessage);
             }
+
             buttonContainer.appendChild(a);
           });
+
           lessonContainerForLessonsPage.appendChild(categoryDiv);
         }
       }
