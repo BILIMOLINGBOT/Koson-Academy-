@@ -1,67 +1,47 @@
 import { getDocs, collection } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// completedLessons va showClosedLessonMessage agar boshqa faylda bo‘lsa, import qilish kerak
-// import { completedLessons, showClosedLessonMessage } from "./progress.js";
+// progress.js faylidan completedLessons va showClosedLessonMessage funksiyalarini import qilish
+import { completedLessons, showClosedLessonMessage } from "./progress.js";
 
 export async function loadLessons(db, level) {
   const lessonContainerForLessonsPage = document.getElementById("lessonContainerForLessonsPage");
+
   if (lessonContainerForLessonsPage) {
     try {
       const querySnapshot = await getDocs(collection(db, "lessons"));
       lessonContainerForLessonsPage.innerHTML = "";
 
-      const categories = {
-        "To be fe'li": [],
-        "Present Continuous": [],
-        "Present Simple": [],
-        "I have/I have got": [],
-        "Past Simple": [],
-        "Past Continuous": []
-      };
-
+      // Darajaga mos keladigan barcha darslarni oddiy ro‘yxatga yig‘amiz
+      const lessons = [];
       querySnapshot.forEach((doc) => {
         const lesson = doc.data();
-
-        // Faqat kerakli darajadagi darslarni yuklaydi
         if (lesson.level === level) {
-          if (lesson.title.includes("To be")) categories["To be fe'li"].push(lesson);
-          else if (lesson.title.includes("Present continues")) categories["Present Continuous"].push(lesson);
-          else if (lesson.title.includes("Present simple")) categories["Present Simple"].push(lesson);
-          else if (lesson.title.includes("I have")) categories["I have/I have got"].push(lesson);
-          else if (lesson.title.includes("Past simple")) categories["Past Simple"].push(lesson);
-          else if (lesson.title.includes("Past continuous")) categories["Past Continuous"].push(lesson);
+          lessons.push(lesson);
         }
       });
 
-      for (const [category, lessons] of Object.entries(categories)) {
-        if (lessons.length > 0) {
-          const categoryDiv = document.createElement("div");
-          categoryDiv.className = "lesson-group";
-          categoryDiv.innerHTML = `
-            <div class="lesson-group-title">${category}</div>
-            <div class="button-container"></div>
-          `;
-
-          const buttonContainer = categoryDiv.querySelector(".button-container");
-          lessons.forEach((lesson) => {
-            const a = document.createElement("a");
-            a.href = `lesson${lesson.id}.html`;
-            a.className = `button ${completedLessons.has(lesson.id.toString()) ? '' : 'closed'}`;
-            a.innerText = lesson.title;
-
-            if (!completedLessons.has(lesson.id.toString())) {
-              a.addEventListener("click", showClosedLessonMessage);
-            }
-
-            buttonContainer.appendChild(a);
-          });
-
-          lessonContainerForLessonsPage.appendChild(categoryDiv);
-        }
+      if (lessons.length === 0) {
+        lessonContainerForLessonsPage.innerHTML = "<p>Bu darajaga oid darslar topilmadi.</p>";
+        return;
       }
+
+      // Har bir dars uchun tugma yaratamiz
+      lessons.forEach((lesson) => {
+        const a = document.createElement("a");
+        a.href = `lesson${lesson.id}.html`;
+        a.className = `button ${completedLessons.has(lesson.id.toString()) ? '' : 'closed'}`;
+        a.innerText = lesson.title;
+
+        if (!completedLessons.has(lesson.id.toString())) {
+          a.addEventListener("click", showClosedLessonMessage);
+        }
+
+        lessonContainerForLessonsPage.appendChild(a);
+      });
+
     } catch (error) {
       lessonContainerForLessonsPage.innerHTML = "<p>Xatolik yuz berdi.</p>";
-      console.error("Darslar yuklashda xatolik:", error);
+      console.error("Darslarni yuklashda xatolik:", error);
     }
   }
 }
