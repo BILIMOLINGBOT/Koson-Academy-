@@ -1,136 +1,196 @@
-<!DOCTYPE html><html lang="uz">
+<!DOCTYPE html>
+<html lang="uz">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>A1 Darslari - BilimSher</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="styles.min.css">
-  <style>
-    :root {
-      --bg-color: #ffffff;
-      --text-color: #000000;
-      --card-bg: #f0f8ff;
-    }body {
-  background-color: var(--bg-color);
-  color: var(--text-color);
-  font-family: Arial, sans-serif;
-  padding: 1rem;
-}
-
-.lesson-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.8rem;
-  max-width: 600px;
-  margin: auto;
-}
-
-.lesson-btn {
-  background-color: var(--card-bg);
-  border: 2px solid #007bff;
-  border-radius: 12px;
-  padding: 1rem;
-  font-weight: bold;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: 0.3s;
-  text-align: center;
-}
-
-.lesson-btn:hover:not(:disabled) {
-  background-color: #e6f0ff;
-  transform: scale(1.01);
-}
-
-.lesson-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-  </style>
-</head>
-<body>
-  <h2 style="text-align:center; margin-bottom: 1.5rem;">A1 darajasi darslari</h2>
-  <div class="lesson-list" id="a1LessonList">Yuklanmoqda...</div>  <script src="https://telegram.org/js/telegram-web-app.js"></script>  <script type="module">
-    import { getUserProgress } from './progress.js';
-
-    const lessons = [
-      "To be affirmative",
-      "To be affirmative test",
-      "To be question",
-      "To be question test",
-      "To be negative",
-      "To be negative test",
-      "Present continues affirmative",
-      "Present continues affirmative test",
-      "Present continues question",
-      "Present continues question test",
-      "Present continues negative",
-      "Present continues negative test",
-      "Present simple affirmative",
-      "Present simple affirmative test",
-      "Present simple question",
-      "Present simple question test",
-      "Present simple negative",
-      "Present simple negative test",
-      "I have/I have got affirmative",
-      "I have/I have got affirmative test",
-      "I have/I have got question",
-      "I have/I have got question test",
-      "I have/I have got negative",
-      "I have/I have got negative test",
-      "Past simple affirmative",
-      "Past simple affirmative test",
-      "Past simple question",
-      "Past simple question test",
-      "Past simple negative",
-      "Past simple negative test",
-      "Past continuous affirmative",
-      "Past continuous affirmative test",
-      "Past continuous question",
-      "Past continuous question test",
-      "Past continuous negative",
-      "Past continuous negative test"
-    ];
-
-    async function loadLessons() {
-      const progress = await getUserProgress();
-      const container = document.getElementById("a1LessonList");
-      container.innerHTML = "";
-
-      let canAccess = true;
-
-      lessons.forEach((title, index) => {
-        const id = `a1_lesson${index + 1}`;
-        const isDone = progress[id] === true;
-
-        const btn = document.createElement("button");
-        btn.className = "lesson-btn";
-        btn.textContent = title;
-
-        if (canAccess) {
-          btn.onclick = () => window.location.href = `${id}.html`;
-        } else {
-          btn.disabled = true;
-          btn.onclick = () => alert("Darslarni ketma-ket o'rganish kerak");
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A1 Darslari</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
-        if (!isDone) canAccess = false;
+        body.dark-mode {
+            background-color: #333;
+            color: #f4f4f4;
+        }
 
-        container.appendChild(btn);
-      });
-    }
+        ol {
+            list-style-type: decimal;
+            padding-left: 20px;
+        }
 
-    // Dark mode detect
-    const tg = window.Telegram.WebApp;
-    const theme = tg.themeParams || {};
+        li {
+            margin-bottom: 10px;
+        }
 
-    if (theme.bg_color && parseInt(theme.bg_color, 16) < 0x888888) {
-      document.documentElement.style.setProperty('--bg-color', `#${theme.bg_color}`);
-      document.documentElement.style.setProperty('--text-color', `#${theme.text_color || "ffffff"}`);
-      document.documentElement.style.setProperty('--card-bg', `#1f1f1f`);
-    }
+        li a, li span {
+            display: block;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background-color: #fff;
+            color: #333;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
 
-    window.addEventListener('DOMContentLoaded', loadLessons);
-  </script></body>
+        body.dark-mode li a, body.dark-mode li span {
+            background-color: #444;
+            color: #eee;
+            border-color: #555;
+        }
+
+        li a:hover {
+            background-color: #eee;
+        }
+
+        body.dark-mode li a:hover {
+            background-color: #555;
+        }
+
+        li span.locked {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .lock-message {
+            display: none;
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #ffe0e0;
+            color: #d32f2f;
+            border: 1px solid #d32f2f;
+            border-radius: 5px;
+        }
+
+        body.dark-mode .lock-message {
+            background-color: #5c3131;
+            color: #ffb3b3;
+            border-color: #ffb3b3;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>A1 Darslari</h1>
+
+    <ol id="lessons-list">
+        <li><a href="#" data-lesson="1">1. To be affirmative</a></li>
+        <li><a href="#" data-lesson="2">2. To be affirmative test</a></li>
+        <li><span class="locked" data-lesson="3">3. To be question</span></li>
+        <li><span class="locked" data-lesson="4">4. To be question test</span></li>
+        <li><span class="locked" data-lesson="5">5. To be negative</span></li>
+        <li><span class="locked" data-lesson="6">6. To be negative test</span></li>
+        <li><span class="locked" data-lesson="7">7. Present continues affirmative</span></li>
+        <li><span class="locked" data-lesson="8">8. Present continues affirmative test</span></li>
+        <li><span class="locked" data-lesson="9">9. Present continues question</span></li>
+        <li><span class="locked" data-lesson="10">10. Present continues question test</span></li>
+        <li><span class="locked" data-lesson="11">11. Present continues negative</span></li>
+        <li><span class="locked" data-lesson="12">12. Present continues negative test</span></li>
+        <li><span class="locked" data-lesson="13">13. Present simple affirmative</span></li>
+        <li><span class="locked" data-lesson="14">14. Present simple affirmative test</span></li>
+        <li><span class="locked" data-lesson="15">15. Present simple question</span></li>
+        <li><span class="locked" data-lesson="16">16. Present simple question test</span></li>
+        <li><span class="locked" data-lesson="17">17. Present simple negative</span></li>
+        <li><span class="locked" data-lesson="18">18. Present simple negative test</span></li>
+        <li><span class="locked" data-lesson="19">19. I have/I have got affirmative</span></li>
+        <li><span class="locked" data-lesson="20">20. I have/I have got affirmative test</span></li>
+        <li><span class="locked" data-lesson="21">21. I have/I have got question</span></li>
+        <li><span class="locked" data-lesson="22">22. I have/I have got question test</span></li>
+        <li><span class="locked" data-lesson="23">23. I have/I have got negative</span></li>
+        <li><span class="locked" data-lesson="24">24. I have/I have got negative test</span></li>
+        <li><span class="locked" data-lesson="25">25. Past simple affirmative</span></li>
+        <li><span class="locked" data-lesson="26">26. Past simple affirmative test</span></li>
+        <li><span class="locked" data-lesson="27">27. Past simple question</span></li>
+        <li><span class="locked" data-lesson="28">28. Past simple question test</span></li>
+        <li><span class="locked" data-lesson="29">29. Past simple negative</span></li>
+        <li><span class="locked" data-lesson="30">30. Past simple negative test</span></li>
+        <li><span class="locked" data-lesson="31">31. Past continuous affirmative</span></li>
+        <li><span class="locked" data-lesson="32">32. Past continuous affirmative test</span></li>
+        <li><span class="locked" data-lesson="33">33. Past continuous question</span></li>
+        <li><span class="locked" data-lesson="34">34. Past continuous question test</span></li>
+        <li><span class="locked" data-lesson="35">35. Past continuous negative</span></li>
+        <li><span class="locked" data-lesson="36">36. Past continuous negative test</span></li>
+    </ol>
+
+    <div id="lock-message" class="lock-message">Darslarni ketma-ket oʻrganish kerak</div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Dark mode avtomatik aniqlash
+            const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+            function toggleDarkMode(isDarkMode) {
+                document.body.classList.toggle('dark-mode', isDarkMode);
+            }
+
+            toggleDarkMode(darkModeMediaQuery.matches);
+
+            darkModeMediaQuery.addEventListener('change', (event) => {
+                toggleDarkMode(event.matches);
+            });
+
+            const lessonsList = document.getElementById('lessons-list');
+            const lockMessageDiv = document.getElementById('lock-message');
+            let unlockedLesson = 1; // Birinchi dars ochiq
+
+            lessonsList.addEventListener('click', function(event) {
+                const target = event.target;
+                if (target.classList.contains('locked')) {
+                    event.preventDefault();
+                    lockMessageDiv.style.display = 'block';
+                    setTimeout(() => {
+                        lockMessageDiv.style.display = 'none';
+                    }, 3000);
+                } else if (target.tagName === 'A') {
+                    const lessonNumber = parseInt(target.dataset.lesson);
+                    if (lessonNumber === unlockedLesson) {
+                        // Bu yerda darsga o'tish logikasi bo'lishi mumkin
+                        console.log(`Dars ${lessonNumber} ochildi.`);
+                        // Misol uchun, testdan o'tgandan keyin keyingi darsni ochish
+                        // Agar hozirgi dars test bo'lsa (raqami juft bo'lsa), keyingi darsni ochamiz
+                        if (lessonNumber % 2 === 0 && lessonNumber / 2 < lessonsList.children.length / 2) {
+                            unlockedLesson++;
+                            const nextLessonSpan = lessonsList.children[unlockedLesson * 2 - 1].querySelector('span');
+                            if (nextLessonSpan) {
+                                const newLink = document.createElement('a');
+                                newLink.href = '#';
+                                newLink.dataset.lesson = nextLessonSpan.dataset.lesson;
+                                newLink.textContent = nextLessonSpan.textContent;
+                                lessonsList.children[unlockedLesson * 2 - 1].replaceChild(newLink, nextLessonSpan);
+                            } else if (unlockedLesson * 2 <= lessonsList.children.length) {
+                                const nextLessonSpanOrLink = lessonsList.children[unlockedLesson * 2 - 1].children[0];
+                                if (nextLessonSpanOrLink && nextLessonSpanOrLink.classList.contains('locked')) {
+                                    const newLink = document.createElement('a');
+                                    newLink.href = '#';
+                                    newLink.dataset.lesson = nextLessonSpanOrLink.dataset.lesson;
+                                    newLink.textContent = nextLessonSpanOrLink.textContent;
+                                    lessonsList.children[unlockedLesson * 2 - 1].replaceChild(newLink, nextLessonSpanOrLink);
+                                }
+                            }
+                        } else if (lessonNumber % 2 !== 0 && lessonNumber + 1 <= lessonsList.children.length && lessonsList.children[lessonNumber].children[0].classList.contains('locked')) {
+                             const nextTestSpan = lessonsList.children[lessonNumber].children[0];
+                             const newLink = document.createElement('a');
+                                newLink.href = '#';
+                                newLink.dataset.lesson = nextTestSpan.dataset.lesson;
+                                newLink.textContent = nextTestSpan.textContent;
+                                lessonsList.children[lessonNumber].replaceChild(newLink, nextTestSpan);
+                        }
+                    } else if (lessonNumber > unlockedLesson) {
+                        event.preventDefault();
+                        lockMessageDiv.style.display = 'block';
+                        setTimeout(() => {
+                            lockMessageDiv.style.display = 'none';
+                        }, 3000);
+                    }
+                }
+            });
+        });
+    </script>
+
+</body>
 </html>
