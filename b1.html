@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>B2 Darslari</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #ffffff;
+      color: #000;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    body.dark-mode {
+      background-color: #121212;
+      color: #eee;
+    }
+
+    .lesson-btn {
+      display: block;
+      background-color: #007bff;
+      color: #fff;
+      text-align: left;
+      padding: 12px 20px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 16px;
+      transition: background-color 0.3s;
+    }
+
+    .lesson-btn:hover {
+      background-color: #0056b3;
+    }
+
+    .lesson-btn.locked {
+      background-color: #ccc;
+      color: #666;
+      cursor: not-allowed;
+    }
+
+    body.dark-mode .lesson-btn.locked {
+      background-color: #444;
+      color: #aaa;
+    }
+
+    #progress-bar {
+      width: 100%;
+      background-color: #eee;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      height: 20px;
+      overflow: hidden;
+    }
+
+    #progress-fill {
+      height: 100%;
+      width: 0%;
+      background-color: #007bff;
+      transition: width 0.5s;
+    }
+
+    #score {
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>B2 Darajasi Darslari</h1>
+  <div id="score">Ball: <span id="point">0</span></div>
+  <div id="progress-bar">
+    <div id="progress-fill"></div>
+  </div>
+
+  <div id="lessons-list">
+    <!-- Dars tugmalari bu yerga avtomatik qo‘shiladi -->
+  </div>
+
+  <script>
+    const lessons = [
+      "Present Perfect",
+      "Present Perfect positive test",
+      "Present Perfect question test",
+      "Present Perfect negative test",
+      "Present Perfect part 2",
+      "Just, Yet, Already test",
+      "Present Perfect 3",
+      "Present Perfect 3 test",
+      "Present Perfect",
+      "Present Perfect test",
+      "For /Since/ Ago",
+      "For/Since/Ago test",
+      "Present Perfect va Past Simple",
+      "Present Perfect va Past Simple test",
+      "Passive Voice",
+      "Passive voice test",
+      "Present Past part 2",
+      "Present past test",
+      "Present and Past tenses",
+      "Present and Past tenses test",
+      "Regular and Irregular Verbs",
+      "Regular and Irregular Verbs test",
+      "I used to ...",
+      "I used to ... positive",
+      "I used to ... question",
+      "I used to ... negative",
+      "What are you doing tomorrow?",
+      "Present simple with future test",
+      "I'm going to ...",
+      "I'm going to ... test",
+      "Future Tenses",
+      "Future Tenses test",
+      "Modal verbs /might",
+      "Modal verbs/might test",
+      "Modal verbs /can/could",
+      "Modal verbs/can/could test",
+      "Modal verbs /must/need",
+      "Modal verbs/must/need test",
+      "Modal verbs /should",
+      "Modal verbs/should test",
+      "I have to ...",
+      "I have to ... test",
+      "Would you like ... ?",
+      "Would you like ... ? test",
+      "There is vs There are",
+      "There is vs There are test",
+      "There was vs There were",
+      "There was vs There were test",
+      "There with other tenses",
+      "There with other tenses test",
+      "What time is it?",
+      "What time is it? test"
+    ];
+
+    const lessonContainer = document.getElementById("lessons-list");
+    const progressFill = document.getElementById("progress-fill");
+    const pointDisplay = document.getElementById("point");
+
+    let unlocked = parseInt(localStorage.getItem("unlocked")) || 0;
+    let score = parseInt(localStorage.getItem("score")) || 0;
+
+    function saveProgress() {
+      localStorage.setItem("unlocked", unlocked);
+      localStorage.setItem("score", score);
+    }
+
+    function updateProgress() {
+      let percent = Math.floor((unlocked / lessons.length) * 100);
+      progressFill.style.width = percent + "%";
+      pointDisplay.textContent = score;
+    }
+
+    function renderLessons() {
+      lessonContainer.innerHTML = "";
+      lessons.forEach((lesson, index) => {
+        const btn = document.createElement("a");
+        btn.className = "lesson-btn" + (index <= unlocked ? "" : " locked");
+        btn.href = index <= unlocked ? `dars${36 + index}.html` : "#";
+        btn.textContent = `${index + 1}. ${lesson}`;
+        btn.dataset.index = index;
+
+        btn.addEventListener("click", function (e) {
+          if (index > unlocked) {
+            e.preventDefault();
+            alert("Oldingi darslarni tugatish kerak!");
+          } else {
+            // Faqat yangi dars ochilganda ball va unlocked oshadi
+            if (index === unlocked) {
+              score += 1;
+              unlocked++;
+              saveProgress();
+              updateProgress();
+              renderLessons();
+            }
+          }
+        });
+
+        lessonContainer.appendChild(btn);
+      });
+    }
+
+    // Dark mode auto-detection
+    const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    document.body.classList.toggle("dark-mode", darkQuery.matches);
+    darkQuery.addEventListener("change", (e) => {
+      document.body.classList.toggle("dark-mode", e.matches);
+    });
+
+    // Boshlanish
+    renderLessons();
+    updateProgress();
+  </script>
+
+</body>
+</html>
