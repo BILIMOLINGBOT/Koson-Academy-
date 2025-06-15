@@ -23,14 +23,18 @@ export async function setupProgress(userId) {
 
   function updateLessonAvailability() {
     const lessonButtons = document.querySelectorAll('.lesson-btn');
+    const unlocked = Array.from(completedLessons).map(Number);
+    const maxUnlocked = Math.max(...unlocked);
+
     lessonButtons.forEach(button => {
-      const lessonId = button.dataset.lesson;
-      if (!completedLessons.has(lessonId)) {
-        button.classList.add('locked');
-        button.addEventListener('click', showLockedMessage);
-      } else {
+      const lessonId = parseInt(button.dataset.lesson);
+      if (lessonId <= maxUnlocked + 1) {
+        // Navbatdagi bitta darsni ochamiz
         button.classList.remove('locked');
         button.removeEventListener('click', showLockedMessage);
+      } else {
+        button.classList.add('locked');
+        button.addEventListener('click', showLockedMessage);
       }
     });
   }
@@ -69,11 +73,13 @@ export async function setupProgress(userId) {
     button.addEventListener('click', async function (e) {
       const lessonId = this.dataset.lesson;
       const required = (parseInt(lessonId) - 1).toString();
+
       if (!completedLessons.has(required)) {
         e.preventDefault();
         alert("Darslarni ketma-ket oʻrganish kerak");
         return;
       }
+
       await completeLesson(lessonId);
     });
   });
