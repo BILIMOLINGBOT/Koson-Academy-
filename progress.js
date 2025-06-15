@@ -1,7 +1,7 @@
-import { db, auth, doc, getDoc, setDoc, updateDoc } from './firebase.js';
+import { db, doc, getDoc, setDoc, updateDoc } from './firebase.js';
 
 export async function setupProgress(userId) {
-  const completedLessons = new Set(["0"]); // Boshlang‘ich holat
+  const completedLessons = new Set(["0"]); // Dars 0 har doim mavjud
 
   const progressRef = doc(db, "progress", userId);
   let userProgress = await getDoc(progressRef);
@@ -11,14 +11,14 @@ export async function setupProgress(userId) {
     if (Array.isArray(data.lessons)) {
       data.lessons.forEach(id => completedLessons.add(id));
     }
-    updateProgressUI();
   } else {
     await setDoc(progressRef, { lessons: ["0"], score: 0 });
   }
 
   function updatePoints() {
     const points = (completedLessons.size - 1) * 10;
-    document.getElementById('score-value').innerText = points;
+    const scoreElement = document.getElementById('score-value');
+    if (scoreElement) scoreElement.innerText = points;
   }
 
   function updateLessonAvailability() {
@@ -44,7 +44,8 @@ export async function setupProgress(userId) {
     const totalLessons = document.querySelectorAll('.lesson-btn').length;
     const completedCount = completedLessons.size - 1;
     const percent = (completedCount / totalLessons) * 100;
-    document.getElementById("progress-bar").style.width = percent + "%";
+    const progressBar = document.getElementById("progress-bar");
+    if (progressBar) progressBar.style.width = percent + "%";
     updatePoints();
     updateLessonAvailability();
   }
@@ -67,15 +68,12 @@ export async function setupProgress(userId) {
   document.querySelectorAll('.lesson-btn').forEach(button => {
     button.addEventListener('click', async function (e) {
       const lessonId = this.dataset.lesson;
-      const numId = parseInt(lessonId);
-      const required = (numId - 1).toString();
-
+      const required = (parseInt(lessonId) - 1).toString();
       if (!completedLessons.has(required)) {
         e.preventDefault();
         alert("Darslarni ketma-ket oʻrganish kerak");
         return;
       }
-
       await completeLesson(lessonId);
     });
   });
