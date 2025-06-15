@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>A2 Darslari</title>
+  <title>B2 Darslari</title>
   <style>
     body {
       font-family: sans-serif;
@@ -72,7 +72,7 @@
 </head>
 <body>
 
-  <h1>B2 Darajasi Darslari</h1>
+  <h1>A2 Darajasi Darslari</h1>
   <div id="score">Ball: <span id="point">0</span></div>
   <div id="progress-bar">
     <div id="progress-fill"></div>
@@ -142,8 +142,13 @@
     const progressFill = document.getElementById("progress-fill");
     const pointDisplay = document.getElementById("point");
 
-    let unlocked = 0;
-    let score = 0;
+    let unlocked = parseInt(localStorage.getItem("unlocked")) || 0;
+    let score = parseInt(localStorage.getItem("score")) || 0;
+
+    function saveProgress() {
+      localStorage.setItem("unlocked", unlocked);
+      localStorage.setItem("score", score);
+    }
 
     function updateProgress() {
       let percent = Math.floor((unlocked / lessons.length) * 100);
@@ -157,7 +162,7 @@
         const btn = document.createElement("a");
         btn.className = "lesson-btn" + (index <= unlocked ? "" : " locked");
         btn.href = index <= unlocked ? `dars${36 + index}.html` : "#";
-        btn.textContent = lesson;
+        btn.textContent = `${index + 1}. ${lesson}`;
         btn.dataset.index = index;
 
         btn.addEventListener("click", function (e) {
@@ -165,10 +170,14 @@
             e.preventDefault();
             alert("Oldingi darslarni tugatish kerak!");
           } else {
-            score += 1;
-            if (unlocked < lessons.length - 1) unlocked++;
-            updateProgress();
-            renderLessons();
+            // Faqat yangi dars ochilganda ball va unlocked oshadi
+            if (index === unlocked) {
+              score += 1;
+              unlocked++;
+              saveProgress();
+              updateProgress();
+              renderLessons();
+            }
           }
         });
 
@@ -183,7 +192,7 @@
       document.body.classList.toggle("dark-mode", e.matches);
     });
 
-    // Start
+    // Boshlanish
     renderLessons();
     updateProgress();
   </script>
