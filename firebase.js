@@ -1,12 +1,6 @@
-// firebase.js
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// Firebase SDK funksiyalarini import qilish
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
-import { getAnalytics } from "firebase/analytics";
-
-// Firebase konfiguratsiyasi – sizning loyihangizga mos
 const firebaseConfig = {
   apiKey: "AIzaSyD0gBUJNcrgvvntcrfKK7Ky8t6_9Qb96Io",
   authDomain: "bilimilova-64833.firebaseapp.com",
@@ -18,13 +12,7 @@ const firebaseConfig = {
   measurementId: "G-ZBC8X1VVMZ"
 };
 
-// Firebase ilovasini ishga tushirish
 const app = initializeApp(firebaseConfig);
-
-// Auth, Firestore va Analytics xizmatlarini ulash
-const auth = getAuth(app);
 const db = getFirestore(app);
-const analytics = getAnalytics(app);
 
-// Tashqariga eksport qilish
-export { app, auth, db, analytics };
+export { db, doc, getDoc, setDoc, updateDoc };
