@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>A2 Darslari</title>
+  <title>B2 Darslari</title>
   <style>
     body {
       font-family: sans-serif;
@@ -17,6 +17,22 @@
     body.dark-mode {
       background-color: #121212;
       color: #eee;
+    }
+
+    .back-btn {
+      display: inline-block;
+      padding: 10px 15px;
+      background-color: #007bff;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      margin-bottom: 15px;
+      font-size: 16px;
+      transition: background-color 0.3s;
+    }
+
+    .back-btn:hover {
+      background-color: #0056b3;
     }
 
     .lesson-btn {
@@ -52,7 +68,7 @@
       width: 100%;
       background-color: #eee;
       border-radius: 8px;
-      margin: 10px auto 20px;
+      margin-bottom: 20px;
       height: 20px;
       overflow: hidden;
     }
@@ -67,47 +83,19 @@
     #score {
       font-weight: bold;
       margin-bottom: 20px;
-      text-align: center;
-      font-size: 20px;
-      color: #007bff;
-    }
-
-    h1 {
-      text-align: center;
-    }
-
-    /* Orqaga tugmasi uchun uslub */
-    .back-btn {
-      display: inline-block;
-      background-color: #dc3545;
-      color: #fff;
-      padding: 10px 20px;
-      margin: 10px 0;
-      border: none;
-      border-radius: 8px;
-      text-decoration: none;
-      font-size: 16px;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-
-    .back-btn:hover {
-      background-color: #b02a37;
     }
   </style>
 </head>
 <body>
-  <h1>A2 Darajasi Darslari</h1>
-  <!-- Orqaga tugmasi qo'shildi -->
-  <button class="back-btn" onclick="goBack()">Orqaga</button>
+  <a href="index.html" class="back-btn">Orqaga</a>
+  <h1>B2 Darajasi Darslari</h1>
   <div id="score">Ball: <span id="point">0</span></div>
   <div id="progress-bar">
     <div id="progress-fill"></div>
   </div>
 
   <div id="lessons-list">
-    <!-- Dars tugmalari bu yerga avtomatik qo‘shiladi -->
-  </div>
+    </div>
 
   <script>
     const lessons = [
@@ -187,21 +175,21 @@
       lessonContainer.innerHTML = "";
       lessons.forEach((lesson, index) => {
         const btn = document.createElement("a");
-        const pageNumber = 37 + index;
         btn.className = "lesson-btn" + (index <= unlocked ? "" : " locked");
-        btn.href = index <= unlocked ? `dars${pageNumber}.html` : "#";
+        btn.href = index <= unlocked ? `dars${36 + index + 1}.html` : "#"; // Dars fayllari nomini to'g'irlash (dars37.html dan boshlab)
         btn.textContent = `${index + 1}. ${lesson}`;
         btn.dataset.index = index;
 
         btn.addEventListener("click", function (e) {
           if (index > unlocked) {
             e.preventDefault();
-            alert("Oldingi darslarni tugatish kerak!");
+            alert("Darslarni ketma-ket oʻrganish kerak!");
           } else {
-            localStorage.setItem("currentLesson", index); // Joriy dars indeksini saqlash
-            if (index === unlocked) {
+            // Faqat yangi dars ochilganda ball va unlocked oshadi
+            if (index === unlocked && !this.classList.contains('visited')) {
               score += 1;
               unlocked++;
+              this.classList.add('visited');
               saveProgress();
               updateProgress();
               renderLessons();
@@ -212,26 +200,6 @@
         lessonContainer.appendChild(btn);
       });
     }
-
-    // Orqaga qaytish funksiyasi
-    function goBack() {
-      let currentIndex = parseInt(localStorage.getItem("currentLesson")) || 0;
-      if (currentIndex > 0) {
-        history.back(); // Oldingi dars sahifasiga qaytish
-      } else {
-        window.location.href = "index.html"; // Bosh sahifaga qaytish
-      }
-    }
-
-    // Telefonning orqaga tugmasi bosilganda
-    window.addEventListener("popstate", () => {
-      let currentIndex = parseInt(localStorage.getItem("currentLesson")) || 0;
-      if (currentIndex > 0) {
-        history.back(); // Oldingi dars sahifasiga qaytish
-      } else {
-        window.location.href = "index.html"; // Bosh sahifaga qaytish
-      }
-    });
 
     // Dark mode auto-detection
     const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
@@ -244,5 +212,6 @@
     renderLessons();
     updateProgress();
   </script>
+
 </body>
 </html>
