@@ -22,6 +22,30 @@
       text-align: center;
     }
 
+    .back-button {
+      display: inline-block;
+      margin-bottom: 15px;
+      padding: 8px 16px;
+      background-color: #007bff;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      font-size: 16px;
+      transition: background-color 0.3s ease;
+    }
+
+    .back-button:hover {
+      background-color: #0056b3;
+    }
+
+    body.dark-mode .back-button {
+      background-color: #3399ff;
+    }
+
+    body.dark-mode .back-button:hover {
+      background-color: #1f78d1;
+    }
+
     #progress-container {
       width: 100%;
       background-color: #ddd;
@@ -75,51 +99,52 @@
       font-weight: bold;
     }
 
-    .lock-message {
+    /* Modal (popup) */
+    .modal {
       display: none;
+      position: fixed;
+      z-index: 999;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0, 0, 0, 0.6);
+    }
+
+    .modal-content {
+      background-color: #fff;
+      color: #333;
+      margin: 20% auto;
+      padding: 20px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+      font-size: 18px;
+    }
+
+    body.dark-mode .modal-content {
+      background-color: #333;
+      color: #f4f4f4;
+    }
+
+    .modal-content button {
       margin-top: 15px;
-      padding: 10px;
-      background-color: #ffe0e0;
-      color: #d32f2f;
-      border: 1px solid #d32f2f;
-      border-radius: 5px;
-    }
-
-    body.dark-mode .lock-message {
-      background-color: #5c3131;
-      color: #ffb3b3;
-      border-color: #ffb3b3;
-    }
-
-    .back-button {
-      display: inline-block;
-      margin-bottom: 15px;
       padding: 8px 16px;
       background-color: #007bff;
       color: white;
-      text-decoration: none;
-      border-radius: 5px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
       font-size: 16px;
-      transition: background-color 0.3s ease;
     }
 
-    .back-button:hover {
+    .modal-content button:hover {
       background-color: #0056b3;
-    }
-
-    body.dark-mode .back-button {
-      background-color: #3399ff;
-    }
-
-    body.dark-mode .back-button:hover {
-      background-color: #1f78d1;
     }
   </style>
 </head>
 <body>
-  <!-- Orqaga tugmasi -->
-  <a href="index.html" class="back-button">← Orqaga</a>
 
+  <a href="index.html" class="back-button">← Orqaga</a>
   <h1>A1 Darslari</h1>
 
   <div id="score">Ball: <span id="score-value">0</span></div>
@@ -129,13 +154,26 @@
   </div>
 
   <div id="lessons-list">
-    <!-- Dars tugmalari (siz avval kiritgan barcha tugmalar) -->
     <a href="dars1.html" class="lesson-btn" data-lesson="1">To be affirmative</a>
     <a href="dars2.html" class="lesson-btn locked" data-lesson="2">To be affirmative test</a>
-    <!-- qolgan darslar... -->
+    <a href="#" class="lesson-btn locked" data-lesson="3">To be question</a>
+    <a href="#" class="lesson-btn locked" data-lesson="4">To be question test</a>
+    <a href="#" class="lesson-btn locked" data-lesson="5">To be negative</a>
+    <a href="#" class="lesson-btn locked" data-lesson="6">To be negative test</a>
+    <a href="#" class="lesson-btn locked" data-lesson="7">Present continuous affirmative</a>
+    <a href="#" class="lesson-btn locked" data-lesson="8">Present continuous affirmative test</a>
+    <a href="#" class="lesson-btn locked" data-lesson="9">Present continuous question</a>
+    <a href="#" class="lesson-btn locked" data-lesson="10">Present continuous question test</a>
+    <!-- Yana darslar shu tartibda davom etadi -->
   </div>
 
-  <div id="lock-message" class="lock-message">Darslarni ketma-ket oʻrganish kerak</div>
+  <!-- Modal -->
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <p>Darslarni ketma-ket oʻrganish kerak</p>
+      <button onclick="closeModal()">Yopish</button>
+    </div>
+  </div>
 
   <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -146,7 +184,6 @@
       });
 
       const lessons = document.querySelectorAll('.lesson-btn');
-      const lockMessage = document.getElementById('lock-message');
       const progressBar = document.getElementById('progress-bar');
       const scoreValue = document.getElementById('score-value');
       let unlockedLesson = 1;
@@ -157,10 +194,8 @@
           const lessonNum = parseInt(this.dataset.lesson);
           if (lessonNum > unlockedLesson) {
             e.preventDefault();
-            lockMessage.style.display = 'block';
-            setTimeout(() => lockMessage.style.display = 'none', 2500);
+            showModal();
           } else {
-            // Ball va progress yangilash
             if (!this.classList.contains('visited')) {
               score += 10;
               scoreValue.textContent = score;
@@ -182,6 +217,14 @@
         });
       });
     });
+
+    function showModal() {
+      document.getElementById('modal').style.display = 'block';
+    }
+
+    function closeModal() {
+      document.getElementById('modal').style.display = 'none';
+    }
   </script>
 </body>
 </html>
