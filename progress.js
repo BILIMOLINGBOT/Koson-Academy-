@@ -1,58 +1,24 @@
-export function setupProgress() {
-  const completedLessons = new Set();
-  completedLessons.add("0"); // No lesson is completed initially
+// progress.js import { getFirestore, doc, getDoc, setDoc, updateDoc } from "firebase/firestore"; import { getAuth, onAuthStateChanged } from "firebase/auth"; import { initializeApp } from "firebase/app";
 
-  const updatePoints = () => {
-    const completedCount = completedLessons.size - 1;
-    const points = completedCount * 10;
-    document.getElementById('userPoints').innerText = `Ballar: ${points}`;
-  };
+const firebaseConfig = { apiKey: "AIzaSyD0gBUJNcrgvvntcrfKK7Ky8t6_9Qb96Io", authDomain: "bilimilova-64833.firebaseapp.com", databaseURL: "https://bilimilova-64833-default-rtdb.europe-west1.firebasedatabase.app", projectId: "bilimilova-64833", storageBucket: "bilimilova-64833.appspot.com", messagingSenderId: "890689414502", appId: "1:890689414502:web:8141d7aab413495c0c14a7", measurementId: "G-ZBC8X1VVMZ" };
 
-  const updateLessonAvailability = () => {
-    const lessonButtons = document.querySelectorAll('.level-content.active .button');
-    lessonButtons.forEach(button => {
-      const requiredLessonId = button.getAttribute('data-required');
-      if (requiredLessonId && !completedLessons.has(requiredLessonId)) {
-        button.classList.add('closed');
-        button.addEventListener('click', showClosedLessonMessage);
-      } else {
-        button.classList.remove('closed');
-        button.removeEventListener('click', showClosedLessonMessage);
-      }
-    });
-    updateProgress();
-  };
+const app = initializeApp(firebaseConfig); const db = getFirestore(app); const auth = getAuth(app);
 
-  const showClosedLessonMessage = (event) => {
-    event.preventDefault();
-    alert("Darslarni ketma-ket oʻrganish kerak");
-  };
+export function setupProgress() { const completedLessons = new Set(); let userId = null;
 
-  const markLessonAsComplete = (lessonId) => {
-    completedLessons.add(lessonId);
-    updateLessonAvailability();
-  };
+const updatePoints = () => { const points = (completedLessons.size - 1) * 10; const scoreElement = document.getElementById('userPoints'); if (scoreElement) scoreElement.innerText = Ballar: ${points}; if (userId) updateUserProgressInFirestore(Array.from(completedLessons), points); };
 
-  const updateProgress = () => {
-    const allLessonsInCurrentLevel = document.querySelectorAll('.level-content.active .button').length;
-    const unlockedLessonsInCurrentLevel = document.querySelectorAll('.level-content.active .button:not(.closed)').length;
-    const completedCount = completedLessons.size - 1;
-    const totalLessons = 36;
-    document.getElementById('completedLessonsCount').innerText = `Yakunlangan darslar: ${completedCount} / ${totalLessons}`;
-    const progressPercentage = (completedCount / totalLessons) * 100;
-    document.querySelector('.progress-fill').style.width = `${progressPercentage}%`;
-    updatePoints();
-  };
+const updateLessonAvailability = () => { const lessonButtons = document.querySelectorAll('.level-content.active .button'); lessonButtons.forEach(button => { const requiredLessonId = button.getAttribute('data-required'); if (requiredLessonId && !completedLessons.has(requiredLessonId)) { button.classList.add('closed'); button.addEventListener('click', showClosedLessonMessage); } else { button.classList.remove('closed'); button.removeEventListener('click', showClosedLessonMessage); } }); updateProgress(); };
 
-  // Simulate completing lessons for demonstration
-  setTimeout(() => markLessonAsComplete("1"), 1000);
-  setTimeout(() => markLessonAsComplete("2"), 2000);
-  setTimeout(() => markLessonAsComplete("3"), 3000);
-  setTimeout(() => markLessonAsComplete("4"), 4000);
-  setTimeout(() => markLessonAsComplete("5"), 5000);
-  setTimeout(() => markLessonAsComplete("6"), 6000);
+const showClosedLessonMessage = (event) => { event.preventDefault(); alert("Darslarni ketma-ket oʻrganish kerak"); };
 
-  // Initial calls
-  updateLessonAvailability();
-  updatePoints();
-}
+const markLessonAsComplete = (lessonId) => { completedLessons.add(lessonId); updateLessonAvailability(); };
+
+const updateProgress = () => { const completedCount = completedLessons.size - 1; const totalLessons = 36; const countElement = document.getElementById('completedLessonsCount'); if (countElement) countElement.innerText = Yakunlangan darslar: ${completedCount} / ${totalLessons}; const progressBar = document.querySelector('.progress-fill'); if (progressBar) progressBar.style.width = ${(completedCount / totalLessons) * 100}%; updatePoints(); };
+
+const loadUserProgressFromFirestore = async (uid) => { const userRef = doc(db, "users", uid); const docSnap = await getDoc(userRef); if (docSnap.exists()) { const data = docSnap.data(); (data.completedLessons || []).forEach(id => completedLessons.add(id)); updateLessonAvailability(); updatePoints(); } else { completedLessons.add("0"); await setDoc(userRef, { completedLessons: ["0"], points: 0 }); } };
+
+const updateUserProgressInFirestore = async (lessonsArray, points) => { const userRef = doc(db, "users", userId); await updateDoc(userRef, { completedLessons: lessonsArray, points: points }); };
+
+onAuthStateChanged(auth, (user) => { if (user) { userId = user.uid; loadUserProgressFromFirestore(userId); } }); }
+
