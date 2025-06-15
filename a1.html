@@ -8,26 +8,30 @@
     body {
       font-family: sans-serif;
       margin: 20px;
-      background-color: #fff;
+      background-color: #ffffff;
       color: #333;
       transition: background-color 0.3s ease, color 0.3s ease;
     }
 
     body.dark-mode {
-      background-color: #222;
+      background-color: #121212;
       color: #f4f4f4;
     }
 
     h1 {
       text-align: center;
+      margin-bottom: 10px;
     }
 
-    #back-button {
+    .back-button {
       display: inline-block;
       margin-bottom: 20px;
-      color: #007bff;
+      background-color: #007bff;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 8px;
       text-decoration: none;
-      font-size: 18px;
+      font-weight: bold;
     }
 
     #progress-container {
@@ -62,7 +66,7 @@
       background-color: #0056b3;
     }
 
-    .locked {
+    .lesson-btn.locked {
       background-color: #ccc !important;
       color: #666 !important;
       cursor: not-allowed;
@@ -74,8 +78,8 @@
     }
 
     body.dark-mode .lesson-btn.locked {
-      background-color: #555 !important;
-      color: #999 !important;
+      background-color: #444 !important;
+      color: #aaa !important;
     }
 
     #score {
@@ -83,51 +87,38 @@
       font-weight: bold;
     }
 
-    /* Popup modal */
-    .modal {
+    /* Modal */
+    #lock-modal {
       display: none;
       position: fixed;
-      z-index: 9999;
+      z-index: 999;
       left: 0;
       top: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0,0,0,0.4);
+      background-color: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
     }
 
-    .modal-content {
-      background-color: white;
-      margin: 20% auto;
+    #lock-modal .modal-content {
+      background-color: #fff;
       padding: 20px;
-      border: 1px solid #888;
-      width: 80%;
-      max-width: 400px;
-      text-align: center;
       border-radius: 10px;
+      max-width: 300px;
+      text-align: center;
+      font-size: 18px;
+      color: #d32f2f;
     }
 
-    .dark-mode .modal-content {
-      background-color: #444;
-      color: white;
-    }
-
-    .close-btn {
-      margin-top: 15px;
-      background: #007bff;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    .close-btn:hover {
-      background: #0056b3;
+    body.dark-mode #lock-modal .modal-content {
+      background-color: #333;
+      color: #ffb3b3;
     }
   </style>
 </head>
 <body>
-  <a id="back-button" href="index.html">&larr; Orqaga</a>
+  <a href="index.html" class="back-button">← Orqaga</a>
   <h1>A1 Darslari</h1>
 
   <div id="score">Ball: <span id="score-value">0</span></div>
@@ -140,54 +131,55 @@
     <a href="dars1.html" class="lesson-btn" data-lesson="1">To be affirmative</a>
     <a href="#" class="lesson-btn locked" data-lesson="2">To be affirmative test</a>
     <a href="#" class="lesson-btn locked" data-lesson="3">To be question</a>
-    <!-- ... davom etgan darslar shu tarzda yoziladi -->
+    <a href="#" class="lesson-btn locked" data-lesson="4">To be question test</a>
+    <a href="#" class="lesson-btn locked" data-lesson="5">To be negative</a>
+    <!-- Shu tarzda davom ettirishingiz mumkin -->
   </div>
 
-  <!-- Modal -->
-  <div id="lockModal" class="modal">
-    <div class="modal-content">
-      <p>Darslarni ketma-ket oʻrganish kerak</p>
-      <button class="close-btn" onclick="document.getElementById('lockModal').style.display='none'">Yopish</button>
-    </div>
+  <div id="lock-modal">
+    <div class="modal-content">Darslarni ketma-ket oʻrganish kerak</div>
   </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', function () {
+      // Dark mode
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
       document.body.classList.toggle('dark-mode', prefersDark.matches);
-      prefersDark.addEventListener('change', (e) => {
+      prefersDark.addEventListener('change', e => {
         document.body.classList.toggle('dark-mode', e.matches);
       });
 
       const lessons = document.querySelectorAll('.lesson-btn');
       const progressBar = document.getElementById('progress-bar');
       const scoreValue = document.getElementById('score-value');
-      const modal = document.getElementById('lockModal');
+      const modal = document.getElementById('lock-modal');
 
       let unlockedLesson = 1;
       let score = 0;
 
-      lessons.forEach(lesson => {
-        lesson.addEventListener('click', function (e) {
+      lessons.forEach(btn => {
+        btn.addEventListener('click', function (e) {
           const lessonNum = parseInt(this.dataset.lesson);
           if (lessonNum > unlockedLesson) {
             e.preventDefault();
-            modal.style.display = 'block';
+            modal.style.display = 'flex';
+            setTimeout(() => { modal.style.display = 'none'; }, 2500);
           } else {
             if (!this.classList.contains('visited')) {
               score += 10;
               scoreValue.textContent = score;
-              const totalLessons = lessons.length;
-              const progressPercent = Math.min((lessonNum / totalLessons) * 100, 100);
-              progressBar.style.width = progressPercent + '%';
+
+              const total = lessons.length;
+              const percent = Math.min((lessonNum / total) * 100, 100);
+              progressBar.style.width = percent + '%';
 
               this.classList.add('visited');
-              if (unlockedLesson < totalLessons) {
+              if (unlockedLesson < total) {
                 unlockedLesson++;
-                const nextLesson = document.querySelector(`.lesson-btn[data-lesson="${unlockedLesson}"]`);
-                if (nextLesson && nextLesson.classList.contains('locked')) {
-                  nextLesson.classList.remove('locked');
-                  nextLesson.href = `dars${unlockedLesson}.html`;
+                const next = document.querySelector(`.lesson-btn[data-lesson="${unlockedLesson}"]`);
+                if (next && next.classList.contains('locked')) {
+                  next.classList.remove('locked');
+                  next.href = `dars${unlockedLesson}.html`;
                 }
               }
             }
