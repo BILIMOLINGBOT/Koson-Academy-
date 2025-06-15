@@ -1,24 +1,84 @@
-// progress.js import { getFirestore, doc, getDoc, setDoc, updateDoc } from "firebase/firestore"; import { getAuth, onAuthStateChanged } from "firebase/auth"; import { initializeApp } from "firebase/app";
+import { db, auth, doc, getDoc, setDoc, updateDoc } from './firebase.js';
 
-const firebaseConfig = { apiKey: "AIzaSyD0gBUJNcrgvvntcrfKK7Ky8t6_9Qb96Io", authDomain: "bilimilova-64833.firebaseapp.com", databaseURL: "https://bilimilova-64833-default-rtdb.europe-west1.firebasedatabase.app", projectId: "bilimilova-64833", storageBucket: "bilimilova-64833.appspot.com", messagingSenderId: "890689414502", appId: "1:890689414502:web:8141d7aab413495c0c14a7", measurementId: "G-ZBC8X1VVMZ" };
+export async function setupProgress(userId) {
+  const completedLessons = new Set(["0"]); // Boshlang‘ich holat
 
-const app = initializeApp(firebaseConfig); const db = getFirestore(app); const auth = getAuth(app);
+  const progressRef = doc(db, "progress", userId);
+  let userProgress = await getDoc(progressRef);
 
-export function setupProgress() { const completedLessons = new Set(); let userId = null;
+  if (userProgress.exists()) {
+    const data = userProgress.data();
+    if (Array.isArray(data.lessons)) {
+      data.lessons.forEach(id => completedLessons.add(id));
+    }
+    updateProgressUI();
+  } else {
+    await setDoc(progressRef, { lessons: ["0"], score: 0 });
+  }
 
-const updatePoints = () => { const points = (completedLessons.size - 1) * 10; const scoreElement = document.getElementById('userPoints'); if (scoreElement) scoreElement.innerText = Ballar: ${points}; if (userId) updateUserProgressInFirestore(Array.from(completedLessons), points); };
+  function updatePoints() {
+    const points = (completedLessons.size - 1) * 10;
+    document.getElementById('score-value').innerText = points;
+  }
 
-const updateLessonAvailability = () => { const lessonButtons = document.querySelectorAll('.level-content.active .button'); lessonButtons.forEach(button => { const requiredLessonId = button.getAttribute('data-required'); if (requiredLessonId && !completedLessons.has(requiredLessonId)) { button.classList.add('closed'); button.addEventListener('click', showClosedLessonMessage); } else { button.classList.remove('closed'); button.removeEventListener('click', showClosedLessonMessage); } }); updateProgress(); };
+  function updateLessonAvailability() {
+    const lessonButtons = document.querySelectorAll('.lesson-btn');
+    lessonButtons.forEach(button => {
+      const lessonId = button.dataset.lesson;
+      if (!completedLessons.has(lessonId)) {
+        button.classList.add('locked');
+        button.addEventListener('click', showLockedMessage);
+      } else {
+        button.classList.remove('locked');
+        button.removeEventListener('click', showLockedMessage);
+      }
+    });
+  }
 
-const showClosedLessonMessage = (event) => { event.preventDefault(); alert("Darslarni ketma-ket oʻrganish kerak"); };
+  function showLockedMessage(e) {
+    e.preventDefault();
+    alert("Darslarni ketma-ket oʻrganish kerak");
+  }
 
-const markLessonAsComplete = (lessonId) => { completedLessons.add(lessonId); updateLessonAvailability(); };
+  function updateProgressUI() {
+    const totalLessons = document.querySelectorAll('.lesson-btn').length;
+    const completedCount = completedLessons.size - 1;
+    const percent = (completedCount / totalLessons) * 100;
+    document.getElementById("progress-bar").style.width = percent + "%";
+    updatePoints();
+    updateLessonAvailability();
+  }
 
-const updateProgress = () => { const completedCount = completedLessons.size - 1; const totalLessons = 36; const countElement = document.getElementById('completedLessonsCount'); if (countElement) countElement.innerText = Yakunlangan darslar: ${completedCount} / ${totalLessons}; const progressBar = document.querySelector('.progress-fill'); if (progressBar) progressBar.style.width = ${(completedCount / totalLessons) * 100}%; updatePoints(); };
+  async function completeLesson(lessonId) {
+    if (!completedLessons.has(lessonId)) {
+      completedLessons.add(lessonId);
+      const updatedLessons = Array.from(completedLessons);
+      const updatedScore = (completedLessons.size - 1) * 10;
 
-const loadUserProgressFromFirestore = async (uid) => { const userRef = doc(db, "users", uid); const docSnap = await getDoc(userRef); if (docSnap.exists()) { const data = docSnap.data(); (data.completedLessons || []).forEach(id => completedLessons.add(id)); updateLessonAvailability(); updatePoints(); } else { completedLessons.add("0"); await setDoc(userRef, { completedLessons: ["0"], points: 0 }); } };
+      await updateDoc(progressRef, {
+        lessons: updatedLessons,
+        score: updatedScore,
+      });
 
-const updateUserProgressInFirestore = async (lessonsArray, points) => { const userRef = doc(db, "users", userId); await updateDoc(userRef, { completedLessons: lessonsArray, points: points }); };
+      updateProgressUI();
+    }
+  }
 
-onAuthStateChanged(auth, (user) => { if (user) { userId = user.uid; loadUserProgressFromFirestore(userId); } }); }
+  document.querySelectorAll('.lesson-btn').forEach(button => {
+    button.addEventListener('click', async function (e) {
+      const lessonId = this.dataset.lesson;
+      const numId = parseInt(lessonId);
+      const required = (numId - 1).toString();
 
+      if (!completedLessons.has(required)) {
+        e.preventDefault();
+        alert("Darslarni ketma-ket oʻrganish kerak");
+        return;
+      }
+
+      await completeLesson(lessonId);
+    });
+  });
+
+  updateProgressUI();
+}
