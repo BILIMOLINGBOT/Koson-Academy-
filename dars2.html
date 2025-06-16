@@ -2,86 +2,102 @@
 <html lang="uz">
 <head>
   <meta charset="UTF-8">
-  <title>"To Be" Positive Test</title>
+  <title>To Be Positive – Test 1</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: sans-serif; padding: 20px; background: #f9f9f9; }
-    .question { margin-bottom: 20px; padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);}
-    .question h3 { margin-top: 0; }
-    button { margin: 5px 0; padding: 8px 16px; border: none; border-radius: 5px; cursor: pointer; }
-    button:hover { background-color: #e0e0e0; }
-    .correct { background-color: #c8f7c5; }
-    .wrong { background-color: #f9c5c5; }
-    #score { font-size: 20px; margin-top: 20px; font-weight: bold; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #e3f2fd, #bbdefb);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .card {
+      background: #fff;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+    }
+    h2 {
+      margin-bottom: 30px;
+      color: #1a237e;
+    }
+    .option-btn {
+      display: block;
+      width: 100%;
+      margin: 10px 0;
+      padding: 12px;
+      font-size: 16px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      background-color: #e3f2fd;
+    }
+    .option-btn:hover {
+      background-color: #90caf9;
+    }
+    .correct {
+      background-color: #c8e6c9 !important;
+    }
+    .wrong {
+      background-color: #ffcdd2 !important;
+    }
+    #result {
+      font-size: 18px;
+      margin-top: 20px;
+    }
+    .next-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      display: none;
+    }
   </style>
 </head>
 <body>
-
-  <h1>"To Be" Positive – Test (20 savol)</h1>
-  <div id="quiz"></div>
-  <div id="score"></div>
+  <div class="card">
+    <h2>1. I ___ a student.</h2>
+    <button class="option-btn" onclick="checkAnswer(this, 'am')">am</button>
+    <button class="option-btn" onclick="checkAnswer(this, 'is')">is</button>
+    <button class="option-btn" onclick="checkAnswer(this, 'are')">are</button>
+    <div id="result"></div>
+    <button class="next-btn" onclick="goNext()">Keyingi ➡️</button>
+  </div>
 
   <script>
-    const questions = [
-      { q: "I ___ a student.", correct: "am" },
-      { q: "He ___ my brother.", correct: "is" },
-      { q: "We ___ friends.", correct: "are" },
-      { q: "She ___ beautiful.", correct: "is" },
-      { q: "They ___ happy.", correct: "are" },
-      { q: "It ___ a cat.", correct: "is" },
-      { q: "You ___ a doctor.", correct: "are" },
-      { q: "I ___ very tired.", correct: "am" },
-      { q: "He ___ from Uzbekistan.", correct: "is" },
-      { q: "We ___ at home.", correct: "are" },
-      { q: "She ___ 20 years old.", correct: "is" },
-      { q: "They ___ in the park.", correct: "are" },
-      { q: "I ___ ready.", correct: "am" },
-      { q: "It ___ very cold today.", correct: "is" },
-      { q: "You ___ late!", correct: "are" },
-      { q: "He ___ a singer.", correct: "is" },
-      { q: "We ___ students of English.", correct: "are" },
-      { q: "She ___ at school.", correct: "is" },
-      { q: "I ___ from Tashkent.", correct: "am" },
-      { q: "They ___ my neighbors.", correct: "are" }
-    ];
+    const correct = "am";
+    let answered = false;
 
-    const options = ["am", "is", "are"];
-    let score = 0;
+    function checkAnswer(btn, value) {
+      if (answered) return;
+      answered = true;
+      const buttons = document.querySelectorAll('.option-btn');
+      buttons.forEach(b => b.disabled = true);
+      if (value === correct) {
+        btn.classList.add("correct");
+        document.getElementById("result").textContent = "✅ To‘g‘ri javob!";
+      } else {
+        btn.classList.add("wrong");
+        document.getElementById("result").textContent = "❌ Noto‘g‘ri. To‘g‘ri javob: " + correct;
+      }
+      document.querySelector(".next-btn").style.display = "inline-block";
+    }
 
-    const quizDiv = document.getElementById("quiz");
-
-    questions.forEach((item, index) => {
-      const qDiv = document.createElement("div");
-      qDiv.className = "question";
-
-      const h3 = document.createElement("h3");
-      h3.textContent = (index + 1) + ". " + item.q;
-      qDiv.appendChild(h3);
-
-      options.forEach(option => {
-        const btn = document.createElement("button");
-        btn.textContent = option;
-        btn.onclick = () => {
-          if (btn.disabled) return;
-          if (option === item.correct) {
-            btn.classList.add("correct");
-            score++;
-          } else {
-            btn.classList.add("wrong");
-          }
-
-          // Disable all buttons for this question
-          const allButtons = qDiv.querySelectorAll("button");
-          allButtons.forEach(b => b.disabled = true);
-
-          // Update score
-          document.getElementById("score").textContent = `To'g'ri javoblar: ${score} / ${questions.length}`;
-        };
-        qDiv.appendChild(btn);
-      });
-
-      quizDiv.appendChild(qDiv);
-    });
+    function goNext() {
+      window.location.href = "test2.html";
+    }
   </script>
 </body>
 </html>
