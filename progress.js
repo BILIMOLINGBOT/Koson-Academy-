@@ -111,8 +111,7 @@
     <div id="progress-bar"></div>
   </div>
   <div id="lessons-list">
-    <!-- 36 lessons with locked/unlocked states -->
-    <!-- trimmed here for brevity -->
+    <!-- Lessons list injected by backend or statically listed -->
   </div>
   <div id="toast" class="toast"></div>
   <script type="module">
@@ -190,17 +189,22 @@ onAuthStateChanged(auth, async user => {
 
         if (!this.classList.contains('visited')) {
           score += 10;
-          unlockedLesson++;
+
           const timestamp = new Date().toISOString();
+          this.classList.add('visited');
+
+          const nextLessonNum = lessonNum + 1;
+          if (nextLessonNum > unlockedLesson) {
+            unlockedLesson = nextLessonNum;
+          }
 
           scoreValue.textContent = score;
           progressBar.style.width = Math.min((unlockedLesson / lessons.length) * 100, 100) + '%';
-          this.classList.add('visited');
 
-          const nextLesson = document.querySelector(`.lesson-btn[data-lesson="${unlockedLesson}"]`);
+          const nextLesson = document.querySelector(`.lesson-btn[data-lesson="${nextLessonNum}"]`);
           if (nextLesson && nextLesson.classList.contains('locked')) {
             nextLesson.classList.remove('locked');
-            nextLesson.href = `dars${unlockedLesson}.html`;
+            nextLesson.href = `dars${nextLessonNum}.html`;
           }
 
           try {
