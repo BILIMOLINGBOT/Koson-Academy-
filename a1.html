@@ -1,248 +1,162 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>A1 Darslari</title>
   <style>
     body {
       font-family: sans-serif;
-      margin: 0;
-      padding: 20px;
-      background-color: #ffffff;
-      color: #333;
-      transition: background-color 0.3s ease, color 0.3s ease;
+      margin: 20px;
+      background-color: #fff;
+      color: #000;
+      transition: 0.3s ease;
     }
-
     body.dark-mode {
       background-color: #222;
       color: #f4f4f4;
     }
-
     .back-btn {
       display: inline-block;
-      padding: 10px 15px;
+      padding: 10px;
       background-color: #007bff;
-      color: white;
+      color: #fff;
       text-decoration: none;
       border-radius: 5px;
-      margin-bottom: 15px;
-      font-size: 16px;
-      transition: background-color 0.3s ease;
+      margin-bottom: 10px;
     }
-
-    .back-btn:hover {
-      background-color: #0056b3;
-    }
-
-    h1 {
-      text-align: center;
-    }
-
-    #progress-container {
-      width: 100%;
-      background-color: #ddd;
-      border-radius: 10px;
-      overflow: hidden;
-      margin: 20px 0;
-    }
-
-    #progress-bar {
-      width: 0%;
-      height: 20px;
-      background-color: #007bff;
-      transition: width 0.3s ease;
-    }
-
     .lesson-btn {
       display: block;
-      margin: 10px 0;
+      margin: 8px 0;
       padding: 12px;
       text-align: center;
       background-color: #007bff;
-      color: white;
-      text-decoration: none;
+      color: #fff;
       border-radius: 8px;
-      transition: background-color 0.3s ease;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    .lesson-btn:hover {
-      background-color: #0056b3;
-    }
-
-    .lesson-btn:disabled {
-      background-color: #ccc;
-      color: #666;
-      cursor: not-allowed;
-    }
-
-    body.dark-mode .lesson-btn {
-      background-color: #3399ff;
-      color: white;
-    }
-
-    body.dark-mode .lesson-btn:disabled {
-      background-color: #555;
-      color: #999;
-    }
-
-    #score {
-      text-align: center;
+      text-decoration: none;
       font-weight: bold;
     }
-
-    #lessons-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+    .locked {
+      background-color: #ccc !important;
+      color: #666 !important;
+      pointer-events: none;
+    }
+    #progress-container {
+      background: #ddd;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 15px 0;
+    }
+    #progress-bar {
+      height: 20px;
+      background: #007bff;
+      width: 0%;
+    }
+    #score {
+      font-weight: bold;
+      margin-bottom: 10px;
     }
   </style>
 </head>
 <body>
-  <a href="index.html" class="back-btn">Orqaga</a>
+  <a href="index.html" class="back-btn">← Orqaga</a>
   <h1>A1 Darslari</h1>
-
   <div id="score">Ball: <span id="score-value">0</span></div>
-
-  <div id="progress-container">
-    <div id="progress-bar"></div>
-  </div>
-
-  <div id="lessons-list">
-    </div>
+  <div id="progress-container"><div id="progress-bar"></div></div>
+  <div id="lessons-list"></div>
 
   <script type="module">
-    // Import the functions you need from the SDKs you need
-    import { initializeApp } from "firebase/app";
-    import { getDatabase, ref, set, get, child } from "firebase/database";
-    import { getAnalytics } from "firebase/analytics";
+    import { db, doc, getDoc, setDoc, updateDoc } from './firebase.js';
+    import { getTelegramUserId } from './auth.js';
 
-    // Your web app's Firebase configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyD0gBUJNcrgvvntcrfKK7Ky8t6_9Qb96Io",
-      authDomain: "bilimilova-64833.firebaseapp.com",
-      databaseURL: "https://bilimilova-64833-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "bilimilova-64833",
-      storageBucket: "bilimilova-64833.firebasestorage.app",
-      messagingSenderId: "890689414502",
-      appId: "1:890689414502:web:8141d7aab413495c0c14a7",
-      measurementId: "G-ZBC8X1VVMZ"
-    };
-
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const database = getDatabase(app);
-    const analytics = getAnalytics(app);
-
-    const lessonsContainer = document.getElementById('lessons-list');
+    const lessonsList = document.getElementById('lessons-list');
     const progressBar = document.getElementById('progress-bar');
     const scoreValue = document.getElementById('score-value');
+    const totalLessons = 36;
+    let unlockedLesson = 1;
+    let score = 0;
+    const userId = getTelegramUserId();
 
-    const lessonTitles = [
-      "To be affirmative",
-      "To be affirmative test",
-      "To be question",
-      "To be question test",
-      "To be negative",
-      "To be negative test",
-      "Present continuous affirmative",
-      "Present continuous affirmative test",
-      "Present continuous question",
-      "Present continuous question test",
-      "Present continuous negative",
-      "Present continuous negative test",
-      "Present simple affirmative",
-      "Present simple affirmative test",
-      "Present simple question",
-      "Present simple question test",
-      "Present simple negative",
-      "Present simple negative test",
-      "I have/I have got affirmative",
-      "I have/I have got affirmative test",
-      "I have/I have got question",
-      "I have/I have got question test",
-      "I have/I have got negative",
-      "I have/I have got negative test",
-      "Past simple affirmative",
-      "Past simple affirmative test",
-      "Past simple question",
-      "Past simple question test",
-      "Past simple negative",
-      "Past simple negative test",
-      "Past continuous affirmative",
-      "Past continuous affirmative test",
-      "Past continuous question",
-      "Past continuous question test",
-      "Past continuous negative",
-      "Past continuous negative test"
+    const lessons = [
+      "To be affirmative", "To be affirmative test", "To be question", "To be question test",
+      "To be negative", "To be negative test", "Present continues affirmative", "Present continues affirmative test",
+      "Present continues question", "Present continues question test", "Present continues negative", "Present continues negative test",
+      "Present simple affirmative", "Present simple affirmative test", "Present simple question", "Present simple question test",
+      "Present simple negative", "Present simple negative test", "I have/I have got affirmative", "I have/I have got affirmative test",
+      "I have/I have got question", "I have/I have got question test", "I have/I have got negative", "I have/I have got negative test",
+      "Past simple affirmative", "Past simple affirmative test", "Past simple question", "Past simple question test",
+      "Past simple negative", "Past simple negative test", "Past continuous affirmative", "Past continuous affirmative test",
+      "Past continuous question", "Past continuous question test", "Past continuous negative", "Past continuous negative test"
     ];
 
-    let userId = 'user123'; // Har bir foydalanuvchi uchun noyob ID bo'lishi kerak
-    let unlockedLessons = 0;
-    let score = 0;
+    async function loadProgress() {
+      if (!userId) return;
+      const userRef = doc(db, "users", userId);
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        const data = userSnap.data();
+        unlockedLesson = data.unlockedLesson || 1;
+        score = data.score || 0;
+        scoreValue.textContent = score;
+        progressBar.style.width = ((unlockedLesson - 1) / totalLessons) * 100 + '%';
+      } else {
+        await setDoc(userRef, { unlockedLesson: 1, score: 0 });
+      }
+      renderLessons();
+    }
 
-    function getUnlockedLessonsFromFirebase() {
-      const dbRef = ref(getDatabase());
-      get(child(dbRef, `users/${userId}/unlockedLessons`)).then((snapshot) => {
-        if (snapshot.exists()) {
-          unlockedLessons = parseInt(snapshot.val());
-        } else {
-          unlockedLessons = 1; // Boshlang'ich qiymat
-          saveUnlockedLessonsToFirebase(unlockedLessons);
-        }
-        renderLessons();
-      }).catch((error) => {
-        console.error("Firebase'dan ma'lumot olishda xatolik:", error);
-        unlockedLessons = 1; // Xatolik bo'lsa ham birinchi darsni ochiq qoldiramiz
-        renderLessons();
+    async function updateProgress(newUnlockedLesson) {
+      if (!userId) return;
+      const userRef = doc(db, "users", userId);
+      await updateDoc(userRef, {
+        unlockedLesson: newUnlockedLesson,
+        score: score
       });
-    }
-
-    function saveUnlockedLessonsToFirebase(count) {
-      set(ref(database, `users/${userId}/unlockedLessons`), count);
-    }
-
-    function updateProgressBar() {
-      const progress = (unlockedLessons -1) / lessonTitles.length * 100;
-      progressBar.style.width = progress + '%';
-      scoreValue.textContent = score; // Ballarni keyinroq qo'shamiz
     }
 
     function renderLessons() {
-      lessonsContainer.innerHTML = '';
-      lessonTitles.forEach((title, index) => {
-        const button = document.createElement('button');
-        button.textContent = `${index + 1}. ${title}`;
-        button.className = 'lesson-btn';
-        button.disabled = index >= unlockedLessons;
-        button.onclick = () => {
-          if (index < unlockedLessons) {
-            window.location.href = `dars${index + 1}.html`;
-            if (index + 2 > unlockedLessons) {
-              unlockedLessons = index + 2;
-              saveUnlockedLessonsToFirebase(unlockedLessons);
-              updateProgressBar();
-              renderLessons();
-            }
-          } else {
+      lessonsList.innerHTML = "";
+      for (let i = 0; i < lessons.length; i++) {
+        const num = i + 1;
+        const a = document.createElement('a');
+        a.textContent = `${num}. ${lessons[i]}`;
+        a.dataset.lesson = num;
+        a.className = 'lesson-btn';
+        if (num <= unlockedLesson) {
+          a.href = `dars${num}.html`;
+        } else {
+          a.classList.add('locked');
+        }
+        a.addEventListener('click', async (e) => {
+          if (num > unlockedLesson) {
+            e.preventDefault();
             alert("Darslarni ketma-ket oʻrganish kerak");
+          } else {
+            if (!a.classList.contains('visited')) {
+              a.classList.add('visited');
+              score += 10;
+              scoreValue.textContent = score;
+              if (unlockedLesson < totalLessons) {
+                unlockedLesson++;
+                progressBar.style.width = ((unlockedLesson - 1) / totalLessons) * 100 + '%';
+                await updateProgress(unlockedLesson);
+                renderLessons();
+              }
+            }
           }
-        };
-        lessonsContainer.appendChild(button);
-      });
-      updateProgressBar();
+        });
+        lessonsList.appendChild(a);
+      }
     }
 
-    // Dark mode avtomatik aniqlash
+    // Dark mode
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
     document.body.classList.toggle('dark-mode', prefersDark.matches);
     prefersDark.addEventListener('change', (e) => {
       document.body.classList.toggle('dark-mode', e.matches);
     });
 
-    getUnlockedLessonsFromFirebase();
+    loadProgress();
   </script>
 </body>
 </html>
