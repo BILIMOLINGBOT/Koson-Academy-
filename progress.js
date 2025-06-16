@@ -11,7 +11,7 @@ export async function setupProgress(userId) {
   const completedLessons = new Set();
   const progressRef = doc(db, 'progress', userId);
 
-  // Toast xabarlarini ko‘rsatish uchun yagona element
+  // Toast elementini yaratish
   const createToastElement = () => {
     let toast = document.getElementById('toast');
     if (!toast) {
@@ -34,11 +34,6 @@ export async function setupProgress(userId) {
     return toast;
   };
 
-  /**
-   * Toast xabarini ko‘rsatish
-   * @param {string} message - Ko‘rsatiladigan xabar
-   * @param {string} [bgColor='#28a745'] - Fon rangi
-   */
   const showToast = (message, bgColor = '#28a745') => {
     const toast = createToastElement();
     toast.textContent = message;
@@ -50,9 +45,6 @@ export async function setupProgress(userId) {
     }, 3000);
   };
 
-  /**
-   * Foydalanuvchi progressini Firestore’dan olish yoki yangi hujjat yaratish
-   */
   const initProgress = async () => {
     try {
       const userSnap = await getDoc(progressRef);
@@ -74,18 +66,12 @@ export async function setupProgress(userId) {
     }
   };
 
-  /**
-   * Ballarni UI’da yangilash
-   */
   const updatePoints = () => {
     const points = completedLessons.size * 10;
     const scoreElement = document.getElementById('score-value');
     if (scoreElement) scoreElement.textContent = points;
   };
 
-  /**
-   * Dars tugmalarining ochiq/yopiq holatini yangilash
-   */
   const updateLessonAvailability = () => {
     const lessonButtons = document.querySelectorAll('.lesson-btn');
     const unlocked = Array.from(completedLessons).map(Number);
@@ -104,18 +90,11 @@ export async function setupProgress(userId) {
     });
   };
 
-  /**
-   * Yopiq dars bosilganda xabar ko‘rsatish
-   * @param {Event} e - Hodisa obyekti
-   */
   const showLockedMessage = (e) => {
     e.preventDefault();
     showToast('Darslarni ketma-ket oʻrganish kerak!', '#dc3545');
   };
 
-  /**
-   * Progress UI-ni yangilash (progress bar, ballar, dars holatlari)
-   */
   const updateProgressUI = () => {
     const totalLessons = document.querySelectorAll('.lesson-btn').length;
     const completedCount = completedLessons.size;
@@ -126,11 +105,6 @@ export async function setupProgress(userId) {
     updateLessonAvailability();
   };
 
-  /**
-   * Darsni tugallash va Firestore’da yangilash
-   * @param {string} lessonId - Dars ID
-   * @param {string} href - Dars sahifasi URL
-   */
   const completeLesson = async (lessonId, href) => {
     if (!completedLessons.has(lessonId)) {
       completedLessons.add(lessonId);
@@ -149,21 +123,18 @@ export async function setupProgress(userId) {
         });
         showToast(`Dars ${lessonId} muvaffaqiyatli tugallandi! +10 ball`);
         updateProgressUI();
-        window.location.href = href; // Dars sahifasiga o‘tish
+        window.location.href = href;
       } catch (error) {
         console.error('Firestore-ga yozishda xato:', error);
         showToast('Xato yuz berdi, qayta urinib ko‘ring.', '#dc3545');
-        completedLessons.delete(lessonId); // Xato bo‘lsa holatni qaytarish
+        completedLessons.delete(lessonId);
         updateProgressUI();
       }
     } else {
-      window.location.href = href; // Allaqachon tugallangan bo‘lsa, to‘g‘ridan-to‘g‘ri o‘tish
+      window.location.href = href;
     }
   };
 
-  /**
-   * Dars tugmalariga hodisa tinglovchilarini o‘rnatish
-   */
   const setupLessonButtons = () => {
     document.querySelectorAll('.lesson-btn').forEach((button) => {
       button.addEventListener('click', async (e) => {
