@@ -2,181 +2,160 @@
 <html lang="uz">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>A1 Darslari</title>
   <style>
     body {
       font-family: sans-serif;
       margin: 20px;
       background-color: #fff;
-      color: #333;
-      transition: background-color 0.3s, color 0.3s;
+      color: #000;
+      transition: 0.3s ease;
     }
     body.dark-mode {
       background-color: #222;
-      color: #eee;
+      color: #f4f4f4;
     }
     .back-btn {
       display: inline-block;
-      padding: 10px 15px;
+      padding: 10px;
       background-color: #007bff;
-      color: white;
+      color: #fff;
       text-decoration: none;
       border-radius: 5px;
-      margin-bottom: 15px;
-    }
-    h1 {
-      text-align: center;
-    }
-    #progress-container {
-      background-color: #ddd;
-      border-radius: 10px;
-      overflow: hidden;
-      margin: 20px 0;
-    }
-    #progress-bar {
-      height: 20px;
-      width: 0%;
-      background-color: #007bff;
-      transition: width 0.3s;
+      margin-bottom: 10px;
     }
     .lesson-btn {
       display: block;
-      margin: 10px 0;
+      margin: 8px 0;
       padding: 12px;
       text-align: center;
       background-color: #007bff;
-      color: white;
-      text-decoration: none;
+      color: #fff;
       border-radius: 8px;
+      text-decoration: none;
     }
-    .lesson-btn.locked {
+    .locked {
       background-color: #ccc !important;
       color: #666 !important;
       pointer-events: none;
     }
-    .dark-mode .lesson-btn {
-      background-color: #3399ff;
+    #progress-container {
+      background: #ddd;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 15px 0;
     }
-    .dark-mode .lesson-btn.locked {
-      background-color: #555 !important;
-      color: #aaa !important;
+    #progress-bar {
+      height: 20px;
+      background: #007bff;
+      width: 0%;
     }
     #score {
-      text-align: center;
       font-weight: bold;
-    }
-    .lock-message {
-      display: none;
-      margin-top: 15px;
-      padding: 10px;
-      background-color: #ffe0e0;
-      color: #d32f2f;
-      border: 1px solid #d32f2f;
-      border-radius: 5px;
-    }
-    .dark-mode .lock-message {
-      background-color: #5c3131;
-      color: #ffb3b3;
-      border-color: #ffb3b3;
+      margin-bottom: 10px;
     }
   </style>
 </head>
 <body>
   <a href="index.html" class="back-btn">← Orqaga</a>
   <h1>A1 Darslari</h1>
-
   <div id="score">Ball: <span id="score-value">0</span></div>
   <div id="progress-container"><div id="progress-bar"></div></div>
+  <div id="lessons-list"></div>
 
-  <div id="lessons-list">
-    <a href="dars1.html" class="lesson-btn" data-lesson="1">To be affirmative</a>
-    <a href="#" class="lesson-btn locked" data-lesson="2">To be affirmative test</a>
-    <a href="#" class="lesson-btn locked" data-lesson="3">To be question</a>
-    <!-- Ko‘proq darslarni shu formatda qo‘shing -->
-  </div>
-
-  <div id="lock-message" class="lock-message">Darslarni ketma-ket oʻrganish kerak</div>
-
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script type="module">
     import { db, doc, getDoc, setDoc, updateDoc } from './firebase.js';
+    import { getTelegramUserId } from './auth.js';
 
-    document.addEventListener('DOMContentLoaded', async () => {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
-      document.body.classList.toggle('dark-mode', prefersDark.matches);
-      prefersDark.addEventListener('change', (e) => {
-        document.body.classList.toggle('dark-mode', e.matches);
-      });
+    const lessonsList = document.getElementById('lessons-list');
+    const progressBar = document.getElementById('progress-bar');
+    const scoreValue = document.getElementById('score-value');
+    const totalLessons = 36;
+    let unlockedLesson = 1;
+    let score = 0;
+    const userId = getTelegramUserId();
 
-      const tg = window.Telegram.WebApp;
-      tg.ready();
+    const lessons = [
+      "To be affirmative", "To be affirmative test", "To be question", "To be question test",
+      "To be negative", "To be negative test", "Present continuous affirmative", "Present continuous affirmative test",
+      "Present continuous question", "Present continuous question test", "Present continuous negative", "Present continuous negative test",
+      "Present simple affirmative", "Present simple affirmative test", "Present simple question", "Present simple question test",
+      "Present simple negative", "Present simple negative test", "I have / I have got affirmative", "I have / I have got affirmative test",
+      "I have / I have got question", "I have / I have got question test", "I have / I have got negative", "I have / I have got negative test",
+      "Past simple affirmative", "Past simple affirmative test", "Past simple question", "Past simple question test",
+      "Past simple negative", "Past simple negative test", "Past continuous affirmative", "Past continuous affirmative test",
+      "Past continuous question", "Past continuous question test", "Past continuous negative", "Past continuous negative test"
+    ];
 
-      const userId = tg.initDataUnsafe?.user?.id?.toString();
-      if (!userId) {
-        alert("Telegram foydalanuvchi aniqlanmadi.");
-        return;
-      }
-
-      const lessons = document.querySelectorAll('.lesson-btn');
-      const lockMessage = document.getElementById('lock-message');
-      const progressBar = document.getElementById('progress-bar');
-      const scoreValue = document.getElementById('score-value');
-
-      let unlockedLesson = 1;
-      let score = 0;
-
+    async function loadProgress() {
+      if (!userId) return;
       const userRef = doc(db, "users", userId);
       const userSnap = await getDoc(userRef);
       if (userSnap.exists()) {
         const data = userSnap.data();
         unlockedLesson = data.unlockedLesson || 1;
         score = data.score || 0;
+        scoreValue.textContent = score;
+        progressBar.style.width = ((unlockedLesson - 1) / totalLessons) * 100 + '%';
       } else {
         await setDoc(userRef, { unlockedLesson: 1, score: 0 });
       }
+      renderLessons();
+    }
 
-      scoreValue.textContent = score;
-      updateUI();
-
-      lessons.forEach(lesson => {
-        lesson.addEventListener('click', async function (e) {
-          const lessonNum = parseInt(this.dataset.lesson);
-          if (lessonNum > unlockedLesson) {
-            e.preventDefault();
-            lockMessage.style.display = 'block';
-            setTimeout(() => lockMessage.style.display = 'none', 2000);
-            return;
-          }
-
-          if (!this.classList.contains('visited')) {
-            this.classList.add('visited');
-            score += 10;
-            scoreValue.textContent = score;
-
-            if (lessonNum >= unlockedLesson) {
-              unlockedLesson = lessonNum + 1;
-            }
-
-            await updateDoc(userRef, { unlockedLesson, score });
-            updateUI();
-          }
-        });
+    async function updateProgress(newUnlockedLesson) {
+      if (!userId) return;
+      const userRef = doc(db, "users", userId);
+      await updateDoc(userRef, {
+        unlockedLesson: newUnlockedLesson,
+        score: score
       });
+    }
 
-      function updateUI() {
-        const totalLessons = lessons.length;
-        progressBar.style.width = Math.min((unlockedLesson / totalLessons) * 100, 100) + '%';
-
-        lessons.forEach(lesson => {
-          const lessonNum = parseInt(lesson.dataset.lesson);
-          if (lessonNum <= unlockedLesson) {
-            lesson.classList.remove('locked');
-            lesson.href = `dars${lessonNum}.html`;
+    function renderLessons() {
+      lessonsList.innerHTML = "";
+      for (let i = 0; i < lessons.length; i++) {
+        const num = i + 1;
+        const a = document.createElement('a');
+        a.textContent = lessons[i];
+        a.dataset.lesson = num;
+        a.className = 'lesson-btn';
+        if (num <= unlockedLesson) {
+          a.href = `dars${num}.html`;
+        } else {
+          a.classList.add('locked');
+        }
+        a.addEventListener('click', async (e) => {
+          if (num > unlockedLesson) {
+            e.preventDefault();
+            alert("Darslarni ketma-ket oʻrganish kerak");
+          } else {
+            if (!a.classList.contains('visited')) {
+              a.classList.add('visited');
+              score += 10;
+              scoreValue.textContent = score;
+              if (unlockedLesson < totalLessons) {
+                unlockedLesson++;
+                progressBar.style.width = ((unlockedLesson - 1) / totalLessons) * 100 + '%';
+                await updateProgress(unlockedLesson);
+                renderLessons();
+              }
+            }
           }
         });
+        lessonsList.appendChild(a);
       }
+    }
+
+    // Dark mode
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+    document.body.classList.toggle('dark-mode', prefersDark.matches);
+    prefersDark.addEventListener('change', (e) => {
+      document.body.classList.toggle('dark-mode', e.matches);
     });
+
+    loadProgress();
   </script>
 </body>
 </html>
