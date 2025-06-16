@@ -39,12 +39,25 @@
       border-radius: 10px;
       overflow: hidden;
       margin: 20px 0;
+      position: relative;
     }
     #progress-bar {
       width: 0%;
       height: 20px;
       background-color: #007bff;
       transition: width 0.3s ease;
+    }
+    #progress-text {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: bold;
     }
     .lesson-btn {
       display: block;
@@ -87,6 +100,10 @@
       font-size: 18px;
       margin: 10px 0;
     }
+    #visit-log {
+      margin-top: 30px;
+      font-size: 14px;
+    }
     .toast {
       position: fixed;
       bottom: 20px;
@@ -109,10 +126,12 @@
   <div id="score">Ball: <span id="score-value">0</span></div>
   <div id="progress-container">
     <div id="progress-bar"></div>
+    <div id="progress-text">0%</div>
   </div>
   <div id="lessons-list">
     <!-- Lessons list injected by backend or statically listed -->
   </div>
+  <div id="visit-log"></div>
   <div id="toast" class="toast"></div>
   <script type="module">
     import { app } from './firebase.js';
@@ -121,13 +140,20 @@
 const auth = getAuth(app);
 const lessons = document.querySelectorAll('.lesson-btn');
 const progressBar = document.getElementById('progress-bar');
+const progressText = document.getElementById('progress-text');
 const scoreValue = document.getElementById('score-value');
 const toast = document.getElementById('toast');
+const visitLog = document.getElementById('visit-log');
 
 function showToast(message) {
   toast.textContent = message;
   toast.classList.add('show');
   setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+function updateProgress(percent) {
+  progressBar.style.width = percent + '%';
+  progressText.textContent = Math.floor(percent) + '%';
 }
 
 const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
@@ -161,8 +187,13 @@ onAuthStateChanged(auth, async user => {
       const lessonsVisited = data?.lessons_visited || [];
       lessons.forEach(btn => {
         const lessonNum = parseInt(btn.dataset.lesson);
-        if (lessonsVisited.some(visit => visit.lesson === lessonNum && visit.visited)) {
+        const visit = lessonsVisited.find(visit => visit.lesson === lessonNum && visit.visited);
+        if (visit) {
           btn.classList.add('visited');
+          const time = new Date(visit.timestamp).toLocaleString('uz-UZ');
+          const logItem = document.createElement('div');
+          logItem.textContent = `Dars ${lessonNum}: ${time}`;
+          visitLog.appendChild(logItem);
         }
         if (lessonNum <= unlockedLesson) {
           btn.classList.remove('locked');
@@ -176,7 +207,7 @@ onAuthStateChanged(auth, async user => {
       });
     }
 
-    progressBar.style.width = Math.min((unlockedLesson / lessons.length) * 100, 100) + '%';
+    updateProgress(Math.min((unlockedLesson / lessons.length) * 100, 100));
 
     lessons.forEach(btn => {
       btn.addEventListener('click', async function (e) {
@@ -189,7 +220,6 @@ onAuthStateChanged(auth, async user => {
 
         if (!this.classList.contains('visited')) {
           score += 10;
-
           const timestamp = new Date().toISOString();
           this.classList.add('visited');
 
@@ -199,13 +229,17 @@ onAuthStateChanged(auth, async user => {
           }
 
           scoreValue.textContent = score;
-          progressBar.style.width = Math.min((unlockedLesson / lessons.length) * 100, 100) + '%';
+          updateProgress(Math.min((unlockedLesson / lessons.length) * 100, 100));
 
           const nextLesson = document.querySelector(`.lesson-btn[data-lesson="${nextLessonNum}"]`);
           if (nextLesson && nextLesson.classList.contains('locked')) {
             nextLesson.classList.remove('locked');
             nextLesson.href = `dars${nextLessonNum}.html`;
           }
+
+          const logItem = document.createElement('div');
+          logItem.textContent = `Dars ${lessonNum}: ${new Date(timestamp).toLocaleString('uz-UZ')}`;
+          visitLog.appendChild(logItem);
 
           try {
             await updateDoc(userRef, {
