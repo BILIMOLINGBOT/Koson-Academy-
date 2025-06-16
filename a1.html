@@ -1,10 +1,12 @@
-<!-- ✅ Integratsiyalangan: mukammal modal + avtomatik keyingi darsga o'tish qo‘shildi --><body>
+<!-- ✅ Mukammal modal tizimi, avtomatik keyingi darsga o'tish qo‘shildi --><body>
   <a href="index.html" class="back-btn">← Orqaga</a>
-  <h1>A1 Darslari</h1>  <div id="score">Ball: <span id="score-value">0</span></div>  <div id="progress-container">
+  <h1>A1 Darslari</h1>
+  <div id="score">Ball: <span id="score-value">0</span></div>
+  <div id="progress-container">
     <div id="progress-bar"></div>
-  </div>  <div id="lessons-list">
-    <!-- your lesson list remains unchanged -->
-  </div>  <div id="toast" class="toast"></div>  <!-- Tabrik modal -->  <div id="congrats-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.7);z-index:999;display:flex;align-items:center;justify-content:center;">
+  </div>
+  <div id="lessons-list">...</div>
+  <div id="toast" class="toast"></div>  <!-- Tabrik modal -->  <div id="congrats-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.7);z-index:999;display:flex;align-items:center;justify-content:center;">
     <div style="background:#fff;padding:30px 20px;border-radius:12px;text-align:center;width:90%;max-width:400px;box-shadow:0 10px 30px rgba(0,0,0,0.2);">
       <div style="font-size:50px">🎉</div>
       <h2 style="margin-bottom:10px;">Tabriklaymiz!</h2>
@@ -27,16 +29,12 @@
     const modalMsg = document.getElementById('modal-msg');
     const continueBtn = document.getElementById('continue-btn');
 
-    let unlockedLesson = 1;
-    let score = 0;
     let nextLessonHref = null;
 
     function showToast(message) {
       toast.textContent = message;
       toast.classList.add('show');
-      setTimeout(() => {
-        toast.classList.remove('show');
-      }, 3000);
+      setTimeout(() => toast.classList.remove('show'), 3000);
     }
 
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
@@ -45,12 +43,13 @@
       document.body.classList.toggle('dark-mode', e.matches);
     });
 
+    let unlockedLesson = 1;
+    let score = 0;
+
     onAuthStateChanged(auth, async user => {
       if (!user) {
         showToast("Iltimos, tizimga kiring.");
-        setTimeout(() => {
-          window.location.href = "index.html";
-        }, 1000);
+        setTimeout(() => window.location.href = "index.html", 1000);
         return;
       }
 
@@ -59,6 +58,7 @@
 
       try {
         const userSnap = await getDoc(userRef);
+
         if (userSnap.exists()) {
           const data = userSnap.data();
           unlockedLesson = data?.progress?.A1 || 1;
@@ -96,17 +96,19 @@
 
             if (!this.classList.contains('visited')) {
               score += 10;
-              unlockedLesson++;
               const timestamp = new Date().toISOString();
+              this.classList.add('visited');
+
+              const nextLessonNum = lessonNum + 1;
+              if (nextLessonNum > unlockedLesson) unlockedLesson = nextLessonNum;
 
               scoreValue.textContent = score;
               progressBar.style.width = Math.min((unlockedLesson / lessons.length) * 100, 100) + '%';
-              this.classList.add('visited');
 
-              const nextLesson = document.querySelector(`.lesson-btn[data-lesson="${unlockedLesson}"]`);
+              const nextLesson = document.querySelector(`.lesson-btn[data-lesson="${nextLessonNum}"]`);
               if (nextLesson && nextLesson.classList.contains('locked')) {
                 nextLesson.classList.remove('locked');
-                nextLesson.href = `dars${unlockedLesson}.html`;
+                nextLesson.href = `dars${nextLessonNum}.html`;
               }
 
               try {
@@ -115,6 +117,8 @@
                   [`score.A1`]: score,
                   lessons_visited: arrayUnion({ lesson: lessonNum, visited: true, timestamp })
                 });
+
+                // Modal + next darsga o‘tish
                 modalMsg.textContent = `Dars ${lessonNum} ni bajardingiz! Barakalla!`;
                 modal.style.display = 'flex';
                 nextLessonHref = this.href;
@@ -133,6 +137,7 @@
             window.location.href = nextLessonHref;
           }
         });
+
       } catch (error) {
         console.error("Ma'lumotlarni olishda xato:", error);
         showToast("Ma'lumotlarni yuklashda xato yuz berdi.");
