@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gap Tuzish Testi</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #6e8efb, #a777e3);
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+    .container {
+      text-align: center;
+      padding: 30px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      max-width: 600px;
+      width: 90%;
+    }
+    .word-btn {
+      padding: 10px 15px;
+      margin: 5px;
+      background: #fff;
+      color: #6e8efb;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .word-btn:hover {
+      transform: scale(1.1);
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 20px;
+      min-height: 30px;
+    }
+    .nav-btn {
+      margin: 10px;
+      padding: 10px 20px;
+      background: #fff;
+      color: #a777e3;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    #progress {
+      font-size: 16px;
+      margin-bottom: 15px;
+    }
+    #feedback-panel {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: rgba(0, 0, 0, 0.3);
+      border-radius: 10px;
+      display: none;
+    }
+    #feedback-panel p {
+      font-size: 18px;
+      margin: 5px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="progress">1/20</div>
+    <h2 id="question-title">Tartib bilan gap tuzing:</h2>
+    <div id="buttons"></div>
+    <div id="result"></div>
+    <button class="nav-btn" onclick="checkAnswer()">Tekshirish</button>  <div id="feedback-panel">
+  <p id="feedback-text"></p>
+  <p id="correct-answer-text"></p>
+  <button class="nav-btn" onclick="nextQuestion()">Keyingi</button>
+</div>
+
+  </div>    <script>
+    const tests = [
+      { correct: "Men talabaman", words: ["talabaman", "Men"] },
+      { correct: "U o'qituvchi", words: ["o'qituvchi", "U"] },
+      { correct: "Biz xursandmiz", words: ["xursandmiz", "Biz"] },
+      { correct: "Siz shifokorsiz", words: ["shifokorsiz", "Siz"] },
+      { correct: "Ular do'stlar", words: ["do'stlar", "Ular"] },
+      { correct: "Bu kitob", words: ["kitob", "Bu"] },
+      { correct: "Men balandman", words: ["balandman", "Men"] },
+      { correct: "Sen mehribonsan", words: ["mehribonsan", "Sen"] },
+      { correct: "U mening singlim", words: ["singlim", "mening", "U"] },
+      { correct: "U mening akam", words: ["akam", "mening", "U"] },
+      { correct: "Menga sovuq", words: ["sovuq", "Menga"] },
+      { correct: "Biz xonadamiz", words: ["xonadamiz", "Biz"] },
+      { correct: "Ular o'quvchilar", words: ["o'quvchilar", "Ular"] },
+      { correct: "U kichkina", words: ["kichkina", "U"] },
+      { correct: "Sen mening do'stimsan", words: ["do'stimsan", "mening", "Sen"] },
+      { correct: "U go'zal", words: ["go'zal", "U"] },
+      { correct: "Men O'zbekistondanman", words: ["O'zbekistondanman", "Men"] },
+      { correct: "U shifokor", words: ["shifokor", "U"] },
+      { correct: "Biz baxtlimiz", words: ["baxtlimiz", "Biz"] },
+      { correct: "Ular sinfda", words: ["sinfda", "Ular"] }
+    ];
+
+    let currentIndex = 0;
+    let userAnswer = [];
+    let score = 0;
+
+    function shuffleArray(array) {
+      return array.sort(() => Math.random() - 0.5);
+    }
+
+    function renderQuestion() {
+      userAnswer = [];
+      document.getElementById("feedback-panel").style.display = "none";
+      document.getElementById("result").innerText = "";
+      document.getElementById("progress").innerText = `${currentIndex + 1}/${tests.length}`;
+      const currentTest = tests[currentIndex];
+      const shuffledWords = shuffleArray([...currentTest.words]);
+
+      const buttonsContainer = document.getElementById("buttons");
+      buttonsContainer.innerHTML = "";
+      shuffledWords.forEach(word => {
+        const btn = document.createElement("button");
+        btn.innerText = word;
+        btn.className = "word-btn";
+        btn.dataset.word = word;
+        btn.onclick = function() {
+          const clickedWord = this.dataset.word;
+          const index = userAnswer.indexOf(clickedWord);
+          if (index === -1) {
+            userAnswer.push(clickedWord);
+          } else {
+            const lastIndex = userAnswer.lastIndexOf(clickedWord);
+            if (lastIndex !== -1) {
+              userAnswer.splice(lastIndex, 1);
+            }
+          }
+          document.getElementById("result").innerText = userAnswer.join(" ");
+        };
+        buttonsContainer.appendChild(btn);
+      });
+    }
+
+    function checkAnswer() {
+      const correct = tests[currentIndex].correct;
+      const feedbackPanel = document.getElementById("feedback-panel");
+      const feedbackText = document.getElementById("feedback-text");
+      const correctText = document.getElementById("correct-answer-text");
+
+      if (userAnswer.join(" ") === correct) {
+        feedbackText.innerText = "✅ To'g'ri javob!";
+        correctText.innerText = "";
+        score++;
+      } else {
+        feedbackText.innerText = "❌ Noto'g'ri javob!";
+        correctText.innerText = "To'g'ri javob: " + correct;
+      }
+
+      feedbackPanel.style.display = "block";
+    }
+
+    function nextQuestion() {
+      if (currentIndex < tests.length - 1) {
+        currentIndex++;
+        renderQuestion();
+      } else {
+        alert(`Test tugadi! To'g'ri javoblar soni: ${score} / ${tests.length}`);
+      }
+    }
+
+    // Start with first question
+    renderQuestion();
+  </script>  </body>
+</html>
