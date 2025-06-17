@@ -1,57 +1,146 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test 1</title>
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #6e8efb, #a777e3); height: 100vh; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
-        .container { text-align: center; padding: 20px; background: rgba(255, 255, 255, 0.1); border-radius: 15px; }
-        .word-btn { padding: 10px 20px; margin: 5px; background: #fff; color: #6e8efb; border: none; border-radius: 10px; cursor: pointer; transition: transform 0.2s; }
-        .word-btn:hover { transform: scale(1.1); }
-        #result { margin-top: 20px; font-size: 18px; }
-        .nav-btn { margin: 10px; padding: 10px 20px; background: #fff; color: #a777e3; border: none; border-radius: 10px; cursor: pointer; }
-        #progress { font-size: 16px; margin-bottom: 10px; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>To Be Positive Test</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #6e8efb, #a777e3);
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+    .container {
+      text-align: center;
+      padding: 30px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      max-width: 600px;
+    }
+    .word-btn {
+      padding: 10px 15px;
+      margin: 5px;
+      background: #fff;
+      color: #6e8efb;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .word-btn:hover {
+      transform: scale(1.1);
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 20px;
+      min-height: 30px;
+    }
+    .nav-btn {
+      margin: 10px;
+      padding: 10px 20px;
+      background: #fff;
+      color: #a777e3;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    #progress {
+      font-size: 16px;
+      margin-bottom: 15px;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div id="progress">1/20</div>
-        <h2>Tartib bilan gap tuzing:</h2>
-        <button class="word-btn" onclick="addWord('I')">I</button>
-        <button class="word-btn" onclick="addWord('am')">am</button>
-        <button class="word-btn" onclick="addWord('a')">a</button>
-        <button class="word-btn" onclick="addWord('student')">student</button>
-        <div id="result"></div>
-        <button class="nav-btn" onclick="checkAnswer()">Tekshirish</button>
-        <button class="nav-btn" onclick="nextPage()">Keyingi</button>
-    </div>
+  <div class="container">
+    <div id="progress">1/20</div>
+    <h2 id="question-title">Tartib bilan gap tuzing:</h2>
+    <div id="buttons"></div>
+    <div id="result"></div>
+    <button class="nav-btn" onclick="checkAnswer()">Tekshirish</button>
+    <button class="nav-btn" onclick="nextQuestion()">Keyingi</button>
+  </div>
 
-    <script>
-        let userAnswer = [];
-        let score = 0;
+  <script>
+    const tests = [
+      { correct: "I am a student", words: ["student", "I", "am", "a"] },
+      { correct: "She is a teacher", words: ["a", "teacher", "She", "is"] },
+      { correct: "He is happy", words: ["happy", "He", "is"] },
+      { correct: "They are doctors", words: ["doctors", "They", "are"] },
+      { correct: "We are friends", words: ["We", "are", "friends"] },
+      { correct: "It is a dog", words: ["a", "dog", "is", "It"] },
+      { correct: "I am tall", words: ["tall", "am", "I"] },
+      { correct: "You are kind", words: ["kind", "are", "You"] },
+      { correct: "She is my sister", words: ["is", "sister", "She", "my"] },
+      { correct: "He is my brother", words: ["brother", "He", "my", "is"] },
+      { correct: "I am cold", words: ["am", "cold", "I"] },
+      { correct: "We are in the room", words: ["in", "We", "the", "room", "are"] },
+      { correct: "They are students", words: ["students", "They", "are"] },
+      { correct: "It is small", words: ["It", "is", "small"] },
+      { correct: "You are my friend", words: ["You", "friend", "my", "are"] },
+      { correct: "She is beautiful", words: ["is", "She", "beautiful"] },
+      { correct: "I am from Uzbekistan", words: ["Uzbekistan", "from", "I", "am"] },
+      { correct: "He is a doctor", words: ["a", "doctor", "He", "is"] },
+      { correct: "We are happy", words: ["happy", "are", "We"] },
+      { correct: "They are in the class", words: ["in", "They", "the", "class", "are"] }
+    ];
 
-        function addWord(word) {
-            userAnswer.push(word);
-            document.getElementById('result').innerText = userAnswer.join(' ');
-        }
+    let currentIndex = 0;
+    let userAnswer = [];
+    let score = 0;
 
-        function checkAnswer() {
-            const correctAnswer = "I am a student";
-            if (userAnswer.join(' ') === correctAnswer) {
-                alert("To'g'ri javob! Tabriklaymiz!");
-                score++;
-            } else {
-                alert("Noto'g'ri! To'g'ri javob: I am a student");
-            }
-            userAnswer = [];
-            document.getElementById('result').innerText = '';
-        }
+    function shuffleArray(array) {
+      return array.sort(() => Math.random() - 0.5);
+    }
 
-        function nextPage() {
-            checkAnswer(); // Avtomatik tekshirish
-            window.location.href = 'test2.html';
-        }
-    </script>
+    function renderQuestion() {
+      document.getElementById("result").innerText = "";
+      userAnswer = [];
+      document.getElementById("progress").innerText = `${currentIndex + 1}/${tests.length}`;
+      const currentTest = tests[currentIndex];
+      const shuffledWords = shuffleArray([...currentTest.words]);
+
+      const buttonsContainer = document.getElementById("buttons");
+      buttonsContainer.innerHTML = "";
+      shuffledWords.forEach(word => {
+        const btn = document.createElement("button");
+        btn.innerText = word;
+        btn.className = "word-btn";
+        btn.onclick = () => {
+          userAnswer.push(word);
+          document.getElementById("result").innerText = userAnswer.join(" ");
+        };
+        buttonsContainer.appendChild(btn);
+      });
+    }
+
+    function checkAnswer() {
+      const correct = tests[currentIndex].correct;
+      if (userAnswer.join(" ") === correct) {
+        alert("✅ To'g'ri javob!");
+        score++;
+      } else {
+        alert("❌ Noto'g'ri! To'g'ri javob: " + correct);
+      }
+    }
+
+    function nextQuestion() {
+      if (currentIndex < tests.length - 1) {
+        currentIndex++;
+        renderQuestion();
+      } else {
+        alert(`Test tugadi! To'g'ri javoblar soni: ${score} / ${tests.length}`);
+        // Reset or show final results here if needed
+      }
+    }
+
+    // Start first question
+    renderQuestion();
+  </script>
 </body>
 </html>
