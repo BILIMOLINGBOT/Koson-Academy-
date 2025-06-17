@@ -31,10 +31,11 @@
       border-radius: 10px;
       cursor: pointer;
       font-weight: bold;
+      transition: all 0.2s;
     }
     .word-btn.selected {
       background-color: #6e8efb;
-      color: white;
+      color: #fff;
     }
     .word-btn:hover {
       transform: scale(1.1);
@@ -66,7 +67,6 @@
     <h2 id="question-title">Tartib bilan gap tuzing:</h2>
     <div id="buttons"></div>
     <div id="result"></div>
-    <button class="nav-btn" onclick="undoLast()">⬅️ Orqaga</button>
     <button class="nav-btn" onclick="checkAnswer()">✅ Tekshirish</button>
     <button class="nav-btn" onclick="nextQuestion()">➡️ Keyingi</button>
   </div>
@@ -76,13 +76,11 @@
       { correct: "I am a student", words: ["student", "I", "am", "a"] },
       { correct: "She is a teacher", words: ["a", "teacher", "She", "is"] },
       { correct: "He is happy", words: ["happy", "He", "is"] },
-      // Qo‘shimcha testlar...
+      // Qolgan testlar shu yerga qo‘shiladi...
     ];
 
     let currentIndex = 0;
     let userAnswer = [];
-    let selectedButtons = [];
-    let score = 0;
 
     function shuffleArray(array) {
       return array.sort(() => Math.random() - 0.5);
@@ -91,49 +89,40 @@
     function renderQuestion() {
       document.getElementById("result").innerText = "";
       userAnswer = [];
-      selectedButtons = [];
       document.getElementById("progress").innerText = `${currentIndex + 1}/${tests.length}`;
       const currentTest = tests[currentIndex];
       const shuffledWords = shuffleArray([...currentTest.words]);
 
       const buttonsContainer = document.getElementById("buttons");
       buttonsContainer.innerHTML = "";
+
       shuffledWords.forEach(word => {
         const btn = document.createElement("button");
         btn.innerText = word;
         btn.className = "word-btn";
+        btn.dataset.word = word;
         btn.onclick = () => {
-          userAnswer.push(word);
-          btn.classList.add("selected");
-          btn.disabled = true;
-          selectedButtons.push(btn);
-          updateResult();
+          const index = userAnswer.indexOf(word);
+          if (index === -1) {
+            userAnswer.push(word);
+            btn.classList.add("selected");
+          } else {
+            userAnswer.splice(index, 1);
+            btn.classList.remove("selected");
+          }
+          document.getElementById("result").innerText = userAnswer.join(" ");
         };
         buttonsContainer.appendChild(btn);
       });
     }
 
-    function updateResult() {
-      document.getElementById("result").innerText = userAnswer.join(" ");
-    }
-
-    function undoLast() {
-      if (userAnswer.length > 0) {
-        const lastWord = userAnswer.pop();
-        const lastBtn = selectedButtons.pop();
-        lastBtn.disabled = false;
-        lastBtn.classList.remove("selected");
-        updateResult();
-      }
-    }
-
     function checkAnswer() {
       const correct = tests[currentIndex].correct;
-      if (userAnswer.join(" ") === correct) {
+      const userSentence = userAnswer.join(" ");
+      if (userSentence === correct) {
         alert("✅ To'g'ri javob!");
-        score++;
       } else {
-        alert("❌ Noto'g'ri! To'g'ri javob: " + correct);
+        alert("❌ Noto‘g‘ri! To‘g‘ri javob: " + correct);
       }
     }
 
@@ -142,9 +131,8 @@
         currentIndex++;
         renderQuestion();
       } else {
-        alert(`✅ Test tugadi! To'g'ri javoblar soni: ${score} / ${tests.length}`);
+        alert("✅ Barcha savollar tugadi!");
         currentIndex = 0;
-        score = 0;
         renderQuestion();
       }
     }
