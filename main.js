@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, getDoc, doc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { initializeAuth } from "./auth.js";
 import { setupNavigation } from "./navigation.js";
@@ -21,34 +21,36 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// Initialize modules
 initializeAuth();
 setupNavigation();
 setupProgress();
 loadLessons(db);
 
-// Ballar (score) ni ekranga chiqarish (Firestore yoki localStorage orqali)
+// Ballar (score) ni yuklash va ko‘rsatish
 window.addEventListener("DOMContentLoaded", () => {
   const userPointsElement = document.getElementById("userPoints");
 
-  // 1) Avval localStorage'dan tekshirib ko‘ramiz
+  // LocalStorage tekshirish
   const localScore = localStorage.getItem("toBePositiveScore");
   if (localScore !== null && userPointsElement) {
     userPointsElement.textContent = localScore;
   }
 
-  // 2) Agar foydalanuvchi Firebase orqali login bo‘lgan bo‘lsa, Firestore'dan ham olib yangilaymiz
+  // Firebase'dan olish
   onAuthStateChanged(auth, async (user) => {
     if (user) {
+      const userRef = doc(db, "users", user.uid);
+
       try {
-        const userRef = doc(db, "users", user.uid);
         const userSnap = await getDoc(userRef);
         if (userSnap.exists()) {
-          const data = userSnap.data();
-          const score = data.score || 0;
-          if (userPointsElement) {
-            userPointsElement.textContent = score;
-          }
+          const score = userSnap.data().score || 0;
+          userPointsElement.textContent = score;
+          localStorage.setItem("toBePositiveScore", score); // cache
+        } else {
+          // Yangi foydalanuvchi, Firestore'da hujjat yarating
+          await setDoc(userRef, { score: 0 });
+          userPointsElement.textContent = 0;
         }
       } catch (err) {
         console.error("Ballar yuklashda xatolik:", err);
