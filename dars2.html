@@ -21,7 +21,6 @@
       background: rgba(255, 255, 255, 0.1);
       border-radius: 15px;
       max-width: 600px;
-      width: 90%;
     }
     .word-btn {
       padding: 10px 15px;
@@ -39,7 +38,10 @@
     #result {
       margin-top: 20px;
       font-size: 20px;
-      min-height: 30px;
+      min-height: 60px; /* Increased height for better visibility */
+      padding: 10px; /* Added padding */
+      border-radius: 5px; /* Added border radius */
+      background-color: rgba(255, 255, 255, 0.2); /* Semi-transparent background */
     }
     .nav-btn {
       margin: 10px;
@@ -55,17 +57,6 @@
       font-size: 16px;
       margin-bottom: 15px;
     }
-    #feedback-panel {
-      margin-top: 20px;
-      padding: 15px;
-      background-color: rgba(0, 0, 0, 0.3);
-      border-radius: 10px;
-      display: none;
-    }
-    #feedback-panel p {
-      font-size: 18px;
-      margin: 5px 0;
-    }
   </style>
 </head>
 <body>
@@ -75,15 +66,8 @@
     <div id="buttons"></div>
     <div id="result"></div>
     <button class="nav-btn" onclick="checkAnswer()">Tekshirish</button>
-
-    <div id="feedback-panel">
-      <p id="feedback-text"></p>
-      <p id="correct-answer-text"></p>
-      <button class="nav-btn" onclick="nextQuestion()">Keyingi</button>
-    </div>
-  </div>
-
-  <script>
+    <button class="nav-btn" onclick="nextQuestion()" disabled>Keyingi</button>
+  </div>    <script>
     const tests = [
       { correct: "I am a student", words: ["student", "I", "am", "a"] },
       { correct: "She is a teacher", words: ["a", "teacher", "She", "is"] },
@@ -110,15 +94,15 @@
     let currentIndex = 0;
     let userAnswer = [];
     let score = 0;
+    let answered = false; // To track if the current question has been answered
 
     function shuffleArray(array) {
       return array.sort(() => Math.random() - 0.5);
     }
 
     function renderQuestion() {
-      userAnswer = [];
-      document.getElementById("feedback-panel").style.display = "none";
       document.getElementById("result").innerText = "";
+      userAnswer = [];
       document.getElementById("progress").innerText = `${currentIndex + 1}/${tests.length}`;
       const currentTest = tests[currentIndex];
       const shuffledWords = shuffleArray([...currentTest.words]);
@@ -135,37 +119,44 @@
         };
         buttonsContainer.appendChild(btn);
       });
+      answered = false; // Reset the answered state for the new question
+      document.querySelectorAll('.nav-btn')[1].disabled = true; // Disable "Keyingi" button
     }
 
     function checkAnswer() {
+      if (answered) {
+        return; // Prevent checking multiple times for the same question
+      }
       const correct = tests[currentIndex].correct;
-      const feedbackPanel = document.getElementById("feedback-panel");
-      const feedbackText = document.getElementById("feedback-text");
-      const correctText = document.getElementById("correct-answer-text");
-
+      const resultDiv = document.getElementById("result");
       if (userAnswer.join(" ") === correct) {
-        feedbackText.innerText = "✅ To'g'ri javob!";
-        correctText.innerText = "";
+        resultDiv.innerText = "✅ To'g'ri javob!";
         score++;
       } else {
-        feedbackText.innerText = "❌ Noto'g'ri javob!";
-        correctText.innerText = "To'g'ri javob: " + correct;
+        resultDiv.innerText = `❌ Noto'g'ri! To'g'ri javob: ${correct}`;
       }
-
-      feedbackPanel.style.display = "block";
+      answered = true;
+      document.querySelectorAll('.nav-btn')[1].disabled = false; // Enable "Keyingi" button after checking
     }
 
     function nextQuestion() {
+      if (!answered) {
+        alert("Iltimos, avval javobingizni tekshiring!");
+        return;
+      }
       if (currentIndex < tests.length - 1) {
         currentIndex++;
         renderQuestion();
       } else {
         alert(`Test tugadi! To'g'ri javoblar soni: ${score} / ${tests.length}`);
+        // Optionally reset the test here
+        currentIndex = 0;
+        score = 0;
+        renderQuestion();
       }
     }
 
-    // Start with first question
+    // Start first question
     renderQuestion();
-  </script>
-</body>
+  </script> </body>
 </html>
