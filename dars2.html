@@ -6,7 +6,7 @@
   <title>To Be Positive Test</title>
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Segoe UI', sans-serif;
       background: linear-gradient(135deg, #6e8efb, #a777e3);
       margin: 0;
       min-height: 100vh;
@@ -21,6 +21,8 @@
       background: rgba(255, 255, 255, 0.1);
       border-radius: 15px;
       max-width: 600px;
+      width: 90%;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
     }
     .word-btn {
       padding: 10px 15px;
@@ -31,17 +33,17 @@
       border-radius: 10px;
       cursor: pointer;
       font-weight: bold;
+      transition: transform 0.2s;
     }
     .word-btn:hover {
       transform: scale(1.1);
     }
-    #result {
-      margin-top: 20px;
-      font-size: 20px;
-      min-height: 30px;
+    .word-btn.selected {
+      background-color: #6e8efb;
+      color: #fff;
     }
     .nav-btn {
-      margin: 10px;
+      margin: 10px 5px;
       padding: 10px 20px;
       background: #fff;
       color: #a777e3;
@@ -49,20 +51,47 @@
       border-radius: 10px;
       cursor: pointer;
       font-weight: bold;
+      transition: background 0.2s;
+    }
+    .nav-btn:hover {
+      background: #f0f0f0;
     }
     #progress {
       font-size: 16px;
       margin-bottom: 15px;
     }
+    #result {
+      margin-top: 20px;
+      font-size: 20px;
+      min-height: 30px;
+    }
     #result-panel {
       margin-top: 20px;
-      padding: 15px;
-      background: rgba(255, 255, 255, 0.2);
+      padding: 20px;
       border-radius: 10px;
       display: none;
+      transition: all 0.3s ease;
     }
-    #result-panel.show {
-      display: block;
+    #result-panel.correct {
+      background-color: rgba(0, 200, 100, 0.3);
+      color: #00ff99;
+    }
+    #result-panel.wrong {
+      background-color: rgba(200, 0, 50, 0.3);
+      color: #ffb3b3;
+    }
+    .undo-btn {
+      margin-top: 10px;
+      font-size: 14px;
+      background: transparent;
+      border: 1px solid #fff;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .undo-btn:hover {
+      background-color: rgba(255, 255, 255, 0.1);
     }
   </style>
 </head>
@@ -72,12 +101,15 @@
     <h2 id="question-title">Tartib bilan gap tuzing:</h2>
     <div id="buttons"></div>
     <div id="result"></div>
-    <button class="nav-btn" onclick="checkAnswer()">Tekshirish</button>
+    <button class="undo-btn" onclick="undoLast()">⬅️ Orqaga qaytarish</button>
+    <br>
+    <button class="nav-btn" onclick="checkAnswer()">✅ Tekshirish</button>
     <div id="result-panel">
       <div id="panel-message"></div>
-      <button class="nav-btn" onclick="nextQuestion()">Keyingi</button>
+      <button class="nav-btn" onclick="nextQuestion()">➡️ Keyingi</button>
     </div>
   </div>
+
   <script>
     const tests = [
       { correct: "I am a student", words: ["student", "I", "am", "a"] },
@@ -112,25 +144,48 @@
 
     function renderQuestion() {
       document.getElementById("result").innerText = "";
-      document.getElementById("result-panel").classList.remove("show");
+      document.getElementById("result-panel").className = "";
       document.getElementById("panel-message").innerText = "";
       userAnswer = [];
+
       document.getElementById("progress").innerText = `${currentIndex + 1}/${tests.length}`;
       const currentTest = tests[currentIndex];
       const shuffledWords = shuffleArray([...currentTest.words]);
 
       const buttonsContainer = document.getElementById("buttons");
       buttonsContainer.innerHTML = "";
+
       shuffledWords.forEach(word => {
         const btn = document.createElement("button");
         btn.innerText = word;
         btn.className = "word-btn";
-        btn.onclick = () => {
+        btn.onclick = function () {
           userAnswer.push(word);
-          document.getElementById("result").innerText = userAnswer.join(" ");
+          btn.classList.add("selected");
+          btn.disabled = true;
+          updateResult();
         };
         buttonsContainer.appendChild(btn);
       });
+    }
+
+    function updateResult() {
+      document.getElementById("result").innerText = userAnswer.join(" ");
+    }
+
+    function undoLast() {
+      if (userAnswer.length > 0) {
+        const lastWord = userAnswer.pop();
+        const buttons = document.querySelectorAll(".word-btn");
+        for (let btn of buttons) {
+          if (btn.innerText === lastWord && btn.disabled) {
+            btn.disabled = false;
+            btn.classList.remove("selected");
+            break;
+          }
+        }
+        updateResult();
+      }
     }
 
     function checkAnswer() {
@@ -138,12 +193,17 @@
       const panel = document.getElementById("result-panel");
       const panelMessage = document.getElementById("panel-message");
 
+      panel.classList.remove("correct", "wrong");
+
       if (userAnswer.join(" ") === correct) {
         panelMessage.innerText = "✅ To‘g‘ri javob!";
+        panel.classList.add("correct");
         score++;
       } else {
-        panelMessage.innerText = `❌ Noto‘g‘ri javob! To‘g‘ri javob: ${correct}`;
+        panelMessage.innerText = `❌ Noto‘g‘ri javob!\nTo‘g‘ri javob: ${correct}`;
+        panel.classList.add("wrong");
       }
+
       panel.classList.add("show");
     }
 
@@ -152,14 +212,14 @@
         currentIndex++;
         renderQuestion();
       } else {
-        alert(`Test tugadi! To'g'ri javoblar soni: ${score} / ${tests.length}`);
+        alert(`✅ Test tugadi! Siz ${tests.length} ta savoldan ${score} tasiga to‘g‘ri javob berdingiz.`);
         currentIndex = 0;
         score = 0;
         renderQuestion();
       }
     }
 
-    // Start first question
+    // Start
     renderQuestion();
   </script>
 </body>
