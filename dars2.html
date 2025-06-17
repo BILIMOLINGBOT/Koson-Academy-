@@ -32,19 +32,13 @@
       cursor: pointer;
       font-weight: bold;
     }
-    .word-btn.selected {
-      opacity: 0.7; /* Visual feedback for selected words */
-    }
     .word-btn:hover {
       transform: scale(1.1);
     }
     #result {
       margin-top: 20px;
       font-size: 20px;
-      min-height: 60px; /* Increased height for better visibility */
-      padding: 10px; /* Added padding */
-      border-radius: 5px; /* Added border radius */
-      background-color: rgba(255, 255, 255, 0.2); /* Semi-transparent background */
+      min-height: 30px;
     }
     .nav-btn {
       margin: 10px;
@@ -67,10 +61,12 @@
     <div id="progress">1/20</div>
     <h2 id="question-title">Tartib bilan gap tuzing:</h2>
     <div id="buttons"></div>
-    <div id="result"></h2>
+    <div id="result"></div>
     <button class="nav-btn" onclick="checkAnswer()">Tekshirish</button>
-    <button class="nav-btn" onclick="nextQuestion()" disabled>Keyingi</button>
-  </div>    <script>
+    <button class="nav-btn" onclick="nextQuestion()">Keyingi</button>
+  </div>
+
+  <script>
     const tests = [
       { correct: "I am a student", words: ["student", "I", "am", "a"] },
       { correct: "She is a teacher", words: ["a", "teacher", "She", "is"] },
@@ -97,7 +93,6 @@
     let currentIndex = 0;
     let userAnswer = [];
     let score = 0;
-    let answered = false;
 
     function shuffleArray(array) {
       return array.sort(() => Math.random() - 0.5);
@@ -116,60 +111,46 @@
         const btn = document.createElement("button");
         btn.innerText = word;
         btn.className = "word-btn";
-        btn.dataset.word = word; // Store the word in the button's dataset
-        btn.addEventListener('click', function() {
+        btn.dataset.word = word;
+        btn.onclick = function() {
           const clickedWord = this.dataset.word;
-          const resultText = document.getElementById("result").innerText.trim();
-          const currentAnswerArray = resultText.split(" ").filter(w => w !== ""); // Split into words
-
-          const wordIndex = currentAnswerArray.lastIndexOf(clickedWord);
-
-          if (wordIndex === -1) {
-            document.getElementById("result").innerText += (resultText ? " " : "") + clickedWord;
-          } else if (currentAnswerArray.length > 0 && currentAnswerArray[currentAnswerArray.length - 1] === clickedWord) {
-            currentAnswerArray.pop();
-            document.getElementById("result").innerText = currentAnswerArray.join(" ");
+          const index = userAnswer.indexOf(clickedWord);
+          if (index === -1) {
+            userAnswer.push(clickedWord);
+          } else {
+            const lastIndex = userAnswer.lastIndexOf(clickedWord);
+            if (lastIndex !== -1) {
+              userAnswer.splice(lastIndex, 1);
+            }
           }
-        });
+          document.getElementById("result").innerText = userAnswer.join(" ");
+        };
         buttonsContainer.appendChild(btn);
       });
-      answered = false;
-      document.querySelectorAll('.nav-btn')[1].disabled = true;
     }
 
     function checkAnswer() {
-      if (answered) {
-        return;
-      }
       const correct = tests[currentIndex].correct;
-      const resultDiv = document.getElementById("result");
-      const currentAnswer = document.getElementById("result").innerText.trim();
-      if (currentAnswer === correct) {
-        resultDiv.innerText = "✅ To'g'ri javob!";
+      if (userAnswer.join(" ") === correct) {
+        alert("✅ To'g'ri javob!");
         score++;
       } else {
-        resultDiv.innerText = `❌ Noto'g'ri! To'g'ri javob: ${correct}`;
+        alert("❌ Noto'g'ri! To'g'ri javob: " + correct);
       }
-      answered = true;
-      document.querySelectorAll('.nav-btn')[1].disabled = false;
     }
 
     function nextQuestion() {
-      if (!answered) {
-        alert("Iltimos, avval javobingizni tekshiring!");
-        return;
-      }
       if (currentIndex < tests.length - 1) {
         currentIndex++;
         renderQuestion();
       } else {
         alert(`Test tugadi! To'g'ri javoblar soni: ${score} / ${tests.length}`);
-        currentIndex = 0;
-        score = 0;
-        renderQuestion();
+        // Reset or show final results here if needed
       }
     }
 
+    // Start first question
     renderQuestion();
-  </script> </body>
+  </script>
+</body>
 </html>
