@@ -21,6 +21,7 @@
       background: rgba(255, 255, 255, 0.1);
       border-radius: 15px;
       max-width: 600px;
+      width: 90%;
     }
     .word-btn {
       padding: 10px 15px;
@@ -54,6 +55,17 @@
       font-size: 16px;
       margin-bottom: 15px;
     }
+    #feedback-panel {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: rgba(0, 0, 0, 0.3);
+      border-radius: 10px;
+      display: none;
+    }
+    #feedback-panel p {
+      font-size: 18px;
+      margin: 5px 0;
+    }
   </style>
 </head>
 <body>
@@ -63,7 +75,12 @@
     <div id="buttons"></div>
     <div id="result"></div>
     <button class="nav-btn" onclick="checkAnswer()">Tekshirish</button>
-    <button class="nav-btn" onclick="nextQuestion()">Keyingi</button>
+
+    <div id="feedback-panel">
+      <p id="feedback-text"></p>
+      <p id="correct-answer-text"></p>
+      <button class="nav-btn" onclick="nextQuestion()">Keyingi</button>
+    </div>
   </div>
 
   <script>
@@ -99,8 +116,9 @@
     }
 
     function renderQuestion() {
-      document.getElementById("result").innerText = "";
       userAnswer = [];
+      document.getElementById("feedback-panel").style.display = "none";
+      document.getElementById("result").innerText = "";
       document.getElementById("progress").innerText = `${currentIndex + 1}/${tests.length}`;
       const currentTest = tests[currentIndex];
       const shuffledWords = shuffleArray([...currentTest.words]);
@@ -111,18 +129,8 @@
         const btn = document.createElement("button");
         btn.innerText = word;
         btn.className = "word-btn";
-        btn.dataset.word = word;
-        btn.onclick = function() {
-          const clickedWord = this.dataset.word;
-          const index = userAnswer.indexOf(clickedWord);
-          if (index === -1) {
-            userAnswer.push(clickedWord);
-          } else {
-            const lastIndex = userAnswer.lastIndexOf(clickedWord);
-            if (lastIndex !== -1) {
-              userAnswer.splice(lastIndex, 1);
-            }
-          }
+        btn.onclick = () => {
+          userAnswer.push(word);
           document.getElementById("result").innerText = userAnswer.join(" ");
         };
         buttonsContainer.appendChild(btn);
@@ -131,12 +139,20 @@
 
     function checkAnswer() {
       const correct = tests[currentIndex].correct;
+      const feedbackPanel = document.getElementById("feedback-panel");
+      const feedbackText = document.getElementById("feedback-text");
+      const correctText = document.getElementById("correct-answer-text");
+
       if (userAnswer.join(" ") === correct) {
-        alert("✅ To'g'ri javob!");
+        feedbackText.innerText = "✅ To'g'ri javob!";
+        correctText.innerText = "";
         score++;
       } else {
-        alert("❌ Noto'g'ri! To'g'ri javob: " + correct);
+        feedbackText.innerText = "❌ Noto'g'ri javob!";
+        correctText.innerText = "To'g'ri javob: " + correct;
       }
+
+      feedbackPanel.style.display = "block";
     }
 
     function nextQuestion() {
@@ -145,11 +161,10 @@
         renderQuestion();
       } else {
         alert(`Test tugadi! To'g'ri javoblar soni: ${score} / ${tests.length}`);
-        // Reset or show final results here if needed
       }
     }
 
-    // Start first question
+    // Start with first question
     renderQuestion();
   </script>
 </body>
