@@ -38,10 +38,7 @@
     #result {
       margin-top: 20px;
       font-size: 20px;
-      min-height: 60px; /* Increased height for better visibility */
-      padding: 10px; /* Added padding */
-      border-radius: 5px; /* Added border radius */
-      background-color: rgba(255, 255, 255, 0.2); /* Semi-transparent background */
+      min-height: 30px;
     }
     .nav-btn {
       margin: 10px;
@@ -57,6 +54,16 @@
       font-size: 16px;
       margin-bottom: 15px;
     }
+    #result-panel {
+      margin-top: 20px;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      display: none;
+    }
+    #result-panel.show {
+      display: block;
+    }
   </style>
 </head>
 <body>
@@ -66,8 +73,12 @@
     <div id="buttons"></div>
     <div id="result"></div>
     <button class="nav-btn" onclick="checkAnswer()">Tekshirish</button>
-    <button class="nav-btn" onclick="nextQuestion()" disabled>Keyingi</button>
-  </div>    <script>
+    <div id="result-panel">
+      <div id="panel-message"></div>
+      <button class="nav-btn" onclick="nextQuestion()">Keyingi</button>
+    </div>
+  </div>
+  <script>
     const tests = [
       { correct: "I am a student", words: ["student", "I", "am", "a"] },
       { correct: "She is a teacher", words: ["a", "teacher", "She", "is"] },
@@ -94,7 +105,6 @@
     let currentIndex = 0;
     let userAnswer = [];
     let score = 0;
-    let answered = false; // To track if the current question has been answered
 
     function shuffleArray(array) {
       return array.sort(() => Math.random() - 0.5);
@@ -102,6 +112,8 @@
 
     function renderQuestion() {
       document.getElementById("result").innerText = "";
+      document.getElementById("result-panel").classList.remove("show");
+      document.getElementById("panel-message").innerText = "";
       userAnswer = [];
       document.getElementById("progress").innerText = `${currentIndex + 1}/${tests.length}`;
       const currentTest = tests[currentIndex];
@@ -119,37 +131,28 @@
         };
         buttonsContainer.appendChild(btn);
       });
-      answered = false; // Reset the answered state for the new question
-      document.querySelectorAll('.nav-btn')[1].disabled = true; // Disable "Keyingi" button
     }
 
     function checkAnswer() {
-      if (answered) {
-        return; // Prevent checking multiple times for the same question
-      }
       const correct = tests[currentIndex].correct;
-      const resultDiv = document.getElementById("result");
+      const panel = document.getElementById("result-panel");
+      const panelMessage = document.getElementById("panel-message");
+
       if (userAnswer.join(" ") === correct) {
-        resultDiv.innerText = "✅ To'g'ri javob!";
+        panelMessage.innerText = "✅ To‘g‘ri javob!";
         score++;
       } else {
-        resultDiv.innerText = `❌ Noto'g'ri! To'g'ri javob: ${correct}`;
+        panelMessage.innerText = `❌ Noto‘g‘ri javob! To‘g‘ri javob: ${correct}`;
       }
-      answered = true;
-      document.querySelectorAll('.nav-btn')[1].disabled = false; // Enable "Keyingi" button after checking
+      panel.classList.add("show");
     }
 
     function nextQuestion() {
-      if (!answered) {
-        alert("Iltimos, avval javobingizni tekshiring!");
-        return;
-      }
       if (currentIndex < tests.length - 1) {
         currentIndex++;
         renderQuestion();
       } else {
         alert(`Test tugadi! To'g'ri javoblar soni: ${score} / ${tests.length}`);
-        // Optionally reset the test here
         currentIndex = 0;
         score = 0;
         renderQuestion();
@@ -158,5 +161,6 @@
 
     // Start first question
     renderQuestion();
-  </script> </body>
+  </script>
+</body>
 </html>
