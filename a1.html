@@ -85,7 +85,27 @@
   </div>
   <div id="lessons-list"></div>
 
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD0gBUJNcrgvvntcrfKK7Ky8t6_9Qb96Io",
+      authDomain: "bilimilova-64833.firebaseapp.com",
+      databaseURL: "https://bilimilova-64833-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "bilimilova-64833",
+      storageBucket: "bilimilova-64833.appspot.com",
+      messagingSenderId: "890689414502",
+      appId: "1:890689414502:web:8141d7aab413495c0c14a7",
+      measurementId: "G-ZBC8X1VVMZ"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const tg = window.Telegram.WebApp;
+    const uid = tg?.initDataUnsafe?.user?.id?.toString();
+
     const lessons = [
       "To be affirmative", "To be question", 
       "To be negative",  "Present continuous affirmative", 
@@ -102,13 +122,33 @@
     const progressFill = document.getElementById("progress-fill");
     const pointDisplay = document.getElementById("point");
 
-    // ✅ A1 uchun maxsus kalitlar
-    let unlocked = parseInt(localStorage.getItem("a1_unlocked")) || 0;
-    let score = parseInt(localStorage.getItem("a1_score")) || 0;
+    let unlocked = 0;
+    let score = 0;
 
-    function saveProgress() {
-      localStorage.setItem("a1_unlocked", unlocked);
-      localStorage.setItem("a1_score", score);
+    async function loadProgressFromFirebase() {
+      if (!uid) return;
+      try {
+        const docSnap = await getDoc(doc(db, "users", uid));
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          unlocked = data.a1_unlocked ?? 0;
+          score = data.a1_score ?? 0;
+        }
+      } catch (e) {
+        console.error("Yuklashda xatolik:", e);
+      }
+    }
+
+    async function saveProgressToFirebase() {
+      if (!uid) return;
+      try {
+        await setDoc(doc(db, "users", uid), {
+          a1_unlocked: unlocked,
+          a1_score: score
+        }, { merge: true });
+      } catch (e) {
+        console.error("Saqlashda xatolik:", e);
+      }
     }
 
     function updateProgress() {
@@ -129,7 +169,7 @@
         btn.textContent = `${lessonNumber}. ${lesson}`;
         btn.dataset.index = index;
 
-        btn.addEventListener("click", function (e) {
+        btn.addEventListener("click", async function (e) {
           if (!isUnlocked) {
             e.preventDefault();
             alert("Darslarni ketma-ket oʻrganish kerak!");
@@ -138,7 +178,7 @@
               score += 1;
               unlocked++;
               this.classList.add("visited");
-              saveProgress();
+              await saveProgressToFirebase();
               updateProgress();
               renderLessons();
             }
@@ -149,15 +189,19 @@
       });
     }
 
-    // 🔄 Avtomatik dark mode
+    // Dark mode
     const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
     document.body.classList.toggle("dark-mode", darkQuery.matches);
     darkQuery.addEventListener("change", (e) => {
       document.body.classList.toggle("dark-mode", e.matches);
     });
 
-    renderLessons();
-    updateProgress();
+    // Boshlash
+    (async () => {
+      await loadProgressFromFirebase();
+      renderLessons();
+      updateProgress();
+    })();
   </script>
 </body>
 </html>
