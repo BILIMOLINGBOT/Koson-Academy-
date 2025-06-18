@@ -3,22 +3,24 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>B1 Darslari</title>
+  <title>B1 Darajasi Darslari</title>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
+  <script src="firebase.js"></script>
   <style>
     body {
       font-family: sans-serif;
       margin: 0;
       padding: 20px;
-      background-color: #ffffff;
+      background-color: #fff;
       color: #000;
       transition: background-color 0.3s, color 0.3s;
     }
-
     body.dark-mode {
       background-color: #121212;
       color: #eee;
     }
-
     .back-btn {
       display: inline-block;
       padding: 10px 15px;
@@ -27,59 +29,35 @@
       text-decoration: none;
       border-radius: 5px;
       margin-bottom: 15px;
-      font-size: 16px;
-      transition: background-color 0.3s;
     }
-
-    .back-btn:hover {
-      background-color: #0056b3;
-    }
-
     .lesson-btn {
       display: block;
       background-color: #007bff;
-      color: #fff;
-      text-align: left;
+      color: white;
       padding: 12px 20px;
       margin: 10px 0;
-      border: none;
       border-radius: 8px;
       text-decoration: none;
-      font-size: 16px;
-      transition: background-color 0.3s;
     }
-
-    .lesson-btn:hover {
-      background-color: #0056b3;
-    }
-
     .lesson-btn.locked {
       background-color: #ccc;
       color: #666;
       cursor: not-allowed;
     }
-
-    body.dark-mode .lesson-btn.locked {
-      background-color: #444;
-      color: #aaa;
-    }
-
     #progress-bar {
       width: 100%;
       background-color: #eee;
+      height: 20px;
       border-radius: 8px;
       margin-bottom: 20px;
-      height: 20px;
       overflow: hidden;
     }
-
     #progress-fill {
       height: 100%;
       width: 0%;
       background-color: #007bff;
       transition: width 0.5s;
     }
-
     #score {
       font-weight: bold;
       margin-bottom: 20px;
@@ -87,46 +65,25 @@
   </style>
 </head>
 <body>
-  <a href="index.html" class="back-btn">Orqaga</a>
+  <a href="index.html" class="back-btn">← Orqaga</a>
   <h1>B1 Darajasi Darslari</h1>
   <div id="score">Ball: <span id="point">0</span></div>
-  <div id="progress-bar">
-    <div id="progress-fill"></div>
-  </div>
-
+  <div id="progress-bar"><div id="progress-fill"></div></div>
   <div id="lessons-list"></div>
 
-  <script>
+  <script type="module">
+    import { app, db, auth } from './firebase.js';
+    import { doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
     const lessons = [
-      "I'm vs I do", "I'm vs I do test",
-      "Question forms in tenses", "Question froms in tenses test",
-      "To either / Neither do / So am I", "To either/ Neither do/ So am I test",
-      "Haven't / Don't / Isn't", "Haven't/ Don't/ Isn't test",
-      "Have you ... ? / Do they ... ?", "Have you ... ? / Do they ... ? test",
-      "Who say you vs Who did you see", "Who say you vs Who did you see test",
-      "What is it like?", "What is it like? test",
-      "What? Which? How?", "What? Which? How? test",
-      "How long does it take?", "How long does it take? test",
-      "Do you know where ... ?", "Do you know where ... ? test",
-      "She said that", "She said that test",
-      "Work vs working", "Work vs working test",
-      "I want to do vs I enjoy doing", "I want to do vs I enjoy doing test",
-      "I told you to ...", "I told you to ... test",
-      "I went to the shop to ...", "I went to the shop to ... test",
-      "Go to / Go on / Go for", "Go to/ Go on / Go for test",
-      "Get a letter / Get a job", "Get a letter/ Get a job test",
-      "Do vs Make", "Do vs Make test",
-      "Have or Have got", "Have or Have got test",
-      "Pronouns", "Pronuns test",
-      "Pronouns", "Pronouns test",
-      "Who is this? It's mine", "Who is this? It's mine test",
-      "Pronouns Part 1", "Pronuns Part 1 test",
-      "Pronouns Part 2", "Pronouns Part 2 test",
-      "ʼs (Kateʼs camera / my brotherʼs car)", "ʼs (Kateʼs camera/ my brotherʼs car) test",
-      "A and an articles", "A and an articles test",
-      "Singular and Plural nouns", "Singular and Plural nouns test",
-      "Countable and Uncountable nouns 1", "Countable and Uncountable nouns 1 test",
-      "Countable and Uncountable nouns 2", "Countable and Uncountable nouns 2 test"
+      "I'm vs I do", "Question forms", "To either / So am I", "Haven't / Don't / Isn't",
+      "Have you ... ?", "Who said you?", "What is it like?", "What? Which? How?",
+      "How long does it take?", "Do you know where ... ?", "She said that ...",
+      "Work vs Working", "Want to do vs Enjoy doing", "Told you to ...",
+      "Went to shop to ...", "Go to / Go on / Go for", "Get a job / Get home",
+      "Do vs Make", "Have or Have got", "Pronouns 1", "Pronouns 2", "Whose is this?",
+      "Kateʼs camera", "Articles: A and An", "Singular and Plural", "Countable nouns 1",
+      "Countable nouns 2", "Some / Any", "Much / Many", "A lot of / Few"
     ];
 
     const lessonContainer = document.getElementById("lessons-list");
@@ -135,6 +92,28 @@
 
     let unlocked = 0;
     let score = 0;
+    let userId = null;
+
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        userId = user.uid;
+        const docRef = doc(db, "users", userId);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          unlocked = data.b1_unlocked || 0;
+          score = data.b1_score || 0;
+        }
+        renderLessons();
+        updateProgress();
+      }
+    });
+
+    async function saveProgress() {
+      if (!userId) return;
+      const ref = doc(db, "users", userId);
+      await setDoc(ref, { b1_unlocked: unlocked, b1_score: score }, { merge: true });
+    }
 
     function updateProgress() {
       const percent = Math.floor((unlocked / lessons.length) * 100);
@@ -146,36 +125,31 @@
       lessonContainer.innerHTML = "";
       lessons.forEach((lesson, index) => {
         const btn = document.createElement("a");
+        btn.textContent = `${index + 1}. ${lesson}`;
         btn.className = "lesson-btn" + (index <= unlocked ? "" : " locked");
-        btn.href = index <= unlocked ? `dars${36 + index}.html` : "#";
-        btn.textContent = lesson;
-        btn.dataset.index = index;
-
-        btn.addEventListener("click", function (e) {
+        btn.href = index <= unlocked ? `dars${50 + index}.html` : "#";
+        btn.addEventListener("click", async (e) => {
           if (index > unlocked) {
             e.preventDefault();
             alert("Oldingi darslarni tugatish kerak!");
-          } else {
+          } else if (index === unlocked) {
+            unlocked++;
             score++;
-            if (unlocked < lessons.length - 1) unlocked++;
-            updateProgress();
+            await saveProgress();
             renderLessons();
+            updateProgress();
           }
         });
-
         lessonContainer.appendChild(btn);
       });
     }
 
-    // Dark mode auto-detection
+    // Dark mode
     const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
     document.body.classList.toggle("dark-mode", darkQuery.matches);
     darkQuery.addEventListener("change", e => {
       document.body.classList.toggle("dark-mode", e.matches);
     });
-
-    renderLessons();
-    updateProgress();
   </script>
 </body>
 </html>
