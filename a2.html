@@ -84,84 +84,54 @@
       font-weight: bold;
       margin-bottom: 20px;
     }
+
+    .locked-overlay {
+      color: red;
+      font-size: 16px;
+      margin-bottom: 15px;
+    }
   </style>
 </head>
 <body>
-  <a href="index.html" class="back-btn">Orqaga</a>
+  <a href="index.html" class="back-btn">← Orqaga</a>
   <h1>A2 Darajasi Darslari</h1>
-  <div id="score">Ball: <span id="point">0</span></div>
-  <div id="progress-bar">
-    <div id="progress-fill"></div>
-  </div>
 
-  <div id="lessons-list">
-    </div>
+  <div id="score">Ball: <span id="point">0</span></div>
+  <div id="progress-bar"><div id="progress-fill"></div></div>
+
+  <div id="locked-message" class="locked-overlay"></div>
+  <div id="lessons-list"></div>
 
   <script>
     const lessons = [
-      "Present Perfect",
-      "Present Perfect positive ",
-      "Present Perfect question ",
-      "Present Perfect negative ",
-      "Present Perfect part 2",
-     
-      "Present Perfect 3",
-      
-      "Present Perfect",
-      
-      "For /Since/ Ago",
-      
-      "Present Perfect va Past Simple",
-      
-      "Passive Voice",
-      
-      "Present Past part 2",
-      
-      "Present and Past tenses",
-      
-      "Regular and Irregular Verbs",
-      
-      "I used to ...",
-      "I used to ... positive",
-      "I used to ... question",
-      "I used to ... negative",
-      "What are you doing tomorrow?",
-     
-      "I'm going to ...",
-      
-      "Future Tenses",
-     
-      "Modal verbs /might",
-      
-      "Modal verbs /can/could",
-      
-      "Modal verbs /must/need",
-      
-      "Modal verbs /should",
-      
-      "I have to ...",
-      
-      "Would you like ... ?",
-      
-      "There is vs There are",
-      
-      "There was vs There were",
-      
-      "There with other tenses",
-      
-      "What time is it?",
+      "Present Perfect", "Present Perfect positive", "Present Perfect question", "Present Perfect negative", 
+      "Present Perfect part 2", "Present Perfect 3", "Present Perfect", "For /Since/ Ago", 
+      "Present Perfect va Past Simple", "Passive Voice", "Present Past part 2", "Present and Past tenses", 
+      "Regular and Irregular Verbs", "I used to ...", "I used to ... positive", "I used to ... question", 
+      "I used to ... negative", "What are you doing tomorrow?", "I'm going to ...", "Future Tenses", 
+      "Modal verbs /might", "Modal verbs /can/could", "Modal verbs /must/need", "Modal verbs /should", 
+      "I have to ...", "Would you like ... ?", "There is vs There are", "There was vs There were", 
+      "There with other tenses", "What time is it?"
     ];
 
     const lessonContainer = document.getElementById("lessons-list");
     const progressFill = document.getElementById("progress-fill");
     const pointDisplay = document.getElementById("point");
+    const lockedMessage = document.getElementById("locked-message");
 
-    let unlocked = parseInt(localStorage.getItem("unlocked")) || 0;
-    let score = parseInt(localStorage.getItem("score")) || 0;
+    // A1 progress tekshirish
+    const a1Unlocked = parseInt(localStorage.getItem("unlocked")) || 0;
+
+    if (a1Unlocked < 18) {
+      lockedMessage.textContent = "Avval A1 darajasi (18 ta dars) toʻliq tugatilishi kerak.";
+    }
+
+    let unlocked = parseInt(localStorage.getItem("a2_unlocked")) || 0;
+    let score = parseInt(localStorage.getItem("a2_score")) || 0;
 
     function saveProgress() {
-      localStorage.setItem("unlocked", unlocked);
-      localStorage.setItem("score", score);
+      localStorage.setItem("a2_unlocked", unlocked);
+      localStorage.setItem("a2_score", score);
     }
 
     function updateProgress() {
@@ -174,21 +144,23 @@
       lessonContainer.innerHTML = "";
       lessons.forEach((lesson, index) => {
         const btn = document.createElement("a");
-        btn.className = "lesson-btn" + (index <= unlocked ? "" : " locked");
-        btn.href = index <= unlocked ? `dars${36 + index + 1}.html` : "#"; // Dars fayllari nomini to'g'irlash (dars19.html dan boshlab)
+        const realLessonNum = 18 + index + 1; // dars19.html dan boshlab
+        const isUnlocked = a1Unlocked >= 18 && index <= unlocked;
+
+        btn.className = "lesson-btn" + (isUnlocked ? "" : " locked");
+        btn.href = isUnlocked ? `dars${realLessonNum}.html` : "#";
         btn.textContent = `${index + 1}. ${lesson}`;
         btn.dataset.index = index;
 
         btn.addEventListener("click", function (e) {
-          if (index > unlocked) {
+          if (!isUnlocked) {
             e.preventDefault();
-            alert("Darslarni ketma-ket oʻrganish kerak!");
+            alert("Avvalgi darslarni tugatmagansiz yoki A1 darajasi toʻliq tugatilmadi!");
           } else {
-            // Faqat yangi dars ochilganda ball va unlocked oshadi
-            if (index === unlocked && !this.classList.contains('visited')) {
+            if (index === unlocked && !this.classList.contains("visited")) {
               score += 1;
               unlocked++;
-              this.classList.add('visited');
+              this.classList.add("visited");
               saveProgress();
               updateProgress();
               renderLessons();
@@ -200,17 +172,15 @@
       });
     }
 
-    // Dark mode auto-detection
+    // Dark mode
     const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
     document.body.classList.toggle("dark-mode", darkQuery.matches);
     darkQuery.addEventListener("change", (e) => {
       document.body.classList.toggle("dark-mode", e.matches);
     });
 
-    // Boshlanish
     renderLessons();
     updateProgress();
   </script>
-
 </body>
 </html>
