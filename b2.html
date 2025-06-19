@@ -1,192 +1,187 @@
-<!DOCTYPE html>  <html lang="uz">  
-<head>  
-  <meta charset="UTF-8" />  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />  
-  <title>B2 Darslari</title>  
-  <style>  
-    body {  
-      font-family: sans-serif;  
-      margin: 0;  
-      padding: 20px;  
-      background-color: #ffffff;  
-      color: #000;  
-      transition: background-color 0.3s, color 0.3s;  
-    }  body.dark-mode {  
-  background-color: #121212;  
-  color: #eee;  
-}  
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>B2 Darslari</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #ffffff;
+      color: #000;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    body.dark-mode {
+      background-color: #121212;
+      color: #eee;
+    }
+    .back-btn {
+      display: inline-block;
+      padding: 10px 15px;
+      background-color: #007bff;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      margin-bottom: 15px;
+      font-size: 16px;
+      transition: background-color 0.3s;
+    }
+    .back-btn:hover {
+      background-color: #0056b3;
+    }
+    .lesson-btn {
+      display: block;
+      background-color: #007bff;
+      color: #fff;
+      text-align: left;
+      padding: 12px 20px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 16px;
+      transition: background-color 0.3s;
+    }
+    .lesson-btn:hover {
+      background-color: #0056b3;
+    }
+    .lesson-btn.locked {
+      background-color: #ccc;
+      color: #666;
+      cursor: not-allowed;
+    }
+    body.dark-mode .lesson-btn.locked {
+      background-color: #444;
+      color: #aaa;
+    }
+    #progress-bar {
+      width: 100%;
+      background-color: #eee;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      height: 20px;
+      overflow: hidden;
+    }
+    #progress-fill {
+      height: 100%;
+      width: 0%;
+      background-color: #007bff;
+      transition: width 0.5s;
+    }
+    #score {
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+    .locked-overlay {
+      color: red;
+      font-size: 16px;
+      margin-bottom: 15px;
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-btn">← Orqaga</a>
+  <h1>B2 Darajasi Darslari</h1>
+  <div id="score">Ball: <span id="point">0</span></div>
+  <div id="progress-bar"><div id="progress-fill"></div></div>
+  <div id="locked-message" class="locked-overlay"></div>
+  <div id="lessons-list"></div>
 
-.back-btn {  
-  display: inline-block;  
-  padding: 10px 15px;  
-  background-color: #007bff;  
-  color: white;  
-  text-decoration: none;  
-  border-radius: 5px;  
-  margin-bottom: 15px;  
-  font-size: 16px;  
-  transition: background-color 0.3s;  
-}  
+  <script>
+    const lessons = [
+      "A vs The | Articles", "The article", "Go to work vs Go home", "When NOT to use 'the'",
+      "Names of places", "That/This/Those/These", "One vs Ones", "Some vs Any",
+      "No + any / No / None", "Not+anybody vs Nobody", "Somebody/Anything/Nowhere",
+      "Every vs All", "All/Most/Some/Any", "Both / Either / Neither", "A lot / Much / Many",
+      "A little vs A few", "Adjectives", "Adverbs", "Old vs Older", "Older / More expensive than...",
+      "The oldest / The most expensive", "Enough", "Too", "Word order 1", "Word order 2",
+      "Still vs Yet", "Give me.. / Give it to...", "At / On / In", "From... to, Until, Since, For",
+      "Before, After, During, While", "In / At (Places)", "To / In / At (Places)", "On / Under / Behind",
+      "Up / Over / Through", "At / by / With / Without / About", "Afraid of... / On holiday",
+      "Look at / Listen to", "Go in / Fall off / Run away", "Put on your shoes / Put your shoes on",
+      "And / But / Or / So / Because", "When", "If we go ... If you see ...", "If I had... If we went...",
+      "Relative clauses 1", "The people we met / the hotel you stayed at", "Can / Could / (be) able to",
+      "Could (do) and could have (done)", "Must and can't", "May and might", "May and might 2",
+      "Should 2", "I'd better... / It's time...", "Would", "If I knew… I wish I knew…",
+      "Reported speech (He said that...)", "Verb+to… (decide to / forget to…)", "Verb + -ing",
+      "Verb + -ing or to (remember, regret etc.)", "Verb + -ing or to (try, need, help)",
+      "Prefer and would rather", "To..., for.... and so that...", "Adjective + to...",
+      "Countable and uncountable", "Countable nouns with a/an and some", "Singular and plural",
+      "Noun+noun (a bus driver / a headache)", "'s and of ...", "Each and every",
+      "Relative clauses: whose / whom / where", "Adjectives and Adverbs (Quick / Quickly)",
+      "Adjectives and Adverbs 2 (Well, fast, late, hard / hardly)", "Enough and too",
+      "Quite, pretty, rather and fairly", "Comparative 1", "Comparative 2", "Superlative",
+      "Word order: verb + object, Place and time", "Still / Any more / Yet / Already",
+      "Even", "As", "Like and as", "Like, as, if", "At / On / In (time)"
+    ];
 
-.back-btn:hover {  
-  background-color: #0056b3;  
-}  
+    const lessonContainer = document.getElementById("lessons-list");
+    const progressFill = document.getElementById("progress-fill");
+    const pointDisplay = document.getElementById("point");
+    const lockedMessage = document.getElementById("locked-message");
 
-.lesson-btn {  
-  display: block;  
-  background-color: #007bff;  
-  color: #fff;  
-  text-align: left;  
-  padding: 12px 20px;  
-  margin: 10px 0;  
-  border: none;  
-  border-radius: 8px;  
-  text-decoration: none;  
-  font-size: 16px;  
-  transition: background-color 0.3s;  
-}  
+    const b1Unlocked = parseInt(localStorage.getItem("b1_unlocked")) || 0;
+    let unlocked = parseInt(localStorage.getItem("b2_unlocked")) || 0;
+    let score = parseInt(localStorage.getItem("b2_score")) || 0;
 
-.lesson-btn:hover {  
-  background-color: #0056b3;  
-}  
+    if (b1Unlocked < 30) {
+      lockedMessage.textContent = "Avval B1 darajasidagi 30 ta darsni toʻliq tugatishingiz kerak.";
+    }
 
-.lesson-btn.locked {  
-  background-color: #ccc;  
-  color: #666;  
-  cursor: not-allowed;  
-}  
+    function saveProgress() {
+      localStorage.setItem("b2_unlocked", unlocked);
+      localStorage.setItem("b2_score", score);
+    }
 
-body.dark-mode .lesson-btn.locked {  
-  background-color: #444;  
-  color: #aaa;  
-}  
+    function updateProgress() {
+      let percent = Math.floor((unlocked / lessons.length) * 100);
+      progressFill.style.width = percent + "%";
+      pointDisplay.textContent = score;
+    }
 
-#progress-bar {  
-  width: 100%;  
-  background-color: #eee;  
-  border-radius: 8px;  
-  margin-bottom: 20px;  
-  height: 20px;  
-  overflow: hidden;  
-}  
+    function renderLessons() {
+      lessonContainer.innerHTML = "";
+      lessons.forEach((lesson, index) => {
+        const btn = document.createElement("a");
+        const realLessonNum = 116 + index;
+        const isUnlocked = b1Unlocked >= 30 && index <= unlocked;
 
-#progress-fill {  
-  height: 100%;  
-  width: 0%;  
-  background-color: #007bff;  
-  transition: width 0.5s;  
-}  
+        btn.className = "lesson-btn" + (isUnlocked ? "" : " locked");
+        btn.href = isUnlocked ? `dars${realLessonNum}.html` : "#";
+        btn.textContent = `${index + 1}. ${lesson}`;
+        btn.dataset.index = index;
 
-#score {  
-  font-weight: bold;  
-  margin-bottom: 20px;  
-}  
+        btn.addEventListener("click", function (e) {
+          if (!isUnlocked) {
+            e.preventDefault();
+            alert("Avvalgi darslarni tugatmagansiz yoki B1 darajasi toʻliq tugatilmadi!");
+          } else {
+            if (index === unlocked && !this.classList.contains("visited")) {
+              score += 1;
+              unlocked++;
+              this.classList.add("visited");
+              saveProgress();
+              updateProgress();
+              renderLessons();
+            }
+          }
+        });
 
-.locked-overlay {  
-  color: red;  
-  font-size: 16px;  
-  margin-bottom: 15px;  
-}
+        lessonContainer.appendChild(btn);
+      });
+    }
 
-  </style>  
-</head>  
-<body>  
-  <a href="index.html" class="back-btn">← Orqaga</a>  
-  <h1>B2 Darajasi Darslari</h1>    <div id="score">Ball: <span id="point">0</span></div>  
-  <div id="progress-bar"><div id="progress-fill"></div></div>    <div id="locked-message" class="locked-overlay"></div>  
-  <div id="lessons-list"></div>    <script>  
-    const lessons = [  
-  "A vs The | Articles", "The article", "Go to work vs Go home", "When NOT to use 'the'",
-  "Names of places", "That/This/Those/These", "One vs Ones", "Some vs Any",
-  "No + any / No / None", "Not+anybody vs Nobody", "Somebody/Anything/Nowhere",
-  "Every vs All", "All/Most/Some/Any", "Both / Either / Neither", "A lot / Much / Many",
-  "A little vs A few", "Adjectives", "Adverbs", "Old vs Older", "Older / More expensive than...",
-  "The oldest / The most expensive", "Enough", "Too", "Word order 1", "Word order 2",
-  "Still vs Yet", "Give me.. / Give it to...", "At / On / In", "From... to, Until, Since, For",
-  "Before, After, During, While", "In / At (Places)", "To / In / At (Places)", "On / Under / Behind",
-  "Up / Over / Through", "At / by / With / Without / About", "Afraid of... / On holiday",
-  "Look at / Listen to", "Go in / Fall off / Run away", "Put on your shoes / Put your shoes on",
-  "And / But / Or / So / Because", "When", "If we go ... If you see ...", "If I had... If we went...",
-  "Relative clauses 1", "The people we met / the hotel you stayed at", "Can / Could / (be) able to",
-  "Could (do) and could have (done)", "Must and can't", "May and might", "May and might 2",
-  "Should 2", "I'd better... / It's time...", "Would", "If I knew… I wish I knew…",
-  "Reported speech (He said that...)", "Verb+to… (decide to / forget to…)", "Verb + -ing",
-  "Verb + -ing or to (remember, regret etc.)", "Verb + -ing or to (try, need, help)",
-  "Prefer and would rather", "To..., for.... and so that...", "Adjective + to...",
-  "Countable and uncountable", "Countable nouns with a/an and some", "Singular and plural",
-  "Noun+noun (a bus driver / a headache)", "'s and of ...", "Each and every",
-  "Relative clauses: whose / whom / where", "Adjectives and Adverbs (Quick / Quickly)",
-  "Adjectives and Adverbs 2 (Well, fast, late, hard / hardly)", "Enough and too",
-  "Quite, pretty, rather and fairly", "Comparative 1", "Comparative 2", "Superlative",
-  "Word order: verb + object, Place and time", "Still / Any more / Yet / Already",
-  "Even", "As", "Like and as", "Like, as, if", "At / On / In (time)"
-];
-  
-    const lessonContainer = document.getElementById("lessons-list");  
-    const progressFill = document.getElementById("progress-fill");  
-    const pointDisplay = document.getElementById("point");  
-    const lockedMessage = document.getElementById("locked-message");  
-  
-    const b2Unlocked = parseInt(localStorage.getItem("b2_unlocked")) || 0;  
-  
-    if (a2Unlocked < 30) {  
-      lockedMessage.textContent = "Avval B1 darajasidagi 30 ta darsni toʻliq tugatishingiz kerak.";  
-    }  
-  
-    let unlocked = parseInt(localStorage.getItem("b2_unlocked")) || 0;  
-    let score = parseInt(localStorage.getItem("b2_score")) || 0;  
-  
-    function saveProgress() {  
-      localStorage.setItem("b1_unlocked", unlocked);  
-      localStorage.setItem("b1_score", score);  
-    }  
-  
-    function updateProgress() {  
-      let percent = Math.floor((unlocked / lessons.length) * 100);  
-      progressFill.style.width = percent + "%";  
-      pointDisplay.textContent = score;  
-    }  
-  
-    function renderLessons() {  
-      lessonContainer.innerHTML = "";  
-      lessons.forEach((lesson, index) => {  
-        const btn = document.createElement("a");  
-        const realLessonNum = 50 + index; // dars50.html dan boshlab  
-        const isUnlocked = a2Unlocked >= 30 && index <= unlocked;  
-  
-        btn.className = "lesson-btn" + (isUnlocked ? "" : " locked");  
-        btn.href = isUnlocked ? `dars${realLessonNum}.html` : "#";  
-        btn.textContent = `${index + 1}. ${lesson}`;  
-        btn.dataset.index = index;  
-  
-        btn.addEventListener("click", function (e) {  
-          if (!isUnlocked) {  
-            e.preventDefault();  
-            alert("Avvalgi darslarni tugatmagansiz yoki   B1 darajasi toʻliq tugatilmadi!");  
-          } else {  
-            if (index === unlocked && !this.classList.contains("visited")) {  
-              score += 1;  
-              unlocked++;  
-              this.classList.add("visited");  
-              saveProgress();  
-              updateProgress();  
-              renderLessons();  
-            }  
-          }  
-        });  
-  
-        lessonContainer.appendChild(btn);  
-      });  
-    }  
-  
-    // Dark mode  
-    const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");  
-    document.body.classList.toggle("dark-mode", darkQuery.matches);  
-    darkQuery.addEventListener("change", (e) => {  
-      document.body.classList.toggle("dark-mode", e.matches);  
-    });  
-  
-    renderLessons();  
-    updateProgress();  
-  </script>  </body>  
+    // Dark mode
+    const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    document.body.classList.toggle("dark-mode", darkQuery.matches);
+    darkQuery.addEventListener("change", (e) => {
+      document.body.classList.toggle("dark-mode", e.matches);
+    });
+
+    renderLessons();
+    updateProgress();
+  </script>
+</body>
 </html>
