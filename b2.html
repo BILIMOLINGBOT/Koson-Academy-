@@ -3,17 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>B2 Darslari</title>
+  <title>B1 Darslari</title>
   <style>
     body {
       font-family: sans-serif;
-      background-color: white;
-      color: black;
-      transition: background 0.3s, color 0.3s;
+      margin: 0;
+      padding: 20px;
+      background-color: #ffffff;
+      color: #000;
+      transition: background-color 0.3s, color 0.3s;
     }
-    .dark-mode {
+    body.dark-mode {
       background-color: #121212;
-      color: white;
+      color: #eee;
     }
     .back-btn {
       display: inline-block;
@@ -29,151 +31,189 @@
     .back-btn:hover {
       background-color: #0056b3;
     }
-    h1 {
-      text-align: center;
-    }
-    .lesson-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-      max-width: 600px;
-      margin: auto;
-    }
-    button.lesson-btn {
-      width: 100%;
-      padding: 10px;
-      font-size: 16px;
+    .lesson-btn {
+      display: block;
       background-color: #007bff;
-      color: white;
+      color: #fff;
+      text-align: left;
+      padding: 12px 20px;
+      margin: 10px 0;
       border: none;
       border-radius: 8px;
-      cursor: pointer;
-      transition: 0.3s;
+      text-decoration: none;
+      font-size: 16px;
+      transition: background-color 0.3s;
     }
-    button.lesson-btn:disabled {
-      background-color: gray;
+    .lesson-btn:hover {
+      background-color: #0056b3;
+    }
+    .lesson-btn.locked {
+      background-color: #ccc;
+      color: #666;
       cursor: not-allowed;
     }
-    .progress-container {
-      width: 90%;
-      margin: 20px auto;
+    body.dark-mode .lesson-btn.locked {
+      background-color: #444;
+      color: #aaa;
     }
-    .progress-bar {
+    #progress-bar {
+      width: 100%;
+      background-color: #eee;
+      border-radius: 8px;
+      margin-bottom: 20px;
       height: 20px;
-      background: #eee;
-      border-radius: 10px;
       overflow: hidden;
     }
-    .progress-fill {
+    #progress-fill {
       height: 100%;
-      background: #007bff;
       width: 0%;
+      background-color: #007bff;
       transition: width 0.5s;
     }
-    .score {
-      text-align: center;
-      margin-bottom: 10px;
+    #score {
+      font-weight: bold;
+      margin-bottom: 20px;
     }
-    .next-level-btn {
-      margin-top: 20px;
-      padding: 10px 20px;
+    .locked-overlay {
+      color: red;
       font-size: 16px;
-      border: none;
-      background-color: #28a745;
-      color: white;
-      border-radius: 8px;
-      cursor: pointer;
-      display: none;
-    }
-    .next-level-btn:hover {
-      background-color: #218838;
+      margin-bottom: 15px;
     }
   </style>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
   <a href="index.html" class="back-btn">← Orqaga</a>
-  <h1>B2 Darslari</h1>
-  <div class="progress-container">
-    <div class="score">Ball: <span id="score">0</span></div>
-    <div class="progress-bar">
-      <div class="progress-fill" id="progress"></div>
-    </div>
-  </div>
-  <div class="lesson-container" id="lessons"></div>
+  <h1>B1 Darajasi Darslari</h1>
+  <div id="score">Ball: <span id="point">0</span></div>
+  <div id="progress-bar"><div id="progress-fill"></div></div>
+  <div id="locked-message" class="locked-overlay"></div>
+  <div id="lessons-list"></div>
 
-  <!-- C1 darajasiga o‘tish tugmasi -->
-  <div style="text-align:center;">
-    <button id="nextLevelBtn" class="next-level-btn">C1 darajasiga o'tish →</button>
-  </div>
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  <script>
-    // Dark mode
-    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      document.body.classList.add('dark-mode');
-    }
+    const firebaseConfig = {
+      apiKey: "AIzaSyD0gBUJNcrgvvntcrfKK7Ky8t6_9Qb96Io",
+      authDomain: "bilimilova-64833.firebaseapp.com",
+      databaseURL: "https://bilimilova-64833-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "bilimilova-64833",
+      storageBucket: "bilimilova-64833.appspot.com",
+      messagingSenderId: "890689414502",
+      appId: "1:890689414502:web:8141d7aab413495c0c14a7",
+      measurementId: "G-ZBC8X1VVMZ"
+    };
 
-    const lessonTitles = [
-      "Articles: A vs The", "Some vs Any", "Much / Many",
-      "At / On / In (place)", "At / On / In (time)", "Under / Behind / In front of",
-      "Adjectives vs Adverbs", "Phrasal Verbs", "Relative Clauses",
-      "Conditionals (0,1,2,3)", "Gerunds vs Infinitives", "Reported Speech",
-      "Comparatives and Superlatives", "Passive Voice", "Causative Form",
-      "Inversion", "Mixed Conditionals", "Word Order in Questions"
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const lessons = [
+      "I'm vs I do", "Question forms", "To either / So am I", "Haven't / Don't / Isn't",
+      "Have you ... ?", "Who said you?", "What is it like?", "What? Which? How?",
+      "How long does it take?", "Do you know where ... ?", "She said that ...",
+      "Work vs Working", "Want to do vs Enjoy doing", "Told you to ...",
+      "Went to shop to ...", "Go to / Go on / Go for", "Get a job / Get home",
+      "Do vs Make", "Have or Have got", "Pronouns 1", "Pronouns 2", "Whose is this?",
+      "Kateʼs camera", "Articles: A and An", "Singular and Plural", "Countable nouns 1",
+      "Countable nouns 2", "Some / Any", "Much / Many", "A lot of / Few"
     ];
 
-    const container = document.getElementById("lessons");
-    const scoreDisplay = document.getElementById("score");
-    const progressFill = document.getElementById("progress");
-    const nextLevelBtn = document.getElementById("nextLevelBtn");
+    const lessonContainer = document.getElementById("lessons-list");
+    const progressFill = document.getElementById("progress-fill");
+    const pointDisplay = document.getElementById("point");
+    const lockedMessage = document.getElementById("locked-message");
 
-    let unlockedLessons = parseInt(localStorage.getItem("b2_unlocked")) || 1;
-    let score = parseInt(localStorage.getItem("b2_score")) || 0;
+    let unlocked = 0;
+    let score = 0;
 
-    function saveProgress() {
-      localStorage.setItem("b2_unlocked", unlockedLessons);
-      localStorage.setItem("b2_score", score);
+    const a2Unlocked = parseInt(localStorage.getItem("a2_unlocked")) || 0;
+    if (a2Unlocked < 30) {
+      lockedMessage.textContent = "Avval A2 darajasidagi 30 ta darsni toʻliq tugatishingiz kerak.";
     }
 
-    function renderLessons() {
-      container.innerHTML = "";
-      lessonTitles.forEach((title, index) => {
-        const btn = document.createElement("button");
-        btn.textContent = `${index + 1}. ${title}`;
-        btn.className = "lesson-btn";
-        btn.disabled = index >= unlockedLessons;
-        btn.onclick = () => {
-          if (index >= unlockedLessons) {
-            alert("Darslarni ketma-ket oʻrganish kerak");
-          } else {
-            if (index === unlockedLessons - 1) {
-              score += 10;
-              unlockedLessons++;
-              saveProgress();
-              updateProgress();
-              renderLessons();
-            }
-            window.location.href = `dars${100 + index}.html`;
-          }
-        };
-        container.appendChild(btn);
-      });
+    let userId = null;
 
-      if (unlockedLessons > lessonTitles.length) {
-        nextLevelBtn.style.display = "inline-block";
-      } else {
-        nextLevelBtn.style.display = "none";
+    async function loadUserProgress() {
+      const user = Telegram.WebApp.initDataUnsafe.user;
+      if (!user) {
+        alert("Telegram foydalanuvchisi aniqlanmadi.");
+        return;
       }
+
+      userId = user.id.toString();
+      const userRef = doc(db, "users", userId);
+      const snap = await getDoc(userRef);
+
+      if (snap.exists()) {
+        const data = snap.data();
+        unlocked = data.b1_unlocked || 0;
+        score = data.b1_score || 0;
+      } else {
+        await setDoc(userRef, { b1_unlocked: 0, b1_score: 0 });
+      }
+
+      renderLessons();
+      updateProgress();
+    }
+
+    async function saveProgress() {
+      if (!userId) return;
+      await updateDoc(doc(db, "users", userId), {
+        b1_unlocked: unlocked,
+        b1_score: score
+      });
     }
 
     function updateProgress() {
-      scoreDisplay.textContent = score;
-      const percent = ((unlockedLessons - 1) / lessonTitles.length) * 100;
+      let percent = Math.floor((unlocked / lessons.length) * 100);
       progressFill.style.width = percent + "%";
+      pointDisplay.textContent = score;
     }
 
-    renderLessons();
-    updateProgress();
+    function renderLessons() {
+      lessonContainer.innerHTML = "";
+      lessons.forEach((lesson, index) => {
+        const btn = document.createElement("a");
+        const realLessonNum = 50 + index;
+        const isUnlocked = a2Unlocked >= 30 && index <= unlocked;
+
+        btn.className = "lesson-btn" + (isUnlocked ? "" : " locked");
+        btn.href = isUnlocked ? `dars${realLessonNum}.html` : "#";
+        btn.textContent = `${index + 1}. ${lesson}`;
+        btn.dataset.index = index;
+
+        btn.addEventListener("click", async function (e) {
+          if (!isUnlocked) {
+            e.preventDefault();
+            alert("Avvalgi darslarni tugatmagansiz yoki A2 darajasi toʻliq tugatilmadi!");
+          } else {
+            if (index === unlocked && !this.classList.contains("visited")) {
+              score += 1;
+              unlocked++;
+              this.classList.add("visited");
+              await saveProgress();
+              updateProgress();
+              renderLessons();
+            }
+          }
+        });
+
+        lessonContainer.appendChild(btn);
+      });
+    }
+
+    // Dark mode toggle
+    const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    document.body.classList.toggle("dark-mode", darkQuery.matches);
+    darkQuery.addEventListener("change", (e) => {
+      document.body.classList.toggle("dark-mode", e.matches);
+    });
+
+    // Start loading
+    Telegram.WebApp.ready();
+    loadUserProgress();
   </script>
 </body>
 </html>
