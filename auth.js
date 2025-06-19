@@ -1,21 +1,28 @@
-import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+// auth.js
+import { auth } from './firebase.js';
+import {
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-export function initializeAuth() {
-  window.Telegram.WebApp.ready();
-  const user = Telegram.WebApp.initDataUnsafe.user;
+export function handleAuth(callback) {
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      callback(user);
+    } else {
+      const tg = window.Telegram.WebApp;
+      const telegramUser = tg.initDataUnsafe.user;
+      const email = telegramUser.id + "@telegramuser.com";
+      const password = telegramUser.id + "_telegram";
 
-  const userPhoto = document.getElementById('userPhoto');
-  const userName = document.getElementById('userName');
-
-  if (user?.photo_url) userPhoto.src = user.photo_url;
-  userName.innerText = user?.username || user?.first_name || 'Foydalanuvchi';
-
-  const auth = getAuth();
-  signInAnonymously(auth)
-    .then(() => {
-      console.log("Firebase: Anonim kirish muvaffaqiyatli");
-    })
-    .catch((error) => {
-      console.error("Firebase Auth xatosi:", error);
-    });
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+      } catch (error) {
+        if (error.code === "auth/user-not-found") {
+          await createUserWithEmailAndPassword(auth, email, password);
+        }
+      }
+    }
+  });
 }
