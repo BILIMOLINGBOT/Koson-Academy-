@@ -1,55 +1,181 @@
-<!DOCTYPE html><html lang="uz">
+<!DOCTYPE html>
+<html lang="uz">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>To Be Affirmative</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>To Be Positive Test</title>
   <style>
     body {
-      font-family: sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #6e8efb, #a777e3);
       margin: 0;
-      padding: 20px;
-      background-color: #f0f0f0;
-      color: #000;
-    }
-    .back-button {
-      display: inline-block;
-      margin-bottom: 20px;
-      padding: 10px 15px;
-      background-color: #007bff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       color: white;
-      text-decoration: none;
-      border-radius: 8px;
     }
-    h1 {
-      color: #007bff;
+    .container {
+      text-align: center;
+      padding: 30px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      max-width: 600px;
+      width: 90%;
     }
-    .example {
-      background-color: #ffffff;
-      padding: 10px;
-      border-left: 4px solid #007bff;
-      margin: 10px 0;
+    .word-btn {
+      padding: 10px 15px;
+      margin: 5px;
+      background: #fff;
+      color: #6e8efb;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
     }
-    ul, ol {
-      margin-left: 20px;
+    .word-btn:hover {
+      transform: scale(1.1);
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 20px;
+      min-height: 30px;
+    }
+    .nav-btn {
+      margin: 10px;
+      padding: 10px 20px;
+      background: #fff;
+      color: #a777e3;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    #progress {
+      font-size: 16px;
+      margin-bottom: 15px;
+    }
+    #feedback-panel {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: rgba(0, 0, 0, 0.3);
+      border-radius: 10px;
+      display: none;
+    }
+    #feedback-panel p {
+      font-size: 18px;
+      margin: 5px 0;
     }
   </style>
 </head>
 <body>
-  <a href="a1.html" class="back-button">← Orqaga</a>
-  <h1>To Be (Affirmative)</h1>  <h2>Nima uchun kerak?</h2>
-  <p><strong>To be</strong> feʼli – bu <em>am, is, are</em> shaklida ishlatiladigan yordamchi feʼl bo‘lib, odam yoki narsa haqida ma‰lumot berishda ishlatiladi. Masalan, kim? nima? qaerda?</p>  <h2>Formulasi:</h2>
-  <p><strong>I</strong> am <br><strong>You / We / They</strong> are <br><strong>He / She / It</strong> is</p>  <h2>Misollar:</h2>
-  <div class="example">I am a student. – Men talaba(man).</div>
-  <div class="example">She is a teacher. – U (qiz) o‘qituvchi.</div>
-  <div class="example">They are doctors. – Ular shifokorlar.</div>  <h2>Yodda tuting:</h2>
-  <ul>
-    <li><strong>Am</strong> – faqat "I" bilan ishlatiladi.</li>
-    <li><strong>Is</strong> – "he", "she", "it" bilan ishlatiladi.</li>
-    <li><strong>Are</strong> – "you", "we", "they" bilan ishlatiladi.</li>
-  </ul>  <h2>O‘rganish uchun maslahatlar:</h2>
-  <ol>
-    <li>Har kuni 5 ta jumla tuzing: Men talaba(man), U o‘qituvchi va hokazo.</li>
-    <li>“To be” ishlatilgan filmlar yoki audio darslardan eshiting va qayd eting.</li>
-    <li>Jumlalarni yozing va ularni o‘zbek tiliga tarjima qiling.</li>
-  </ol></body>
+  <div class="container">
+    <div id="progress">1/20</div>
+    <h2 id="question-title">Tartib bilan gap tuzing:</h2>
+    <div id="buttons"></div>
+    <div id="result"></div>
+    <button class="nav-btn" onclick="checkAnswer()">Tekshirish</button>
+
+    <div id="feedback-panel">
+      <p id="feedback-text"></p>
+      <p id="correct-answer-text"></p>
+      <button class="nav-btn" onclick="nextQuestion()">Keyingi</button>
+    </div>
+  </div>
+
+  <script>
+    const tests = [
+      { correct: "I am a student", words: ["student", "I", "am", "a"] },
+      { correct: "She is a teacher", words: ["a", "teacher", "She", "is"] },
+      { correct: "He is happy", words: ["happy", "He", "is"] },
+      { correct: "They are doctors", words: ["doctors", "They", "are"] },
+      { correct: "We are friends", words: ["We", "are", "friends"] },
+      { correct: "It is a dog", words: ["a", "dog", "is", "It"] },
+      { correct: "I am tall", words: ["tall", "am", "I"] },
+      { correct: "You are kind", words: ["kind", "are", "You"] },
+      { correct: "She is my sister", words: ["is", "sister", "She", "my"] },
+      { correct: "He is my brother", words: ["brother", "He", "my", "is"] },
+      { correct: "I am cold", words: ["am", "cold", "I"] },
+      { correct: "We are in the room", words: ["in", "We", "the", "room", "are"] },
+      { correct: "They are students", words: ["students", "They", "are"] },
+      { correct: "It is small", words: ["It", "is", "small"] },
+      { correct: "You are my friend", words: ["You", "friend", "my", "are"] },
+      { correct: "She is beautiful", words: ["is", "She", "beautiful"] },
+      { correct: "I am from Uzbekistan", words: ["Uzbekistan", "from", "I", "am"] },
+      { correct: "He is a doctor", words: ["a", "doctor", "He", "is"] },
+      { correct: "We are happy", words: ["happy", "are", "We"] },
+      { correct: "They are in the class", words: ["in", "They", "the", "class", "are"] }
+    ];
+
+    let currentIndex = 0;
+    let userAnswer = [];
+    let score = 0;
+
+    function shuffleArray(array) {
+      return array.sort(() => Math.random() - 0.5);
+    }
+
+    function renderQuestion() {
+      userAnswer = [];
+      document.getElementById("feedback-panel").style.display = "none";
+      document.getElementById("result").innerText = "";
+      document.getElementById("progress").innerText = `${currentIndex + 1}/${tests.length}`;
+      const currentTest = tests[currentIndex];
+      const shuffledWords = shuffleArray([...currentTest.words]);
+
+      const buttonsContainer = document.getElementById("buttons");
+      buttonsContainer.innerHTML = "";
+      shuffledWords.forEach(word => {
+        const btn = document.createElement("button");
+        btn.innerText = word;
+        btn.className = "word-btn";
+        btn.dataset.word = word;
+        btn.onclick = function() {
+          const clickedWord = this.dataset.word;
+          const index = userAnswer.indexOf(clickedWord);
+          if (index === -1) {
+            userAnswer.push(clickedWord);
+          } else {
+            const lastIndex = userAnswer.lastIndexOf(clickedWord);
+            if (lastIndex !== -1) {
+              userAnswer.splice(lastIndex, 1);
+            }
+          }
+          document.getElementById("result").innerText = userAnswer.join(" ");
+        };
+        buttonsContainer.appendChild(btn);
+      });
+    }
+
+    function checkAnswer() {
+      const correct = tests[currentIndex].correct;
+      const feedbackPanel = document.getElementById("feedback-panel");
+      const feedbackText = document.getElementById("feedback-text");
+      const correctText = document.getElementById("correct-answer-text");
+
+      if (userAnswer.join(" ") === correct) {
+        feedbackText.innerText = "✅ To'g'ri javob!";
+        correctText.innerText = "";
+        score++;
+      } else {
+        feedbackText.innerText = "❌ Noto'g'ri javob!";
+        correctText.innerText = "To'g'ri javob: " + correct;
+      }
+
+      feedbackPanel.style.display = "block";
+    }
+
+    function nextQuestion() {
+      if (currentIndex < tests.length - 1) {
+        currentIndex++;
+        renderQuestion();
+      } else {
+        alert(`Test tugadi! To'g'ri javoblar soni: ${score} / ${tests.length}`);
+      }
+    }
+
+    // Start with first question
+    renderQuestion();
+  </script>
+</body>
 </html>
