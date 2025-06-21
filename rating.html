@@ -1,69 +1,214 @@
-import { db, collection, getDocs } from "./firebase.js";
-
-export async function loadRatingBoard(currentUserId) {
-  const ratingContainer = document.getElementById("rating-board");
-  if (!ratingContainer) {
-    console.warn("❗️ rating-board elementi topilmadi!");
-    return;
-  }
-
-  ratingContainer.innerHTML = "<p>⏳ Reyting yuklanmoqda...</p>";
-
-  try {
-    const querySnapshot = await getDocs(collection(db, "users"));
-
-    const ratingList = [];
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      if (data.name && data.score !== undefined) {
-        ratingList.push({
-          id: doc.id,
-          name: data.name,
-          username: data.username || "",
-          photo: data.photoUrl || "",
-          score: data.score || 0
-        });
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Reytinglar - Ingliz Tili</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #fff;
+      color: #000;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    body.dark {
+      background-color: #121212;
+      color: #f1f1f1;
+    }
+    h1 {
+      font-size: 26px;
+      margin-bottom: 10px;
+    }
+    #rating-board {
+      margin-top: 20px;
+      text-align: left;
+    }
+    #rating-board ol {
+      padding-left: 20px;
+    }
+    #rating-board li {
+      margin-bottom: 12px;
+      padding: 10px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background-color: #f9f9f9;
+    }
+    body.dark #rating-board li {
+      background-color: #1e1e1e;
+    }
+    #rating-board li img {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1px solid #ccc;
+    }
+    #rating-board li strong {
+      flex: 1;
+    }
+    .highlight {
+      background-color: #e6f7ff;
+    }
+    #loader {
+      margin-top: 30px;
+    }
+    #loader div {
+      border: 5px solid #ccc;
+      border-top: 5px solid #0088cc;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin: auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .back-btn {
+      display: inline-block;
+      margin-top: 15px;
+      background-color: #0088cc;
+      color: white;
+      padding: 10px 18px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 16px;
+    }
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 22px;
       }
-    });
+      #rating-board li {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>🏆 Reytinglar</h1>
+  <div id="loader"><div></div></div>
+  <div id="rating-board" style="display: none;"></div>
+  <a href="index.html" class="back-btn">← Orqaga</a>
 
-    // Saralash: ball bo‘yicha kamayish tartibida
-    ratingList.sort((a, b) => b.score - a.score);
+  <!-- Telegram WebApp JS -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-    let html = `<h2>🏆 Reytinglar</h2>`;
-    html += `<ol style="text-align: left; padding-left: 20px;">`;
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-    ratingList.slice(0, 20).forEach((user, index) => {
-      const isCurrentUser = user.id === currentUserId;
-      const medal = index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `${index + 1}.`;
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyD0gBUJNcrgvvntcrfKK7Ky8t6_9Qb96Io",
+      authDomain: "bilimilova-64833.firebaseapp.com",
+      projectId: "bilimilova-64833",
+      storageBucket: "bilimilova-64833.appspot.com",
+      messagingSenderId: "890689414502",
+      appId: "1:890689414502:web:8141d7aab413495c0c14a7"
+    };
 
-      html += `
-        <li style="margin-bottom: 8px; background-color: ${isCurrentUser ? '#e6f7ff' : 'transparent'}; padding: 5px; border-radius: 6px;">
-          ${medal}
-          <img src="${user.photo}" alt="👤" width="24" height="24" style="vertical-align: middle; border-radius: 50%;" />
-          <strong style="margin-left: 8px;">${user.name}</strong>
-          ${user.username ? `<span style="font-size: 13px; color: gray;">@${user.username}</span>` : ""}
-          – <span style="font-weight: bold;">${user.score}</span> ball
-        </li>`;
-    });
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth();
 
-    html += `</ol>`;
+    const tg = window.Telegram.WebApp;
+    tg.expand();
 
-    // Foydalanuvchining o‘z joyini ko‘rsatish (20 talikda bo‘lmasa ham)
-    const userIndex = ratingList.findIndex(u => u.id === currentUserId);
-    if (userIndex >= 20) {
-      const user = ratingList[userIndex];
-      html += `
-        <div style="margin-top: 20px; padding: 10px; border-top: 1px solid #ccc;">
-          <strong>Sizning o‘rningiz:</strong><br>
-          <span style="font-size: 18px;">${userIndex + 1}-o‘rin – ${user.name} (${user.score} ball)</span>
-        </div>
-      `;
+    const user = tg.initDataUnsafe.user;
+
+    if (!user) {
+      document.body.innerHTML = `<h2>⚠️ Ushbu sahifa faqat Telegram Mini App ichida ishlaydi</h2>`;
+      throw new Error("Mini App tashqarisida ochilgan");
     }
 
-    ratingContainer.innerHTML = html;
+    const userId = user.id.toString();
+    const userRef = doc(db, "users", userId);
 
-  } catch (error) {
-    console.error("❌ Reytingni yuklashda xatolik:", error);
-    ratingContainer.innerHTML = "<p style='color: red;'>Xatolik yuz berdi. Iltimos, qayta urinib ko‘ring.</p>";
-  }
-}
+    signInAnonymously(auth).then(() => {
+      onSnapshot(userRef, (docSnap) => {
+        if (!docSnap.exists()) {
+          setDoc(userRef, {
+            name: user.first_name,
+            username: user.username || "",
+            photoUrl: user.photo_url || "",
+            score: 0
+          });
+        }
+        loadRatings();
+      });
+    });
+
+    async function loadRatings() {
+      const container = document.getElementById("rating-board");
+      document.getElementById("loader").style.display = "block";
+      container.style.display = "none";
+
+      try {
+        const snapshot = await getDocs(collection(db, "users"));
+        const users = [];
+
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          if (data.name && data.score !== undefined) {
+            users.push({
+              id: doc.id,
+              name: data.name,
+              username: data.username || "",
+              photo: data.photoUrl || "",
+              score: data.score || 0
+            });
+          }
+        });
+
+        users.sort((a, b) => b.score - a.score);
+
+        let html = "<ol>";
+        users.slice(0, 100).forEach((u, i) => {
+          const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}.`;
+          const highlight = u.id === userId ? "highlight" : "";
+          html += `
+            <li class="${highlight}">
+              ${medal}
+              <img src="${u.photo}" alt="👤"/>
+              <strong>${u.name}</strong>
+              ${u.username ? `<span style="font-size:13px;color:gray">@${u.username}</span>` : ""}
+              – ${u.score.toLocaleString()} ball
+            </li>`;
+        });
+        html += "</ol>";
+
+        const index = users.findIndex(u => u.id === userId);
+        if (index >= 100) {
+          const u = users[index];
+          html += `
+            <div style="margin-top:20px; border-top:1px solid #ccc; padding-top:10px;">
+              <strong>Sizning o‘rningiz:</strong><br>
+              <span style="font-size:18px;">${index + 1}-o‘rin – ${u.name} (${u.score.toLocaleString()} ball)</span>
+            </div>`;
+        }
+
+        container.innerHTML = html;
+      } catch (err) {
+        console.error("❌ Xatolik:", err);
+        container.innerHTML = "<p style='color:red;'>Reyting yuklanmadi. Iltimos, keyinroq urinib ko‘ring.</p>";
+      }
+
+      document.getElementById("loader").style.display = "none";
+      container.style.display = "block";
+    }
+
+    // Dark mode
+    if (tg.colorScheme === "dark") {
+      document.body.classList.add("dark");
+    }
+  </script>
+</body>
+</html>
