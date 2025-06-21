@@ -1,12 +1,11 @@
-<!DOCTYPE html>
-<html lang="uz">
+<!DOCTYPE html><html lang="uz">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ingliz Tili - Telegram Mini App</title>
   <style>
     body {
-      font-family: sans-serif;
+      font-family: 'Segoe UI', sans-serif;
       background-color: #fff;
       color: #000;
       margin: 0;
@@ -20,6 +19,7 @@
     }
     h1 {
       margin-bottom: 10px;
+      font-size: 28px;
     }
     button {
       display: block;
@@ -39,13 +39,42 @@
       background-color: #005f99;
     }
     #score {
-      margin-top: 20px;
+      margin-top: 10px;
       font-size: 16px;
     }
     img {
       width: 80px;
       border-radius: 50%;
       margin: 10px auto;
+    }
+    #rating-board {
+      margin-top: 30px;
+      text-align: left;
+      padding: 20px;
+      border-top: 1px solid #ccc;
+    }
+    #rating-board ol {
+      padding-left: 20px;
+    }
+    #rating-board li {
+      margin-bottom: 10px;
+      padding: 6px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    #rating-board li img {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 1px solid #ddd;
+    }
+    #rating-board li strong {
+      flex: 1;
+    }
+    .highlight {
+      background-color: #e6f7ff;
     }
   </style>
 </head>
@@ -59,19 +88,13 @@
     <button onclick="goToLevel('b1.html')">🟡 B1 Oʻrta-yuqori</button>
     <button onclick="goToLevel('b2.html')">🟣 B2 Yaxshi</button>
     <div id="score"></div>
-  </div>
-
-  <!-- Telegram WebApp JS -->
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-  <!-- Firebase SDK -->
-  <script type="module">
+    <div id="rating-board"></div>
+  </div>  <!-- Telegram WebApp JS -->  <script src="https://telegram.org/js/telegram-web-app.js"></script>  <!-- Firebase SDK -->  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
 
-    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyD0gBUJNcrgvvntcrfKK7Ky8t6_9Qb96Io",
       authDomain: "bilimilova-64833.firebaseapp.com",
@@ -83,17 +106,16 @@
       measurementId: "G-ZBC8X1VVMZ"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth();
     const analytics = getAnalytics(app);
 
-    // Telegram WebApp
     const tg = window.Telegram.WebApp;
     tg.expand();
 
     const user = tg.initDataUnsafe.user;
+    const userId = user.id.toString();
     document.getElementById('username').textContent = user?.first_name || "Foydalanuvchi";
 
     if (user.photo_url) {
@@ -102,13 +124,13 @@
       document.getElementById("photo").appendChild(img);
     }
 
-    // Auth & User Data
     signInAnonymously(auth).then(() => {
-      const userRef = doc(db, "users", user.id.toString());
+      const userRef = doc(db, "users", userId);
       getDoc(userRef).then(docSnap => {
         if (!docSnap.exists()) {
           setDoc(userRef, {
             name: user.first_name,
+            username: user.username || "",
             photoUrl: user.photo_url,
             score: 0,
             a1_unlocked: 1,
@@ -121,20 +143,75 @@
           const data = docSnap.data();
           document.getElementById("score").textContent = `Umumiy ball: ${data.score || 0}`;
         }
+        loadRatingBoard(userId);
       });
     });
 
-    // Dark mode qo‘llab-quvvatlovi
-    if (tg.colorScheme === "dark") {
-      document.body.classList.add("dark");
-    }
-
-    // Navigation
     function goToLevel(levelPage) {
       window.location.href = levelPage;
     }
-
     window.goToLevel = goToLevel;
-  </script>
-</body>
+
+    async function loadRatingBoard(currentUserId) {
+      const ratingContainer = document.getElementById("rating-board");
+      ratingContainer.innerHTML = "<p>⏳ Reyting yuklanmoqda...</p>";
+
+      try {
+        const querySnapshot = await getDocs(collection(db, "users"));
+        const ratingList = [];
+
+        querySnapshot.forEach(doc => {
+          const data = doc.data();
+          if (data.name && data.score !== undefined) {
+            ratingList.push({
+              id: doc.id,
+              name: data.name,
+              username: data.username || "",
+              photo: data.photoUrl || "",
+              score: data.score || 0
+            });
+          }
+        });
+
+        ratingList.sort((a, b) => b.score - a.score);
+
+        let html = `<h2>🏆 Reytinglar</h2><ol>`;
+
+        ratingList.slice(0, 20).forEach((user, index) => {
+          const medal = index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `${index + 1}.`;
+          const highlightClass = user.id === currentUserId ? "highlight" : "";
+          html += `
+            <li class="${highlightClass}">
+              ${medal}
+              <img src="${user.photo}" alt="👤" />
+              <strong>${user.name}</strong>
+              ${user.username ? `<span style='font-size: 13px; color: gray;'>@${user.username}</span>` : ""}
+              – ${user.score} ball
+            </li>`;
+        });
+
+        html += `</ol>`;
+
+        const userIndex = ratingList.findIndex(u => u.id === currentUserId);
+        if (userIndex >= 20) {
+          const user = ratingList[userIndex];
+          html += `
+            <div style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 10px;">
+              <strong>Sizning o‘rningiz:</strong><br>
+              <span style="font-size: 18px;">${userIndex + 1}-o‘rin – ${user.name} (${user.score} ball)</span>
+            </div>
+          `;
+        }
+
+        ratingContainer.innerHTML = html;
+      } catch (error) {
+        console.error("❌ Reyting yuklashda xatolik:", error);
+        ratingContainer.innerHTML = "<p style='color: red;'>Xatolik yuz berdi. Qayta urinib ko‘ring.</p>";
+      }
+    }
+
+    if (tg.colorScheme === "dark") {
+      document.body.classList.add("dark");
+    }
+  </script></body>
 </html>
