@@ -3,12 +3,56 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ingliz tili - Mini App</title>
-  <link rel="stylesheet" href="styles.css" />
+  <title>Ingliz Tili - Telegram Mini App</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #fff;
+      color: #000;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    body.dark {
+      background-color: #121212;
+      color: #f1f1f1;
+    }
+    h1 {
+      margin-bottom: 10px;
+    }
+    button {
+      display: block;
+      width: 80%;
+      max-width: 300px;
+      margin: 10px auto;
+      padding: 15px;
+      font-size: 18px;
+      background-color: #0088cc;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #005f99;
+    }
+    #score {
+      margin-top: 20px;
+      font-size: 16px;
+    }
+    img {
+      width: 80px;
+      border-radius: 50%;
+      margin: 10px auto;
+    }
+  </style>
 </head>
 <body>
   <div id="app">
     <h1>👋 Xush kelibsiz!</h1>
+    <div id="photo"></div>
     <p><strong id="username"></strong></p>
     <button onclick="goToLevel('a1.html')">🟢 A1 Boshlovchi</button>
     <button onclick="goToLevel('a2.html')">🔵 A2 Oʻrta</button>
@@ -16,9 +60,81 @@
     <button onclick="goToLevel('b2.html')">🟣 B2 Yaxshi</button>
     <div id="score"></div>
   </div>
+
+  <!-- Telegram WebApp JS -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="js/firebase.js"></script>
-  <script src="js/auth.js"></script>
-  <script src="js/main.js"></script>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
+
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyD0gBUJNcrgvvntcrfKK7Ky8t6_9Qb96Io",
+      authDomain: "bilimilova-64833.firebaseapp.com",
+      databaseURL: "https://bilimilova-64833-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "bilimilova-64833",
+      storageBucket: "bilimilova-64833.firebasestorage.app",
+      messagingSenderId: "890689414502",
+      appId: "1:890689414502:web:8141d7aab413495c0c14a7",
+      measurementId: "G-ZBC8X1VVMZ"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth();
+    const analytics = getAnalytics(app);
+
+    // Telegram WebApp
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+
+    const user = tg.initDataUnsafe.user;
+    document.getElementById('username').textContent = user?.first_name || "Foydalanuvchi";
+
+    if (user.photo_url) {
+      const img = document.createElement('img');
+      img.src = user.photo_url;
+      document.getElementById("photo").appendChild(img);
+    }
+
+    // Auth & User Data
+    signInAnonymously(auth).then(() => {
+      const userRef = doc(db, "users", user.id.toString());
+      getDoc(userRef).then(docSnap => {
+        if (!docSnap.exists()) {
+          setDoc(userRef, {
+            name: user.first_name,
+            photoUrl: user.photo_url,
+            score: 0,
+            a1_unlocked: 1,
+            a1_score: 0,
+            a2_unlocked: 0,
+            b1_unlocked: 0,
+            b2_unlocked: 0
+          });
+        } else {
+          const data = docSnap.data();
+          document.getElementById("score").textContent = `Umumiy ball: ${data.score || 0}`;
+        }
+      });
+    });
+
+    // Dark mode qo‘llab-quvvatlovi
+    if (tg.colorScheme === "dark") {
+      document.body.classList.add("dark");
+    }
+
+    // Navigation
+    function goToLevel(levelPage) {
+      window.location.href = levelPage;
+    }
+
+    window.goToLevel = goToLevel;
+  </script>
 </body>
 </html>
