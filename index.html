@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="uz">
+<!DOCTYPE html><html lang="uz">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -48,7 +47,6 @@
       border-radius: 50%;
       margin: 10px auto;
     }
-
     #bottom-nav {
       position: fixed;
       bottom: 0;
@@ -72,6 +70,7 @@
       align-items: center;
       font-size: 12px;
       color: #444;
+      cursor: pointer;
     }
     body.dark .nav-item {
       color: #aaa;
@@ -83,7 +82,6 @@
       font-size: 20px;
       margin-bottom: 4px;
     }
-
     #modal {
       position: fixed;
       bottom: 0;
@@ -117,7 +115,21 @@
     }
     #modal button {
       background-color: #444;
+      color: #fff;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
       margin-top: 10px;
+      cursor: pointer;
+    }
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 22px;
+      }
+      button {
+        font-size: 16px;
+        padding: 12px;
+      }
     }
   </style>
 </head>
@@ -125,15 +137,11 @@
   <h1>👋 Xush kelibsiz!</h1>
   <div id="photo"></div>
   <p><strong id="username"></strong></p>
-
   <button onclick="goToLevel('a1.html')">🟢 A1 Boshlovchi</button>
   <button onclick="goToLevel('a2.html')">🔵 A2 O‘rta</button>
   <button onclick="goToLevel('b1.html')">🟡 B1 O‘rta-yuqori</button>
   <button onclick="goToLevel('b2.html')">🟣 B2 Yaxshi</button>
-
   <div id="score"></div>
-
-  <!-- Bottom Navbar -->
   <div id="bottom-nav">
     <div class="nav-item active" onclick="goHome()">
       <i>🏠</i><span>Uy</span>
@@ -145,8 +153,6 @@
       <i>⚙️</i><span>Profil</span>
     </div>
   </div>
-
-  <!-- Profile Modal -->
   <div id="modal">
     <h3>⚙️ Sozlamalar</h3>
     <label for="lang">Til:</label>
@@ -154,61 +160,45 @@
       <option value="uz">O‘zbekcha</option>
       <option value="en">English</option>
     </select>
-
     <label for="theme">Rejim:</label>
     <select id="theme">
-      <option value="auto">Avtomatik (Telegram)</option>
+      <option value="auto">Avto (Telegram)</option>
       <option value="light">Yorug‘</option>
       <option value="dark">Qorong‘i</option>
     </select>
-
     <button onclick="closeProfile()">Yopish</button>
   </div>
-
-  <!-- Telegram WebApp JS -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
   <script>
     const tg = window.Telegram.WebApp;
     tg.expand();
-
     const user = tg.initDataUnsafe.user;
-
     if (!user) {
       document.body.innerHTML = `<h2>⚠️ Faqat Telegram Mini App orqali foydalanish mumkin</h2>`;
       throw new Error("Tashqaridan ochilgan");
     }
-
     document.getElementById('username').textContent = user.first_name || "Foydalanuvchi";
-
     if (user.photo_url) {
       const img = document.createElement('img');
       img.src = user.photo_url;
       document.getElementById("photo").appendChild(img);
     }
-
     function goToLevel(levelPage) {
       location.href = levelPage;
     }
-
     function goHome() {
       location.href = 'index.html';
     }
-
     function goRating() {
-      alert("Reyting sahifasi alohida ochiladi yoki bu yerga joylanadi.");
-      // Yoki: location.href = 'rating.html';
+      location.href = 'rating.html';
     }
-
     function openProfile() {
       document.getElementById("modal").style.display = "block";
     }
-
     function closeProfile() {
       document.getElementById("modal").style.display = "none";
       saveSettings();
     }
-
     function saveSettings() {
       const lang = document.getElementById("lang").value;
       const theme = document.getElementById("theme").value;
@@ -216,23 +206,25 @@
       localStorage.setItem("appTheme", theme);
       applyTheme(theme);
     }
-
     function applyTheme(theme) {
       document.body.classList.remove("dark");
-
       if (theme === "dark") {
         document.body.classList.add("dark");
       } else if (theme === "auto" && tg.colorScheme === "dark") {
         document.body.classList.add("dark");
       }
     }
-
-    // Load saved settings
     const savedLang = localStorage.getItem("appLang") || "uz";
     const savedTheme = localStorage.getItem("appTheme") || "auto";
     document.getElementById("lang").value = savedLang;
     document.getElementById("theme").value = savedTheme;
     applyTheme(savedTheme);
+    window.addEventListener("click", function(e) {
+      const modal = document.getElementById("modal");
+      if (modal.style.display === "block" && !modal.contains(e.target) && !e.target.closest(".nav-item")) {
+        closeProfile();
+      }
+    });
   </script>
 </body>
 </html>
