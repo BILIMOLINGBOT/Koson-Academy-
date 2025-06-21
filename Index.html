@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="uz">
+<!DOCTYPE html>
+<html lang="uz">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -38,9 +39,22 @@
     button:hover {
       background-color: #005f99;
     }
-    #score, #score-breakdown {
-      margin-top: 10px;
-      font-size: 16px;
+    #score {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      text-align: left;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 10px 14px;
+      border-radius: 8px;
+      color: #000;
+      font-weight: bold;
+      font-size: 14px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+    body.dark #score {
+      background: rgba(20, 20, 20, 0.9);
+      color: #fff;
     }
     img {
       width: 80px;
@@ -98,9 +112,6 @@
       background: #222;
       color: #f1f1f1;
     }
-    #modal h3 {
-      margin-top: 0;
-    }
     #modal label {
       display: block;
       margin-top: 10px;
@@ -122,65 +133,59 @@
       margin-top: 10px;
       cursor: pointer;
     }
-    @media (max-width: 480px) {
-      h1 {
-        font-size: 22px;
-      }
-      button {
-        font-size: 16px;
-        padding: 12px;
-      }
-    }
   </style>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";const firebaseConfig = {
-  apiKey: "AIzaSyD0gBUJNcrgvvntcrfKK7Ky8t6_9Qb96Io",
-  authDomain: "bilimilova-64833.firebaseapp.com",
-  projectId: "bilimilova-64833",
-  storageBucket: "bilimilova-64833.appspot.com",
-  messagingSenderId: "890689414502",
-  appId: "1:890689414502:web:8141d7aab413495c0c14a7"
-};
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth();
-const tg = window.Telegram.WebApp;
-tg.expand();
+    const firebaseConfig = {
+      apiKey: "AIzaSyD0gBUJNcrgvvntcrfKK7Ky8t6_9Qb96Io",
+      authDomain: "bilimilova-64833.firebaseapp.com",
+      projectId: "bilimilova-64833",
+      storageBucket: "bilimilova-64833.appspot.com",
+      messagingSenderId: "890689414502",
+      appId: "1:890689414502:web:8141d7aab413495c0c14a7"
+    };
 
-const user = tg.initDataUnsafe.user;
-if (!user) {
-  document.body.innerHTML = `<h2>⚠️ Faqat Telegram Mini App orqali foydalanish mumkin</h2>`;
-  throw new Error("Tashqaridan ochilgan");
-}
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth();
+    const tg = window.Telegram.WebApp;
+    tg.expand();
 
-const userId = user.id.toString();
-const userRef = doc(db, "users", userId);
-
-signInAnonymously(auth).then(() => {
-  onSnapshot(userRef, (docSnap) => {
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      const a1 = data.a1_score || 0;
-      const a2 = data.a2_score || 0;
-      const b1 = data.b1_score || 0;
-      const b2 = data.b2_score || 0;
-      const total = a1 + a2 + b1 + b2;
-      document.getElementById("score").innerHTML = `
-        <strong>Ballar:</strong><br>
-        🟢 A1: ${a1}<br>
-        🔵 A2: ${a2}<br>
-        🟡 B1: ${b1}<br>
-        🟣 B2: ${b2}<br>
-        <strong>Jami: ${total}</strong>
-      `;
+    const user = tg.initDataUnsafe.user;
+    if (!user) {
+      document.body.innerHTML = `<h2>⚠️ Faqat Telegram Mini App orqali foydalanish mumkin</h2>`;
+      throw new Error("Tashqaridan ochilgan");
     }
-  });
-});
 
+    const userId = user.id.toString();
+    const userRef = doc(db, "users", userId);
+
+    signInAnonymously(auth).then(() => {
+      onSnapshot(userRef, (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          const a1 = data.a1_score || 0;
+          const a2 = data.a2_score || 0;
+          const b1 = data.b1_score || 0;
+          const b2 = data.b2_score || 0;
+          const total = a1 + a2 + b1 + b2;
+          document.getElementById("score").innerHTML = `
+            <strong>Ballar:</strong><br>
+            🟢 A1: ${a1}<br>
+            🔵 A2: ${a2}<br>
+            🟡 B1: ${b1}<br>
+            🟣 B2: ${b2}<br>
+            <strong>Jami: ${total}</strong>
+          `;
+        } else {
+          document.getElementById("score").innerHTML = "Ballar topilmadi";
+        }
+      });
+    });
   </script>
 </head>
 <body>
@@ -191,7 +196,8 @@ signInAnonymously(auth).then(() => {
   <button onclick="goToLevel('a2.html')">🔵 A2 O‘rta</button>
   <button onclick="goToLevel('b1.html')">🟡 B1 O‘rta-yuqori</button>
   <button onclick="goToLevel('b2.html')">🟣 B2 Yaxshi</button>
-  <div id="score"></div>
+  <div id="score">⏳ Yuklanmoqda...</div>
+
   <div id="bottom-nav">
     <div class="nav-item active" onclick="goHome()">
       <i>🏠</i><span>Uy</span>
@@ -203,6 +209,7 @@ signInAnonymously(auth).then(() => {
       <i>⚙️</i><span>Profil</span>
     </div>
   </div>
+
   <div id="modal">
     <h3>⚙️ Sozlamalar</h3>
     <label for="lang">Til:</label>
@@ -218,6 +225,7 @@ signInAnonymously(auth).then(() => {
     </select>
     <button onclick="closeProfile()">Yopish</button>
   </div>
+
   <script>
     const tg = window.Telegram.WebApp;
     const user = tg.initDataUnsafe.user;
@@ -227,22 +235,28 @@ signInAnonymously(auth).then(() => {
       img.src = user.photo_url;
       document.getElementById("photo").appendChild(img);
     }
+
     function goToLevel(levelPage) {
       location.href = levelPage;
     }
+
     function goHome() {
       location.href = 'index.html';
     }
+
     function goRating() {
       location.href = 'rating.html';
     }
+
     function openProfile() {
       document.getElementById("modal").style.display = "block";
     }
+
     function closeProfile() {
       document.getElementById("modal").style.display = "none";
       saveSettings();
     }
+
     function saveSettings() {
       const lang = document.getElementById("lang").value;
       const theme = document.getElementById("theme").value;
@@ -250,6 +264,7 @@ signInAnonymously(auth).then(() => {
       localStorage.setItem("appTheme", theme);
       applyTheme(theme);
     }
+
     function applyTheme(theme) {
       document.body.classList.remove("dark");
       if (theme === "dark") {
@@ -258,11 +273,13 @@ signInAnonymously(auth).then(() => {
         document.body.classList.add("dark");
       }
     }
+
     const savedLang = localStorage.getItem("appLang") || "uz";
     const savedTheme = localStorage.getItem("appTheme") || "auto";
     document.getElementById("lang").value = savedLang;
     document.getElementById("theme").value = savedTheme;
     applyTheme(savedTheme);
+
     window.addEventListener("click", function(e) {
       const modal = document.getElementById("modal");
       if (modal.style.display === "block" && !modal.contains(e.target) && !e.target.closest(".nav-item")) {
