@@ -72,6 +72,7 @@
       align-items: center;
       font-size: 12px;
       color: #444;
+      cursor: pointer;
     }
     body.dark .nav-item {
       color: #aaa;
@@ -117,7 +118,22 @@
     }
     #modal button {
       background-color: #444;
+      color: #fff;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
       margin-top: 10px;
+      cursor: pointer;
+    }
+
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 22px;
+      }
+      button {
+        font-size: 16px;
+        padding: 12px;
+      }
     }
   </style>
 </head>
@@ -157,7 +173,7 @@
 
     <label for="theme">Rejim:</label>
     <select id="theme">
-      <option value="auto">Avtomatik (Telegram)</option>
+      <option value="auto">Avto (Telegram)</option>
       <option value="light">Yorug‘</option>
       <option value="dark">Qorong‘i</option>
     </select>
@@ -167,7 +183,6 @@
 
   <!-- Telegram WebApp JS -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
   <script>
     const tg = window.Telegram.WebApp;
     tg.expand();
@@ -180,7 +195,6 @@
     }
 
     document.getElementById('username').textContent = user.first_name || "Foydalanuvchi";
-
     if (user.photo_url) {
       const img = document.createElement('img');
       img.src = user.photo_url;
@@ -196,8 +210,7 @@
     }
 
     function goRating() {
-      alert("Reyting sahifasi alohida ochiladi yoki bu yerga joylanadi.");
-      // Yoki: location.href = 'rating.html';
+      location.href = 'rating.html';
     }
 
     function openProfile() {
@@ -219,7 +232,6 @@
 
     function applyTheme(theme) {
       document.body.classList.remove("dark");
-
       if (theme === "dark") {
         document.body.classList.add("dark");
       } else if (theme === "auto" && tg.colorScheme === "dark") {
@@ -227,12 +239,20 @@
       }
     }
 
-    // Load saved settings
+    // Yuklangan sozlamalarni tiklash
     const savedLang = localStorage.getItem("appLang") || "uz";
     const savedTheme = localStorage.getItem("appTheme") || "auto";
     document.getElementById("lang").value = savedLang;
     document.getElementById("theme").value = savedTheme;
     applyTheme(savedTheme);
+
+    // Modal tashqarisiga bosganda yopiladi
+    window.addEventListener("click", function(e) {
+      const modal = document.getElementById("modal");
+      if (modal.style.display === "block" && !modal.contains(e.target) && !e.target.closest(".nav-item")) {
+        closeProfile();
+      }
+    });
   </script>
 </body>
 </html>
