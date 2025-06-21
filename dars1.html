@@ -6,7 +6,7 @@
   <title>To Be Positive Test</title>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: linear-gradient(135deg, #6e8efb, #a777e3);
       margin: 0;
       min-height: 100vh;
@@ -83,34 +83,7 @@
     </div>
   </div>
 
-  <!-- Telegram WebApp -->
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-  <!-- Firebase -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, doc, updateDoc, increment, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyD0gBUJNcrgvvntcrfKK7Ky8t6_9Qb96Io",
-      authDomain: "bilimilova-64833.firebaseapp.com",
-      projectId: "bilimilova-64833",
-      storageBucket: "bilimilova-64833.appspot.com",
-      messagingSenderId: "890689414502",
-      appId: "1:890689414502:web:8141d7aab413495c0c14a7"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth();
-    await signInAnonymously(auth);
-
-    const tg = window.Telegram.WebApp;
-    tg.expand();
-    const user = tg.initDataUnsafe.user;
-    const userId = user?.id?.toString();
-
+  <script>
     const tests = [
       { correct: "I am a student", words: ["student", "I", "am", "a"] },
       { correct: "She is a teacher", words: ["a", "teacher", "She", "is"] },
@@ -156,11 +129,17 @@
         const btn = document.createElement("button");
         btn.innerText = word;
         btn.className = "word-btn";
-        btn.onclick = function () {
-          if (!userAnswer.includes(word)) {
-            userAnswer.push(word);
+        btn.dataset.word = word;
+        btn.onclick = function() {
+          const clickedWord = this.dataset.word;
+          const index = userAnswer.indexOf(clickedWord);
+          if (index === -1) {
+            userAnswer.push(clickedWord);
           } else {
-            userAnswer = userAnswer.filter(w => w !== word);
+            const lastIndex = userAnswer.lastIndexOf(clickedWord);
+            if (lastIndex !== -1) {
+              userAnswer.splice(lastIndex, 1);
+            }
           }
           document.getElementById("result").innerText = userAnswer.join(" ");
         };
@@ -168,7 +147,7 @@
       });
     }
 
-    window.checkAnswer = function () {
+    function checkAnswer() {
       const correct = tests[currentIndex].correct;
       const feedbackPanel = document.getElementById("feedback-panel");
       const feedbackText = document.getElementById("feedback-text");
@@ -184,34 +163,18 @@
       }
 
       feedbackPanel.style.display = "block";
-    };
+    }
 
-    window.nextQuestion = async function () {
+    function nextQuestion() {
       if (currentIndex < tests.length - 1) {
         currentIndex++;
         renderQuestion();
       } else {
-        alert(`✅ Test tugadi!\nBall: ${score}/${tests.length}`);
-
-        const userRef = doc(db, "users", userId);
-        const snap = await getDoc(userRef);
-        if (!snap.exists()) {
-          await setDoc(userRef, {
-            name: user.first_name,
-            photoUrl: user.photo_url || "",
-            username: user.username || "",
-            score: score
-          });
-        } else {
-          await updateDoc(userRef, {
-            score: increment(score)
-          });
-        }
-
-        tg.close(); // Yoki: location.href = "index.html";
+        alert(`Test tugadi! To'g'ri javoblar soni: ${score} / ${tests.length}`);
       }
-    };
+    }
 
+    // Start with first question
     renderQuestion();
   </script>
 </body>
