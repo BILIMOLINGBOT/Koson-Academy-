@@ -38,7 +38,7 @@
     button:hover {
       background-color: #005f99;
     }
-    #score {
+    #score, #score-breakdown {
       margin-top: 10px;
       font-size: 16px;
     }
@@ -132,6 +132,56 @@
       }
     }
   </style>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";const firebaseConfig = {
+  apiKey: "AIzaSyD0gBUJNcrgvvntcrfKK7Ky8t6_9Qb96Io",
+  authDomain: "bilimilova-64833.firebaseapp.com",
+  projectId: "bilimilova-64833",
+  storageBucket: "bilimilova-64833.appspot.com",
+  messagingSenderId: "890689414502",
+  appId: "1:890689414502:web:8141d7aab413495c0c14a7"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth();
+const tg = window.Telegram.WebApp;
+tg.expand();
+
+const user = tg.initDataUnsafe.user;
+if (!user) {
+  document.body.innerHTML = `<h2>⚠️ Faqat Telegram Mini App orqali foydalanish mumkin</h2>`;
+  throw new Error("Tashqaridan ochilgan");
+}
+
+const userId = user.id.toString();
+const userRef = doc(db, "users", userId);
+
+signInAnonymously(auth).then(() => {
+  onSnapshot(userRef, (docSnap) => {
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      const a1 = data.a1_score || 0;
+      const a2 = data.a2_score || 0;
+      const b1 = data.b1_score || 0;
+      const b2 = data.b2_score || 0;
+      const total = a1 + a2 + b1 + b2;
+      document.getElementById("score").innerHTML = `
+        <strong>Ballar:</strong><br>
+        🟢 A1: ${a1}<br>
+        🔵 A2: ${a2}<br>
+        🟡 B1: ${b1}<br>
+        🟣 B2: ${b2}<br>
+        <strong>Jami: ${total}</strong>
+      `;
+    }
+  });
+});
+
+  </script>
 </head>
 <body>
   <h1>👋 Xush kelibsiz!</h1>
@@ -168,15 +218,9 @@
     </select>
     <button onclick="closeProfile()">Yopish</button>
   </div>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script>
     const tg = window.Telegram.WebApp;
-    tg.expand();
     const user = tg.initDataUnsafe.user;
-    if (!user) {
-      document.body.innerHTML = `<h2>⚠️ Faqat Telegram Mini App orqali foydalanish mumkin</h2>`;
-      throw new Error("Tashqaridan ochilgan");
-    }
     document.getElementById('username').textContent = user.first_name || "Foydalanuvchi";
     if (user.photo_url) {
       const img = document.createElement('img');
