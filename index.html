@@ -1,146 +1,78 @@
-
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Telegram Web App - English Levels</title>
-    <style>
-        body {
-            font-family: sans-serif;
-            background-color: #f0f0f0;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            padding: 20px;
-        }
+  <title>Telegram WebApp Profile</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f0f0f0;
+      padding: 20px;
+    }
 
-        .profile-container {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-        }
+    .profile-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
 
-        .profile-picture {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background-color: #6c5ce7;
-            color: white;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 10px;
-            font-size: 18px;
-            text-transform: uppercase;
-            overflow: hidden;
-            background-size: cover;
-            background-position: center;
-        }
+    .profile-picture {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background-color: #6c5ce7;
+      color: white;
+      font-weight: bold;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-transform: uppercase;
+      background-size: cover;
+      background-position: center;
+      overflow: hidden;
+    }
 
-        .telegram-info {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .telegram-name {
-            font-size: 16px;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .telegram-username {
-            font-size: 14px;
-            color: #555;
-        }
-
-        .levels-container {
-            display: flex;
-            gap: 10px;
-        }
-
-        .level-button {
-            background-color: #444;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            text-align: center;
-        }
-
-        .level-button:hover {
-            background-color: #666;
-        }
-
-        .content-container {
-            margin-top: 20px;
-            text-align: center;
-        }
-    </style>
+    .profile-name {
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+    }
+  </style>
 </head>
 <body>
-    <div class="profile-container">
-        <div id="profilePic" class="profile-picture"></div>
-        <div class="telegram-info">
-            <div class="telegram-name" id="telegramName"></div>
-            <div class="telegram-username" id="telegramUsername"></div>
-        </div>
-    </div>
 
-    <div class="levels-container">
-        <button class="level-button" onclick="showContent('a1')">A1</button>
-        <button class="level-button" onclick="showContent('a2')">A2</button>
-        <button class="level-button" onclick="showContent('b1')">B1</button>
-        <button class="level-button" onclick="showContent('b2')">B2</button>
-    </div>
+  <div class="profile-container">
+    <div id="profilePic" class="profile-picture"></div>
+    <div class="profile-name" id="profileName"></div>
+  </div>
 
-    <div class="content-container" id="contentArea">
-        <p>Please select a level to see its content.</p>
-    </div>
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      const tg = window.Telegram.WebApp;
+      const user = tg.initDataUnsafe?.user;
 
-    <script>
-        function showContent(level) {
-            let content = "";
-            switch (level) {
-                case 'a1': content = "Content for A1 level will be here."; break;
-                case 'a2': content = "Content for A2 level will be here."; break;
-                case 'b1': content = "Content for B1 level will be here."; break;
-                case 'b2': content = "Content for B2 level will be here."; break;
-                default: content = "Invalid level selected.";
-            }
-            document.getElementById('contentArea').innerHTML = `<p>${content}</p>`;
-        }
+      if (!user) {
+        document.body.innerHTML = "<p style='color:red;'>Iltimos, Telegram Mini App orqali kiring.</p>";
+        return;
+      }
 
-        window.addEventListener("DOMContentLoaded", function () {
-            const tg = window.Telegram.WebApp;
-            const user = tg.initDataUnsafe.user;
+      // 1. Foydalanuvchi to‘liq ismi
+      const fullName = user.first_name + (user.last_name ? " " + user.last_name : "");
+      document.getElementById("profileName").textContent = fullName;
 
-            if (!user) {
-                alert("Iltimos, Telegram Mini App orqali kiring.");
-                document.body.innerHTML = "<p style='color:red;'>Bu sahifa faqat Telegram Mini App orqali ishlaydi.</p>";
-                return;
-            }
+      // 2. Profil rasm yoki bosh harf
+      const profilePic = document.getElementById("profilePic");
 
-            // Show Telegram name
-            const fullName = user.first_name + (user.last_name ? " " + user.last_name : "");
-            document.getElementById("telegramName").textContent = fullName;
+      if (user.photo_url) {
+        profilePic.style.backgroundImage = `url(${user.photo_url})`;
+        profilePic.textContent = ""; // Rasm bor bo‘lsa, harf ko‘rsatilmaydi
+      } else {
+        const initials = user.first_name[0] || "?";
+        profilePic.textContent = initials;
+      }
+    });
+  </script>
 
-            // Show username (with @)
-            const username = user.username ? `@${user.username}` : "";
-            document.getElementById("telegramUsername").textContent = username;
-
-            const profilePic = document.getElementById("profilePic");
-
-            // If user has a profile picture, show it
-            if (user.photo_url) {
-                profilePic.style.backgroundImage = `url(${user.photo_url})`;
-                profilePic.textContent = "";
-            } else {
-                // Else, show initials
-                const initials = user.first_name[0] + (user.last_name ? user.last_name[0] : '');
-                profilePic.textContent = initials;
-            }
-        });
-    </script>
 </body>
 </html>
