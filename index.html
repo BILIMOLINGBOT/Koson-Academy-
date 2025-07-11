@@ -5,11 +5,11 @@
     <style>
         body {
             font-family: sans-serif;
-            background-color: #f0f0f0; /* Light gray background */
+            background-color: #f0f0f0; /* Ochiq kulrang fon */
             display: flex;
             flex-direction: column;
-            align-items: flex-start; /* Align items to the left */
-            padding: 20px; /* Add some padding to the body */
+            align-items: flex-start; /* Elementlarni chap tomonga tekislash */
+            padding: 20px; /* Tana uchun ichki joy */
         }
         .profile-container {
             display: flex;
@@ -20,8 +20,13 @@
             width: 50px;
             height: 50px;
             border-radius: 50%;
-            background-color: #ccc; /* Placeholder for profile picture */
+            background-color: #ccc; /* Profil rasmi uchun joy */
             margin-right: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            color: #fff;
         }
         .telegram-name {
             font-size: 16px;
@@ -30,10 +35,10 @@
         }
         .levels-container {
             display: flex;
-            gap: 10px; /* Space between buttons */
+            gap: 10px; /* Tugmalar orasidagi masofa */
         }
         .level-button {
-            background-color: #444; /* Dark gray button */
+            background-color: #444; /* To'q kulrang tugma */
             color: white;
             border: none;
             padding: 10px 20px;
@@ -68,26 +73,61 @@
     </div>
 
     <script>
+        function displayUserInfo() {
+            // Telegram Web App API obyektini olish
+            const webApp = window.Telegram.WebApp;
+            // Xavfsiz bo'lmagan boshlang'ich ma'lumotlarni olish (foydalanuvchi haqida ma'lumotlar bo'lishi mumkin)
+            const userData = webApp.initDataUnsafe?.user;
+
+            if (userData) {
+                const profilePictureDiv = document.querySelector('.profile-picture');
+                const telegramNameDiv = document.querySelector('.telegram-name');
+
+                // Agar foydalanuvchining profil rasmi bo'lsa
+                if (userData.photo_url) {
+                    profilePictureDiv.style.backgroundImage = `url('${userData.photo_url}')`;
+                    profilePictureDiv.textContent = ''; // Agar avval matn bo'lgan bo'lsa, uni o'chirish
+                } else {
+                    // Agar profil rasmi bo'lmasa, ismining birinchi harfini olish va ko'rsatish
+                    const firstInitial = userData.first_name ? userData.first_name.charAt(0).toUpperCase() : '';
+                    profilePictureDiv.style.backgroundImage = 'none'; // Orqa fon rasmini o'chirish
+                    profilePictureDiv.style.backgroundColor = '#ccc'; // Standart orqa fon rangi
+                    profilePictureDiv.style.display = 'flex'; // Matnni markazga joylashtirish uchun
+                    profilePictureDiv.style.justifyContent = 'center';
+                    profilePictureDiv.style.alignItems = 'center';
+                    profilePictureDiv.style.fontSize = '20px'; // Kerakli shrift hajmi
+                    profilePictureDiv.style.color = '#fff'; // Matn rangi
+                    profilePictureDiv.textContent = firstInitial;
+                }
+
+                // Foydalanuvchi ismini ko'rsatish
+                telegramNameDiv.textContent = userData.first_name + (userData.last_name ? ' ' + userData.last_name : '');
+            }
+        }
+
         function showContent(level) {
             let content = "";
             switch (level) {
                 case 'a1':
-                    content = "Content for A1 level will be here.";
+                    content = "A1 darajasi uchun kontent bu yerda bo'ladi.";
                     break;
                 case 'a2':
-                    content = "Content for A2 level will be here.";
+                    content = "A2 darajasi uchun kontent bu yerda bo'ladi.";
                     break;
                 case 'b1':
-                    content = "Content for B1 level will be here.";
+                    content = "B1 darajasi uchun kontent bu yerda bo'ladi.";
                     break;
                 case 'b2':
-                    content = "Content for B2 level will be here.";
+                    content = "B2 darajasi uchun kontent bu yerda bo'ladi.";
                     break;
                 default:
-                    content = "Invalid level selected.";
+                    content = "Noto'g'ri daraja tanlandi.";
             }
             document.getElementById('contentArea').innerHTML = `<p>${content}</p>`;
         }
+
+        // Sahifa yuklanganda foydalanuvchi ma'lumotlarini ko'rsatish funksiyasini chaqirish
+        window.addEventListener('load', displayUserInfo);
     </script>
 </body>
 </html>
