@@ -11,36 +11,52 @@
             align-items: flex-start;
             padding: 20px;
         }
+
         .profile-container {
             display: flex;
             align-items: center;
             margin-bottom: 20px;
         }
+
         .profile-picture {
             width: 50px;
             height: 50px;
             border-radius: 50%;
-            background-color: #ccc;
+            background-color: #6c5ce7;
+            color: white;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             margin-right: 10px;
-            object-fit: cover;
+            font-size: 18px;
+            text-transform: uppercase;
+            overflow: hidden;
+            background-size: cover;
+            background-position: center;
         }
+
         .telegram-info {
             display: flex;
             flex-direction: column;
         }
+
         .telegram-name {
             font-size: 16px;
             font-weight: bold;
             color: #333;
         }
+
         .telegram-username {
             font-size: 14px;
             color: #555;
         }
+
         .levels-container {
             display: flex;
             gap: 10px;
         }
+
         .level-button {
             background-color: #444;
             color: white;
@@ -50,9 +66,11 @@
             cursor: pointer;
             text-align: center;
         }
+
         .level-button:hover {
             background-color: #666;
         }
+
         .content-container {
             margin-top: 20px;
             text-align: center;
@@ -61,7 +79,7 @@
 </head>
 <body>
     <div class="profile-container">
-        <img id="profilePic" class="profile-picture" src="" alt="Profile Picture" />
+        <div id="profilePic" class="profile-picture">👤</div>
         <div class="telegram-info">
             <div class="telegram-name" id="telegramName">Name</div>
             <div class="telegram-username" id="telegramUsername">@username</div>
@@ -92,7 +110,6 @@
             document.getElementById('contentArea').innerHTML = `<p>${content}</p>`;
         }
 
-        // Load Telegram user info
         window.addEventListener("DOMContentLoaded", function () {
             const tg = window.Telegram.WebApp;
             const user = tg.initDataUnsafe.user;
@@ -103,17 +120,21 @@
                 return;
             }
 
-            const name = user.first_name + (user.last_name ? " " + user.last_name : "");
-            document.getElementById("telegramName").textContent = name;
+            // Name and username
+            const fullName = user.first_name + (user.last_name ? " " + user.last_name : "");
+            document.getElementById("telegramName").textContent = fullName;
+            document.getElementById("telegramUsername").textContent = user.username ? `@${user.username}` : "Username yo'q";
 
-            const username = user.username ? `@${user.username}` : "Username yo'q";
-            document.getElementById("telegramUsername").textContent = username;
+            const profilePic = document.getElementById("profilePic");
 
+            // If photo_url exists, use it as background
             if (user.photo_url) {
-                document.getElementById("profilePic").src = user.photo_url;
+                profilePic.style.backgroundImage = `url(${user.photo_url})`;
+                profilePic.textContent = ""; // remove initials if photo exists
             } else {
-                // Agar rasm bo'lmasa: oddiy emoji yoki Telegram avatar xizmati orqali default
-                document.getElementById("profilePic").src = "https://t.me/i/userpic/320/username.jpg";
+                // Create initials if no photo
+                const initials = user.first_name[0] + (user.last_name ? user.last_name[0] : '');
+                profilePic.textContent = initials;
             }
         });
     </script>
