@@ -1,291 +1,47 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ingliz Tili - Telegram Mini App</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #fff;
-      color: #000;
-      margin: 0;
-      padding-bottom: 80px;
-      text-align: center;
-      transition: background-color 0.3s, color 0.3s;
-    }
-    body.dark {
-      background-color: #121212;
-      color: #f1f1f1;
-    }
-    h1 {
-      margin: 20px 0 10px;
-      font-size: 26px;
-    }
-    button {
-      display: block;
-      width: 85%;
-      max-width: 300px;
-      margin: 10px auto;
-      padding: 15px;
-      font-size: 18px;
-      background-color: #0088cc;
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-    button:hover {
-      background-color: #005f99;
-    }
-    #score {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      text-align: left;
-      background: rgba(255, 255, 255, 0.9);
-      padding: 10px 14px;
-      border-radius: 8px;
-      color: #000;
-      font-weight: bold;
-      font-size: 14px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-    }
-    body.dark #score {
-      background: rgba(20, 20, 20, 0.9);
-      color: #fff;
-    }
-    img {
-      width: 80px;
-      border-radius: 50%;
-      margin: 10px auto;
-    }
-    #bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: #fff;
-      border-top: 1px solid #ccc;
-      display: flex;
-      justify-content: space-around;
-      padding: 10px 0;
-      z-index: 999;
-      transition: background-color 0.3s, color 0.3s;
-    }
-    body.dark #bottom-nav {
-      background-color: #1e1e1e;
-      border-top: 1px solid #333;
-    }
-    .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      font-size: 12px;
-      color: #444;
-      cursor: pointer;
-    }
-    body.dark .nav-item {
-      color: #aaa;
-    }
-    .nav-item.active {
-      color: #0088cc;
-    }
-    .nav-item i {
-      font-size: 20px;
-      margin-bottom: 4px;
-    }
-    #modal {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: #fff;
-      border-radius: 12px 12px 0 0;
-      box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
-      padding: 20px;
-      display: none;
-      z-index: 1000;
-    }
-    body.dark #modal {
-      background: #222;
-      color: #f1f1f1;
-    }
-    #modal label {
-      display: block;
-      margin-top: 10px;
-      text-align: left;
-    }
-    #modal select {
-      width: 100%;
-      padding: 8px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      margin-bottom: 10px;
-    }
-    #modal button {
-      background-color: #444;
-      color: #fff;
-      border: none;
-      padding: 10px 16px;
-      border-radius: 6px;
-      margin-top: 10px;
-      cursor: pointer;
-    }
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ingliz Tili O‘rganish</title>
+  <link rel=" stylesheet" href="styles.css">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyD0gBUJNcrgvvntcrfKK7Ky8t6_9Qb96Io",
-      authDomain: "bilimilova-64833.firebaseapp.com",
-      projectId: "bilimilova-64833",
-      storageBucket: "bilimilova-64833.appspot.com",
-      messagingSenderId: "890689414502",
-      appId: "1:890689414502:web:8141d7aab413495c0c14a7"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth();
-    const tg = window.Telegram.WebApp;
-    tg.expand();
-
-    const user = tg.initDataUnsafe.user;
-    if (!user) {
-      document.body.innerHTML = `<h2>⚠️ Faqat Telegram Mini App orqali foydalanish mumkin</h2>`;
-      throw new Error("Tashqaridan ochilgan");
-    }
-
-    const userId = user.id.toString();
-    const userRef = doc(db, "users", userId);
-
-    signInAnonymously(auth).then(() => {
-      onSnapshot(userRef, (docSnap) => {
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          const a1 = data.a1_score || 0;
-          const a2 = data.a2_score || 0;
-          const b1 = data.b1_score || 0;
-          const b2 = data.b2_score || 0;
-          const total = a1 + a2 + b1 + b2;
-          document.getElementById("score").innerHTML = `
-            <strong>Ballar:</strong><br>
-            🟢 A1: ${a1}<br>
-            🔵 A2: ${a2}<br>
-            🟡 B1: ${b1}<br>
-            🟣 B2: ${b2}<br>
-            <strong>Jami: ${total}</strong>
-          `;
-        } else {
-          document.getElementById("score").innerHTML = "Ballar topilmadi";
-        }
-      });
-    });
-  </script>
 </head>
 <body>
-  <h1>👋 Xush kelibsiz!</h1>
-  <div id="photo"></div>
-  <p><strong id="username"></strong></p>
-  <button onclick="goToLevel('a1.html')">🟢 A1 Boshlovchi</button>
-  <button onclick="goToLevel('a2.html')">🔵 A2 O‘rta</button>
-  <button onclick="goToLevel('b1.html')">🟡 B1 O‘rta-yuqori</button>
-  <button onclick="goToLevel('b2.html')">🟣 B2 Yaxshi</button>
-  <div id="score">⏳ Yuklanmoqda...</div>
-
-  <div id="bottom-nav">
-    <div class="nav-item active" onclick="goHome()">
-      <i>🏠</i><span>Uy</span>
-    </div>
-    <div class="nav-item" onclick="goRating()">
-      <i>📊</i><span>Reyting</span>
-    </div>
-    <div class="nav-item" onclick="openProfile()">
-      <i>⚙️</i><span>Profil</span>
+  <div class="header">
+    <div class="progress-container">
+      <div id="progress-bar" style="width: 0%;"></div>
+      <p id="progress-text">Progress: 0%</p>
     </div>
   </div>
-
-  <div id="modal">
-    <h3>⚙️ Sozlamalar</h3>
-    <label for="lang">Til:</label>
-    <select id="lang">
-      <option value="uz">O‘zbekcha</option>
-      <option value="en">English</option>
-    </select>
-    <label for="theme">Rejim:</label>
-    <select id="theme">
-      <option value="auto">Avto (Telegram)</option>
-      <option value="light">Yorug‘</option>
-      <option value="dark">Qorong‘i</option>
-    </select>
-    <button onclick="closeProfile()">Yopish</button>
+  <div class="container">
+    <h1>Ingliz Tili Darslari</h1>
+    <div class="levels">
+      <div class="level-card" onclick="showLessons('beginner')">
+        <h2>Beginner</h2>
+        <p>Yanglisharlar uchun</p>
+      </div>
+      <div class="level-card" onclick="showLessons('pre-intermediate')">
+        <h2>Pre-Intermediate</h2>
+        <p>Asoslarni o‘rganuvchilar uchun</p>
+      </div>
+      <div class="level-card" onclick="showLessons('intermediate')">
+        <h2>Intermediate</h2>
+        <p>O‘rta daraja</p>
+      </div>
+      <div class="level-card" onclick="showLessons('upper-intermediate')">
+        <h2>Upper-Intermediate</h2>
+        <p>Yuqori daraja</p>
+      </div>
+    </div>
+    <div id="lessons-list" class="lessons-list"></div>
+    <div id="stats" class="stats">
+      <h3>Statistika</h3>
+      <table id="stats-table">
+        <tr><th>Dars</th><th>To‘g‘ri javoblar</th></tr>
+      </table>
+    </div>
   </div>
-
-  <script>
-    const tg = window.Telegram.WebApp;
-    const user = tg.initDataUnsafe.user;
-    document.getElementById('username').textContent = user.first_name || "Foydalanuvchi";
-    if (user.photo_url) {
-      const img = document.createElement('img');
-      img.src = user.photo_url;
-      document.getElementById("photo").appendChild(img);
-    }
-
-    function goToLevel(levelPage) {
-      location.href = levelPage;
-    }
-
-    function goHome() {
-      location.href = 'index.html';
-    }
-
-    function goRating() {
-      location.href = 'rating.html';
-    }
-
-    function openProfile() {
-      document.getElementById("modal").style.display = "block";
-    }
-
-    function closeProfile() {
-      document.getElementById("modal").style.display = "none";
-      saveSettings();
-    }
-
-    function saveSettings() {
-      const lang = document.getElementById("lang").value;
-      const theme = document.getElementById("theme").value;
-      localStorage.setItem("appLang", lang);
-      localStorage.setItem("appTheme", theme);
-      applyTheme(theme);
-    }
-
-    function applyTheme(theme) {
-      document.body.classList.remove("dark");
-      if (theme === "dark") {
-        document.body.classList.add("dark");
-      } else if (theme === "auto" && tg.colorScheme === "dark") {
-        document.body.classList.add("dark");
-      }
-    }
-
-    const savedLang = localStorage.getItem("appLang") || "uz";
-    const savedTheme = localStorage.getItem("appTheme") || "auto";
-    document.getElementById("lang").value = savedLang;
-    document.getElementById("theme").value = savedTheme;
-    applyTheme(savedTheme);
-
-    window.addEventListener("click", function(e) {
-      const modal = document.getElementById("modal");
-      if (modal.style.display === "block" && !modal.contains(e.target) && !e.target.closest(".nav-item")) {
-        closeProfile();
-      }
-    });
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
