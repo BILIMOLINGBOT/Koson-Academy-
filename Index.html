@@ -1,133 +1,113 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Telegram Web App - English Levels</title>
-    <style>
-        body {
-            font-family: sans-serif;
-            background-color: #f0f0f0; /* Ochiq kulrang fon */
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start; /* Elementlarni chap tomonga tekislash */
-            padding: 20px; /* Tana uchun ichki joy */
-        }
-        .profile-container {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        .profile-picture {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background-color: #ccc; /* Profil rasmi uchun joy */
-            margin-right: 10px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 20px;
-            color: #fff;
-        }
-        .telegram-name {
-            font-size: 16px;
-            font-weight: bold;
-            color: #333;
-        }
-        .levels-container {
-            display: flex;
-            gap: 10px; /* Tugmalar orasidagi masofa */
-        }
-        .level-button {
-            background-color: #444; /* To'q kulrang tugma */
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            text-align: center;
-        }
-        .level-button:hover {
-            background-color: #666;
-        }
-        .content-container {
-            margin-top: 20px;
-            text-align: center;
-        }
-    </style>
+  <title>Koson Academy</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f0f0f0;
+      padding: 20px;
+    }
+
+    .profile-container {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .profile-picture {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background-color: #6c5ce7;
+      color: white;
+      font-weight: bold;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-right: 10px;
+      font-size: 20px;
+      background-size: cover;
+      background-position: center;
+    }
+
+    .telegram-name {
+      font-size: 16px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .levels-container {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .level-button {
+      background-color: #444;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .level-button:hover {
+      background-color: #666;
+    }
+
+    .content-container {
+      margin-top: 20px;
+    }
+  </style>
 </head>
 <body>
-    <div class="profile-container">
-        <div class="profile-picture"></div>
-        <div class="telegram-name">Name</div>
-    </div>
+  <div class="profile-container">
+    <div class="profile-picture" id="profilePic">👤</div>
+    <div class="telegram-name" id="telegramName">Loading...</div>
+  </div>
 
-    <div class="levels-container">
-        <button class="level-button" onclick="showContent('a1')">A1</button>
-        <button class="level-button" onclick="showContent('a2')">A2</button>
-        <button class="level-button" onclick="showContent('b1')">B1</button>
-        <button class="level-button" onclick="showContent('b2')">B2</button>
-    </div>
+  <div class="levels-container">
+    <button class="level-button" onclick="showContent('A1')">A1</button>
+    <button class="level-button" onclick="showContent('A2')">A2</button>
+    <button class="level-button" onclick="showContent('B1')">B1</button>
+    <button class="level-button" onclick="showContent('B2')">B2</button>
+  </div>
 
-    <div class="content-container" id="contentArea">
-        <p>Please select a level to see its content.</p>
-    </div>
+  <div class="content-container" id="contentArea">
+    <p>Please select a level to see its content.</p>
+  </div>
 
-    <script>
-        function displayUserInfo() {
-            // Telegram Web App API obyektini olish
-            const webApp = window.Telegram.WebApp;
-            // Xavfsiz bo'lmagan boshlang'ich ma'lumotlarni olish (foydalanuvchi haqida ma'lumotlar bo'lishi mumkin)
-            const userData = webApp.initDataUnsafe?.user;
+  <script>
+    function showContent(level) {
+      document.getElementById("contentArea").innerHTML = `<p>${level} darajasi uchun kontent bu yerda bo'ladi.</p>`;
+    }
 
-            if (userData) {
-                const profilePictureDiv = document.querySelector('.profile-picture');
-                const telegramNameDiv = document.querySelector('.telegram-name');
+    window.addEventListener("DOMContentLoaded", () => {
+      const tg = window.Telegram.WebApp;
+      const user = tg?.initDataUnsafe?.user;
 
-                // Agar foydalanuvchining profil rasmi bo'lsa
-                if (userData.photo_url) {
-                    profilePictureDiv.style.backgroundImage = `url('${userData.photo_url}')`;
-                    profilePictureDiv.textContent = ''; // Agar avval matn bo'lgan bo'lsa, uni o'chirish
-                } else {
-                    // Agar profil rasmi bo'lmasa, ismining birinchi harfini olish va ko'rsatish
-                    const firstInitial = userData.first_name ? userData.first_name.charAt(0).toUpperCase() : '';
-                    profilePictureDiv.style.backgroundImage = 'none'; // Orqa fon rasmini o'chirish
-                    profilePictureDiv.style.backgroundColor = '#ccc'; // Standart orqa fon rangi
-                    profilePictureDiv.style.display = 'flex'; // Matnni markazga joylashtirish uchun
-                    profilePictureDiv.style.justifyContent = 'center';
-                    profilePictureDiv.style.alignItems = 'center';
-                    profilePictureDiv.style.fontSize = '20px'; // Kerakli shrift hajmi
-                    profilePictureDiv.style.color = '#fff'; // Matn rangi
-                    profilePictureDiv.textContent = firstInitial;
-                }
+      if (!user) {
+        document.body.innerHTML = "<p style='color:red;'>❗ Bu sahifa faqat Telegram Mini App orqali ishlaydi.</p>";
+        return;
+      }
 
-                // Foydalanuvchi ismini ko'rsatish
-                telegramNameDiv.textContent = userData.first_name + (userData.last_name ? ' ' + userData.last_name : '');
-            }
-        }
+      const fullName = user.first_name + (user.last_name ? " " + user.last_name : "");
+      const profileEl = document.getElementById("profilePic");
+      const nameEl = document.getElementById("telegramName");
 
-        function showContent(level) {
-            let content = "";
-            switch (level) {
-                case 'a1':
-                    content = "A1 darajasi uchun kontent bu yerda bo'ladi.";
-                    break;
-                case 'a2':
-                    content = "A2 darajasi uchun kontent bu yerda bo'ladi.";
-                    break;
-                case 'b1':
-                    content = "B1 darajasi uchun kontent bu yerda bo'ladi.";
-                    break;
-                case 'b2':
-                    content = "B2 darajasi uchun kontent bu yerda bo'ladi.";
-                    break;
-                default:
-                    content = "Noto'g'ri daraja tanlandi.";
-            }
-            document.getElementById('contentArea').innerHTML = `<p>${content}</p>`;
-        }
+      nameEl.textContent = fullName;
 
-        // Sahifa yuklanganda foydalanuvchi ma'lumotlarini ko'rsatish funksiyasini chaqirish
-        window.addEventListener('load', displayUserInfo);
-    </script>
+      if (user.photo_url) {
+        profileEl.style.backgroundImage = `url('${user.photo_url}')`;
+        profileEl.textContent = "";
+      } else {
+        const initials = user.first_name.charAt(0).toUpperCase();
+        profileEl.textContent = initials;
+      }
+    });
+  </script>
 </body>
 </html>
