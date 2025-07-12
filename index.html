@@ -1,150 +1,90 @@
+
 <!DOCTYPE html>
-<html>
+<html lang="uz">
 <head>
-  <title>Koson Academy</title>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ingliz Tili Darajalari</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     body {
       font-family: sans-serif;
-      background-color: #f0f0f0;
+      margin: 0;
       padding: 20px;
+      background-color: var(--tg-theme-bg-color, #f4f4f4);
+      color: var(--tg-theme-text-color, #222);
     }
 
     .profile-container {
       display: flex;
       align-items: center;
-      margin-bottom: 20px;
+      margin-bottom: 30px;
     }
 
-    .profile-picture {
+    #userPhoto {
       width: 50px;
       height: 50px;
       border-radius: 50%;
-      background-color: #6c5ce7;
-      color: white;
+      margin-right: 15px;
+    }
+
+    #userName {
+      font-size: 18px;
       font-weight: bold;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin-right: 10px;
-      font-size: 20px;
-      background-size: cover;
-      background-position: center;
     }
 
-    .telegram-name {
-      font-size: 16px;
-      font-weight: bold;
-      color: #333;
-    }
-
-    .loader {
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid #6c5ce7;
-      border-radius: 50%;
-      width: 20px;
-      height: 20px;
-      animation: spin 1s linear infinite;
-      display: inline-block;
-      margin-right: 5px;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    .levels-container {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
+    .level-buttons {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      max-width: 300px;
+      margin: 0 auto;
     }
 
     .level-button {
-      background-color: #444;
-      color: white;
+      padding: 15px;
+      background-color: var(--tg-theme-button-color, #007aff);
+      color: var(--tg-theme-button-text-color, #fff);
       border: none;
-      padding: 10px 20px;
-      border-radius: 5px;
+      border-radius: 12px;
+      font-size: 18px;
       cursor: pointer;
+      transition: background-color 0.2s;
     }
 
     .level-button:hover {
-      background-color: #666;
-    }
-
-    .content-container {
-      margin-top: 20px;
-    }
-
-    @media (max-width: 600px) {
-      .profile-picture {
-        width: 40px;
-        height: 40px;
-        font-size: 16px;
-      }
-      .telegram-name {
-        font-size: 14px;
-      }
+      background-color: #005fcc;
     }
   </style>
 </head>
 <body>
+
   <div class="profile-container">
-    <div class="profile-picture" id="profilePic">👤</div>
-    <div class="telegram-name" id="telegramName"><span class="loader"></span> Loading...</div>
+    <img id="userPhoto" src="default.jpg" alt="Rasm">
+    <div id="userName">Foydalanuvchi</div>
   </div>
 
-  <div class="levels-container">
-    <button class="level-button" onclick="showContent('A1')">A1</button>
-    <button class="level-button" onclick="showContent('A2')">A2</button>
-    <button class="level-button" onclick="showContent('B1')">B1</button>
-    <button class="level-button" onclick="showContent('B2')">B2</button>
-  </div>
-
-  <div class="content-container" id="contentArea">
-    <p>Please select a level to see its content.</p>
+  <div class="level-buttons">
+    <button class="level-button" onclick="location.href='a1.html'">A1</button>
+    <button class="level-button" onclick="location.href='a2.html'">A2</button>
+    <button class="level-button" onclick="location.href='b1.html'">B1</button>
+    <button class="level-button" onclick="location.href='b2.html'">B2</button>
   </div>
 
   <script>
-    function showContent(level) {
-      document.getElementById("contentArea").innerHTML = `<p>${level} darajasi uchun kontent bu yerda bo'ladi.</p>`;
-    }
-
-    window.addEventListener("DOMContentLoaded", () => {
+    // Telegram WebApp foydalanuvchi ma'lumotlarini yuklash
+    window.addEventListener('DOMContentLoaded', () => {
       const tg = window.Telegram.WebApp;
-      const user = tg?.initDataUnsafe?.user;
+      const user = tg.initDataUnsafe?.user;
 
-      if (!user) {
-        document.body.innerHTML = `
-          <div style="text-align: center; padding: 20px; color: red;">
-            <p>❗ Bu sahifa faqat Telegram Mini App orqali ishlaydi.</p>
-            <a href="https://t.me/your_bot_username" style="color: #6c5ce7; text-decoration: none;">Botga o'tish</a>
-          </div>`;
-        return;
-      }
-
-      const fullName = user.first_name + (user.last_name ? " " + user.last_name : "");
-      const profileEl = document.getElementById("profilePic");
-      const nameEl = document.getElementById("telegramName");
-
-      nameEl.textContent = fullName;
-
-      if (user.photo_url) {
-        const img = new Image();
-        img.src = user.photo_url;
-        img.onload = () => {
-          profileEl.style.backgroundImage = `url('${user.photo_url}')`;
-          profileEl.textContent = "";
-        };
-        img.onerror = () => {
-          profileEl.textContent = user.first_name.charAt(0).toUpperCase();
-        };
-      } else {
-        profileEl.textContent = user.first_name.charAt(0).toUpperCase();
+      if (user) {
+        document.getElementById("userName").textContent = user.first_name || "Foydalanuvchi";
+        if (user.photo_url) {
+          document.getElementById("userPhoto").src = user.photo_url;
+        }
       }
     });
   </script>
+
 </body>
 </html>
