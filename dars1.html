@@ -1,194 +1,165 @@
-<!DOCTYPE html>
-<html lang="uz">
+<!DOCTYPE html><html lang="uz">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>To Be Positive Test</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Word Order Test</title>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f9f9f9;
-      color: #333;
-      padding: 20px;
+      font-family: 'Arial', sans-serif;
       margin: 0;
+      padding: 0;
+      background-color: #0e0e23;
+      color: #fff;
     }
     .container {
-      max-width: 800px;
+      max-width: 600px;
       margin: auto;
-    }
-    h1 {
+      padding: 30px 20px;
       text-align: center;
+    }
+    .question-box {
+      background-color: #1e1e3f;
+      border-radius: 12px;
+      padding: 20px;
       margin-bottom: 20px;
     }
-    .question {
-      background: #fff;
-      border-radius: 10px;
-      padding: 15px;
-      margin-bottom: 20px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    }
-    .question p {
-      font-weight: 600;
-    }
-    .question button {
-      display: block;
-      width: 100%;
-      margin-top: 10px;
-      padding: 10px;
-      border: none;
-      border-radius: 6px;
-      background-color: #eee;
-      cursor: pointer;
-      transition: background 0.3s;
-      font-size: 16px;
-    }
-    .question button:hover {
-      background-color: #ddd;
-    }
-    .question button.correct {
-      background-color: #d4edda !important;
-    }
-    .question button.incorrect {
-      background-color: #f8d7da !important;
-    }
-    #result {
-      text-align: center;
-      font-size: 22px;
-      font-weight: bold;
-      margin-top: 30px;
-    }
-    #actions {
-      text-align: center;
+    .word-btns {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
       margin-top: 20px;
     }
-    #actions button {
-      padding: 12px 24px;
-      margin: 10px;
-      font-size: 16px;
-      background-color: #007bff;
-      color: #fff;
+    .word-btns button {
+      background-color: #26264c;
       border: none;
+      padding: 10px 15px;
+      font-size: 16px;
       border-radius: 8px;
+      color: white;
       cursor: pointer;
     }
-    #actions button:hover {
-      background-color: #0056b3;
+    .word-btns button:hover {
+      background-color: #39397a;
+    }
+    .selected-words {
+      margin-top: 15px;
+      min-height: 30px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    .actions {
+      margin-top: 30px;
+    }
+    .actions button {
+      background-color: #007bff;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 6px;
+      margin: 5px;
+      cursor: pointer;
+    }
+    .avatar {
+      font-size: 50px;
+      margin-bottom: 10px;
+    }
+    #progressBar {
+      width: 100%;
+      height: 10px;
+      background-color: #333;
+      border-radius: 5px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+    #progress {
+      height: 100%;
+      width: 0%;
+      background-color: #00cc66;
     }
   </style>
 </head>
 <body>
-<div class="container">
-  <h1>To Be Positive Test</h1>
-  <div id="quiz"></div>
-  <div id="result"></div>
-  <div id="actions" style="display:none;">
-    <button onclick="retryTest()">Qayta urinib ko‘rish</button>
-    <button onclick="goToNextLesson()">Keyingi dars</button>
-  </div>
-</div>
+  <div class="container">
+    <div class="avatar">🧒</div>
+    <h2 id="uzbek">Bu roman ko‘plab odamlar tomonidan o‘qiladi.</h2>
+    <div id="questionBox" class="question-box">
+      <div class="selected-words" id="selectedWords"></div>
+      <div class="word-btns" id="wordButtons"></div>
+    </div>
+    <div id="progressBar"><div id="progress"></div></div>
+    <div class="actions">
+      <button onclick="submitAnswer()">Davom etish</button>
+      <div id="result"></div>
+    </div>
+  </div>  <script>
+    const questions = [
+      {
+        uz: "Bu roman ko‘plab odamlar tomonidan o‘qiladi.",
+        words: ["The", "novel", "is", "read", "by", "many", "people."],
+        answer: "The novel is read by many people."
+      },
+      {
+        uz: "Men har kuni ingliz tilini o‘rganaman.",
+        words: ["I", "study", "English", "every", "day."],
+        answer: "I study English every day."
+      },
+      {
+        uz: "Ular bog‘da o‘ynashmoqda.",
+        words: ["They", "are", "playing", "in", "the", "garden."],
+        answer: "They are playing in the garden."
+      }
+      // ... 17 ta boshqa savollar qo‘shing
+    ];
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    let current = 0;
+    let score = 0;
+    let selected = [];
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyD0gBUJNcrgvvntcrfKK7Ky8t6_9Qb96Io",
-    authDomain: "bilimilova-64833.firebaseapp.com",
-    projectId: "bilimilova-64833"
-  };
+    const uzbek = document.getElementById("uzbek");
+    const wordButtons = document.getElementById("wordButtons");
+    const selectedWords = document.getElementById("selectedWords");
+    const result = document.getElementById("result");
+    const progress = document.getElementById("progress");
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+    function renderQuestion() {
+      const q = questions[current];
+      uzbek.textContent = q.uz;
+      wordButtons.innerHTML = "";
+      selectedWords.textContent = "";
+      selected = [];
+      progress.style.width = ((current) / questions.length) * 100 + "%";
 
-  const tg = window.Telegram?.WebApp;
-  const uid = tg?.initDataUnsafe?.user?.id?.toString() || null;
-
-  const quizData = [
-    { q: "I ___ a student.", a: ["am", "is", "are"], correct: 0 },
-    { q: "She ___ a teacher.", a: ["are", "is", "am"], correct: 1 },
-    { q: "They ___ my friends.", a: ["am", "are", "is"], correct: 1 },
-    { q: "He ___ happy.", a: ["is", "are", "am"], correct: 0 },
-    { q: "We ___ in the room.", a: ["is", "are", "am"], correct: 1 },
-    { q: "You ___ my best friend.", a: ["is", "are", "am"], correct: 1 },
-    { q: "I ___ hungry.", a: ["is", "am", "are"], correct: 1 },
-    { q: "It ___ a cat.", a: ["are", "am", "is"], correct: 2 },
-    { q: "They ___ at school.", a: ["is", "are", "am"], correct: 1 },
-    { q: "She ___ my sister.", a: ["are", "is", "am"], correct: 1 },
-    { q: "You ___ very nice.", a: ["is", "are", "am"], correct: 1 },
-    { q: "We ___ happy.", a: ["is", "are", "am"], correct: 1 },
-    { q: "I ___ from Uzbekistan.", a: ["am", "is", "are"], correct: 0 },
-    { q: "He ___ tired.", a: ["are", "is", "am"], correct: 1 },
-    { q: "They ___ my neighbors.", a: ["is", "are", "am"], correct: 1 },
-    { q: "It ___ a dog.", a: ["is", "am", "are"], correct: 0 },
-    { q: "We ___ students.", a: ["are", "am", "is"], correct: 0 },
-    { q: "You ___ good at math.", a: ["is", "are", "am"], correct: 1 },
-    { q: "I ___ ready.", a: ["am", "is", "are"], correct: 0 },
-    { q: "She ___ beautiful.", a: ["am", "is", "are"], correct: 1 }
-  ];
-
-  let score = 0;
-  let answered = Array(quizData.length).fill(false);
-
-  const quiz = document.getElementById("quiz");
-  const result = document.getElementById("result");
-  const actions = document.getElementById("actions");
-
-  quizData.forEach((item, idx) => {
-    const qDiv = document.createElement("div");
-    qDiv.className = "question";
-    const qText = document.createElement("p");
-    qText.textContent = `${idx + 1}. ${item.q}`;
-    qDiv.appendChild(qText);
-
-    item.a.forEach((option, i) => {
-      const btn = document.createElement("button");
-      btn.textContent = option;
-      btn.onclick = () => handleAnswer(idx, i, btn, qDiv);
-      qDiv.appendChild(btn);
-    });
-
-    quiz.appendChild(qDiv);
-  });
-
-  function handleAnswer(idx, selected, btn, container) {
-    if (answered[idx]) return;
-    answered[idx] = true;
-    const correct = quizData[idx].correct;
-    const buttons = container.querySelectorAll("button");
-
-    buttons.forEach((b, i) => {
-      if (i === correct) b.classList.add("correct");
-      if (i === selected && i !== correct) b.classList.add("incorrect");
-      b.disabled = true;
-    });
-
-    if (selected === correct) score++;
-
-    if (answered.every(Boolean)) showResult();
-  }
-
-  async function showResult() {
-    result.textContent = `Natija: ${score}/20`;
-    actions.style.display = "block";
-
-    if (uid) {
-      await setDoc(doc(db, "users", uid), {
-        a1_score: score,
-        a1_last_test: new Date().toISOString()
-      }, { merge: true });
-    } else {
-      localStorage.setItem("a1_score", score);
-      localStorage.setItem("a1_last_test", new Date().toISOString());
+      q.words.sort(() => Math.random() - 0.5);
+      q.words.forEach(word => {
+        const btn = document.createElement("button");
+        btn.textContent = word;
+        btn.onclick = () => {
+          selected.push(word);
+          btn.disabled = true;
+          selectedWords.textContent = selected.join(" ");
+        }
+        wordButtons.appendChild(btn);
+      });
     }
-  }
 
-  window.retryTest = function () {
-    location.reload();
-  }
+    function submitAnswer() {
+      const correct = questions[current].answer;
+      if (selected.join(" ") === correct) score++;
 
-  window.goToNextLesson = function () {
-    location.href = "dars4.html";
-  }
-</script>
-</body>
+      current++;
+      if (current < questions.length) {
+        renderQuestion();
+      } else {
+        selectedWords.textContent = "";
+        wordButtons.innerHTML = "";
+        uzbek.textContent = "Test yakunlandi!";
+        result.innerHTML = `Natija: ${score} / ${questions.length}`;
+        progress.style.width = "100%";
+      }
+    }
+
+    renderQuestion();
+  </script></body>
 </html>
