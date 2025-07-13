@@ -1,185 +1,211 @@
 <!DOCTYPE html><html lang="uz">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>So'z tartibini toping</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>So'z tartibi testi</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: sans-serif;
+      background: #f1f1f1;
+      padding: 20px;
       margin: 0;
-      padding: 0;
-      background: #f5f5f5;
-      color: #333;
-    }
-    header {
-      padding: 15px;
-      text-align: center;
-      background: #007bff;
-      color: white;
-      font-size: 20px;
-    }
-    .progress-bar {
-      width: 100%;
-      background: #ddd;
-      height: 8px;
-    }
-    .progress {
-      height: 8px;
-      background: #007bff;
-      width: 0%;
-      transition: width 0.3s;
     }
     .container {
-      max-width: 600px;
-      margin: 30px auto;
+      max-width: 700px;
+      margin: auto;
       background: #fff;
       padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-    .word-bank, .answer-area {
+    .question {
+      margin-bottom: 20px;
+    }
+    .word-list, .selected-words {
       display: flex;
       flex-wrap: wrap;
-      margin-bottom: 20px;
-      min-height: 50px;
+      gap: 8px;
+      margin-top: 10px;
     }
     .word {
-      background: #e0e0e0;
-      border-radius: 20px;
-      padding: 10px 15px;
-      margin: 5px;
+      padding: 8px 12px;
+      background: #eee;
+      border-radius: 6px;
       cursor: pointer;
-      user-select: none;
+      transition: background 0.2s;
     }
-    .word.selected {
-      background: #007bff;
-      color: white;
+    .word:hover {
+      background: #ccc;
     }
-    .buttons {
-      text-align: center;
+    .word.used {
+      opacity: 0.4;
+      pointer-events: none;
     }
-    .buttons button {
+    .selected-words .word {
+      background: #d1ecf1;
+    }
+    #checkBtn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
       background: #007bff;
       color: white;
       border: none;
-      padding: 10px 20px;
-      margin: 10px;
-      border-radius: 5px;
-      font-size: 16px;
+      border-radius: 8px;
       cursor: pointer;
+      display: none;
     }
-    .buttons button:disabled {
-      background: #aaa;
+    #checkBtn:enabled {
+      display: inline-block;
     }
-    .result-area {
-      text-align: center;
-      font-size: 20px;
+    #progress {
+      height: 16px;
+      background: #e0e0e0;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    #progress-inner {
+      height: 100%;
+      background: #28a745;
+      width: 0%;
+      transition: width 0.3s;
+    }
+    #result {
+      font-weight: bold;
+      font-size: 18px;
       margin-top: 20px;
+    }
+    .actions {
+      margin-top: 20px;
+      display: none;
+    }
+    .actions button {
+      padding: 10px 20px;
+      margin: 5px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <header>So'zlarni tartibga soling</header>
-  <div class="progress-bar"><div class="progress" id="progress"></div></div>
   <div class="container">
-    <div id="question"></div>
-    <h4>Tanlang:</h4>
-    <div class="word-bank" id="wordBank"></div>
-    <h4>Javob:</h4>
-    <div class="answer-area" id="answerArea"></div>
-    <div class="buttons">
-      <button id="checkBtn" disabled>Tekshirish</button>
+    <div id="progress"><div id="progress-inner"></div></div>
+    <div id="quiz"></div>
+    <button id="checkBtn" disabled>Tekshirish</button>
+    <div id="result"></div>
+    <div class="actions">
+      <button onclick="retry()">Qayta urinish</button>
+      <button onclick="nextLesson()">Keyingi dars</button>
+      <button onclick="goToMenu()">Menyuga qaytish</button>
     </div>
-    <div class="result-area" id="resultArea"></div>
-  </div>  <script>
+  </div>  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getFirestore, doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD0gBUJNcrgvvntcrfKK7Ky8t6_9Qb96Io",
+      authDomain: "bilimilova-64833.firebaseapp.com",
+      projectId: "bilimilova-64833",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const tg = window.Telegram?.WebApp;
+    const uid = tg?.initDataUnsafe?.user?.id?.toString() || null;
+
     const questions = [
-      { words: ["am", "I", "a", "teacher"], correct: "I am a teacher" },
-      { words: ["happy", "are", "you"], correct: "You are happy" },
-      { words: ["student", "is", "She", "a"], correct: "She is a student" },
-      { words: ["We", "are", "friends"], correct: "We are friends" },
-      { words: ["They", "are", "doctors"], correct: "They are doctors" }
+      { words: ["am", "I"], answer: "I am" },
+      { words: ["a", "He", "teacher", "is"], answer: "He is a teacher" },
+      { words: ["We", "happy", "are"], answer: "We are happy" },
     ];
 
     let current = 0;
-    let score = 0;
+    let correct = 0;
 
-    const question = document.getElementById("question");
-    const wordBank = document.getElementById("wordBank");
-    const answerArea = document.getElementById("answerArea");
+    const quiz = document.getElementById("quiz");
+    const result = document.getElementById("result");
     const checkBtn = document.getElementById("checkBtn");
-    const resultArea = document.getElementById("resultArea");
-    const progress = document.getElementById("progress");
+    const progress = document.getElementById("progress-inner");
+    const actions = document.querySelector(".actions");
+
+    let selected = [];
 
     function renderQuestion() {
-      const q = questions[current];
-      question.textContent = `Savol ${current + 1} / ${questions.length}`;
-      wordBank.innerHTML = "";
-      answerArea.innerHTML = "";
-      resultArea.textContent = "";
+      quiz.innerHTML = "";
       checkBtn.disabled = true;
-      progress.style.width = `${(current / questions.length) * 100}%`;
+      selected = [];
+      const q = questions[current];
+      const qDiv = document.createElement("div");
+      qDiv.className = "question";
+      const selDiv = document.createElement("div");
+      selDiv.className = "selected-words";
+      qDiv.appendChild(selDiv);
 
-      shuffleArray(q.words).forEach(word => {
-        const btn = document.createElement("div");
-        btn.className = "word";
-        btn.textContent = word;
-        btn.onclick = () => selectWord(btn);
-        wordBank.appendChild(btn);
+      const wordDiv = document.createElement("div");
+      wordDiv.className = "word-list";
+
+      q.words.sort(() => Math.random() - 0.5).forEach((w) => {
+        const span = document.createElement("span");
+        span.textContent = w;
+        span.className = "word";
+        span.onclick = () => {
+          span.remove();
+          selected.push(w);
+          const sel = document.createElement("span");
+          sel.textContent = w;
+          sel.className = "word";
+          sel.onclick = () => {
+            sel.remove();
+            selected = selected.filter(s => s !== w || s === '');
+            renderQuestion();
+          }
+          selDiv.appendChild(sel);
+          if (selected.length === q.words.length) checkBtn.disabled = false;
+        };
+        wordDiv.appendChild(span);
       });
-    }
 
-    function selectWord(btn) {
-      if (btn.classList.contains("selected")) return;
-      btn.classList.add("selected");
-      const clone = btn.cloneNode(true);
-      clone.onclick = () => {
-        btn.classList.remove("selected");
-        clone.remove();
-        toggleCheckButton();
-      };
-      answerArea.appendChild(clone);
-      toggleCheckButton();
-    }
-
-    function toggleCheckButton() {
-      const total = answerArea.children.length;
-      const required = questions[current].words.length;
-      checkBtn.disabled = total !== required;
+      qDiv.appendChild(wordDiv);
+      quiz.appendChild(qDiv);
     }
 
     checkBtn.onclick = () => {
-      const userAnswer = Array.from(answerArea.children).map(el => el.textContent).join(" ");
-      if (userAnswer === questions[current].correct) {
-        resultArea.textContent = "✅ To‘g‘ri!";
-        score++;
-      } else {
-        resultArea.textContent = `❌ Noto‘g‘ri! To‘g‘ri javob: ${questions[current].correct}`;
-      }
+      const q = questions[current];
+      const userAnswer = selected.join(" ");
+      if (userAnswer === q.answer) correct++;
       current++;
-      setTimeout(() => {
-        if (current < questions.length) {
-          renderQuestion();
-        } else {
-          showFinalResult();
-        }
-      }, 1500);
-    };
-
-    function showFinalResult() {
-      question.textContent = "Test yakunlandi";
-      wordBank.innerHTML = "";
-      answerArea.innerHTML = "";
-      checkBtn.style.display = "none";
-      resultArea.innerHTML = `Umumiy natija: <b>${score} / ${questions.length}</b><br><br>
-        <button onclick="location.reload()">Qayta urinish</button>
-        <button onclick="location.href='index.html'">Menyuga qaytish</button>
-        <button onclick="location.href='dars4.html'">Keyingi dars</button>`;
-      progress.style.width = `100%`;
+      updateProgress();
+      if (current < questions.length) renderQuestion();
+      else showResult();
     }
 
-    function shuffleArray(arr) {
-      return arr.map(x => [Math.random(), x]).sort().map(x => x[1]);
+    function updateProgress() {
+      progress.style.width = `${Math.floor((current / questions.length) * 100)}%`;
     }
+
+    function showResult() {
+      result.textContent = `Natija: ${correct} / ${questions.length}`;
+      actions.style.display = "block";
+      if (uid) {
+        const userRef = doc(db, "users", uid);
+        getDoc(userRef).then(snap => {
+          const old = snap.exists() ? (snap.data().a1_score || 0) : 0;
+          setDoc(userRef, { a1_score: correct }, { merge: true });
+        });
+      } else {
+        localStorage.setItem("a1_score", correct);
+      }
+    }
+
+    window.retry = () => location.reload();
+    window.nextLesson = () => location.href = "dars4.html";
+    window.goToMenu = () => location.href = "index.html";
 
     renderQuestion();
   </script></body>
