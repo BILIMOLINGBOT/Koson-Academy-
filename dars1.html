@@ -2,171 +2,202 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>So'z tartibi testi</title>
+  <title>Word Order Test</title>
   <style>
     body {
-      margin: 0;
       font-family: sans-serif;
-      background-color: #121212;
-      color: #fff;
+      background-color: #f5f5f5;
+      margin: 0;
       padding: 20px;
     }
     .container {
       max-width: 600px;
-      margin: 0 auto;
-      text-align: center;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .progress-bar {
+      background: #ddd;
+      border-radius: 20px;
+      overflow: hidden;
+      height: 20px;
+      margin-bottom: 20px;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background-color: #007bff;
+      transition: width 0.3s;
     }
     .question {
-      margin-bottom: 20px;
-      font-size: 22px;
+      font-size: 18px;
+      margin-bottom: 10px;
+      font-weight: bold;
     }
-    .words {
+    .words, .selected {
       display: flex;
       flex-wrap: wrap;
-      justify-content: center;
       gap: 10px;
+      margin-bottom: 15px;
     }
     .word {
-      background: #2b2b2b;
-      padding: 10px 15px;
-      border-radius: 10px;
-      cursor: pointer;
-      font-size: 18px;
-      transition: background 0.3s;
-    }
-    .word:hover {
-      background: #3f3f3f;
-    }
-    .selected-words {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 10px;
-      margin-top: 15px;
-      min-height: 48px;
-    }
-    .button {
-      margin-top: 30px;
-      padding: 10px 20px;
-      font-size: 16px;
-      background: #00c853;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      display: none;
-    }
-    .button:hover {
-      background: #00e676;
-    }
-    .result {
-      margin-top: 20px;
-      font-size: 18px;
-    }
-    .actions {
-      margin-top: 30px;
-    }
-    .actions button {
-      background: #007bff;
-      color: white;
-      padding: 10px 15px;
-      margin: 10px;
-      font-size: 16px;
-      border: none;
+      padding: 8px 12px;
+      background: #e0e0e0;
       border-radius: 6px;
       cursor: pointer;
+      user-select: none;
+    }
+    .word:hover {
+      background-color: #ccc;
+    }
+    .selected-word {
+      background-color: #d1ecf1;
+      cursor: pointer;
+    }
+    button {
+      padding: 10px 20px;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:disabled {
+      background-color: #aaa;
+      cursor: not-allowed;
+    }
+    .result {
+      font-size: 18px;
+      margin-top: 20px;
+      text-align: center;
+      font-weight: bold;
+    }
+    .actions {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .actions button {
+      margin: 10px;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="question" id="question">1. So'zlarni to'g'ri tartibda tanlang:</div>
-    <div class="words" id="words"></div>
-    <div class="selected-words" id="selected"></div>
-    <button class="button" id="checkBtn" onclick="checkAnswer()">Tekshirish</button>
-    <div class="result" id="result"></div>
-    <div class="actions" id="actions" style="display:none">
-      <button onclick="goNext()">Keyingi dars</button>
-      <button onclick="goMenu()">Menyuga qaytish</button>
-    </div>
-  </div>  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+<div class="container">
+  <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+  <div class="question" id="question">Savol 1:</div>
+  <div class="selected" id="selected"></div>
+  <div class="words" id="words"></div>
+  <div style="text-align:center">
+    <button id="checkBtn" disabled>Tekshirish</button>
+  </div>
+  <div class="result" id="feedback"></div>
+  <div class="actions" id="actions" style="display:none">
+    <button onclick="location.reload()">Qayta topshirish</button>
+    <button onclick="window.location.href='a1.html'">Menyuga qaytish</button>
+  </div>
+</div><script>
+  const questions = [
+    "I am a student",
+    "She is my friend",
+    "They are at school",
+    "We are happy",
+    "It is a cat",
+    "You are smart",
+    "He is a doctor",
+    "I am from Uzbekistan",
+    "They are my neighbors",
+    "She is beautiful"
+  ];
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyD0gBUJNcrgvvntcrfKK7Ky8t6_9Qb96Io",
-      authDomain: "bilimilova-64833.firebaseapp.com",
-      projectId: "bilimilova-64833"
-    };
+  let current = 0;
+  let score = 0;
+  const selectedWords = [];
+  const usedIndexes = [];
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+  const questionEl = document.getElementById('question');
+  const selectedEl = document.getElementById('selected');
+  const wordsEl = document.getElementById('words');
+  const checkBtn = document.getElementById('checkBtn');
+  const feedbackEl = document.getElementById('feedback');
+  const progressFill = document.getElementById('progress');
+  const actionsEl = document.getElementById('actions');
 
-    const tg = window.Telegram?.WebApp;
-    const uid = tg?.initDataUnsafe?.user?.id?.toString() || null;
+  function shuffleWords(words) {
+    return words.sort(() => Math.random() - 0.5);
+  }
 
-    const questionData = {
-      correct: ["I", "am", "a", "student"],
-      words: ["student", "I", "am", "a"]
-    };
+  function renderQuestion() {
+    selectedWords.length = 0;
+    selectedEl.innerHTML = '';
+    wordsEl.innerHTML = '';
+    checkBtn.disabled = true;
+    feedbackEl.textContent = '';
 
-    const wordsDiv = document.getElementById("words");
-    const selectedDiv = document.getElementById("selected");
-    const checkBtn = document.getElementById("checkBtn");
-    const result = document.getElementById("result");
-    const actions = document.getElementById("actions");
+    const sentence = questions[current];
+    const words = shuffleWords(sentence.split(' '));
+    questionEl.textContent = `Savol ${current + 1}: So‘zlarni to‘g‘ri joylashtiring`;
 
-    let selected = [];
+    words.forEach(word => {
+      const span = document.createElement('span');
+      span.textContent = word;
+      span.className = 'word';
+      span.onclick = () => selectWord(span);
+      wordsEl.appendChild(span);
+    });
+  }
 
-    function renderWords() {
-      questionData.words.sort(() => Math.random() - 0.5);
-      questionData.words.forEach(word => {
-        const span = document.createElement("span");
-        span.textContent = word;
-        span.className = "word";
-        span.onclick = () => selectWord(span);
-        wordsDiv.appendChild(span);
-      });
+  function selectWord(wordEl) {
+    const word = wordEl.textContent;
+    selectedWords.push(word);
+    wordEl.remove();
+
+    const span = document.createElement('span');
+    span.textContent = word;
+    span.className = 'word selected-word';
+    span.onclick = () => removeWord(span);
+    selectedEl.appendChild(span);
+
+    checkBtn.disabled = selectedWords.length !== questions[current].split(' ').length;
+  }
+
+  function removeWord(wordEl) {
+    const word = wordEl.textContent;
+    const index = selectedWords.indexOf(word);
+    if (index !== -1) selectedWords.splice(index, 1);
+    wordEl.remove();
+
+    const span = document.createElement('span');
+    span.textContent = word;
+    span.className = 'word';
+    span.onclick = () => selectWord(span);
+    wordsEl.appendChild(span);
+
+    checkBtn.disabled = selectedWords.length !== questions[current].split(' ').length;
+  }
+
+  checkBtn.onclick = () => {
+    const correct = questions[current];
+    const userSentence = selectedWords.join(' ');
+    if (userSentence === correct) {
+      feedbackEl.textContent = '✅ To‘g‘ri';
+      score++;
+    } else {
+      feedbackEl.textContent = `❌ Noto‘g‘ri. To‘g‘ri javob: ${correct}`;
     }
+    current++;
+    progressFill.style.width = `${(current / questions.length) * 100}%`;
 
-    function selectWord(span) {
-      span.style.display = "none";
-      selected.push(span.textContent);
-      const s = document.createElement("span");
-      s.textContent = span.textContent;
-      s.className = "word";
-      selectedDiv.appendChild(s);
-
-      if (selected.length === questionData.words.length) {
-        checkBtn.style.display = "inline-block";
-      }
+    if (current < questions.length) {
+      setTimeout(renderQuestion, 1500);
+    } else {
+      feedbackEl.textContent += `\nUmumiy ball: ${score} / ${questions.length}`;
+      actionsEl.style.display = 'block';
     }
+  };
 
-    async function checkAnswer() {
-      const isCorrect = selected.join(" ") === questionData.correct.join(" ");
-      result.innerHTML = isCorrect ?
-        "<span style='color:#00e676'>To'g'ri!</span>" :
-        `<span style='color:#ff5252'>Noto'g'ri!<br>To'g'ri javob: ${questionData.correct.join(" ")}</span>`;
-
-      if (uid) {
-        const ref = doc(db, "users", uid);
-        const snap = await getDoc(ref);
-        const prev = snap.exists() ? snap.data().a1_score || 0 : 0;
-        const score = isCorrect ? 1 : 0;
-        await setDoc(ref, { a1_score: prev + score }, { merge: true });
-      } else {
-        const local = parseInt(localStorage.getItem("a1_score")) || 0;
-        const score = isCorrect ? 1 : 0;
-        localStorage.setItem("a1_score", local + score);
-      }
-
-      checkBtn.style.display = "none";
-      actions.style.display = "block";
-    }
-
-    window.goNext = () => location.href = "dars2.html";
-    window.goMenu = () => location.href = "a1.html";
-
-    renderWords();
-  </script></body>
+  renderQuestion();
+</script></body>
 </html>
