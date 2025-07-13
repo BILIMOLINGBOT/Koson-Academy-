@@ -2,164 +2,171 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Word Order Test</title>
+  <title>So'z tartibi testi</title>
   <style>
     body {
-      font-family: 'Arial', sans-serif;
       margin: 0;
-      padding: 0;
-      background-color: #0e0e23;
+      font-family: sans-serif;
+      background-color: #121212;
       color: #fff;
+      padding: 20px;
     }
     .container {
       max-width: 600px;
-      margin: auto;
-      padding: 30px 20px;
+      margin: 0 auto;
       text-align: center;
     }
-    .question-box {
-      background-color: #1e1e3f;
-      border-radius: 12px;
-      padding: 20px;
+    .question {
       margin-bottom: 20px;
+      font-size: 22px;
     }
-    .word-btns {
+    .words {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
       gap: 10px;
-      margin-top: 20px;
     }
-    .word-btns button {
-      background-color: #26264c;
-      border: none;
+    .word {
+      background: #2b2b2b;
       padding: 10px 15px;
-      font-size: 16px;
-      border-radius: 8px;
-      color: white;
+      border-radius: 10px;
       cursor: pointer;
+      font-size: 18px;
+      transition: background 0.3s;
     }
-    .word-btns button:hover {
-      background-color: #39397a;
+    .word:hover {
+      background: #3f3f3f;
     }
     .selected-words {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
       margin-top: 15px;
-      min-height: 30px;
+      min-height: 48px;
+    }
+    .button {
+      margin-top: 30px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #00c853;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      display: none;
+    }
+    .button:hover {
+      background: #00e676;
+    }
+    .result {
+      margin-top: 20px;
       font-size: 18px;
-      font-weight: bold;
     }
     .actions {
       margin-top: 30px;
     }
     .actions button {
-      background-color: #007bff;
-      border: none;
+      background: #007bff;
       color: white;
-      padding: 10px 20px;
+      padding: 10px 15px;
+      margin: 10px;
       font-size: 16px;
+      border: none;
       border-radius: 6px;
-      margin: 5px;
       cursor: pointer;
-    }
-    .avatar {
-      font-size: 50px;
-      margin-bottom: 10px;
-    }
-    #progressBar {
-      width: 100%;
-      height: 10px;
-      background-color: #333;
-      border-radius: 5px;
-      overflow: hidden;
-      margin-top: 10px;
-    }
-    #progress {
-      height: 100%;
-      width: 0%;
-      background-color: #00cc66;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="avatar">🧒</div>
-    <h2 id="uzbek">Bu roman ko‘plab odamlar tomonidan o‘qiladi.</h2>
-    <div id="questionBox" class="question-box">
-      <div class="selected-words" id="selectedWords"></div>
-      <div class="word-btns" id="wordButtons"></div>
+    <div class="question" id="question">1. So'zlarni to'g'ri tartibda tanlang:</div>
+    <div class="words" id="words"></div>
+    <div class="selected-words" id="selected"></div>
+    <button class="button" id="checkBtn" onclick="checkAnswer()">Tekshirish</button>
+    <div class="result" id="result"></div>
+    <div class="actions" id="actions" style="display:none">
+      <button onclick="goNext()">Keyingi dars</button>
+      <button onclick="goMenu()">Menyuga qaytish</button>
     </div>
-    <div id="progressBar"><div id="progress"></div></div>
-    <div class="actions">
-      <button onclick="submitAnswer()">Davom etish</button>
-      <div id="result"></div>
-    </div>
-  </div>  <script>
-    const questions = [
-      {
-        uz: "Bu roman ko‘plab odamlar tomonidan o‘qiladi.",
-        words: ["The", "novel", "is", "read", "by", "many", "people."],
-        answer: "The novel is read by many people."
-      },
-      {
-        uz: "Men har kuni ingliz tilini o‘rganaman.",
-        words: ["I", "study", "English", "every", "day."],
-        answer: "I study English every day."
-      },
-      {
-        uz: "Ular bog‘da o‘ynashmoqda.",
-        words: ["They", "are", "playing", "in", "the", "garden."],
-        answer: "They are playing in the garden."
-      }
-      // ... 17 ta boshqa savollar qo‘shing
-    ];
+  </div>  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    let current = 0;
-    let score = 0;
+    const firebaseConfig = {
+      apiKey: "AIzaSyD0gBUJNcrgvvntcrfKK7Ky8t6_9Qb96Io",
+      authDomain: "bilimilova-64833.firebaseapp.com",
+      projectId: "bilimilova-64833"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const tg = window.Telegram?.WebApp;
+    const uid = tg?.initDataUnsafe?.user?.id?.toString() || null;
+
+    const questionData = {
+      correct: ["I", "am", "a", "student"],
+      words: ["student", "I", "am", "a"]
+    };
+
+    const wordsDiv = document.getElementById("words");
+    const selectedDiv = document.getElementById("selected");
+    const checkBtn = document.getElementById("checkBtn");
+    const result = document.getElementById("result");
+    const actions = document.getElementById("actions");
+
     let selected = [];
 
-    const uzbek = document.getElementById("uzbek");
-    const wordButtons = document.getElementById("wordButtons");
-    const selectedWords = document.getElementById("selectedWords");
-    const result = document.getElementById("result");
-    const progress = document.getElementById("progress");
-
-    function renderQuestion() {
-      const q = questions[current];
-      uzbek.textContent = q.uz;
-      wordButtons.innerHTML = "";
-      selectedWords.textContent = "";
-      selected = [];
-      progress.style.width = ((current) / questions.length) * 100 + "%";
-
-      q.words.sort(() => Math.random() - 0.5);
-      q.words.forEach(word => {
-        const btn = document.createElement("button");
-        btn.textContent = word;
-        btn.onclick = () => {
-          selected.push(word);
-          btn.disabled = true;
-          selectedWords.textContent = selected.join(" ");
-        }
-        wordButtons.appendChild(btn);
+    function renderWords() {
+      questionData.words.sort(() => Math.random() - 0.5);
+      questionData.words.forEach(word => {
+        const span = document.createElement("span");
+        span.textContent = word;
+        span.className = "word";
+        span.onclick = () => selectWord(span);
+        wordsDiv.appendChild(span);
       });
     }
 
-    function submitAnswer() {
-      const correct = questions[current].answer;
-      if (selected.join(" ") === correct) score++;
+    function selectWord(span) {
+      span.style.display = "none";
+      selected.push(span.textContent);
+      const s = document.createElement("span");
+      s.textContent = span.textContent;
+      s.className = "word";
+      selectedDiv.appendChild(s);
 
-      current++;
-      if (current < questions.length) {
-        renderQuestion();
-      } else {
-        selectedWords.textContent = "";
-        wordButtons.innerHTML = "";
-        uzbek.textContent = "Test yakunlandi!";
-        result.innerHTML = `Natija: ${score} / ${questions.length}`;
-        progress.style.width = "100%";
+      if (selected.length === questionData.words.length) {
+        checkBtn.style.display = "inline-block";
       }
     }
 
-    renderQuestion();
+    async function checkAnswer() {
+      const isCorrect = selected.join(" ") === questionData.correct.join(" ");
+      result.innerHTML = isCorrect ?
+        "<span style='color:#00e676'>To'g'ri!</span>" :
+        `<span style='color:#ff5252'>Noto'g'ri!<br>To'g'ri javob: ${questionData.correct.join(" ")}</span>`;
+
+      if (uid) {
+        const ref = doc(db, "users", uid);
+        const snap = await getDoc(ref);
+        const prev = snap.exists() ? snap.data().a1_score || 0 : 0;
+        const score = isCorrect ? 1 : 0;
+        await setDoc(ref, { a1_score: prev + score }, { merge: true });
+      } else {
+        const local = parseInt(localStorage.getItem("a1_score")) || 0;
+        const score = isCorrect ? 1 : 0;
+        localStorage.setItem("a1_score", local + score);
+      }
+
+      checkBtn.style.display = "none";
+      actions.style.display = "block";
+    }
+
+    window.goNext = () => location.href = "dars2.html";
+    window.goMenu = () => location.href = "a1.html";
+
+    renderWords();
   </script></body>
 </html>
