@@ -1,135 +1,153 @@
-<!DOCTYPE html><html lang="uz">
+<!DOCTYPE html>
+<html lang="uz">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ovozli Test</title>
+  <title>Test: Word Order</title>
   <style>
     body {
       font-family: sans-serif;
-      background-color: #fff;
-      color: #000;
-      margin: 0;
+      background: #fff;
+      color: #333;
       padding: 20px;
-    }
-    .container {
-      max-width: 700px;
-      margin: auto;
     }
     h1 {
       text-align: center;
     }
-    .word-list, .selected-words {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 20px;
-    }
-    .word-chip {
+    .chip {
+      padding: 10px 16px;
       background-color: #007bff;
       color: white;
-      border: none;
       border-radius: 9999px;
-      padding: 10px 15px;
-      font-size: 16px;
       cursor: pointer;
+      display: inline-block;
+      margin: 5px;
+      user-select: none;
       transition: transform 0.2s;
     }
-    .word-chip:hover {
-      transform: scale(1.1);
+    .chip:hover {
+      transform: scale(1.05);
     }
-    .word-chip.selected {
-      background-color: #0056b3;
+    .chip.selected {
+      opacity: 0.5;
+      pointer-events: none;
     }
-    #checkBtn {
-      margin-top: 30px;
+    .selected-words {
+      margin: 20px 0;
+      min-height: 50px;
+    }
+    .btn {
       padding: 10px 20px;
-      font-size: 18px;
+      background: #007bff;
+      color: white;
       border: none;
       border-radius: 8px;
-      background-color: #28a745;
-      color: white;
       cursor: pointer;
+      font-size: 16px;
     }
-    #checkBtn:disabled {
-      background-color: #ccc;
-      cursor: not-allowed;
+    .btn:disabled {
+      background: #ccc;
     }
     #feedback {
-      margin-top: 20px;
-      font-size: 20px;
-      font-weight: bold;
       text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>So'zlarni to'g'ri tartibda joylashtiring</h1>
-    <div class="selected-words" id="selected"></div>
-    <div class="word-list" id="words"></div>
-    <button id="checkBtn" disabled>Tekshirish</button>
-    <div id="feedback"></div>
-  </div>  <script>
-    const correctAnswer = ["I", "am", "a", "student"];
-    let selectedWords = [];
-    let buttons = [];
+  <h1>So‘zlarni tartiblash testi</h1>
 
-    const wordList = [...correctAnswer].sort(() => Math.random() - 0.5);
+  <div id="word-container"></div>
+  <div class="selected-words" id="selected-words"></div>
 
-    const wordContainer = document.getElementById("words");
-    const selectedContainer = document.getElementById("selected");
-    const checkBtn = document.getElementById("checkBtn");
+  <button class="btn" id="check-btn" disabled>Tekshirish</button>
+  <div id="feedback"></div>
+
+  <!-- OVOZ -->
+  <audio id="correct-audio" src="sounds/correct.mp3" preload="auto"></audio>
+  <audio id="wrong-audio" src="sounds/wrong.mp3" preload="auto"></audio>
+
+  <script>
+    const questions = [
+      ["I", "am", "a", "student"]
+    ];
+
+    let current = 0;
+    let userAnswer = [];
+
+    const wordContainer = document.getElementById("word-container");
+    const selectedWords = document.getElementById("selected-words");
+    const checkBtn = document.getElementById("check-btn");
     const feedback = document.getElementById("feedback");
+    const correctAudio = document.getElementById("correct-audio");
+    const wrongAudio = document.getElementById("wrong-audio");
 
-    function sayWord(word) {
-      const utterance = new SpeechSynthesisUtterance(word);
-      utterance.lang = "en-US";
-      speechSynthesis.speak(utterance);
+    function shuffle(array) {
+      return [...array].sort(() => Math.random() - 0.5);
     }
 
-    function renderWords() {
+    function renderQuestion() {
       wordContainer.innerHTML = "";
-      selectedContainer.innerHTML = "";
-      selectedWords = [];
-      wordList.forEach((word, index) => {
-        const btn = document.createElement("button");
-        btn.textContent = word;
-        btn.className = "word-chip";
-        btn.onclick = () => handleWordClick(word, btn);
-        wordContainer.appendChild(btn);
-        buttons.push(btn);
-      });
-    }
+      selectedWords.innerHTML = "";
+      userAnswer = [];
+      feedback.textContent = "";
+      checkBtn.disabled = true;
 
-    function handleWordClick(word, btn) {
-      sayWord(word);
-      if (btn.classList.contains("selected")) {
-        btn.classList.remove("selected");
-        selectedWords = selectedWords.filter(w => w !== word);
-      } else {
-        btn.classList.add("selected");
-        selectedWords.push(word);
-      }
-      updateSelectedDisplay();
-    }
-
-    function updateSelectedDisplay() {
-      selectedContainer.innerHTML = "";
-      selectedWords.forEach(word => {
+      const words = shuffle(questions[current]);
+      words.forEach(word => {
         const chip = document.createElement("div");
-        chip.className = "word-chip selected";
+        chip.className = "chip";
         chip.textContent = word;
-        selectedContainer.appendChild(chip);
+        chip.onclick = () => {
+          chip.classList.add("selected");
+          userAnswer.push(word);
+          updateSelectedWords();
+          if (userAnswer.length === questions[current].length) {
+            checkBtn.disabled = false;
+          }
+        };
+        wordContainer.appendChild(chip);
       });
-      checkBtn.disabled = selectedWords.length !== correctAnswer.length;
+    }
+
+    function updateSelectedWords() {
+      selectedWords.innerHTML = "";
+      userAnswer.forEach((word, idx) => {
+        const chip = document.createElement("div");
+        chip.className = "chip";
+        chip.textContent = word;
+        chip.onclick = () => {
+          userAnswer.splice(idx, 1);
+          const chips = wordContainer.querySelectorAll(".chip");
+          for (const c of chips) {
+            if (c.textContent === word && c.classList.contains("selected")) {
+              c.classList.remove("selected");
+              break;
+            }
+          }
+          updateSelectedWords();
+          checkBtn.disabled = true;
+        };
+        selectedWords.appendChild(chip);
+      });
     }
 
     checkBtn.onclick = () => {
-      const isCorrect = selectedWords.join(" ") === correctAnswer.join(" ");
-      feedback.textContent = isCorrect ? "✅ To'g'ri!" : "❌ Noto'g'ri";
-      sayWord(isCorrect ? "Correct" : "Wrong");
-    }
+      const correct = questions[current].join(" ");
+      const attempt = userAnswer.join(" ");
 
-    renderWords();
-  </script></body>
+      if (correct === attempt) {
+        feedback.textContent = "✅ To‘g‘ri javob!";
+        correctAudio.play();
+      } else {
+        feedback.textContent = "❌ Noto‘g‘ri javob!";
+        wrongAudio.play();
+      }
+    };
+
+    renderQuestion();
+  </script>
+</body>
 </html>
