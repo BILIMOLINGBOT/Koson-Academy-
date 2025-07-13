@@ -6,192 +6,168 @@
   <style>
     body {
       font-family: sans-serif;
-      background-color: #fff;
-      color: #000;
-      padding: 20px;
+      background-color: #ffffff;
+      color: #333;
       margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 700px;
+      margin: auto;
     }
     h1 {
       text-align: center;
     }
-    .progress {
-      height: 10px;
-      background: #eee;
-      border-radius: 5px;
-      margin: 20px 0;
-      overflow: hidden;
-    }
     .progress-bar {
+      height: 10px;
+      background-color: #eee;
+      border-radius: 5px;
+      overflow: hidden;
+      margin: 20px 0;
+    }
+    .progress-fill {
       height: 100%;
-      width: 0%;
-      background: #007bff;
+      width: 100%;
+      background-color: #007bff;
       transition: width 0.3s;
     }
-    .words, .selected {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 20px;
-      justify-content: center;
-    }
-    .word {
-      background: #007bff;
+    .word-btn {
+      display: inline-block;
+      background-color: #007bff;
       color: #fff;
-      border-radius: 20px;
-      padding: 8px 14px;
+      padding: 10px 15px;
+      margin: 5px;
+      border: none;
+      border-radius: 25px;
       cursor: pointer;
-      user-select: none;
+      font-size: 16px;
+    }
+    .word-btn:hover {
+      background-color: #0056b3;
     }
     .chip {
-      background: #f1f1f1;
-      color: #007bff;
-      border: 1px solid #007bff;
+      display: inline-block;
+      background-color: #e0e0e0;
+      padding: 8px 15px;
+      border-radius: 25px;
+      margin: 5px;
+      font-weight: bold;
     }
-    .btn-check {
-      display: block;
-      margin: 20px auto;
+    #check-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+    }
+    #check-btn:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    #feedback {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    #result-actions {
+      margin-top: 30px;
+      text-align: center;
+      display: none;
+    }
+    #result-actions button {
+      margin: 10px;
       padding: 10px 20px;
       font-size: 16px;
       border: none;
-      border-radius: 20px;
+      border-radius: 25px;
       background-color: #007bff;
-      color: white;
-      cursor: pointer;
-      opacity: 0.6;
-    }
-    .btn-check.active {
-      opacity: 1;
-    }
-    .modal {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      border: 2px solid #007bff;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      z-index: 10;
-      text-align: center;
-    }
-    .modal.active {
-      display: block;
-    }
-    .footer-buttons {
-      margin-top: 20px;
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-    }
-    .footer-buttons button {
-      padding: 10px 15px;
-      border: none;
-      border-radius: 20px;
-      background: #007bff;
       color: white;
       cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <h1>So'z tartibini tuzing</h1>
-  <div class="progress"><div class="progress-bar" id="progressBar"></div></div>  <div class="selected" id="selectedWords"></div>
-  <div class="words" id="wordsContainer"></div>
-  <button class="btn-check" id="checkBtn" disabled>Tekshirish</button>  <div class="modal" id="feedbackModal">
-    <div id="feedbackText"></div>
-    <div class="footer-buttons">
-      <button onclick="retry()">Qayta urinib ko'rish</button>
-      <button onclick="next()">Keyingi</button>
-    </div>
-  </div>  <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-    import { getFirestore, doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+<div class="container">
+  <h1>So'zlarni to'g'ri joylashtiring</h1>
+  <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+  <div id="selected"></div>
+  <div id="options"></div>
+  <button id="check-btn" disabled>Tekshirish</button>
+  <div id="feedback"></div>
+  <div id="result-actions">
+    <button onclick="location.href='dars5.html'">Keyingi dars</button>
+    <button onclick="location.href='index.html'">Menyuga qaytish</button>
+  </div>
+</div><script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyD0gBUJNcrgvvntcrfKK7Ky8t6_9Qb96Io",
-      authDomain: "bilimilova-64833.firebaseapp.com",
-      projectId: "bilimilova-64833",
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyD0gBUJNcrgvvntcrfKK7Ky8t6_9Qb96Io",
+    authDomain: "bilimilova-64833.firebaseapp.com",
+    projectId: "bilimilova-64833"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const tg = window.Telegram?.WebApp;
-    const uid = tg?.initDataUnsafe?.user?.id?.toString() || null;
+  const tg = window.Telegram?.WebApp;
+  const uid = tg?.initDataUnsafe?.user?.id?.toString() || null;
 
-    const sentence = "I am a student";
-    const words = sentence.split(" ");
-    let selected = [];
+  const sentence = ["I", "am", "a", "student"];
+  const correctSentence = sentence.join(" ");
 
-    const selectedWords = document.getElementById("selectedWords");
-    const wordsContainer = document.getElementById("wordsContainer");
-    const checkBtn = document.getElementById("checkBtn");
-    const feedbackModal = document.getElementById("feedbackModal");
-    const feedbackText = document.getElementById("feedbackText");
-    const progressBar = document.getElementById("progressBar");
+  const selectedEl = document.getElementById("selected");
+  const optionsEl = document.getElementById("options");
+  const checkBtn = document.getElementById("check-btn");
+  const feedbackEl = document.getElementById("feedback");
+  const progress = document.getElementById("progress");
 
-    function renderWords() {
-      selectedWords.innerHTML = "";
-      wordsContainer.innerHTML = "";
+  let selectedWords = [];
+  let used = [];
 
-      selected.forEach((word, i) => {
-        const chip = document.createElement("div");
-        chip.textContent = word;
-        chip.className = "word chip";
-        chip.onclick = () => {
-          selected.splice(i, 1);
+  function renderWords() {
+    selectedEl.innerHTML = selectedWords.map(word => `<span class="chip">${word}</span>`).join(" ");
+    optionsEl.innerHTML = "";
+    sentence.forEach((word, index) => {
+      if (!used.includes(index)) {
+        const btn = document.createElement("button");
+        btn.textContent = word;
+        btn.className = "word-btn";
+        btn.onclick = () => {
+          selectedWords.push(word);
+          used.push(index);
           renderWords();
+          if (selectedWords.length === sentence.length) checkBtn.disabled = false;
         };
-        selectedWords.appendChild(chip);
-      });
+        optionsEl.appendChild(btn);
+      }
+    });
+  }
 
-      words.forEach((word) => {
-        if (!selected.includes(word)) {
-          const btn = document.createElement("div");
-          btn.textContent = word;
-          btn.className = "word";
-          btn.onclick = () => {
-            selected.push(word);
-            renderWords();
-          };
-          wordsContainer.appendChild(btn);
-        }
-      });
-
-      checkBtn.disabled = selected.length !== words.length;
-      checkBtn.classList.toggle("active", !checkBtn.disabled);
-    }
-
-    checkBtn.onclick = async () => {
-      const isCorrect = selected.join(" ") === sentence;
-      feedbackText.textContent = isCorrect ? "To'g'ri javob!" : "Noto'g'ri javob.";
-      feedbackModal.classList.add("active");
-
-      if (uid && isCorrect) {
-        const userRef = doc(db, "users", uid);
-        const snap = await getDoc(userRef);
-        const prev = snap.exists() ? snap.data().a1_score || 0 : 0;
-        await setDoc(userRef, { a1_score: prev + 1 }, { merge: true });
-      } else if (isCorrect) {
-        const local = parseInt(localStorage.getItem("a1_score") || "0");
+  checkBtn.onclick = async () => {
+    const userSentence = selectedWords.join(" ");
+    if (userSentence === correctSentence) {
+      feedbackEl.textContent = "To‘g‘ri!";
+      if (uid) {
+        const ref = doc(db, "users", uid);
+        const snap = await getDoc(ref);
+        const current = snap.exists() ? snap.data().a1_score || 0 : 0;
+        await setDoc(ref, { a1_score: current + 1 }, { merge: true });
+      } else {
+        const local = parseInt(localStorage.getItem("a1_score")) || 0;
         localStorage.setItem("a1_score", local + 1);
       }
+    } else {
+      feedbackEl.textContent = "Noto‘g‘ri. To‘g‘ri javob: " + correctSentence;
+    }
+    checkBtn.disabled = true;
+    document.getElementById("result-actions").style.display = "block";
+    progress.style.width = "100%";
+  };
 
-      progressBar.style.width = "100%";
-    };
-
-    window.retry = () => {
-      selected = [];
-      feedbackModal.classList.remove("active");
-      renderWords();
-      progressBar.style.width = "0%";
-    };
-
-    window.next = () => {
-      window.location.href = "menu.html"; // keyingi sahifa yoki menyuga
-    };
-
-    renderWords();
-  </script></body>
+  renderWords();
+</script></body>
 </html>
