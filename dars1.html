@@ -1,15 +1,16 @@
-<!DOCTYPE html><html lang="uz">
+<!DOCTYPE html>
+<html lang="uz">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>To Be Positive Test</title>
   <style>
     body {
-      font-family: sans-serif;
-      background-color: #f7f7f7;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f9f9f9;
       color: #333;
-      margin: 0;
       padding: 20px;
+      margin: 0;
     }
     .container {
       max-width: 800px;
@@ -17,56 +18,57 @@
     }
     h1 {
       text-align: center;
-      margin-bottom: 30px;
+      margin-bottom: 20px;
     }
     .question {
       background: #fff;
+      border-radius: 10px;
       padding: 15px;
-      margin-bottom: 15px;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      margin-bottom: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
     .question p {
-      margin: 0 0 10px;
+      font-weight: 600;
     }
     .question button {
       display: block;
       width: 100%;
-      margin-bottom: 5px;
+      margin-top: 10px;
       padding: 10px;
-      background-color: #eaeaea;
       border: none;
-      border-radius: 5px;
+      border-radius: 6px;
+      background-color: #eee;
       cursor: pointer;
-      transition: background-color 0.3s;
+      transition: background 0.3s;
+      font-size: 16px;
+    }
+    .question button:hover {
+      background-color: #ddd;
     }
     .question button.correct {
-      background-color: #d4edda;
+      background-color: #d4edda !important;
     }
     .question button.incorrect {
-      background-color: #f8d7da;
-    }
-    .question button.selected {
-      font-weight: bold;
+      background-color: #f8d7da !important;
     }
     #result {
       text-align: center;
-      font-size: 20px;
-      margin-top: 30px;
+      font-size: 22px;
       font-weight: bold;
+      margin-top: 30px;
     }
     #actions {
       text-align: center;
       margin-top: 20px;
     }
     #actions button {
+      padding: 12px 24px;
       margin: 10px;
-      padding: 10px 20px;
       font-size: 16px;
-      border: none;
-      border-radius: 6px;
       background-color: #007bff;
-      color: white;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
       cursor: pointer;
     }
     #actions button:hover {
@@ -75,113 +77,118 @@
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>To Be Positive Test</h1>
-    <div id="quiz"></div>
-    <div id="result"></div>
-    <div id="actions" style="display:none">
-      <button onclick="retryTest()">Qayta urinib ko‘rish</button>
-      <button onclick="goToNextLesson()">Keyingi dars</button>
-    </div>
-  </div>  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+<div class="container">
+  <h1>To Be Positive Test</h1>
+  <div id="quiz"></div>
+  <div id="result"></div>
+  <div id="actions" style="display:none;">
+    <button onclick="retryTest()">Qayta urinib ko‘rish</button>
+    <button onclick="goToNextLesson()">Keyingi dars</button>
+  </div>
+</div>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyD0gBUJNcrgvvntcrfKK7Ky8t6_9Qb96Io",
-      authDomain: "bilimilova-64833.firebaseapp.com",
-      projectId: "bilimilova-64833",
-    };
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+  const firebaseConfig = {
+    apiKey: "AIzaSyD0gBUJNcrgvvntcrfKK7Ky8t6_9Qb96Io",
+    authDomain: "bilimilova-64833.firebaseapp.com",
+    projectId: "bilimilova-64833"
+  };
 
-    const tg = window.Telegram?.WebApp;
-    const uid = tg?.initDataUnsafe?.user?.id?.toString() || null;
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-    const quizData = [
-      { q: "I ___ a student.", a: ["am", "is", "are"], correct: 0 },
-      { q: "She ___ a teacher.", a: ["are", "is", "am"], correct: 1 },
-      { q: "They ___ my friends.", a: ["am", "are", "is"], correct: 1 },
-      { q: "He ___ happy.", a: ["is", "are", "am"], correct: 0 },
-      { q: "We ___ in the room.", a: ["is", "are", "am"], correct: 1 },
-      { q: "You ___ my best friend.", a: ["is", "are", "am"], correct: 1 },
-      { q: "I ___ hungry.", a: ["is", "am", "are"], correct: 1 },
-      { q: "It ___ a cat.", a: ["are", "am", "is"], correct: 2 },
-      { q: "They ___ at school.", a: ["is", "are", "am"], correct: 1 },
-      { q: "She ___ my sister.", a: ["are", "is", "am"], correct: 1 },
-      { q: "You ___ very nice.", a: ["is", "are", "am"], correct: 1 },
-      { q: "We ___ happy.", a: ["is", "are", "am"], correct: 1 },
-      { q: "I ___ from Uzbekistan.", a: ["am", "is", "are"], correct: 0 },
-      { q: "He ___ tired.", a: ["are", "is", "am"], correct: 1 },
-      { q: "They ___ my neighbors.", a: ["is", "are", "am"], correct: 1 },
-      { q: "It ___ a dog.", a: ["is", "am", "are"], correct: 0 },
-      { q: "We ___ students.", a: ["are", "am", "is"], correct: 0 },
-      { q: "You ___ good at math.", a: ["is", "are", "am"], correct: 1 },
-      { q: "I ___ ready.", a: ["am", "is", "are"], correct: 0 },
-      { q: "She ___ beautiful.", a: ["am", "is", "are"], correct: 1 },
-    ];
+  const tg = window.Telegram?.WebApp;
+  const uid = tg?.initDataUnsafe?.user?.id?.toString() || null;
 
-    let score = 0;
-    let answered = Array(quizData.length).fill(false);
+  const quizData = [
+    { q: "I ___ a student.", a: ["am", "is", "are"], correct: 0 },
+    { q: "She ___ a teacher.", a: ["are", "is", "am"], correct: 1 },
+    { q: "They ___ my friends.", a: ["am", "are", "is"], correct: 1 },
+    { q: "He ___ happy.", a: ["is", "are", "am"], correct: 0 },
+    { q: "We ___ in the room.", a: ["is", "are", "am"], correct: 1 },
+    { q: "You ___ my best friend.", a: ["is", "are", "am"], correct: 1 },
+    { q: "I ___ hungry.", a: ["is", "am", "are"], correct: 1 },
+    { q: "It ___ a cat.", a: ["are", "am", "is"], correct: 2 },
+    { q: "They ___ at school.", a: ["is", "are", "am"], correct: 1 },
+    { q: "She ___ my sister.", a: ["are", "is", "am"], correct: 1 },
+    { q: "You ___ very nice.", a: ["is", "are", "am"], correct: 1 },
+    { q: "We ___ happy.", a: ["is", "are", "am"], correct: 1 },
+    { q: "I ___ from Uzbekistan.", a: ["am", "is", "are"], correct: 0 },
+    { q: "He ___ tired.", a: ["are", "is", "am"], correct: 1 },
+    { q: "They ___ my neighbors.", a: ["is", "are", "am"], correct: 1 },
+    { q: "It ___ a dog.", a: ["is", "am", "are"], correct: 0 },
+    { q: "We ___ students.", a: ["are", "am", "is"], correct: 0 },
+    { q: "You ___ good at math.", a: ["is", "are", "am"], correct: 1 },
+    { q: "I ___ ready.", a: ["am", "is", "are"], correct: 0 },
+    { q: "She ___ beautiful.", a: ["am", "is", "are"], correct: 1 }
+  ];
 
-    const quiz = document.getElementById("quiz");
-    const result = document.getElementById("result");
-    const actions = document.getElementById("actions");
+  let score = 0;
+  let answered = Array(quizData.length).fill(false);
 
-    quizData.forEach((item, idx) => {
-      const qDiv = document.createElement("div");
-      qDiv.className = "question";
-      const qText = document.createElement("p");
-      qText.textContent = `${idx + 1}. ${item.q}`;
-      qDiv.appendChild(qText);
+  const quiz = document.getElementById("quiz");
+  const result = document.getElementById("result");
+  const actions = document.getElementById("actions");
 
-      item.a.forEach((option, i) => {
-        const btn = document.createElement("button");
-        btn.textContent = option;
-        btn.onclick = () => handleAnswer(idx, i, btn, qDiv);
-        qDiv.appendChild(btn);
-      });
-      quiz.appendChild(qDiv);
+  quizData.forEach((item, idx) => {
+    const qDiv = document.createElement("div");
+    qDiv.className = "question";
+    const qText = document.createElement("p");
+    qText.textContent = `${idx + 1}. ${item.q}`;
+    qDiv.appendChild(qText);
+
+    item.a.forEach((option, i) => {
+      const btn = document.createElement("button");
+      btn.textContent = option;
+      btn.onclick = () => handleAnswer(idx, i, btn, qDiv);
+      qDiv.appendChild(btn);
     });
 
-    function handleAnswer(idx, selected, btn, container) {
-      if (answered[idx]) return;
-      answered[idx] = true;
-      const correct = quizData[idx].correct;
-      const buttons = container.querySelectorAll("button");
+    quiz.appendChild(qDiv);
+  });
 
-      buttons.forEach((b, i) => {
-        if (i === correct) b.classList.add("correct");
-        if (i === selected && i !== correct) b.classList.add("incorrect");
-        b.disabled = true;
-      });
-      if (selected === correct) score++;
+  function handleAnswer(idx, selected, btn, container) {
+    if (answered[idx]) return;
+    answered[idx] = true;
+    const correct = quizData[idx].correct;
+    const buttons = container.querySelectorAll("button");
 
-      if (answered.every(Boolean)) showResult();
+    buttons.forEach((b, i) => {
+      if (i === correct) b.classList.add("correct");
+      if (i === selected && i !== correct) b.classList.add("incorrect");
+      b.disabled = true;
+    });
+
+    if (selected === correct) score++;
+
+    if (answered.every(Boolean)) showResult();
+  }
+
+  async function showResult() {
+    result.textContent = `Natija: ${score}/20`;
+    actions.style.display = "block";
+
+    if (uid) {
+      await setDoc(doc(db, "users", uid), {
+        a1_score: score,
+        a1_last_test: new Date().toISOString()
+      }, { merge: true });
+    } else {
+      localStorage.setItem("a1_score", score);
+      localStorage.setItem("a1_last_test", new Date().toISOString());
     }
+  }
 
-    async function showResult() {
-      result.textContent = `Natija: ${score}/20`; // 20 ball maksimal
-      actions.style.display = "block";
+  window.retryTest = function () {
+    location.reload();
+  }
 
-      if (uid) {
-        const userRef = doc(db, "users", uid);
-        const snap = await getDoc(userRef);
-        const prev = snap.exists() ? snap.data().a1_score || 0 : 0;
-        await setDoc(userRef, { a1_score: prev + score }, { merge: true });
-      } else {
-        const local = parseInt(localStorage.getItem("a1_score")) || 0;
-        localStorage.setItem("a1_score", local + score);
-      }
-    }
-
-    window.retryTest = function () {
-      window.location.reload();
-    }
-
-    window.goToNextLesson = function () {
-      window.location.href = "dars4.html"; // Keyingi dars sahifasi
-    }
-  </script></body>
+  window.goToNextLesson = function () {
+    location.href = "dars4.html";
+  }
+</script>
+</body>
 </html>
