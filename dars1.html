@@ -1,291 +1,213 @@
-<!DOCTYPE html><html lang="uz">
+<!DOCTYPE html>
+<html lang="uz">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Word Order Test</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>So‘zlarni tartiblash testi</title>
   <style>
     body {
-      margin: 0;
       font-family: sans-serif;
-      background-color: #ffffff;
-      color: #333;
+      background-color: #fff;
+      color: #000;
+      margin: 0;
       padding: 20px;
-      transition: background-color 0.3s, color 0.3s;
+      transition: background 0.3s, color 0.3s;
     }
-    .dark-mode {
-      background-color: #121212;
-      color: #eee;
-    }
-    h1 {
+    .container {
+      max-width: 600px;
+      margin: auto;
       text-align: center;
     }
     .progress {
       height: 10px;
       background: #ddd;
-      border-radius: 5px;
+      border-radius: 10px;
       overflow: hidden;
       margin-bottom: 20px;
     }
     .progress-fill {
       height: 100%;
-      background: #007bff;
       width: 0%;
-      transition: width 0.3s ease;
+      background: #007bff;
+      transition: width 0.4s;
     }
-    .question-box {
-      margin-bottom: 20px;
-    }
-    .chips {
+    .chips, .selected {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
-      margin: 20px 0;
+      justify-content: center;
+      margin-bottom: 20px;
+      gap: 10px;
     }
     .chip {
-      padding: 10px 16px;
       background-color: #007bff;
       color: white;
+      padding: 10px 15px;
       border-radius: 9999px;
       cursor: pointer;
-      user-select: none;
       transition: transform 0.1s;
     }
     .chip:hover {
       transform: scale(1.05);
     }
-    .chip.selected {
-      opacity: 0.5;
-      pointer-events: none;
+    .chip:disabled {
+      background: #ccc;
+      cursor: not-allowed;
     }
-    .selected-words {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      min-height: 40px;
-      margin-top: 10px;
-    }
-    .selected-words .chip {
-      background-color: #28a745;
-    }
-    .btn {
-      display: block;
-      margin: 0 auto;
-      margin-top: 20px;
+    button#check {
+      background: #007bff;
+      color: white;
       padding: 10px 20px;
       font-size: 16px;
       border: none;
       border-radius: 8px;
-      background-color: #007bff;
-      color: white;
       cursor: pointer;
     }
-    .btn:disabled {
+    #check:disabled {
       background-color: #ccc;
-      cursor: not-allowed;
     }
-    .feedback {
-      text-align: center;
+    #feedback {
       margin-top: 20px;
       font-weight: bold;
       font-size: 18px;
     }
-    #final-screen {
-      display: none;
-      text-align: center;
-    }
     .modal {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
       display: none;
-      align-items: center;
-      justify-content: center;
-    }
-    .modal-content {
+      position: fixed;
+      top: 30%;
+      left: 50%;
+      transform: translate(-50%, -50%);
       background: white;
+      color: black;
+      border: 2px solid #007bff;
       padding: 20px;
       border-radius: 8px;
-      text-align: center;
-      width: 90%;
-      max-width: 400px;
+      z-index: 999;
+    }
+    .modal.active {
+      display: block;
     }
   </style>
 </head>
 <body>
-  <h1>Word Order Test</h1>
-  <div class="progress"><div class="progress-fill" id="progress-fill"></div></div>  <div class="question-box" id="question-box">
-    <div class="chips" id="word-options"></div>
-    <div class="selected-words" id="selected-words"></div>
-    <button class="btn" id="check-btn" disabled>Tekshirish</button>
-    <div class="feedback" id="feedback"></div>
-  </div>  <div id="final-screen">
-    <h2>Test yakunlandi!</h2>
-    <p>To'g'ri javoblar: <span id="final-score"></span>/20</p>
-    <button class="btn" onclick="window.location.href='menu.html'">Menyuga qaytish</button>
-    <button class="btn" onclick="window.location.href='dars5.html'">Keyingi dars</button>
-  </div>  <div class="modal" id="modal">
-    <div class="modal-content" id="modal-content"></div>
-  </div>  <script type="module">
+  <div class="container">
+    <div class="progress"><div class="progress-fill" id="progressFill"></div></div>
+    <h2>So‘zni to‘g‘ri tartibda joylashtiring</h2>
+    <div class="selected" id="selectedWords"></div>
+    <div class="chips" id="wordOptions"></div>
+    <button id="check" disabled>✅ Tekshirish</button>
+    <div id="feedback"></div>
+    <div class="modal" id="modalBox"></div>
+  </div>
+
+  <script type="module">
+    // Firebase config
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyD0gBUJNcrgvvntcrfKK7Ky8t6_9Qb96Io",
       authDomain: "bilimilova-64833.firebaseapp.com",
-      projectId: "bilimilova-64833",
+      projectId: "bilimilova-64833"
     };
-
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-
     const tg = window.Telegram?.WebApp;
     const uid = tg?.initDataUnsafe?.user?.id?.toString() || null;
 
-    const questions = [
-      ["I", "am", "a", "student"],
-      ["She", "is", "a", "doctor"],
-      ["They", "are", "my", "friends"],
-      ["He", "is", "happy"],
-      ["We", "are", "in", "the", "room"],
-      ["You", "are", "my", "best", "friend"],
-      ["I", "am", "hungry"],
-      ["It", "is", "a", "cat"],
-      ["They", "are", "at", "school"],
-      ["She", "is", "my", "sister"],
-      ["You", "are", "very", "nice"],
-      ["We", "are", "happy"],
-      ["I", "am", "from", "Uzbekistan"],
-      ["He", "is", "tired"],
-      ["They", "are", "my", "neighbors"],
-      ["It", "is", "a", "dog"],
-      ["We", "are", "students"],
-      ["You", "are", "good", "at", "math"],
-      ["I", "am", "ready"],
-      ["She", "is", "beautiful"]
-    ];
-
-    let current = 0;
-    let score = 0;
-    let userAnswer = [];
-
-    const optionsDiv = document.getElementById("word-options");
-    const selectedDiv = document.getElementById("selected-words");
-    const checkBtn = document.getElementById("check-btn");
-    const feedback = document.getElementById("feedback");
-    const progressFill = document.getElementById("progress-fill");
-    const questionBox = document.getElementById("question-box");
-    const finalScreen = document.getElementById("final-screen");
-    const finalScore = document.getElementById("final-score");
-    const modal = document.getElementById("modal");
-    const modalContent = document.getElementById("modal-content");
-
-    function shuffle(array) {
-      return [...array].sort(() => Math.random() - 0.5);
-    }
-
-    function renderQuestion() {
-      const words = shuffle(questions[current]);
-      optionsDiv.innerHTML = "";
-      selectedDiv.innerHTML = "";
-      userAnswer = [];
-      checkBtn.disabled = true;
-      feedback.textContent = "";
-
-      words.forEach(word => {
-        const chip = document.createElement("div");
-        chip.className = "chip";
-        chip.textContent = word;
-        chip.onclick = () => {
-          chip.classList.add("selected");
-          userAnswer.push(word);
-          renderSelectedWords();
-          if (userAnswer.length === questions[current].length) {
-            checkBtn.disabled = false;
-          }
-        };
-        optionsDiv.appendChild(chip);
-      });
-    }
-
-    function renderSelectedWords() {
-      selectedDiv.innerHTML = "";
-      userAnswer.forEach((word, idx) => {
-        const chip = document.createElement("div");
-        chip.className = "chip";
-        chip.textContent = word;
-        chip.onclick = () => {
-          userAnswer.splice(idx, 1);
-          [...optionsDiv.children].forEach(c => {
-            if (c.textContent === word && c.classList.contains("selected")) {
-              c.classList.remove("selected");
-              return;
-            }
-          });
-          renderSelectedWords();
-          checkBtn.disabled = true;
-        };
-        selectedDiv.appendChild(chip);
-      });
-    }
-
-    checkBtn.onclick = () => {
-      const correct = questions[current].join(" ");
-      const attempt = userAnswer.join(" ");
-
-      if (correct === attempt) {
-        score++;
-        showModal("To'g'ri ✅");
-      } else {
-        showModal("Noto'g'ri ❌");
-      }
-
-      current++;
-      updateProgress();
-      setTimeout(() => {
-        if (current < questions.length) {
-          renderQuestion();
-        } else {
-          finishTest();
-        }
-        closeModal();
-      }, 1500);
+    // Test data
+    const question = {
+      correct: ["I", "am", "a", "student"],
+      shuffled: shuffle(["I", "am", "a", "student"])
     };
 
-    function updateProgress() {
-      const percent = (current / questions.length) * 100;
-      progressFill.style.width = `${percent}%`;
+    let selected = [];
+
+    const chipsContainer = document.getElementById("wordOptions");
+    const selectedContainer = document.getElementById("selectedWords");
+    const checkBtn = document.getElementById("check");
+    const feedback = document.getElementById("feedback");
+    const modal = document.getElementById("modalBox");
+    const progressFill = document.getElementById("progressFill");
+
+    function speakWord(word) {
+      const utter = new SpeechSynthesisUtterance(word);
+      utter.lang = "en-US";
+      speechSynthesis.speak(utter);
+    }
+
+    function renderWords() {
+      chipsContainer.innerHTML = "";
+      question.shuffled.forEach(word => {
+        const chip = document.createElement("button");
+        chip.className = "chip";
+        chip.textContent = word;
+        chip.onclick = () => {
+          selected.push(word);
+          updateSelected();
+          chip.disabled = true;
+          speakWord(word);
+          checkBtn.disabled = selected.length !== question.correct.length;
+        };
+        chipsContainer.appendChild(chip);
+      });
+    }
+
+    function updateSelected() {
+      selectedContainer.innerHTML = "";
+      selected.forEach((word, index) => {
+        const chip = document.createElement("button");
+        chip.className = "chip";
+        chip.textContent = word;
+        chip.onclick = () => {
+          selected.splice(index, 1);
+          updateSelected();
+          [...chipsContainer.children].forEach(c => {
+            if (c.textContent === word) c.disabled = false;
+          });
+          checkBtn.disabled = true;
+        };
+        selectedContainer.appendChild(chip);
+      });
+    }
+
+    checkBtn.onclick = async () => {
+      const isCorrect = selected.join(" ") === question.correct.join(" ");
+      speakFeedback(isCorrect);
+      showModal(isCorrect ? "✅ To‘g‘ri!" : "❌ Noto‘g‘ri!");
+      feedback.textContent = `Javob: ${selected.join(" ")}`;
+
+      // Save score to Firebase
+      if (uid) {
+        await setDoc(doc(db, "users", uid), {
+          a1_score: isCorrect ? 1 : 0
+        }, { merge: true });
+      } else {
+        localStorage.setItem("a1_score", isCorrect ? "1" : "0");
+      }
+
+      checkBtn.disabled = true;
+    };
+
+    function speakFeedback(correct) {
+      const say = new SpeechSynthesisUtterance(correct ? "Correct" : "Wrong");
+      say.lang = "en-US";
+      speechSynthesis.speak(say);
     }
 
     function showModal(text) {
-      modalContent.textContent = text;
-      modal.style.display = "flex";
+      modal.textContent = text;
+      modal.classList.add("active");
+      setTimeout(() => modal.classList.remove("active"), 2000);
     }
 
-    function closeModal() {
-      modal.style.display = "none";
+    function shuffle(arr) {
+      return [...arr].sort(() => Math.random() - 0.5);
     }
 
-    async function finishTest() {
-      finalScreen.style.display = "block";
-      questionBox.style.display = "none";
-      finalScore.textContent = score;
-      if (uid) {
-        await setDoc(doc(db, "users", uid), {
-          a1_score: score
-        }, { merge: true });
-      } else {
-        localStorage.setItem("a1_score", score);
-      }
-    }
-
-    // Dark mode auto toggle
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
-    document.body.classList.toggle("dark-mode", prefersDark.matches);
-    prefersDark.addEventListener("change", e => {
-      document.body.classList.toggle("dark-mode", e.matches);
-    });
-
-    renderQuestion();
-  </script></body>
+    // Start
+    renderWords();
+    updateSelected();
+    progressFill.style.width = "5%";
+  </script>
+</body>
 </html>
