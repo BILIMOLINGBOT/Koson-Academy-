@@ -1,182 +1,135 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html><html lang="uz">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Word Order Test</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ovozli Test</title>
   <style>
     body {
       font-family: sans-serif;
-      background-color: #ffffff;
+      background-color: #fff;
       color: #000;
       margin: 0;
       padding: 20px;
     }
-    .question {
-      margin-bottom: 20px;
+    .container {
+      max-width: 700px;
+      margin: auto;
     }
-    .chips {
+    h1 {
+      text-align: center;
+    }
+    .word-list, .selected-words {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
-      margin-bottom: 10px;
+      margin-top: 20px;
     }
-    .chip {
+    .word-chip {
       background-color: #007bff;
       color: white;
+      border: none;
+      border-radius: 9999px;
       padding: 10px 15px;
-      border-radius: 20px;
-      cursor: pointer;
-      transition: transform 0.1s ease-in-out;
-    }
-    .chip:hover {
-      transform: scale(1.05);
-    }
-    .selected-words {
-      margin-bottom: 15px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      min-height: 40px;
-    }
-    .selected-chip {
-      background-color: #28a745;
-      color: white;
-      padding: 10px 15px;
-      border-radius: 20px;
-    }
-    button {
-      padding: 10px 20px;
       font-size: 16px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .word-chip:hover {
+      transform: scale(1.1);
+    }
+    .word-chip.selected {
+      background-color: #0056b3;
+    }
+    #checkBtn {
+      margin-top: 30px;
+      padding: 10px 20px;
+      font-size: 18px;
       border: none;
       border-radius: 8px;
-      background-color: #007bff;
+      background-color: #28a745;
       color: white;
       cursor: pointer;
     }
-    button:disabled {
+    #checkBtn:disabled {
       background-color: #ccc;
       cursor: not-allowed;
     }
-    #progress {
-      margin-bottom: 20px;
-    }
-    #feedbackModal {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      border: 2px solid #007bff;
-      border-radius: 10px;
-      padding: 20px;
-      display: none;
-      z-index: 1000;
+    #feedback {
+      margin-top: 20px;
+      font-size: 20px;
+      font-weight: bold;
+      text-align: center;
     }
   </style>
 </head>
 <body>
-  <div id="progress">Savol: <span id="current">1</span>/20 | Ball: <span id="score">0</span></div>
-  <div class="question">
+  <div class="container">
+    <h1>So'zlarni to'g'ri tartibda joylashtiring</h1>
     <div class="selected-words" id="selected"></div>
-    <div class="chips" id="options"></div>
-    <button id="checkBtn" disabled onclick="checkAnswer()">Tekshirish</button>
-  </div>
-  <div id="feedbackModal"></div>
-  <script>
-    const questions = [
-      { correct: "They are your friend", words: ["your", "are", "friend", "They"] },
-      { correct: "They are a teacher", words: ["a", "teacher", "They", "are"] },
-      { correct: "He is tired", words: ["is", "tired", "He"] },
-      { correct: "You are a doctor", words: ["You", "a", "are", "doctor"] },
-      { correct: "I am ready", words: ["ready", "I", "am"] },
-      { correct: "You are happy", words: ["are", "You", "happy"] },
-      { correct: "He is a doctor", words: ["doctor", "a", "is", "He"] },
-      { correct: "They are tired", words: ["tired", "are", "They"] },
-      { correct: "She is in the park", words: ["in", "park", "the", "She", "is"] },
-      { correct: "They are a student", words: ["student", "They", "a", "are"] },
-      { correct: "You are your friend", words: ["friend", "are", "your", "You"] },
-      { correct: "He is a doctor", words: ["doctor", "is", "He", "a"] },
-      { correct: "You are at home", words: ["home", "at", "are", "You"] },
-      { correct: "You are a doctor", words: ["a", "You", "doctor", "are"] },
-      { correct: "He is from Uzbekistan", words: ["Uzbekistan", "is", "He", "from"] },
-      { correct: "She is your friend", words: ["friend", "your", "She", "is"] },
-      { correct: "She is a teacher", words: ["teacher", "a", "is", "She"] },
-      { correct: "She is from Uzbekistan", words: ["from", "is", "She", "Uzbekistan"] },
-      { correct: "I am a student", words: ["a", "student", "am", "I"] },
-      { correct: "They are ready", words: ["ready", "are", "They"] }
-    ];let current = 0;
-let score = 0;
-const currentDisplay = document.getElementById("current");
-const scoreDisplay = document.getElementById("score");
-const selected = document.getElementById("selected");
-const options = document.getElementById("options");
-const checkBtn = document.getElementById("checkBtn");
-const feedbackModal = document.getElementById("feedbackModal");
+    <div class="word-list" id="words"></div>
+    <button id="checkBtn" disabled>Tekshirish</button>
+    <div id="feedback"></div>
+  </div>  <script>
+    const correctAnswer = ["I", "am", "a", "student"];
+    let selectedWords = [];
+    let buttons = [];
 
-let selectedWords = [];
+    const wordList = [...correctAnswer].sort(() => Math.random() - 0.5);
 
-function shuffle(arr) {
-  return arr.sort(() => Math.random() - 0.5);
-}
+    const wordContainer = document.getElementById("words");
+    const selectedContainer = document.getElementById("selected");
+    const checkBtn = document.getElementById("checkBtn");
+    const feedback = document.getElementById("feedback");
 
-function loadQuestion() {
-  selectedWords = [];
-  selected.innerHTML = "";
-  options.innerHTML = "";
-  checkBtn.disabled = true;
+    function sayWord(word) {
+      const utterance = new SpeechSynthesisUtterance(word);
+      utterance.lang = "en-US";
+      speechSynthesis.speak(utterance);
+    }
 
-  const q = questions[current];
-  const shuffled = shuffle([...q.words]);
-  shuffled.forEach(word => {
-    const chip = document.createElement("div");
-    chip.className = "chip";
-    chip.textContent = word;
-    chip.onclick = () => selectWord(word, chip);
-    options.appendChild(chip);
-  });
-}
+    function renderWords() {
+      wordContainer.innerHTML = "";
+      selectedContainer.innerHTML = "";
+      selectedWords = [];
+      wordList.forEach((word, index) => {
+        const btn = document.createElement("button");
+        btn.textContent = word;
+        btn.className = "word-chip";
+        btn.onclick = () => handleWordClick(word, btn);
+        wordContainer.appendChild(btn);
+        buttons.push(btn);
+      });
+    }
 
-function selectWord(word, chip) {
-  if (selectedWords.includes(word)) return;
-  selectedWords.push(word);
-  const selectedChip = document.createElement("div");
-  selectedChip.className = "selected-chip";
-  selectedChip.textContent = word;
-  selectedChip.onclick = () => {
-    selectedWords = selectedWords.filter(w => w !== word);
-    selectedChip.remove();
-    checkBtn.disabled = selectedWords.length !== questions[current].words.length;
-  };
-  selected.appendChild(selectedChip);
-  checkBtn.disabled = selectedWords.length !== questions[current].words.length;
-}
+    function handleWordClick(word, btn) {
+      sayWord(word);
+      if (btn.classList.contains("selected")) {
+        btn.classList.remove("selected");
+        selectedWords = selectedWords.filter(w => w !== word);
+      } else {
+        btn.classList.add("selected");
+        selectedWords.push(word);
+      }
+      updateSelectedDisplay();
+    }
 
-function checkAnswer() {
-  const correct = questions[current].correct;
-  const userAnswer = selectedWords.join(" ");
-  const isCorrect = userAnswer === correct;
-  if (isCorrect) score++;
-  feedbackModal.innerHTML = isCorrect ? "<b>To'g'ri!</b>" : `<b>Noto'g'ri:</b><br>To'g'ri javob: ${correct}`;
-  feedbackModal.style.display = "block";
-  setTimeout(() => {
-    feedbackModal.style.display = "none";
-    nextQuestion();
-  }, 2000);
-}
+    function updateSelectedDisplay() {
+      selectedContainer.innerHTML = "";
+      selectedWords.forEach(word => {
+        const chip = document.createElement("div");
+        chip.className = "word-chip selected";
+        chip.textContent = word;
+        selectedContainer.appendChild(chip);
+      });
+      checkBtn.disabled = selectedWords.length !== correctAnswer.length;
+    }
 
-function nextQuestion() {
-  current++;
-  currentDisplay.textContent = current + 1;
-  scoreDisplay.textContent = score;
-  if (current < questions.length) {
-    loadQuestion();
-  } else {
-    document.body.innerHTML = `<h2>Test tugadi!</h2><p>Umumiy ball: ${score}/20</p><button onclick='location.reload()'>Qayta boshlash</button>`;
-  }
-}
+    checkBtn.onclick = () => {
+      const isCorrect = selectedWords.join(" ") === correctAnswer.join(" ");
+      feedback.textContent = isCorrect ? "✅ To'g'ri!" : "❌ Noto'g'ri";
+      sayWord(isCorrect ? "Correct" : "Wrong");
+    }
 
-loadQuestion();
-
-  </script>
-</body>
+    renderWords();
+  </script></body>
 </html>
