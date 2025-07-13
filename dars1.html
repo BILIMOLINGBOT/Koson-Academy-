@@ -2,210 +2,196 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>So'z Tartibi Testi</title>
+  <title>So'z tartibi testi</title>
   <style>
     body {
       font-family: sans-serif;
       background-color: #fff;
       color: #000;
-      margin: 0;
       padding: 20px;
+      margin: 0;
     }
     h1 {
       text-align: center;
-      margin-bottom: 20px;
-    }
-    .progress-bar {
-      width: 100%;
-      background-color: #e0e0e0;
-      border-radius: 20px;
-      overflow: hidden;
-      margin-bottom: 20px;
     }
     .progress {
-      height: 20px;
-      background-color: #007bff;
+      height: 10px;
+      background: #eee;
+      border-radius: 5px;
+      margin: 20px 0;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
       width: 0%;
+      background: #007bff;
       transition: width 0.3s;
     }
-    .chip-box {
+    .words, .selected {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
-      margin-bottom: 20px;
+      margin-top: 20px;
+      justify-content: center;
     }
-    .chip {
-      padding: 8px 15px;
-      background-color: #007bff;
+    .word {
+      background: #007bff;
       color: #fff;
       border-radius: 20px;
-      font-size: 16px;
+      padding: 8px 14px;
+      cursor: pointer;
+      user-select: none;
     }
-    .options {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 20px;
+    .chip {
+      background: #f1f1f1;
+      color: #007bff;
+      border: 1px solid #007bff;
     }
-    .options button {
-      background-color: #007bff;
-      color: white;
-      border: none;
-      border-radius: 20px;
+    .btn-check {
+      display: block;
+      margin: 20px auto;
       padding: 10px 20px;
       font-size: 16px;
+      border: none;
+      border-radius: 20px;
+      background-color: #007bff;
+      color: white;
       cursor: pointer;
-      transition: background-color 0.3s;
-    }
-    .options button:hover {
-      background-color: #0056b3;
-    }
-    .options button.selected {
       opacity: 0.6;
     }
-    button#check {
+    .btn-check.active {
+      opacity: 1;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      border: 2px solid #007bff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      z-index: 10;
+      text-align: center;
+    }
+    .modal.active {
       display: block;
-      margin: auto;
-      padding: 10px 25px;
-      font-size: 18px;
+    }
+    .footer-buttons {
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+    .footer-buttons button {
+      padding: 10px 15px;
       border: none;
-      border-radius: 25px;
-      background-color: #007bff;
+      border-radius: 20px;
+      background: #007bff;
       color: white;
       cursor: pointer;
-    }
-    button#check:disabled {
-      background-color: #aaa;
-      cursor: not-allowed;
-    }
-    #feedback-modal {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.4);
-      display: none;
-      justify-content: center;
-      align-items: center;
-    }
-    .modal-content {
-      background: white;
-      padding: 30px;
-      border-radius: 20px;
-      text-align: center;
-      max-width: 90%;
-    }
-    .modal-content h2 {
-      margin-bottom: 15px;
-    }
-    .modal-content button {
-      padding: 10px 20px;
-      font-size: 16px;
-      border: none;
-      border-radius: 20px;
-      background-color: #007bff;
-      color: white;
     }
   </style>
 </head>
 <body>
-  <h1>So'zlarni to'g'ri tartibda joylashtiring</h1>
-  <div class="progress-bar"><div class="progress" id="progress"></div></div>
-  <div class="chip-box" id="selected-words"></div>
-  <div class="options" id="word-options"></div>
-  <button id="check" disabled>Tekshirish</button>  <div id="feedback-modal">
-    <div class="modal-content">
-      <h2 id="feedback-text"></h2>
-      <button onclick="nextQuestion()">Keyingi</button>
+  <h1>So'z tartibini tuzing</h1>
+  <div class="progress"><div class="progress-bar" id="progressBar"></div></div>  <div class="selected" id="selectedWords"></div>
+  <div class="words" id="wordsContainer"></div>
+  <button class="btn-check" id="checkBtn" disabled>Tekshirish</button>  <div class="modal" id="feedbackModal">
+    <div id="feedbackText"></div>
+    <div class="footer-buttons">
+      <button onclick="retry()">Qayta urinib ko'rish</button>
+      <button onclick="next()">Keyingi</button>
     </div>
-  </div>  <script>
-    const questions = [
-      {
-        correct: ["I", "am", "a", "student"],
-      },
-      {
-        correct: ["She", "is", "a", "teacher"],
-      },
-      {
-        correct: ["They", "are", "at", "home"],
-      },
-      {
-        correct: ["We", "are", "students"],
-      }
-    ];
+  </div>  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getFirestore, doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-    let current = 0;
+    const firebaseConfig = {
+      apiKey: "AIzaSyD0gBUJNcrgvvntcrfKK7Ky8t6_9Qb96Io",
+      authDomain: "bilimilova-64833.firebaseapp.com",
+      projectId: "bilimilova-64833",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const tg = window.Telegram?.WebApp;
+    const uid = tg?.initDataUnsafe?.user?.id?.toString() || null;
+
+    const sentence = "I am a student";
+    const words = sentence.split(" ");
     let selected = [];
-    let score = 0;
 
-    const selectedBox = document.getElementById("selected-words");
-    const optionBox = document.getElementById("word-options");
-    const checkBtn = document.getElementById("check");
-    const modal = document.getElementById("feedback-modal");
-    const feedback = document.getElementById("feedback-text");
-    const progressBar = document.getElementById("progress");
+    const selectedWords = document.getElementById("selectedWords");
+    const wordsContainer = document.getElementById("wordsContainer");
+    const checkBtn = document.getElementById("checkBtn");
+    const feedbackModal = document.getElementById("feedbackModal");
+    const feedbackText = document.getElementById("feedbackText");
+    const progressBar = document.getElementById("progressBar");
 
-    function renderQuestion() {
-      selected = [];
-      selectedBox.innerHTML = "";
-      optionBox.innerHTML = "";
-      checkBtn.disabled = true;
-      const words = [...questions[current].correct].sort(() => 0.5 - Math.random());
-      words.forEach(word => {
-        const btn = document.createElement("button");
-        btn.textContent = word;
-        btn.onclick = () => selectWord(word, btn);
-        optionBox.appendChild(btn);
+    function renderWords() {
+      selectedWords.innerHTML = "";
+      wordsContainer.innerHTML = "";
+
+      selected.forEach((word, i) => {
+        const chip = document.createElement("div");
+        chip.textContent = word;
+        chip.className = "word chip";
+        chip.onclick = () => {
+          selected.splice(i, 1);
+          renderWords();
+        };
+        selectedWords.appendChild(chip);
       });
-      progressBar.style.width = `${(current / questions.length) * 100}%`;
+
+      words.forEach((word) => {
+        if (!selected.includes(word)) {
+          const btn = document.createElement("div");
+          btn.textContent = word;
+          btn.className = "word";
+          btn.onclick = () => {
+            selected.push(word);
+            renderWords();
+          };
+          wordsContainer.appendChild(btn);
+        }
+      });
+
+      checkBtn.disabled = selected.length !== words.length;
+      checkBtn.classList.toggle("active", !checkBtn.disabled);
     }
 
-    function selectWord(word, btn) {
-      if (btn.classList.contains("selected")) return;
-      selected.push(word);
-      btn.classList.add("selected");
-      const chip = document.createElement("div");
-      chip.className = "chip";
-      chip.textContent = word;
-      chip.onclick = () => {
-        selected = selected.filter(w => w !== word || selected.indexOf(w) !== selected.indexOf(word));
-        btn.classList.remove("selected");
-        chip.remove();
-        toggleCheck();
+    checkBtn.onclick = async () => {
+      const isCorrect = selected.join(" ") === sentence;
+      feedbackText.textContent = isCorrect ? "To'g'ri javob!" : "Noto'g'ri javob.";
+      feedbackModal.classList.add("active");
+
+      if (uid && isCorrect) {
+        const userRef = doc(db, "users", uid);
+        const snap = await getDoc(userRef);
+        const prev = snap.exists() ? snap.data().a1_score || 0 : 0;
+        await setDoc(userRef, { a1_score: prev + 1 }, { merge: true });
+      } else if (isCorrect) {
+        const local = parseInt(localStorage.getItem("a1_score") || "0");
+        localStorage.setItem("a1_score", local + 1);
       }
-      selectedBox.appendChild(chip);
-      toggleCheck();
-    }
 
-    function toggleCheck() {
-      checkBtn.disabled = selected.length !== questions[current].correct.length;
-    }
-
-    checkBtn.onclick = () => {
-      const isCorrect = JSON.stringify(selected) === JSON.stringify(questions[current].correct);
-      feedback.textContent = isCorrect ? "To'g'ri!" : "Noto'g'ri! To'g'ri javob: " + questions[current].correct.join(" ");
-      if (isCorrect) score++;
-      modal.style.display = "flex";
+      progressBar.style.width = "100%";
     };
 
-    window.nextQuestion = () => {
-      modal.style.display = "none";
-      current++;
-      if (current < questions.length) {
-        renderQuestion();
-      } else {
-        showFinal();
-      }
+    window.retry = () => {
+      selected = [];
+      feedbackModal.classList.remove("active");
+      renderWords();
+      progressBar.style.width = "0%";
     };
 
-    function showFinal() {
-      document.body.innerHTML = `
-        <h1>Natija: ${score} / ${questions.length}</h1>
-        <button onclick="location.reload()">Qayta urinib ko‘rish</button>
-        <button onclick="location.href='menu.html'">Menyuga qaytish</button>
-        <button onclick="location.href='dars5.html'">Keyingi dars</button>
-      `;
-    }
+    window.next = () => {
+      window.location.href = "menu.html"; // keyingi sahifa yoki menyuga
+    };
 
-    renderQuestion();
+    renderWords();
   </script></body>
 </html>
