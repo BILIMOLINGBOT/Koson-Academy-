@@ -1,7 +1,8 @@
-<!DOCTYPE html><html lang="uz">
+<!DOCTYPE html>
+<html lang="uz">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Word Order Test</title>
   <style>
     body {
@@ -69,8 +70,7 @@
     }
     .btn {
       display: block;
-      margin: 0 auto;
-      margin-top: 20px;
+      margin: 20px auto 0;
       padding: 10px 20px;
       font-size: 16px;
       border: none;
@@ -83,52 +83,70 @@
       background-color: #ccc;
       cursor: not-allowed;
     }
+
     .feedback {
       text-align: center;
       margin-top: 20px;
-      font-weight: bold;
-      font-size: 18px;
     }
+
+    #feedback-text {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 15px;
+      color: #222;
+    }
+
+    .next-btn {
+      background-color: #28a745;
+      color: white;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .next-btn:hover {
+      background-color: #218838;
+    }
+
+    .dark-mode .next-btn {
+      background-color: #34c759;
+      color: #000;
+    }
+
     #final-screen {
       display: none;
       text-align: center;
-    }
-    .modal {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-      display: none;
-      align-items: center;
-      justify-content: center;
-    }
-    .modal-content {
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      text-align: center;
-      width: 90%;
-      max-width: 400px;
     }
   </style>
 </head>
 <body>
   <h1>Word Order Test</h1>
-  <div class="progress"><div class="progress-fill" id="progress-fill"></div></div>  <div class="question-box" id="question-box">
+  <div class="progress"><div class="progress-fill" id="progress-fill"></div></div>
+
+  <div class="question-box" id="question-box">
     <div class="chips" id="word-options"></div>
     <div class="selected-words" id="selected-words"></div>
     <button class="btn" id="check-btn" disabled>Tekshirish</button>
-    <div class="feedback" id="feedback"></div>
-  </div>  <div id="final-screen">
+
+    <div class="feedback" id="feedback">
+      <div id="feedback-text"></div>
+      <button class="next-btn" id="next-btn" style="display: none;">Keyingi</button>
+    </div>
+  </div>
+
+  <div id="final-screen">
     <h2>Test yakunlandi!</h2>
     <p>To'g'ri javoblar: <span id="final-score"></span>/20</p>
     <button class="btn" onclick="window.location.href='menu.html'">Menyuga qaytish</button>
     <button class="btn" onclick="window.location.href='dars5.html'">Keyingi dars</button>
-  </div>  <div class="modal" id="modal">
-    <div class="modal-content" id="modal-content"></div>
-  </div>  <script type="module">
+  </div>
+
+  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyD0gBUJNcrgvvntcrfKK7Ky8t6_9Qb96Io",
@@ -172,13 +190,12 @@
     const optionsDiv = document.getElementById("word-options");
     const selectedDiv = document.getElementById("selected-words");
     const checkBtn = document.getElementById("check-btn");
-    const feedback = document.getElementById("feedback");
     const progressFill = document.getElementById("progress-fill");
     const questionBox = document.getElementById("question-box");
     const finalScreen = document.getElementById("final-screen");
     const finalScore = document.getElementById("final-score");
-    const modal = document.getElementById("modal");
-    const modalContent = document.getElementById("modal-content");
+    const feedbackText = document.getElementById("feedback-text");
+    const nextBtn = document.getElementById("next-btn");
 
     function shuffle(array) {
       return [...array].sort(() => Math.random() - 0.5);
@@ -190,7 +207,8 @@
       selectedDiv.innerHTML = "";
       userAnswer = [];
       checkBtn.disabled = true;
-      feedback.textContent = "";
+      feedbackText.textContent = "";
+      nextBtn.style.display = "none";
 
       words.forEach(word => {
         const chip = document.createElement("div");
@@ -232,24 +250,23 @@
     checkBtn.onclick = () => {
       const correct = questions[current].join(" ");
       const attempt = userAnswer.join(" ");
+      const isCorrect = correct === attempt;
 
-      if (correct === attempt) {
-        score++;
-        showModal("To'g'ri ✅");
-      } else {
-        showModal("Noto'g'ri ❌");
-      }
+      feedbackText.textContent = isCorrect ? "To'g'ri ✅" : "Noto'g'ri ❌";
+      nextBtn.style.display = "inline-block";
 
+      if (isCorrect) score++;
+      checkBtn.disabled = true;
+    };
+
+    nextBtn.onclick = () => {
       current++;
       updateProgress();
-      setTimeout(() => {
-        if (current < questions.length) {
-          renderQuestion();
-        } else {
-          finishTest();
-        }
-        closeModal();
-      }, 1500);
+      if (current < questions.length) {
+        renderQuestion();
+      } else {
+        finishTest();
+      }
     };
 
     function updateProgress() {
@@ -257,29 +274,18 @@
       progressFill.style.width = `${percent}%`;
     }
 
-    function showModal(text) {
-      modalContent.textContent = text;
-      modal.style.display = "flex";
-    }
-
-    function closeModal() {
-      modal.style.display = "none";
-    }
-
     async function finishTest() {
       finalScreen.style.display = "block";
       questionBox.style.display = "none";
       finalScore.textContent = score;
       if (uid) {
-        await setDoc(doc(db, "users", uid), {
-          a1_score: score
-        }, { merge: true });
+        await setDoc(doc(db, "users", uid), { a1_score: score }, { merge: true });
       } else {
         localStorage.setItem("a1_score", score);
       }
     }
 
-    // Dark mode auto toggle
+    // Dark mode
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
     document.body.classList.toggle("dark-mode", prefersDark.matches);
     prefersDark.addEventListener("change", e => {
@@ -287,5 +293,6 @@
     });
 
     renderQuestion();
-  </script></body>
+  </script>
+</body>
 </html>
