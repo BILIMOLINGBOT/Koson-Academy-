@@ -1,18 +1,45 @@
-<!DOCTYPE html>
-<html lang="uz">
+<!DOCTYPE html><html lang="uz">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Test: Word Order</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Word Order Test</title>
   <style>
     body {
+      margin: 0;
       font-family: sans-serif;
-      background: #fff;
+      background-color: #ffffff;
       color: #333;
       padding: 20px;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    .dark-mode {
+      background-color: #121212;
+      color: #eee;
     }
     h1 {
       text-align: center;
+    }
+    .progress {
+      height: 10px;
+      background: #ddd;
+      border-radius: 5px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: #007bff;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    .question-box {
+      margin-bottom: 20px;
+    }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 20px 0;
     }
     .chip {
       padding: 10px 16px;
@@ -20,10 +47,8 @@
       color: white;
       border-radius: 9999px;
       cursor: pointer;
-      display: inline-block;
-      margin: 5px;
       user-select: none;
-      transition: transform 0.2s;
+      transition: transform 0.1s;
     }
     .chip:hover {
       transform: scale(1.05);
@@ -33,69 +58,140 @@
       pointer-events: none;
     }
     .selected-words {
-      margin: 20px 0;
-      min-height: 50px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      min-height: 40px;
+      margin-top: 10px;
+    }
+    .selected-words .chip {
+      background-color: #28a745;
     }
     .btn {
+      display: block;
+      margin: 0 auto;
+      margin-top: 20px;
       padding: 10px 20px;
-      background: #007bff;
-      color: white;
+      font-size: 16px;
       border: none;
       border-radius: 8px;
+      background-color: #007bff;
+      color: white;
       cursor: pointer;
-      font-size: 16px;
     }
     .btn:disabled {
-      background: #ccc;
+      background-color: #ccc;
+      cursor: not-allowed;
     }
-    #feedback {
+    .feedback {
       text-align: center;
-      font-size: 18px;
-      font-weight: bold;
       margin-top: 20px;
+      font-weight: bold;
+      font-size: 18px;
+    }
+    #final-screen {
+      display: none;
+      text-align: center;
+    }
+    .modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+      width: 90%;
+      max-width: 400px;
     }
   </style>
 </head>
 <body>
-  <h1>So‘zlarni tartiblash testi</h1>
+  <h1>Word Order Test</h1>
+  <div class="progress"><div class="progress-fill" id="progress-fill"></div></div>  <div class="question-box" id="question-box">
+    <div class="chips" id="word-options"></div>
+    <div class="selected-words" id="selected-words"></div>
+    <button class="btn" id="check-btn" disabled>Tekshirish</button>
+    <div class="feedback" id="feedback"></div>
+  </div>  <div id="final-screen">
+    <h2>Test yakunlandi!</h2>
+    <p>To'g'ri javoblar: <span id="final-score"></span>/20</p>
+    <button class="btn" onclick="window.location.href='menu.html'">Menyuga qaytish</button>
+    <button class="btn" onclick="window.location.href='dars5.html'">Keyingi dars</button>
+  </div>  <div class="modal" id="modal">
+    <div class="modal-content" id="modal-content"></div>
+  </div>  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  <div id="word-container"></div>
-  <div class="selected-words" id="selected-words"></div>
+    const firebaseConfig = {
+      apiKey: "AIzaSyD0gBUJNcrgvvntcrfKK7Ky8t6_9Qb96Io",
+      authDomain: "bilimilova-64833.firebaseapp.com",
+      projectId: "bilimilova-64833",
+    };
 
-  <button class="btn" id="check-btn" disabled>Tekshirish</button>
-  <div id="feedback"></div>
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-  <!-- OVOZ -->
-  <audio id="correct-audio" src="sounds/correct.mp3" preload="auto"></audio>
-  <audio id="wrong-audio" src="sounds/wrong.mp3" preload="auto"></audio>
+    const tg = window.Telegram?.WebApp;
+    const uid = tg?.initDataUnsafe?.user?.id?.toString() || null;
 
-  <script>
     const questions = [
-      ["I", "am", "a", "student"]
+      ["I", "am", "a", "student"],
+      ["She", "is", "a", "doctor"],
+      ["They", "are", "my", "friends"],
+      ["He", "is", "happy"],
+      ["We", "are", "in", "the", "room"],
+      ["You", "are", "my", "best", "friend"],
+      ["I", "am", "hungry"],
+      ["It", "is", "a", "cat"],
+      ["They", "are", "at", "school"],
+      ["She", "is", "my", "sister"],
+      ["You", "are", "very", "nice"],
+      ["We", "are", "happy"],
+      ["I", "am", "from", "Uzbekistan"],
+      ["He", "is", "tired"],
+      ["They", "are", "my", "neighbors"],
+      ["It", "is", "a", "dog"],
+      ["We", "are", "students"],
+      ["You", "are", "good", "at", "math"],
+      ["I", "am", "ready"],
+      ["She", "is", "beautiful"]
     ];
 
     let current = 0;
+    let score = 0;
     let userAnswer = [];
 
-    const wordContainer = document.getElementById("word-container");
-    const selectedWords = document.getElementById("selected-words");
+    const optionsDiv = document.getElementById("word-options");
+    const selectedDiv = document.getElementById("selected-words");
     const checkBtn = document.getElementById("check-btn");
     const feedback = document.getElementById("feedback");
-    const correctAudio = document.getElementById("correct-audio");
-    const wrongAudio = document.getElementById("wrong-audio");
+    const progressFill = document.getElementById("progress-fill");
+    const questionBox = document.getElementById("question-box");
+    const finalScreen = document.getElementById("final-screen");
+    const finalScore = document.getElementById("final-score");
+    const modal = document.getElementById("modal");
+    const modalContent = document.getElementById("modal-content");
 
     function shuffle(array) {
       return [...array].sort(() => Math.random() - 0.5);
     }
 
     function renderQuestion() {
-      wordContainer.innerHTML = "";
-      selectedWords.innerHTML = "";
-      userAnswer = [];
-      feedback.textContent = "";
-      checkBtn.disabled = true;
-
       const words = shuffle(questions[current]);
+      optionsDiv.innerHTML = "";
+      selectedDiv.innerHTML = "";
+      userAnswer = [];
+      checkBtn.disabled = true;
+      feedback.textContent = "";
+
       words.forEach(word => {
         const chip = document.createElement("div");
         chip.className = "chip";
@@ -103,34 +199,33 @@
         chip.onclick = () => {
           chip.classList.add("selected");
           userAnswer.push(word);
-          updateSelectedWords();
+          renderSelectedWords();
           if (userAnswer.length === questions[current].length) {
             checkBtn.disabled = false;
           }
         };
-        wordContainer.appendChild(chip);
+        optionsDiv.appendChild(chip);
       });
     }
 
-    function updateSelectedWords() {
-      selectedWords.innerHTML = "";
+    function renderSelectedWords() {
+      selectedDiv.innerHTML = "";
       userAnswer.forEach((word, idx) => {
         const chip = document.createElement("div");
         chip.className = "chip";
         chip.textContent = word;
         chip.onclick = () => {
           userAnswer.splice(idx, 1);
-          const chips = wordContainer.querySelectorAll(".chip");
-          for (const c of chips) {
+          [...optionsDiv.children].forEach(c => {
             if (c.textContent === word && c.classList.contains("selected")) {
               c.classList.remove("selected");
-              break;
+              return;
             }
-          }
-          updateSelectedWords();
+          });
+          renderSelectedWords();
           checkBtn.disabled = true;
         };
-        selectedWords.appendChild(chip);
+        selectedDiv.appendChild(chip);
       });
     }
 
@@ -139,15 +234,58 @@
       const attempt = userAnswer.join(" ");
 
       if (correct === attempt) {
-        feedback.textContent = "✅ To‘g‘ri javob!";
-        correctAudio.play();
+        score++;
+        showModal("To'g'ri ✅");
       } else {
-        feedback.textContent = "❌ Noto‘g‘ri javob!";
-        wrongAudio.play();
+        showModal("Noto'g'ri ❌");
       }
+
+      current++;
+      updateProgress();
+      setTimeout(() => {
+        if (current < questions.length) {
+          renderQuestion();
+        } else {
+          finishTest();
+        }
+        closeModal();
+      }, 1500);
     };
 
+    function updateProgress() {
+      const percent = (current / questions.length) * 100;
+      progressFill.style.width = `${percent}%`;
+    }
+
+    function showModal(text) {
+      modalContent.textContent = text;
+      modal.style.display = "flex";
+    }
+
+    function closeModal() {
+      modal.style.display = "none";
+    }
+
+    async function finishTest() {
+      finalScreen.style.display = "block";
+      questionBox.style.display = "none";
+      finalScore.textContent = score;
+      if (uid) {
+        await setDoc(doc(db, "users", uid), {
+          a1_score: score
+        }, { merge: true });
+      } else {
+        localStorage.setItem("a1_score", score);
+      }
+    }
+
+    // Dark mode auto toggle
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
+    document.body.classList.toggle("dark-mode", prefersDark.matches);
+    prefersDark.addEventListener("change", e => {
+      document.body.classList.toggle("dark-mode", e.matches);
+    });
+
     renderQuestion();
-  </script>
-</body>
+  </script></body>
 </html>
