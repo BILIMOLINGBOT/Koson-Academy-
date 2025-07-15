@@ -2,110 +2,133 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>So'z tartibi testi</title>
+  <title>Word Order Test</title>
   <style>
     body {
-      font-family: sans-serif;
-      background: #f1f1f1;
-      padding: 20px;
       margin: 0;
-    }
-    .container {
-      max-width: 700px;
-      margin: auto;
-      background: #fff;
+      font-family: sans-serif;
+      background-color: #ffffff;
+      color: #333;
       padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      transition: background-color 0.3s, color 0.3s;
     }
-    .question {
-      margin-bottom: 20px;
+    .dark-mode {
+      background-color: #121212;
+      color: #eee;
     }
-    .word-list, .selected-words {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 10px;
+    h1 {
+      text-align: center;
     }
-    .word {
-      padding: 8px 12px;
-      background: #eee;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .word:hover {
-      background: #ccc;
-    }
-    .word.used {
-      opacity: 0.4;
-      pointer-events: none;
-    }
-    .selected-words .word {
-      background: #d1ecf1;
-    }
-    #checkBtn {
-      margin-top: 20px;
-      padding: 10px 20px;
-      font-size: 16px;
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      display: none;
-    }
-    #checkBtn:enabled {
-      display: inline-block;
-    }
-    #progress {
-      height: 16px;
-      background: #e0e0e0;
-      border-radius: 8px;
+    .progress {
+      height: 10px;
+      background: #ddd;
+      border-radius: 5px;
       overflow: hidden;
       margin-bottom: 20px;
     }
-    #progress-inner {
+    .progress-fill {
       height: 100%;
-      background: #28a745;
+      background: #007bff;
       width: 0%;
-      transition: width 0.3s;
+      transition: width 0.3s ease;
     }
-    #result {
-      font-weight: bold;
-      font-size: 18px;
+    .question-box {
+      margin-bottom: 20px;
+    }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 20px 0;
+    }
+    .chip {
+      padding: 10px 16px;
+      background-color: #007bff;
+      color: white;
+      border-radius: 9999px;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.1s;
+    }
+    .chip:hover {
+      transform: scale(1.05);
+    }
+    .chip.selected {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+    .selected-words {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      min-height: 40px;
+      margin-top: 10px;
+    }
+    .selected-words .chip {
+      background-color: #28a745;
+    }
+    .btn {
+      display: block;
+      margin: 0 auto;
       margin-top: 20px;
-    }
-    .actions {
-      margin-top: 20px;
-      display: none;
-    }
-    .actions button {
       padding: 10px 20px;
-      margin: 5px;
       font-size: 16px;
       border: none;
-      border-radius: 6px;
-      background: #007bff;
+      border-radius: 8px;
+      background-color: #007bff;
       color: white;
       cursor: pointer;
+    }
+    .btn:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    .feedback {
+      text-align: center;
+      margin-top: 20px;
+      font-weight: bold;
+      font-size: 18px;
+    }
+    #final-screen {
+      display: none;
+      text-align: center;
+    }
+    .modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+      width: 90%;
+      max-width: 400px;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div id="progress"><div id="progress-inner"></div></div>
-    <div id="quiz"></div>
-    <button id="checkBtn" disabled>Tekshirish</button>
-    <div id="result"></div>
-    <div class="actions">
-      <button onclick="retry()">Qayta urinish</button>
-      <button onclick="nextLesson()">Keyingi dars</button>
-      <button onclick="goToMenu()">Menyuga qaytish</button>
-    </div>
+  <h1>Word Order Test</h1>
+  <div class="progress"><div class="progress-fill" id="progress-fill"></div></div>  <div class="question-box" id="question-box">
+    <div class="chips" id="word-options"></div>
+    <div class="selected-words" id="selected-words"></div>
+    <button class="btn" id="check-btn" disabled>Tekshirish</button>
+    <div class="feedback" id="feedback"></div>
+  </div>  <div id="final-screen">
+    <h2>Test yakunlandi!</h2>
+    <p>To'g'ri javoblar: <span id="final-score"></span>/20</p>
+    <button class="btn" onclick="window.location.href='menu.html'">Menyuga qaytish</button>
+    <button class="btn" onclick="window.location.href='dars5.html'">Keyingi dars</button>
+  </div>  <div class="modal" id="modal">
+    <div class="modal-content" id="modal-content"></div>
   </div>  <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-    import { getFirestore, doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyD0gBUJNcrgvvntcrfKK7Ky8t6_9Qb96Io",
@@ -120,92 +143,148 @@
     const uid = tg?.initDataUnsafe?.user?.id?.toString() || null;
 
     const questions = [
-      { words: ["am", "I"], answer: "I am" },
-      { words: ["a", "He", "teacher", "is"], answer: "He is a teacher" },
-      { words: ["We", "happy", "are"], answer: "We are happy" },
+      ["I", "am", "a", "student"],
+      ["She", "is", "a", "doctor"],
+      ["They", "are", "my", "friends"],
+      ["He", "is", "happy"],
+      ["We", "are", "in", "the", "room"],
+      ["You", "are", "my", "best", "friend"],
+      ["I", "am", "hungry"],
+      ["It", "is", "a", "cat"],
+      ["They", "are", "at", "school"],
+      ["She", "is", "my", "sister"],
+      ["You", "are", "very", "nice"],
+      ["We", "are", "happy"],
+      ["I", "am", "from", "Uzbekistan"],
+      ["He", "is", "tired"],
+      ["They", "are", "my", "neighbors"],
+      ["It", "is", "a", "dog"],
+      ["We", "are", "students"],
+      ["You", "are", "good", "at", "math"],
+      ["I", "am", "ready"],
+      ["She", "is", "beautiful"]
     ];
 
     let current = 0;
-    let correct = 0;
+    let score = 0;
+    let userAnswer = [];
 
-    const quiz = document.getElementById("quiz");
-    const result = document.getElementById("result");
-    const checkBtn = document.getElementById("checkBtn");
-    const progress = document.getElementById("progress-inner");
-    const actions = document.querySelector(".actions");
+    const optionsDiv = document.getElementById("word-options");
+    const selectedDiv = document.getElementById("selected-words");
+    const checkBtn = document.getElementById("check-btn");
+    const feedback = document.getElementById("feedback");
+    const progressFill = document.getElementById("progress-fill");
+    const questionBox = document.getElementById("question-box");
+    const finalScreen = document.getElementById("final-screen");
+    const finalScore = document.getElementById("final-score");
+    const modal = document.getElementById("modal");
+    const modalContent = document.getElementById("modal-content");
 
-    let selected = [];
+    function shuffle(array) {
+      return [...array].sort(() => Math.random() - 0.5);
+    }
 
     function renderQuestion() {
-      quiz.innerHTML = "";
+      const words = shuffle(questions[current]);
+      optionsDiv.innerHTML = "";
+      selectedDiv.innerHTML = "";
+      userAnswer = [];
       checkBtn.disabled = true;
-      selected = [];
-      const q = questions[current];
-      const qDiv = document.createElement("div");
-      qDiv.className = "question";
-      const selDiv = document.createElement("div");
-      selDiv.className = "selected-words";
-      qDiv.appendChild(selDiv);
+      feedback.textContent = "";
 
-      const wordDiv = document.createElement("div");
-      wordDiv.className = "word-list";
-
-      q.words.sort(() => Math.random() - 0.5).forEach((w) => {
-        const span = document.createElement("span");
-        span.textContent = w;
-        span.className = "word";
-        span.onclick = () => {
-          span.remove();
-          selected.push(w);
-          const sel = document.createElement("span");
-          sel.textContent = w;
-          sel.className = "word";
-          sel.onclick = () => {
-            sel.remove();
-            selected = selected.filter(s => s !== w || s === '');
-            renderQuestion();
+      words.forEach(word => {
+        const chip = document.createElement("div");
+        chip.className = "chip";
+        chip.textContent = word;
+        chip.onclick = () => {
+          chip.classList.add("selected");
+          userAnswer.push(word);
+          renderSelectedWords();
+          if (userAnswer.length === questions[current].length) {
+            checkBtn.disabled = false;
           }
-          selDiv.appendChild(sel);
-          if (selected.length === q.words.length) checkBtn.disabled = false;
         };
-        wordDiv.appendChild(span);
+        optionsDiv.appendChild(chip);
       });
+    }
 
-      qDiv.appendChild(wordDiv);
-      quiz.appendChild(qDiv);
+    function renderSelectedWords() {
+      selectedDiv.innerHTML = "";
+      userAnswer.forEach((word, idx) => {
+        const chip = document.createElement("div");
+        chip.className = "chip";
+        chip.textContent = word;
+        chip.onclick = () => {
+          userAnswer.splice(idx, 1);
+          [...optionsDiv.children].forEach(c => {
+            if (c.textContent === word && c.classList.contains("selected")) {
+              c.classList.remove("selected");
+              return;
+            }
+          });
+          renderSelectedWords();
+          checkBtn.disabled = true;
+        };
+        selectedDiv.appendChild(chip);
+      });
     }
 
     checkBtn.onclick = () => {
-      const q = questions[current];
-      const userAnswer = selected.join(" ");
-      if (userAnswer === q.answer) correct++;
+      const correct = questions[current].join(" ");
+      const attempt = userAnswer.join(" ");
+
+      if (correct === attempt) {
+        score++;
+        showModal("To'g'ri ✅");
+      } else {
+        showModal("Noto'g'ri ❌");
+      }
+
       current++;
       updateProgress();
-      if (current < questions.length) renderQuestion();
-      else showResult();
-    }
+      setTimeout(() => {
+        if (current < questions.length) {
+          renderQuestion();
+        } else {
+          finishTest();
+        }
+        closeModal();
+      }, 1500);
+    };
 
     function updateProgress() {
-      progress.style.width = `${Math.floor((current / questions.length) * 100)}%`;
+      const percent = (current / questions.length) * 100;
+      progressFill.style.width = `${percent}%`;
     }
 
-    function showResult() {
-      result.textContent = `Natija: ${correct} / ${questions.length}`;
-      actions.style.display = "block";
+    function showModal(text) {
+      modalContent.textContent = text;
+      modal.style.display = "flex";
+    }
+
+    function closeModal() {
+      modal.style.display = "none";
+    }
+
+    async function finishTest() {
+      finalScreen.style.display = "block";
+      questionBox.style.display = "none";
+      finalScore.textContent = score;
       if (uid) {
-        const userRef = doc(db, "users", uid);
-        getDoc(userRef).then(snap => {
-          const old = snap.exists() ? (snap.data().a1_score || 0) : 0;
-          setDoc(userRef, { a1_score: correct }, { merge: true });
-        });
+        await setDoc(doc(db, "users", uid), {
+          a1_score: score
+        }, { merge: true });
       } else {
-        localStorage.setItem("a1_score", correct);
+        localStorage.setItem("a1_score", score);
       }
     }
 
-    window.retry = () => location.reload();
-    window.nextLesson = () => location.href = "dars4.html";
-    window.goToMenu = () => location.href = "index.html";
+    // Dark mode auto toggle
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
+    document.body.classList.toggle("dark-mode", prefersDark.matches);
+    prefersDark.addEventListener("change", e => {
+      document.body.classList.toggle("dark-mode", e.matches);
+    });
 
     renderQuestion();
   </script></body>
