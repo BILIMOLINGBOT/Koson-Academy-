@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Grammatika Test</title>
+  <title>Grammatika Test 1</title>
+  <script type="module" src="firebase.js"></script>
   <style>
     body {
       margin: 0;
@@ -15,7 +16,21 @@
     .level {
       color: #60a5fa;
       font-weight: bold;
-      margin-bottom: 10px;
+      margin-bottom: 5px;
+      font-size: 18px;
+    }
+    .progress-bar {
+      width: 100%;
+      background-color: #1e293b;
+      border-radius: 8px;
+      height: 10px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    .progress {
+      width: 5%;
+      height: 100%;
+      background-color: #60a5fa;
     }
     .question {
       font-size: 20px;
@@ -68,49 +83,103 @@
 </head>
 <body>
   <div class="level">O‘rtacha</div>
-  <div class="question">Bu qo‘shiq qo‘shiqchi tomonidan chiroyli tarzda kuylaldi.</div>
-
-  <div class="options" id="options">
-    <!-- Options created dynamically -->
+  <div class="progress-bar">
+    <div class="progress"></div>
   </div>
 
+  <div class="question" id="questionText">Savol yuklanmoqda...</div>
+  <div class="options" id="options"></div>
   <div id="feedback" class="feedback"></div>
 
-  <button class="btn" onclick="checkAnswer()">Davom etish</button>
+  <button class="btn" id="actionBtn">Tekshirish</button>
 
-  <script>
-    const correctSentence = "The song was sung beautifully by a singer.";
-    const words = [
-      "The", "song", "was", "sung", "beautifully", "by", "a singer."
-    ];
+  <script type="module">
+    import { auth, db } from './firebase.js';
+    import {
+      doc, getDoc, setDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import {
+      onAuthStateChanged, signInAnonymously
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-    const selectedWords = [];
+    let correctSentence = "";
+    let selectedWords = [];
+    let userId = null;
+    let answered = false;
+
     const optionsDiv = document.getElementById("options");
+    const feedbackDiv = document.getElementById("feedback");
+    const questionText = document.getElementById("questionText");
+    const actionBtn = document.getElementById("actionBtn");
 
-    words.forEach(word => {
-      const btn = document.createElement("div");
-      btn.className = "option";
-      btn.textContent = word;
-      btn.onclick = () => {
-        if (btn.classList.contains("selected")) return;
-        btn.classList.add("selected");
-        selectedWords.push(word);
-      };
-      optionsDiv.appendChild(btn);
-    });
+    function renderOptions(words) {
+      optionsDiv.innerHTML = "";
+      selectedWords = [];
+      words.forEach(word => {
+        const btn = document.createElement("div");
+        btn.className = "option";
+        btn.textContent = word;
+        btn.onclick = () => {
+          if (btn.classList.contains("selected") || answered) return;
+          btn.classList.add("selected");
+          selectedWords.push(word);
+        };
+        optionsDiv.appendChild(btn);
+      });
+    }
 
-    function checkAnswer() {
-      const userSentence = selectedWords.join(" ");
-      const feedbackDiv = document.getElementById("feedback");
-
-      if (userSentence === correctSentence) {
-        feedbackDiv.textContent = "To‘g‘ri javob!";
-        feedbackDiv.className = "feedback correct";
+    async function loadQuestion() {
+      const docRef = doc(db, "tests", "test1");
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        questionText.textContent = data.uzbek;
+        correctSentence = data.correct;
+        renderOptions(data.options);
       } else {
-        feedbackDiv.textContent = "Noto‘g‘ri javob!\nTo‘g‘ri javob: " + correctSentence;
-        feedbackDiv.className = "feedback wrong";
+        questionText.textContent = "Savol topilmadi.";
       }
     }
+
+    async function handleAction() {
+      if (!answered) {
+        await checkAnswer();
+      } else {
+        window.location.href = "test2.html";
+      }
+    }
+
+    async function checkAnswer() {
+      const userAnswer = selectedWords.join(" ");
+      const isCorrect = userAnswer === correctSentence;
+
+      feedbackDiv.textContent = isCorrect
+        ? "To‘g‘ri javob!"
+        : "Noto‘g‘ri javob! To‘g‘ri: " + correctSentence;
+      feedbackDiv.className = "feedback " + (isCorrect ? "correct" : "wrong");
+
+      if (userId) {
+        await setDoc(doc(db, "users", userId, "tests", "test1"), {
+          answer: userAnswer,
+          correct: isCorrect,
+          timestamp: Date.now()
+        });
+      }
+
+      answered = true;
+      actionBtn.textContent = "Keyingi";
+    }
+
+    actionBtn.onclick = handleAction;
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        userId = user.uid;
+        await loadQuestion();
+      } else {
+        await signInAnonymously(auth);
+      }
+    });
   </script>
 </body>
 </html>
