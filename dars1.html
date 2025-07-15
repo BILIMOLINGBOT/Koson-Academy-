@@ -1,54 +1,122 @@
-<!DOCTYPE html>
-<html lang="uz">
+<!DOCTYPE html><html lang="uz">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>To Be Grammar Test</title>
   <style>
-    /* CSS bu yerga yoziladi, progress bar, sahifalar, test dizayni */
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f9f9f9;
+    }
+    .page {
+      display: none;
+      padding: 20px;
+    }
+    .active {
+      display: block;
+    }
+    #progressBarContainer {
+      width: 100%;
+      background-color: #ddd;
+      height: 10px;
+    }
+    #progressBar {
+      height: 10px;
+      background-color: #4caf50;
+      width: 0%;
+    }
+    button {
+      padding: 10px 20px;
+      margin-top: 20px;
+      background-color: #0088cc;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #answers span {
+      padding: 6px 12px;
+      margin: 4px;
+      display: inline-block;
+      background: #eee;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    #answers span.selected {
+      background: #4caf50;
+      color: white;
+    }
   </style>
 </head>
 <body>
-  <!-- 🔵 Progress bar -->
-  <div id="progressBarContainer"><div id="progressBar"></div></div>
+  <div id="progressBarContainer"><div id="progressBar"></div></div>  <div class="page active" id="page1">
+    <h2>Kim yoki nima ekanligini aytishda:</h2>
+    <p>I am a teacher (Men o‘qituvchiman)</p>
+    <p>They are students (Ular talabalar)</p>
+    <button onclick="nextPage()">Keyingi</button>
+  </div>  <div class="page" id="page2">
+    <h2>Word Order Test</h2>
+    <p>Savol: So‘zlarni to‘g‘ri tartibda tanlang:</p>
+    <div id="question">teacher / am / I / a</div>
+    <div id="answers"></div>
+    <p id="feedback"></p>
+    <button onclick="checkAnswer(['I','am','a','teacher'])">Tekshirish</button>
+    <button onclick="nextPage()">Keyingi</button>
+  </div>  <div class="page" id="page3">
+    <h2>Sifatni ifodalashda:</h2>
+    <p>She is beautiful (U chiroyli)</p>
+    <p>It is big (U katta)</p>
+    <button onclick="nextPage()">Keyingi</button>
+  </div>  <div class="page" id="page4">
+    <h2>Word Order Test</h2>
+    <div id="question2">beautiful / is / She</div>
+    <div id="answers2"></div>
+    <p id="feedback2"></p>
+    <button onclick="checkAnswer2(['She','is','beautiful'])">Tekshirish</button>
+    <button onclick="nextPage()">Keyingi</button>
+  </div>  <div class="page" id="page5">
+    <h2>Yosh yoki o‘lcham bilan:</h2>
+    <p>He is 29 years old (U 29 yoshda)</p>
+    <button onclick="nextPage()">Keyingi</button>
+  </div>  <div class="page" id="page6">
+    <h2>Joy yoki mavjudlikni ko‘rsatishda:</h2>
+    <p>There is a book on the table (Stolda bir kitob bor)</p>
+    <button onclick="nextPage()">Keyingi</button>
+  </div>  <div class="page" id="page7">
+    <h2>Word Order Test</h2>
+    <div id="question3">a / is / There / book</div>
+    <div id="answers3"></div>
+    <p id="feedback3"></p>
+    <button onclick="checkAnswer3(['There','is','a','book'])">Tekshirish</button>
+  </div>  <script type="module">
+    // Firebase SDK
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  <!-- 🔵 Har sahifa uchun alohida <div> -->
-  <div class="page" id="page1"> ... dars matni ... <button onclick="nextPage()">Keyingi</button></div>
-  <div class="page" id="page2"> ... test1 ... <button onclick="nextPage()">Keyingi</button></div>
-  <div class="page" id="page3"> ... dars matni ... <button onclick="nextPage()">Keyingi</button></div>
-  ...
-  <div class="page" id="page7"> ... test3 ... </div>
-
-  <!-- 🔵 Firebase JS SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
-  <script>
-    // Firebase config
     const firebaseConfig = {
-      apiKey: "...",
-      authDomain: "...",
-      projectId: "...",
-      appId: "..."
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      appId: "YOUR_APP_ID"
     };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-  </script>
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const userId = "demo_user"; // Telegram WebApp dan olinadi
 
-  <!-- 🔵 Javascript funksiyalar -->
-  <script>
     let currentPage = 1;
     const totalPages = 7;
-    const userId = "test_user"; // Telegram WebApp dan olinadi
 
     function showPage(n) {
       document.querySelectorAll('.page').forEach((el, i) => {
-        el.style.display = (i === n - 1) ? 'block' : 'none';
+        el.classList.remove('active');
+        if (i === n - 1) el.classList.add('active');
       });
       updateProgressBar(n);
     }
 
-    function nextPage() {
+    window.nextPage = () => {
       if (currentPage < totalPages) {
         currentPage++;
         showPage(currentPage);
@@ -60,16 +128,44 @@
       document.getElementById("progressBar").style.width = percent + "%";
     }
 
-    function saveTestResult(testId, isCorrect) {
-      db.collection("users").doc(userId).set({
-        [`test_${testId}`]: isCorrect,
-        progress: currentPage
+    function setupTest(containerId, answersId, correct) {
+      const container = document.getElementById(containerId);
+      const answers = document.getElementById(answersId);
+      const words = container.textContent.split(" / ");
+      answers.innerHTML = '';
+      words.forEach(word => {
+        const span = document.createElement("span");
+        span.textContent = word;
+        span.onclick = () => {
+          span.classList.toggle("selected");
+        };
+        answers.appendChild(span);
+      });
+    }
+
+    window.checkAnswer = (correct) => checkGeneric(correct, "answers", "feedback", 1);
+    window.checkAnswer2 = (correct) => checkGeneric(correct, "answers2", "feedback2", 2);
+    window.checkAnswer3 = (correct) => checkGeneric(correct, "answers3", "feedback3", 3);
+
+    function checkGeneric(correct, answersId, feedbackId, testId) {
+      const selected = Array.from(document.querySelectorAll(`#${answersId} span.selected`)).map(span => span.textContent);
+      const isCorrect = JSON.stringify(selected) === JSON.stringify(correct);
+      document.getElementById(feedbackId).innerText = isCorrect ? "✅ To'g'ri" : "❌ Noto‘g‘ri. Qayta urinib ko‘ring.";
+      saveTestResult(`test_${testId}`, isCorrect);
+    }
+
+    async function saveTestResult(testKey, isCorrect) {
+      await setDoc(doc(db, "users", userId), {
+        [testKey]: isCorrect,
+        lastPage: currentPage
       }, { merge: true });
     }
 
     document.addEventListener("DOMContentLoaded", () => {
       showPage(currentPage);
+      setupTest("question", "answers");
+      setupTest("question2", "answers2");
+      setupTest("question3", "answers3");
     });
-  </script>
-</body>
+  </script></body>
 </html>
