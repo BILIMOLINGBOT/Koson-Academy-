@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Grammatika Test 1</title>
-  <script type="module" src="firebase.js"></script>
+  <title>Grammatika Test</title>
   <style>
     body {
       margin: 0;
@@ -69,94 +68,49 @@
 </head>
 <body>
   <div class="level">O‘rtacha</div>
-  <div class="question" id="questionText">Savol yuklanmoqda...</div>
+  <div class="question">Bu qo‘shiq qo‘shiqchi tomonidan chiroyli tarzda kuylaldi.</div>
 
-  <div class="options" id="options"></div>
+  <div class="options" id="options">
+    <!-- Options created dynamically -->
+  </div>
 
   <div id="feedback" class="feedback"></div>
 
   <button class="btn" onclick="checkAnswer()">Davom etish</button>
 
-  <script type="module">
-    import { auth, db } from './firebase.js';
-    import {
-      doc, getDoc, setDoc
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import {
-      onAuthStateChanged, signInAnonymously
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  <script>
+    const correctSentence = "The song was sung beautifully by a singer.";
+    const words = [
+      "The", "song", "was", "sung", "beautifully", "by", "a singer."
+    ];
 
-    let correctSentence = "";
-    let selectedWords = [];
-    let userId = null;
-
+    const selectedWords = [];
     const optionsDiv = document.getElementById("options");
-    const feedbackDiv = document.getElementById("feedback");
-    const questionText = document.getElementById("questionText");
 
-    function renderOptions(words) {
-      optionsDiv.innerHTML = "";
-      selectedWords = [];
-      words.forEach(word => {
-        const btn = document.createElement("div");
-        btn.className = "option";
-        btn.textContent = word;
-        btn.onclick = () => {
-          if (btn.classList.contains("selected")) return;
-          btn.classList.add("selected");
-          selectedWords.push(word);
-        };
-        optionsDiv.appendChild(btn);
-      });
-    }
+    words.forEach(word => {
+      const btn = document.createElement("div");
+      btn.className = "option";
+      btn.textContent = word;
+      btn.onclick = () => {
+        if (btn.classList.contains("selected")) return;
+        btn.classList.add("selected");
+        selectedWords.push(word);
+      };
+      optionsDiv.appendChild(btn);
+    });
 
-    async function loadQuestion() {
-      const docRef = doc(db, "tests", "test1");
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        questionText.textContent = data.uzbek;
-        correctSentence = data.correct;
-        renderOptions(data.options);
-      } else {
-        questionText.textContent = "Savol topilmadi.";
-      }
-    }
+    function checkAnswer() {
+      const userSentence = selectedWords.join(" ");
+      const feedbackDiv = document.getElementById("feedback");
 
-    async function checkAnswer() {
-      const userAnswer = selectedWords.join(" ");
-      const isCorrect = userAnswer === correctSentence;
-
-      if (isCorrect) {
+      if (userSentence === correctSentence) {
         feedbackDiv.textContent = "To‘g‘ri javob!";
         feedbackDiv.className = "feedback correct";
       } else {
-        feedbackDiv.textContent = "Noto‘g‘ri javob! To‘g‘ri: " + correctSentence;
+        feedbackDiv.textContent = "Noto‘g‘ri javob!\nTo‘g‘ri javob: " + correctSentence;
         feedbackDiv.className = "feedback wrong";
       }
-
-      if (userId) {
-        await setDoc(doc(db, "users", userId, "tests", "test1"), {
-          answer: userAnswer,
-          correct: isCorrect,
-          timestamp: Date.now()
-        });
-      }
-
-      setTimeout(() => {
-        window.location.href = "test2.html";
-      }, 2500);
     }
-
-    // Start auth
-    onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        userId = user.uid;
-        await loadQuestion();
-      } else {
-        await signInAnonymously(auth);
-      }
-    });
   </script>
 </body>
 </html>
