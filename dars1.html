@@ -1,27 +1,25 @@
-<!DOCTYPE html><html lang="uz">
+<!DOCTYPE html>
+<html lang="uz">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Word Order Test</title>
+  <title>So'z Tartibi Testi</title>
   <style>
     body {
       margin: 0;
       font-family: sans-serif;
-      background-color: #ffffff;
-      color: #333;
+      background-color: #121212;
+      color: #eee;
       padding: 20px;
       transition: background-color 0.3s, color 0.3s;
     }
-    .dark-mode {
-      background-color: #121212;
-      color: #eee;
-    }
     h1 {
       text-align: center;
+      color: #007bff;
     }
     .progress {
       height: 10px;
-      background: #ddd;
+      background: #333;
       border-radius: 5px;
       overflow: hidden;
       margin-bottom: 20px;
@@ -95,38 +93,47 @@
     }
     .modal {
       position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       background-color: rgba(0, 0, 0, 0.5);
       display: none;
       align-items: center;
       justify-content: center;
     }
     .modal-content {
-      background: white;
+      background: #121212;
       padding: 20px;
       border-radius: 8px;
       text-align: center;
       width: 90%;
       max-width: 400px;
+      color: #eee;
+      border: 2px solid #007bff;
     }
   </style>
 </head>
 <body>
-  <h1>Word Order Test</h1>
-  <div class="progress"><div class="progress-fill" id="progress-fill"></div></div>  <div class="question-box" id="question-box">
+  <h1>So'z Tartibi Testi</h1>
+  <div class="progress"><div class="progress-fill" id="progress-fill"></div></div>
+  <div class="question-box" id="question-box">
     <div class="chips" id="word-options"></div>
     <div class="selected-words" id="selected-words"></div>
     <button class="btn" id="check-btn" disabled>Tekshirish</button>
     <div class="feedback" id="feedback"></div>
-  </div>  <div id="final-screen">
+  </div>
+  <div id="final-screen">
     <h2>Test yakunlandi!</h2>
-    <p>To'g'ri javoblar: <span id="final-score"></span>/20</p>
+    <p>To'g'ri javoblar: <span id="final-score"></span>/5</p>
     <button class="btn" onclick="window.location.href='menu.html'">Menyuga qaytish</button>
     <button class="btn" onclick="window.location.href='dars5.html'">Keyingi dars</button>
-  </div>  <div class="modal" id="modal">
+  </div>
+  <div class="modal" id="modal">
     <div class="modal-content" id="modal-content"></div>
-  </div>  <script type="module">
+  </div>
+
+  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
@@ -142,27 +149,12 @@
     const tg = window.Telegram?.WebApp;
     const uid = tg?.initDataUnsafe?.user?.id?.toString() || null;
 
-    const questions = [
-      ["I", "am", "a", "student"],
-      ["She", "is", "a", "doctor"],
-      ["They", "are", "my", "friends"],
-      ["He", "is", "happy"],
-      ["We", "are", "in", "the", "room"],
-      ["You", "are", "my", "best", "friend"],
-      ["I", "am", "hungry"],
-      ["It", "is", "a", "cat"],
-      ["They", "are", "at", "school"],
-      ["She", "is", "my", "sister"],
-      ["You", "are", "very", "nice"],
-      ["We", "are", "happy"],
-      ["I", "am", "from", "Uzbekistan"],
-      ["He", "is", "tired"],
-      ["They", "are", "my", "neighbors"],
-      ["It", "is", "a", "dog"],
-      ["We", "are", "students"],
-      ["You", "are", "good", "at", "math"],
-      ["I", "am", "ready"],
-      ["She", "is", "beautiful"]
+    const uzbekQuestions = [
+      ["Bu", "qoʻshiq", "qoʻshiqchi", "tomonidan", "chiroyli", "tarzda", "kuylandi"],
+      ["U", "kitob", "doʻst", "uchun", "olib", "keldi"],
+      ["Biz", "dars", "ertalab", "oʻqiymiz"],
+      ["Ular", "sayohat", "dam", "oʻtadilar"],
+      ["Men", "uy", "kechqurun", "boraman"]
     ];
 
     let current = 0;
@@ -184,8 +176,8 @@
       return [...array].sort(() => Math.random() - 0.5);
     }
 
-    function renderQuestion() {
-      const words = shuffle(questions[current]);
+    function renderUzbekQuestion() {
+      const words = shuffle(uzbekQuestions[current]);
       optionsDiv.innerHTML = "";
       selectedDiv.innerHTML = "";
       userAnswer = [];
@@ -200,7 +192,7 @@
           chip.classList.add("selected");
           userAnswer.push(word);
           renderSelectedWords();
-          if (userAnswer.length === questions[current].length) {
+          if (userAnswer.length === uzbekQuestions[current].length) {
             checkBtn.disabled = false;
           }
         };
@@ -230,21 +222,21 @@
     }
 
     checkBtn.onclick = () => {
-      const correct = questions[current].join(" ");
+      const correct = uzbekQuestions[current].join(" ");
       const attempt = userAnswer.join(" ");
 
       if (correct === attempt) {
         score++;
         showModal("To'g'ri ✅");
       } else {
-        showModal("Noto'g'ri ❌");
+        showModal("Noto'g'ri ❌\nTo'g'ri javob: " + uzbekQuestions[current].join(" "));
       }
 
       current++;
       updateProgress();
       setTimeout(() => {
-        if (current < questions.length) {
-          renderQuestion();
+        if (current < uzbekQuestions.length) {
+          renderUzbekQuestion();
         } else {
           finishTest();
         }
@@ -253,7 +245,7 @@
     };
 
     function updateProgress() {
-      const percent = (current / questions.length) * 100;
+      const percent = (current / uzbekQuestions.length) * 100;
       progressFill.style.width = `${percent}%`;
     }
 
@@ -279,13 +271,14 @@
       }
     }
 
-    // Dark mode auto toggle
+    // Dark mode
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
     document.body.classList.toggle("dark-mode", prefersDark.matches);
     prefersDark.addEventListener("change", e => {
       document.body.classList.toggle("dark-mode", e.matches);
     });
 
-    renderQuestion();
-  </script></body>
+    renderUzbekQuestion();
+  </script>
+</body>
 </html>
