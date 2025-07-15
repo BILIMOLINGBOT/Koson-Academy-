@@ -1,171 +1,212 @@
 <!DOCTYPE html><html lang="uz">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>To Be Grammar Test</title>
+  <title>So'z tartibi testi</title>
   <style>
     body {
       font-family: sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #f9f9f9;
-    }
-    .page {
-      display: none;
+      background: #f1f1f1;
       padding: 20px;
+      margin: 0;
     }
-    .active {
-      display: block;
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-    #progressBarContainer {
-      width: 100%;
-      background-color: #ddd;
-      height: 10px;
+    .question {
+      margin-bottom: 20px;
     }
-    #progressBar {
-      height: 10px;
-      background-color: #4caf50;
-      width: 0%;
+    .word-list, .selected-words {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
     }
-    button {
-      padding: 10px 20px;
+    .word {
+      padding: 8px 12px;
+      background: #eee;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .word:hover {
+      background: #ccc;
+    }
+    .word.used {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+    .selected-words .word {
+      background: #d1ecf1;
+    }
+    #checkBtn {
       margin-top: 20px;
-      background-color: #0088cc;
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #007bff;
       color: white;
       border: none;
-      border-radius: 5px;
+      border-radius: 8px;
       cursor: pointer;
+      display: none;
     }
-    #answers span {
-      padding: 6px 12px;
-      margin: 4px;
+    #checkBtn:enabled {
       display: inline-block;
-      background: #eee;
-      border-radius: 4px;
-      cursor: pointer;
     }
-    #answers span.selected {
-      background: #4caf50;
+    #progress {
+      height: 16px;
+      background: #e0e0e0;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    #progress-inner {
+      height: 100%;
+      background: #28a745;
+      width: 0%;
+      transition: width 0.3s;
+    }
+    #result {
+      font-weight: bold;
+      font-size: 18px;
+      margin-top: 20px;
+    }
+    .actions {
+      margin-top: 20px;
+      display: none;
+    }
+    .actions button {
+      padding: 10px 20px;
+      margin: 5px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      background: #007bff;
       color: white;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <div id="progressBarContainer"><div id="progressBar"></div></div>  <div class="page active" id="page1">
-    <h2>Kim yoki nima ekanligini aytishda:</h2>
-    <p>I am a teacher (Men o‘qituvchiman)</p>
-    <p>They are students (Ular talabalar)</p>
-    <button onclick="nextPage()">Keyingi</button>
-  </div>  <div class="page" id="page2">
-    <h2>Word Order Test</h2>
-    <p>Savol: So‘zlarni to‘g‘ri tartibda tanlang:</p>
-    <div id="question">teacher / am / I / a</div>
-    <div id="answers"></div>
-    <p id="feedback"></p>
-    <button onclick="checkAnswer(['I','am','a','teacher'])">Tekshirish</button>
-    <button onclick="nextPage()">Keyingi</button>
-  </div>  <div class="page" id="page3">
-    <h2>Sifatni ifodalashda:</h2>
-    <p>She is beautiful (U chiroyli)</p>
-    <p>It is big (U katta)</p>
-    <button onclick="nextPage()">Keyingi</button>
-  </div>  <div class="page" id="page4">
-    <h2>Word Order Test</h2>
-    <div id="question2">beautiful / is / She</div>
-    <div id="answers2"></div>
-    <p id="feedback2"></p>
-    <button onclick="checkAnswer2(['She','is','beautiful'])">Tekshirish</button>
-    <button onclick="nextPage()">Keyingi</button>
-  </div>  <div class="page" id="page5">
-    <h2>Yosh yoki o‘lcham bilan:</h2>
-    <p>He is 29 years old (U 29 yoshda)</p>
-    <button onclick="nextPage()">Keyingi</button>
-  </div>  <div class="page" id="page6">
-    <h2>Joy yoki mavjudlikni ko‘rsatishda:</h2>
-    <p>There is a book on the table (Stolda bir kitob bor)</p>
-    <button onclick="nextPage()">Keyingi</button>
-  </div>  <div class="page" id="page7">
-    <h2>Word Order Test</h2>
-    <div id="question3">a / is / There / book</div>
-    <div id="answers3"></div>
-    <p id="feedback3"></p>
-    <button onclick="checkAnswer3(['There','is','a','book'])">Tekshirish</button>
+  <div class="container">
+    <div id="progress"><div id="progress-inner"></div></div>
+    <div id="quiz"></div>
+    <button id="checkBtn" disabled>Tekshirish</button>
+    <div id="result"></div>
+    <div class="actions">
+      <button onclick="retry()">Qayta urinish</button>
+      <button onclick="nextLesson()">Keyingi dars</button>
+      <button onclick="goToMenu()">Menyuga qaytish</button>
+    </div>
   </div>  <script type="module">
-    // Firebase SDK
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getFirestore, doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_AUTH_DOMAIN",
-      projectId: "YOUR_PROJECT_ID",
-      appId: "YOUR_APP_ID"
+      apiKey: "AIzaSyD0gBUJNcrgvvntcrfKK7Ky8t6_9Qb96Io",
+      authDomain: "bilimilova-64833.firebaseapp.com",
+      projectId: "bilimilova-64833",
     };
+
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const userId = "demo_user"; // Telegram WebApp dan olinadi
 
-    let currentPage = 1;
-    const totalPages = 7;
+    const tg = window.Telegram?.WebApp;
+    const uid = tg?.initDataUnsafe?.user?.id?.toString() || null;
 
-    function showPage(n) {
-      document.querySelectorAll('.page').forEach((el, i) => {
-        el.classList.remove('active');
-        if (i === n - 1) el.classList.add('active');
+    const questions = [
+      { words: ["am", "I"], answer: "I am" },
+      { words: ["a", "He", "teacher", "is"], answer: "He is a teacher" },
+      { words: ["We", "happy", "are"], answer: "We are happy" },
+    ];
+
+    let current = 0;
+    let correct = 0;
+
+    const quiz = document.getElementById("quiz");
+    const result = document.getElementById("result");
+    const checkBtn = document.getElementById("checkBtn");
+    const progress = document.getElementById("progress-inner");
+    const actions = document.querySelector(".actions");
+
+    let selected = [];
+
+    function renderQuestion() {
+      quiz.innerHTML = "";
+      checkBtn.disabled = true;
+      selected = [];
+      const q = questions[current];
+      const qDiv = document.createElement("div");
+      qDiv.className = "question";
+      const selDiv = document.createElement("div");
+      selDiv.className = "selected-words";
+      qDiv.appendChild(selDiv);
+
+      const wordDiv = document.createElement("div");
+      wordDiv.className = "word-list";
+
+      q.words.sort(() => Math.random() - 0.5).forEach((w) => {
+        const span = document.createElement("span");
+        span.textContent = w;
+        span.className = "word";
+        span.onclick = () => {
+          span.remove();
+          selected.push(w);
+          const sel = document.createElement("span");
+          sel.textContent = w;
+          sel.className = "word";
+          sel.onclick = () => {
+            sel.remove();
+            selected = selected.filter(s => s !== w || s === '');
+            renderQuestion();
+          }
+          selDiv.appendChild(sel);
+          if (selected.length === q.words.length) checkBtn.disabled = false;
+        };
+        wordDiv.appendChild(span);
       });
-      updateProgressBar(n);
+
+      qDiv.appendChild(wordDiv);
+      quiz.appendChild(qDiv);
     }
 
-    window.nextPage = () => {
-      if (currentPage < totalPages) {
-        currentPage++;
-        showPage(currentPage);
+    checkBtn.onclick = () => {
+      const q = questions[current];
+      const userAnswer = selected.join(" ");
+      if (userAnswer === q.answer) correct++;
+      current++;
+      updateProgress();
+      if (current < questions.length) renderQuestion();
+      else showResult();
+    }
+
+    function updateProgress() {
+      progress.style.width = `${Math.floor((current / questions.length) * 100)}%`;
+    }
+
+    function showResult() {
+      result.textContent = `Natija: ${correct} / ${questions.length}`;
+      actions.style.display = "block";
+      if (uid) {
+        const userRef = doc(db, "users", uid);
+        getDoc(userRef).then(snap => {
+          const old = snap.exists() ? (snap.data().a1_score || 0) : 0;
+          setDoc(userRef, { a1_score: correct }, { merge: true });
+        });
+      } else {
+        localStorage.setItem("a1_score", correct);
       }
     }
 
-    function updateProgressBar(page) {
-      const percent = (page / totalPages) * 100;
-      document.getElementById("progressBar").style.width = percent + "%";
-    }
+    window.retry = () => location.reload();
+    window.nextLesson = () => location.href = "dars4.html";
+    window.goToMenu = () => location.href = "index.html";
 
-    function setupTest(containerId, answersId, correct) {
-      const container = document.getElementById(containerId);
-      const answers = document.getElementById(answersId);
-      const words = container.textContent.split(" / ");
-      answers.innerHTML = '';
-      words.forEach(word => {
-        const span = document.createElement("span");
-        span.textContent = word;
-        span.onclick = () => {
-          span.classList.toggle("selected");
-        };
-        answers.appendChild(span);
-      });
-    }
-
-    window.checkAnswer = (correct) => checkGeneric(correct, "answers", "feedback", 1);
-    window.checkAnswer2 = (correct) => checkGeneric(correct, "answers2", "feedback2", 2);
-    window.checkAnswer3 = (correct) => checkGeneric(correct, "answers3", "feedback3", 3);
-
-    function checkGeneric(correct, answersId, feedbackId, testId) {
-      const selected = Array.from(document.querySelectorAll(`#${answersId} span.selected`)).map(span => span.textContent);
-      const isCorrect = JSON.stringify(selected) === JSON.stringify(correct);
-      document.getElementById(feedbackId).innerText = isCorrect ? "✅ To'g'ri" : "❌ Noto‘g‘ri. Qayta urinib ko‘ring.";
-      saveTestResult(`test_${testId}`, isCorrect);
-    }
-
-    async function saveTestResult(testKey, isCorrect) {
-      await setDoc(doc(db, "users", userId), {
-        [testKey]: isCorrect,
-        lastPage: currentPage
-      }, { merge: true });
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-      showPage(currentPage);
-      setupTest("question", "answers");
-      setupTest("question2", "answers2");
-      setupTest("question3", "answers3");
-    });
+    renderQuestion();
   </script></body>
 </html>
