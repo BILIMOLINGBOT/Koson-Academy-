@@ -3,21 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Grammar Test</title>
+  <title>O'rtacha</title>
   <style>
     body {
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background-color: #e0e0e0;
-      color: #333;
+      background-color: #121212;
+      color: #fff;
       padding: 10px;
       display: flex;
       flex-direction: column;
       height: 100vh;
     }
     .header {
-      background-color: #555;
-      color: white;
+      background-color: #1a1a1a;
+      color: #fff;
       padding: 10px;
       border-radius: 10px 10px 0 0;
       display: flex;
@@ -38,97 +38,6 @@
       overflow-y: auto;
       padding: 10px;
     }
-    .message {
-      background-color: #666;
-      color: white;
-      padding: 10px;
-      border-radius: 10px;
-      margin-bottom: 10px;
-      font-size: 14px;
-    }
-    .instruction {
-      background-color: #f9a825;
-      color: #333;
-      padding: 10px;
-      border-radius: 10px;
-      margin-bottom: 10px;
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-    }
-    .instruction .icon {
-      margin-right: 10px;
-    }
-    .word-chips {
-      display: flex;
-      gap: 8px;
-      margin: 10px 0;
-      flex-wrap: wrap;
-    }
-    .chip {
-      background-color: #ddd;
-      padding: 8px 12px;
-      border-radius: 20px;
-      font-size: 14px;
-      cursor: default;
-    }
-    .response {
-      margin-top: 10px;
-    }
-    .correct {
-      background-color: #4caf50;
-      color: white;
-      padding: 10px;
-      border-radius: 10px;
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .correct .audio-icon {
-      font-size: 16px;
-    }
-    .user-input {
-      background-color: #757575;
-      color: white;
-      padding: 10px;
-      border-radius: 10px;
-      font-size: 14px;
-      margin-bottom: 10px;
-    }
-    .next-button {
-      background-color: #ff9800;
-      color: white;
-      padding: 10px;
-      border: none;
-      border-radius: 25px;
-      font-size: 16px;
-      width: 100%;
-      max-width: 200px;
-      align-self: center;
-      cursor: pointer;
-    }
-    .next-button:hover {
-      background-color: #f57c00;
-    }
-
-    /* O'rtacha sahifa uchun stillar */
-    .dark-header {
-      background-color: #1a1a1a;
-      color: #fff;
-      padding: 10px;
-      border-radius: 10px 10px 0 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-    .dark-content {
-      background-color: #121212;
-      color: #fff;
-      padding: 10px;
-      border-radius: 10px;
-    }
     .character {
       display: flex;
       align-items: center;
@@ -138,6 +47,7 @@
       width: 50px;
       height: 50px;
       margin-right: 10px;
+      border-radius: 50%;
     }
     .character .speech {
       background-color: #1e90ff;
@@ -146,20 +56,43 @@
       border-radius: 10px;
       font-size: 14px;
     }
-    .dark-word-chips {
+    .word-chips {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 10px;
       margin: 10px 0;
     }
-    .dark-chip {
+    .chip {
       background-color: #333;
       color: white;
       padding: 10px;
       border-radius: 10px;
       font-size: 14px;
       text-align: center;
+      cursor: pointer;
+      transition: background-color 0.3s; /* Faqat rang o‘zgarishi qoldi */
+    }
+    .chip.selected {
+      background-color: #4caf50;
       cursor: default;
+    }
+    .selected-words {
+      display: flex;
+      gap: 10px;
+      margin: 10px 0;
+      flex-wrap: wrap;
+    }
+    .selected-chip {
+      background-color: #4caf50;
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+    }
+    .selected-chip .remove {
+      margin-left: 5px;
+      cursor: pointer;
     }
     .continue-button {
       background-color: #2196f3;
@@ -173,9 +106,14 @@
       align-self: center;
       cursor: pointer;
       margin-top: 10px;
+      transition: background-color 0.3s; /* Faqat rang o‘zgarishi qoldi */
     }
     .continue-button:hover {
       background-color: #1976d2;
+    }
+    .continue-button:disabled {
+      background-color: #666;
+      cursor: not-allowed;
     }
     .feedback {
       background-color: #f44336;
@@ -184,7 +122,7 @@
       border-radius: 10px;
       margin-top: 10px;
       display: flex;
-      justify-content: space-between;
+      flex-direction: column;
       align-items: center;
     }
     .feedback .next {
@@ -194,57 +132,44 @@
       border: none;
       border-radius: 10px;
       cursor: pointer;
+      margin-top: 10px;
     }
     .feedback .next:hover {
       background-color: #ccc;
     }
+    .hidden {
+      display: none;
+    }
   </style>
 </head>
 <body>
-  <!-- Qo'ida sahifasi -->
-  <div id="qoida-page" style="display: block;">
+  <!-- Savol sahifasi -->
+  <div id="question-page" class="content">
     <div class="header">
-      <span>←</span>
-      <h1>Qo'ida</h1>
+      <span>×</span>
+      <h1>O'rtacha</h1>
       <div class="icons">
-        <span>?</span>
-        <span>🔔</span>
+        <span>ⓘ</span>
+        <span>∞</span>
       </div>
     </div>
     <div class="content">
-      <div class="message">
-        Ko'plik yasalsh uchun otning oxiriga -s yoki -es qo'shimchalarini qo'shing
-      </div>
-      <div class="instruction">
-        <span class="icon">📝</span>
-        Jummani yig'ing
-      </div>
-      <div class="instruction">
-        <span class="icon">🐱</span>
-        Men mushukkimni yaxshi ko'raman
-      </div>
-      <div class="word-chips">
-        <div class="chip">I</div>
-        <div class="chip">like</div>
-        <div class="chip">my</div>
-        <div class="chip">cat</div>
-      </div>
-      <div class="response">
-        <div class="correct">
-          <span>To'g'ri</span>
-          <span class="audio-icon">🔊</span>
-        </div>
-        <div class="user-input">
-          I like my cat
+      <h2>Bu qo'shiq qo'shiqchi tomonidan chiroyli tarzda kuylandi.</h2>
+      <div class="character">
+        <img src="https://via.placeholder.com/50" alt="Character" style="border-radius: 50%;">
+        <div class="speech">
+          Bu qo'shiq qo'shiqchi tomonidan chiroyli tarzda kuylandi.
         </div>
       </div>
-      <button class="next-button">Keyingisi</button>
+      <div class="word-chips" id="word-chips"></div>
+      <div class="selected-words" id="selected-words"></div>
+      <button class="continue-button" id="continue-btn" disabled>Davom etish</button>
     </div>
   </div>
 
-  <!-- O'rtacha sahifasi -->
-  <div id="ortacha-page" style="display: none;">
-    <div class="dark-header">
+  <!-- Feedback sahifasi -->
+  <div id="feedback-page" class="content hidden">
+    <div class="header">
       <span>×</span>
       <h1>O'rtacha</h1>
       <div class="icons">
@@ -252,82 +177,130 @@
         <span>∞</span>
       </div>
     </div>
-    <div class="dark-content">
+    <div class="content">
+      <h2>Bu qo'shiq qo'shiqchi tomonidan chiroyli tarzda kuylandi.</h2>
       <div class="character">
         <img src="https://via.placeholder.com/50" alt="Character" style="border-radius: 50%;">
         <div class="speech">
-          Bu roman ko'p odamlar tomonidan o'qiladi.
+          Bu qo'shiq qo'shiqchi tomonidan chiroyli tarzda kuylandi.
         </div>
       </div>
-      <div class="dark-word-chips">
-        <div class="dark-chip">The</div>
-        <div class="dark-chip">read</div>
-        <div class="dark-chip">have</div>
-        <div class="dark-chip">people.</div>
-        <div class="dark-chip">are</div>
-        <div class="dark-chip">is</div>
-        <div class="dark-chip">by</div>
-        <div class="dark-chip">many</div>
-        <div class="dark-chip">reading</div>
-        <div class="dark-chip">read</div>
-        <div class="dark-chip">novel</div>
-      </div>
-      <button class="continue-button">Davom etish</button>
-    </div>
-  </div>
-
-  <!-- O'rtacha sahifasi (Noto'g'ri javob) -->
-  <div id="ortacha-feedback-page" style="display: none;">
-    <div class="dark-header">
-      <span>×</span>
-      <h1>O'rtacha</h1>
-      <div class="icons">
-        <span>ⓘ</span>
-        <span>∞</span>
-      </div>
-    </div>
-    <div class="dark-content">
-      <div class="character">
-        <img src="https://via.placeholder.com/50" alt="Character" style="border-radius: 50%;">
-        <div class="speech">
-          Bu roman ko'p odamlar tomonidan o'qiladi.
-        </div>
-      </div>
-      <div class="dark-word-chips">
-        <div class="dark-chip">The</div>
-        <div class="dark-chip">read</div>
-        <div class="dark-chip">have</div>
-        <div class="dark-chip">people.</div>
-        <div class="dark-chip">are</div>
-        <div class="dark-chip">is</div>
-        <div class="dark-chip">by</div>
-        <div class="dark-chip">many</div>
-        <div class="dark-chip">reading</div>
-        <div class="dark-chip">read</div>
-        <div class="dark-chip">novel</div>
-      </div>
-      <div class="feedback">
+      <div class="word-chips" id="feedback-chips"></div>
+      <div class="feedback" id="feedback-message">
         <span>Noto'g'ri javob!</span>
-        <span>To'g'ri javob: The novel is read by many people.</span>
-        <button class="next">Keyingi</button>
+        <span>To'g'ri javob: The song was sung beautifully by a singer.</span>
+        <button class="next" id="next-btn">Keyingi</button>
       </div>
     </div>
   </div>
 
   <script>
-    // Sahifalar o'rtasida o'tish uchun oddiy logika (masalan, tugma bosilganda)
-    document.querySelector('.next-button').addEventListener('click', () => {
-      document.getElementById('qoida-page').style.display = 'none';
-      document.getElementById('ortacha-page').style.display = 'block';
-    });
-    document.querySelector('.continue-button').addEventListener('click', () => {
-      document.getElementById('ortacha-page').style.display = 'none';
-      document.getElementById('ortacha-feedback-page').style.display = 'block';
-    });
-    document.querySelector('.feedback .next').addEventListener('click', () => {
-      document.getElementById('ortacha-feedback-page').style.display = 'none';
-      document.getElementById('qoida-page').style.display = 'block';
-    });
+    const questions = [
+      {
+        text: "Bu qo'shiq qo'shiqchi tomonidan chiroyli tarzda kuylandi.",
+        words: ["song", "a singer.", "The", "sing", "by", "beautifully", "sung", "is", "was"],
+        correctAnswer: "The song was sung beautifully by a singer."
+      }
+      // Qo'shimcha savollar qo'shish uchun massivni kengaytiring
+    ];
+
+    let currentQuestion = 0;
+    let userAnswer = [];
+
+    const wordChips = document.getElementById('word-chips');
+    const selectedWords = document.getElementById('selected-words');
+    const continueBtn = document.getElementById('continue-btn');
+    const feedbackPage = document.getElementById('feedback-page');
+    const questionPage = document.getElementById('question-page');
+    const feedbackChips = document.getElementById('feedback-chips');
+    const feedbackMessage = document.getElementById('feedback-message');
+    let nextBtn = document.getElementById('next-btn');
+
+    function shuffle(array) {
+      return array.sort(() => Math.random() - 0.5);
+    }
+
+    function renderQuestion() {
+      const { words, text } = questions[currentQuestion];
+      wordChips.innerHTML = '';
+      selectedWords.innerHTML = '';
+      userAnswer = [];
+      continueBtn.disabled = true;
+
+      const shuffledWords = shuffle([...words]);
+      shuffledWords.forEach(word => {
+        const chip = document.createElement('div');
+        chip.className = 'chip';
+        chip.textContent = word;
+        chip.onclick = () => selectWord(chip, word);
+        wordChips.appendChild(chip);
+      });
+    }
+
+    function selectWord(chip, word) {
+      if (!chip.classList.contains('selected') && userAnswer.length < 6) {
+        chip.classList.add('selected');
+        userAnswer.push(word);
+        renderSelectedWords();
+        if (userAnswer.length === 6) {
+          continueBtn.disabled = false;
+        }
+      }
+    }
+
+    function renderSelectedWords() {
+      selectedWords.innerHTML = '';
+      userAnswer.forEach((word, index) => {
+        const chip = document.createElement('div');
+        chip.className = 'selected-chip';
+        chip.textContent = word;
+        const removeBtn = document.createElement('span');
+        removeBtn.className = 'remove';
+        removeBtn.textContent = '×';
+        removeBtn.onclick = () => removeWord(index, word);
+        chip.appendChild(removeBtn);
+        selectedWords.appendChild(chip);
+      });
+    }
+
+    function removeWord(index, word) {
+      userAnswer.splice(index, 1);
+      const chips = wordChips.getElementsByClassName('chip');
+      for (let chip of chips) {
+        if (chip.textContent === word && chip.classList.contains('selected')) {
+          chip.classList.remove('selected');
+          break;
+        }
+      }
+      renderSelectedWords();
+      continueBtn.disabled = true;
+    }
+
+    continueBtn.onclick = () => {
+      const userResponse = userAnswer.join(' ');
+      const correctAnswer = questions[currentQuestion].correctAnswer;
+
+      questionPage.classList.add('hidden');
+      feedbackPage.classList.remove('hidden');
+      feedbackChips.innerHTML = wordChips.innerHTML;
+
+      if (userResponse === correctAnswer) {
+        feedbackMessage.innerHTML = `<span>To'g'ri javob!</span><button class="next" id="next-btn">Keyingi</button>`;
+      } else {
+        feedbackMessage.innerHTML = `<span>Noto'g'ri javob!</span><span>To'g'ri javob: ${correctAnswer}</span><button class="next" id="next-btn">Keyingi</button>`;
+      }
+
+      nextBtn = document.getElementById('next-btn');
+      nextBtn.onclick = () => {
+        currentQuestion = (currentQuestion + 1) % questions.length;
+        feedbackPage.classList.add('hidden');
+        questionPage.classList.remove('hidden');
+        renderQuestion();
+      };
+    };
+
+    // Dastlabki savolni yuklash
+    renderQuestion();
   </script>
 </body>
 </html>
