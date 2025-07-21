@@ -1,19 +1,155 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>So‘z o‘rganish</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Langs Vocabulary Bot</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+      color: #222;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .word {
+      font-size: 32px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .translation {
+      font-size: 24px;
+      color: #666;
+      margin-bottom: 20px;
+    }
+    button {
+      padding: 12px 24px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background-color: #0088cc;
+      color: white;
+      cursor: pointer;
+      margin: 10px 5px;
+    }
+    button:hover {
+      background-color: #0077b3;
+    }
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 20px;
+    }
+  </style>
 </head>
 <body>
-  <h2>en-uz</h2>
-  <img id="word-image" src="" alt="So‘z rasmi">
-  <div class="word" id="english-word"></div>
-  <div class="translation" id="uzbek-word"></div>
-  <button class="next" onclick="goToTest()">Keyingi</button>
-  <div class="counter" id="counter">Siz 0 ta so‘z o‘rgandingiz</div>
+  <div class="card" id="main-card">
+    <div id="learning-phase">
+      <div class="word" id="word">Today</div>
+      <div class="translation" id="translation">Bugun</div>
+      <button onclick="playAudio()">🔊 Tinglash</button>
+      <button onclick="nextPhase()">Keyingi</button>
+    </div>
 
-  <script src="app.js"></script>
+    <div id="test-phase" style="display: none;">
+      <div class="word" id="test-question">Today</div>
+      <div class="options">
+        <button onclick="checkAnswer(this)">Bugun</button>
+        <button onclick="checkAnswer(this)">Kecha</button>
+        <button onclick="checkAnswer(this)">Hafta</button>
+      </div>
+    </div>
+
+    <div id="result-phase" style="display: none;">
+      <div id="result-text" style="font-size: 20px; margin-bottom: 20px;"></div>
+      <button onclick="nextWord()">Yangi soʻz</button>
+    </div>
+  </div>
+
+  <script>
+    const words = [
+      { word: "Today", translation: "Bugun" },
+      { word: "Yesterday", translation: "Kecha" },
+      { word: "Week", translation: "Hafta" },
+      { word: "Tomorrow", translation: "Ertaga" }
+    ];
+
+    let currentIndex = 0;
+
+    function playAudio() {
+      const word = words[currentIndex].word;
+      const utterance = new SpeechSynthesisUtterance(word);
+      utterance.lang = "en-US";
+      speechSynthesis.speak(utterance);
+    }
+
+    function nextPhase() {
+      document.getElementById("learning-phase").style.display = "none";
+      document.getElementById("test-phase").style.display = "block";
+      generateTest();
+    }
+
+    function generateTest() {
+      const correct = words[currentIndex];
+      let options = [correct.translation];
+
+      // Random distractors
+      while (options.length < 3) {
+        const random = words[Math.floor(Math.random() * words.length)];
+        if (!options.includes(random.translation)) {
+          options.push(random.translation);
+        }
+      }
+
+      // Shuffle
+      options.sort(() => Math.random() - 0.5);
+
+      document.getElementById("test-question").textContent = correct.word;
+
+      const buttons = document.querySelectorAll(".options button");
+      buttons.forEach((btn, idx) => {
+        btn.textContent = options[idx];
+      });
+    }
+
+    function checkAnswer(btn) {
+      const correct = words[currentIndex].translation;
+      const resultText = document.getElementById("result-text");
+
+      if (btn.textContent === correct) {
+        resultText.textContent = "✅ To‘g‘ri!";
+      } else {
+        resultText.textContent = `❌ Noto‘g‘ri. To‘g‘ri javob: ${correct}`;
+      }
+
+      document.getElementById("test-phase").style.display = "none";
+      document.getElementById("result-phase").style.display = "block";
+    }
+
+    function nextWord() {
+      currentIndex = (currentIndex + 1) % words.length;
+      const word = words[currentIndex];
+      document.getElementById("word").textContent = word.word;
+      document.getElementById("translation").textContent = word.translation;
+
+      document.getElementById("result-phase").style.display = "none";
+      document.getElementById("learning-phase").style.display = "block";
+    }
+  </script>
 </body>
 </html>
