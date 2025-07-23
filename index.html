@@ -23,7 +23,8 @@
         .coins { font-size: 18px; font-weight: bold; }
         .coin-icon { width: 24px; vertical-align: middle; }
         .progress { font-size: 16px; margin: 10px 0; }
-        .word { font-size: 24px; margin: 20px 0; }
+        .word { font-size: 24px; margin: 20px 0; display: flex; align-items: center; justify-content: center; }
+        .audio-btn { width: 24px; cursor: pointer; margin-left: 10px; }
         .options { display: flex; flex-direction: column; align-items: center; gap: 15px; }
         .option {
             background-color: #fff;
@@ -52,7 +53,6 @@
             display: none;
         }
         .next-btn:hover { opacity: 0.9; }
-        .audio-btn { margin-left: 10px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -61,7 +61,10 @@
         <div class="coins"><img src="coin.png" alt="Coin" class="coin-icon"> <span id="coinCount">6</span></div>
     </div>
     <div class="progress" id="progress">1/20</div>
-    <div class="word" id="word">Today</div>
+    <div class="word" id="wordContainer">
+        <span id="word">Today</span>
+        <img src="audio-icon.png" alt="Audio" class="audio-btn" onclick="playAudio()">
+    </div>
     <div class="options" id="options">
         <div class="option" onclick="selectOption(this, 'Bugun')">Bugun</div>
         <div class="option" onclick="selectOption(this, 'Ertaga')">Ertaga</div>
@@ -69,20 +72,42 @@
     </div>
     <div class="feedback" id="feedback"></div>
     <button class="next-btn" onclick="nextQuestion()">Keyingi</button>
-    <img src="audio-icon.png" alt="Audio" class="audio-btn" onclick="playAudio()" id="audioBtn">
 
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.7.16.min.js"></script>
     <script>
+        // AWS Polly konfiguratsiyasi (o'z kalitlaringizni qo‘shing)
+        AWS.config.update({
+            accessKeyId: 'YOUR_ACCESS_KEY_ID',
+            secretAccessKey: 'YOUR_SECRET_ACCESS_KEY',
+            region: 'us-east-1' // Polly uchun region
+        });
+        const polly = new AWS.Polly();
+
         let currentQuestion = 0;
         let coins = 6;
         const questions = [
             { word: "Today", correct: "Bugun", options: ["Bugun", "Ertaga", "Kecha"] },
-            // Qo'shimcha savollar bu yerga qo'shiladi
+            { word: "Yesterday", correct: "Kecha", options: ["Bugun", "Kecha", "Ertaga"] },
+            // Qo'shimcha savollar bu yerga qo'shiladi (A1 uchun 400 ta)
         ];
+
+        function synthesizeSpeech(text, callback) {
+            const params = {
+                OutputFormat: 'mp3',
+                Text: text,
+                VoiceId: 'Amy' // Britaniya ingliz tili aksenti, boshqa variantlar: Joanna, Matthew
+            };
+            polly.synthesizeSpeech(params, (err, data) => {
+                if (err) console.error(err);
+                else callback(new Audio(URL.createObjectURL(new Blob([data.AudioStream], { type: 'audio/mpeg' }))));
+            });
+        }
 
         function playAudio() {
             const word = document.getElementById("word").textContent;
-            const audio = new Audio(`https://translate.google.com/translate_tts?ie=UTF-8&q=${word}&tl=en&client=tw-ob`);
-            audio.play();
+            synthesizeSpeech(word, (audio) => {
+                audio.play().catch(err => console.error("Audio playback failed:", err));
+            });
         }
 
         function selectOption(element, selected) {
