@@ -2,16 +2,16 @@
 <html lang="uz">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Inglizcha So‘z O‘rganish</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Viktorina - Inglizcha so'zlar</title>
   <style>
     body {
       margin: 0;
       font-family: sans-serif;
-      background: #111;
+      background-color: #111;
       color: white;
-      text-align: center;
       padding: 20px;
+      text-align: center;
     }
     .topbar {
       display: flex;
@@ -58,46 +58,93 @@
       font-size: 14px;
       margin-top: 5px;
     }
+    .next-btn {
+      display: none;
+      margin-top: 30px;
+      padding: 12px 24px;
+      font-size: 18px;
+      border: none;
+      border-radius: 10px;
+      background-color: #00aaff;
+      color: white;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
 
   <div class="topbar">
     <div class="level">🧑‍🎓 A1</div>
-    <div class="coin"><img src="https://cdn-icons-png.flaticon.com/512/833/833474.png" alt="coin" /> <span id="coinCount">6</span></div>
+    <div class="coin"><img src="https://cdn-icons-png.flaticon.com/512/833/833474.png" alt="coin" /> <span id="coinCount">0</span></div>
   </div>
 
-  <div class="question" id="questionWord">Today</div>
+  <div class="question" id="questionWord">Loading...</div>
 
-  <div class="options">
-    <div class="option" onclick="checkAnswer(this)">Bugun</div>
-    <div class="option" onclick="checkAnswer(this)">Ertaga</div>
-    <div class="option" onclick="checkAnswer(this)">Kecha</div>
-  </div>
+  <div class="options" id="optionsContainer"></div>
+
+  <button class="next-btn" id="nextBtn" onclick="nextQuestion()">Keyingi</button>
 
   <script>
-    const correctAnswer = "Bugun";
-    let coin = 6;
+    const questions = [
+      { word: "Today", correct: "Bugun", options: ["Bugun", "Kecha", "Ertaga"] },
+      { word: "Big", correct: "Katta", options: ["Kichkina", "Katta", "Yaxshi"] },
+      { word: "House", correct: "Uy", options: ["Maktab", "Uy", "Daraxt"] },
+      { word: "Car", correct: "Mashina", options: ["Mashina", "Velosiped", "Avtobus"] },
+      { word: "Happy", correct: "Baxtli", options: ["Xafa", "Baxtli", "Qorong‘i"] }
+    ];
 
-    function checkAnswer(element) {
-      const selected = element.innerText.trim();
+    let currentQuestion = 0;
+    let coin = 0;
 
-      // Disable all buttons
+    const questionWord = document.getElementById("questionWord");
+    const optionsContainer = document.getElementById("optionsContainer");
+    const coinCount = document.getElementById("coinCount");
+    const nextBtn = document.getElementById("nextBtn");
+
+    function showQuestion(index) {
+      nextBtn.style.display = "none";
+      optionsContainer.innerHTML = "";
+      const q = questions[index];
+      questionWord.innerText = q.word;
+
+      q.options.forEach(opt => {
+        const btn = document.createElement("div");
+        btn.className = "option";
+        btn.innerText = opt;
+        btn.onclick = () => checkAnswer(btn, opt, q.correct);
+        optionsContainer.appendChild(btn);
+      });
+    }
+
+    function checkAnswer(element, selected, correct) {
       document.querySelectorAll('.option').forEach(btn => btn.onclick = null);
-
-      if (selected === correctAnswer) {
+      if (selected === correct) {
         coin += 1;
-        document.getElementById("coinCount").innerText = coin;
+        coinCount.innerText = coin;
         element.style.backgroundColor = "#4CAF50";
         element.style.color = "#fff";
       } else {
         element.classList.add("wrong");
         const msg = document.createElement("div");
         msg.className = "wrong-msg";
-        msg.innerText = `Noto‘g‘ri, ${correctAnswer}`;
+        msg.innerText = `Noto‘g‘ri, ${correct}`;
         element.appendChild(msg);
       }
+      nextBtn.style.display = "inline-block";
     }
+
+    function nextQuestion() {
+      currentQuestion++;
+      if (currentQuestion < questions.length) {
+        showQuestion(currentQuestion);
+      } else {
+        questionWord.innerText = "Tugadi! ✅";
+        optionsContainer.innerHTML = "";
+        nextBtn.style.display = "none";
+      }
+    }
+
+    showQuestion(currentQuestion);
   </script>
 
 </body>
