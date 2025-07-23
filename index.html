@@ -25,13 +25,14 @@
         .progress { font-size: 16px; margin: 10px 0; }
         .word { font-size: 24px; margin: 20px 0; display: flex; align-items: center; justify-content: center; }
         .audio-btn { width: 24px; cursor: pointer; margin-left: 10px; }
-        .options { display: flex; flex-direction: column; align-items: center; gap: 15px; }
+        .options { display: flex; flex-direction: column; align-items: center; gap: 15px; max-width: 100%; }
         .option {
             background-color: #fff;
             color: #000;
             padding: 10px 20px;
             border-radius: 5px;
             width: 80%;
+            max-width: 300px;
             cursor: pointer;
             transition: background-color 0.3s;
         }
@@ -53,6 +54,11 @@
             display: none;
         }
         .next-btn:hover { opacity: 0.9; }
+        @media (max-width: 320px) {
+            .option { width: 90%; padding: 8px 15px; }
+            .word { font-size: 20px; }
+            .header { flex-direction: column; gap: 10px; }
+        }
     </style>
 </head>
 <body>
@@ -79,7 +85,7 @@
         AWS.config.update({
             accessKeyId: 'YOUR_ACCESS_KEY_ID',
             secretAccessKey: 'YOUR_SECRET_ACCESS_KEY',
-            region: 'us-east-1' // Polly uchun region
+            region: 'us-east-1'
         });
         const polly = new AWS.Polly();
 
@@ -88,14 +94,19 @@
         const questions = [
             { word: "Today", correct: "Bugun", options: ["Bugun", "Ertaga", "Kecha"] },
             { word: "Yesterday", correct: "Kecha", options: ["Bugun", "Kecha", "Ertaga"] },
-            // Qo'shimcha savollar bu yerga qo'shiladi (A1 uchun 400 ta)
+            { word: "Tomorrow", correct: "Ertaga", options: ["Bugun", "Ertaga", "Kecha"] },
+            { word: "I go to school ___", correct: "every day", options: ["every day", "yesterday", "tomorrow"] },
+            { word: "She ___ a book", correct: "reads", options: ["reads", "read", "reading"] },
+            // A1 uchun 400 ta savol qo‘shish uchun shablon:
+            // { word: "Question text", correct: "Correct answer", options: ["Correct answer", "Option 1", "Option 2"] },
+            // Har bir so‘z uchun 1 kontekstli savol (jami 400 ta)
         ];
 
         function synthesizeSpeech(text, callback) {
             const params = {
                 OutputFormat: 'mp3',
                 Text: text,
-                VoiceId: 'Amy' // Britaniya ingliz tili aksenti, boshqa variantlar: Joanna, Matthew
+                VoiceId: 'Joanna' // AQSh ingliz tili aksenti
             };
             polly.synthesizeSpeech(params, (err, data) => {
                 if (err) console.error(err);
