@@ -1,174 +1,104 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inglizcha Viktorina - A1</title>
-    <style>
-        body {
-            background-color: #000;
-            color: #fff;
-            font-family: 'Roboto', sans-serif;
-            margin: 0;
-            padding: 10px;
-            text-align: center;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-        }
-        .level { font-size: 20px; }
-        .coins { font-size: 18px; font-weight: bold; }
-        .coin-icon { width: 24px; vertical-align: middle; }
-        .progress { font-size: 16px; margin: 10px 0; }
-        .word { font-size: 24px; margin: 20px 0; display: flex; align-items: center; justify-content: center; }
-        .audio-btn { width: 24px; cursor: pointer; margin-left: 10px; }
-        .options { display: flex; flex-direction: column; align-items: center; gap: 15px; max-width: 100%; }
-        .option {
-            background-color: #fff;
-            color: #000;
-            padding: 10px 20px;
-            border-radius: 5px;
-            width: 80%;
-            max-width: 300px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        .option:hover { background-color: #ddd; }
-        .option.selected { background-color: #f44336; color: #fff; }
-        .option.correct { background-color: #4CAF50; color: #fff; }
-        .feedback { margin: 10px 0; font-size: 16px; }
-        .feedback.correct { color: #4CAF50; }
-        .feedback.incorrect { color: #f44336; }
-        .next-btn {
-            background: linear-gradient(to right, #2196F3, #1976D2);
-            color: #fff;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            margin-top: 20px;
-            display: none;
-        }
-        .next-btn:hover { opacity: 0.9; }
-        @media (max-width: 320px) {
-            .option { width: 90%; padding: 8px 15px; }
-            .word { font-size: 20px; }
-            .header { flex-direction: column; gap: 10px; }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inglizcha So‘z O‘rganish</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #111;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 40px;
+    }
+    .coin {
+      display: flex;
+      align-items: center;
+      font-size: 20px;
+    }
+    .coin img {
+      width: 30px;
+      margin-right: 8px;
+    }
+    .question {
+      font-size: 28px;
+      margin-bottom: 30px;
+    }
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .option {
+      background: white;
+      color: black;
+      border-radius: 10px;
+      padding: 15px;
+      font-size: 20px;
+      cursor: pointer;
+      transition: 0.3s;
+      position: relative;
+    }
+    .option:hover {
+      background: #eee;
+    }
+    .wrong {
+      border: 2px solid red;
+    }
+    .wrong-msg {
+      color: red;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+  </style>
 </head>
 <body>
-    <div class="header">
-        <div class="level">A1</div>
-        <div class="coins"><img src="coin.png" alt="Coin" class="coin-icon"> <span id="coinCount">6</span></div>
-    </div>
-    <div class="progress" id="progress">1/20</div>
-    <div class="word" id="wordContainer">
-        <span id="word">Today</span>
-        <img src="audio-icon.png" alt="Audio" class="audio-btn" onclick="playAudio()">
-    </div>
-    <div class="options" id="options">
-        <div class="option" onclick="selectOption(this, 'Bugun')">Bugun</div>
-        <div class="option" onclick="selectOption(this, 'Ertaga')">Ertaga</div>
-        <div class="option" onclick="selectOption(this, 'Kecha')">Kecha</div>
-    </div>
-    <div class="feedback" id="feedback"></div>
-    <button class="next-btn" onclick="nextQuestion()">Keyingi</button>
 
-    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.7.16.min.js"></script>
-    <script>
-        // AWS Polly konfiguratsiyasi (o'z kalitlaringizni qo‘shing)
-        AWS.config.update({
-            accessKeyId: 'YOUR_ACCESS_KEY_ID',
-            secretAccessKey: 'YOUR_SECRET_ACCESS_KEY',
-            region: 'us-east-1'
-        });
-        const polly = new AWS.Polly();
+  <div class="topbar">
+    <div class="level">🧑‍🎓 A1</div>
+    <div class="coin"><img src="https://cdn-icons-png.flaticon.com/512/833/833474.png" alt="coin" /> <span id="coinCount">6</span></div>
+  </div>
 
-        let currentQuestion = 0;
-        let coins = 6;
-        const questions = [
-            { word: "Today", correct: "Bugun", options: ["Bugun", "Ertaga", "Kecha"] },
-            { word: "Yesterday", correct: "Kecha", options: ["Bugun", "Kecha", "Ertaga"] },
-            { word: "Tomorrow", correct: "Ertaga", options: ["Bugun", "Ertaga", "Kecha"] },
-            { word: "I go to school ___", correct: "every day", options: ["every day", "yesterday", "tomorrow"] },
-            { word: "She ___ a book", correct: "reads", options: ["reads", "read", "reading"] },
-            // A1 uchun 400 ta savol qo‘shish uchun shablon:
-            // { word: "Question text", correct: "Correct answer", options: ["Correct answer", "Option 1", "Option 2"] },
-            // Har bir so‘z uchun 1 kontekstli savol (jami 400 ta)
-        ];
+  <div class="question" id="questionWord">Today</div>
 
-        function synthesizeSpeech(text, callback) {
-            const params = {
-                OutputFormat: 'mp3',
-                Text: text,
-                VoiceId: 'Joanna' // AQSh ingliz tili aksenti
-            };
-            polly.synthesizeSpeech(params, (err, data) => {
-                if (err) console.error(err);
-                else callback(new Audio(URL.createObjectURL(new Blob([data.AudioStream], { type: 'audio/mpeg' }))));
-            });
-        }
+  <div class="options">
+    <div class="option" onclick="checkAnswer(this)">Bugun</div>
+    <div class="option" onclick="checkAnswer(this)">Ertaga</div>
+    <div class="option" onclick="checkAnswer(this)">Kecha</div>
+  </div>
 
-        function playAudio() {
-            const word = document.getElementById("word").textContent;
-            synthesizeSpeech(word, (audio) => {
-                audio.play().catch(err => console.error("Audio playback failed:", err));
-            });
-        }
+  <script>
+    const correctAnswer = "Bugun";
+    let coin = 6;
 
-        function selectOption(element, selected) {
-            const correct = questions[currentQuestion].correct;
-            const options = document.querySelectorAll('.option');
-            options.forEach(opt => opt.classList.remove('selected', 'correct', 'incorrect'));
+    function checkAnswer(element) {
+      const selected = element.innerText.trim();
 
-            element.classList.add('selected');
-            if (selected === correct) {
-                element.classList.add('correct');
-                document.getElementById('feedback').innerHTML = 'To\'g\'ri! +1 tanga';
-                coins++;
-                document.getElementById('coinCount').textContent = coins;
-            } else {
-                element.classList.add('incorrect');
-                document.getElementById('feedback').innerHTML = `Noto\'g\'ri, To\'g\'ri: ${correct}`;
-            }
-            document.querySelector('.next-btn').style.display = 'block';
-        }
+      // Disable all buttons
+      document.querySelectorAll('.option').forEach(btn => btn.onclick = null);
 
-        function nextQuestion() {
-            currentQuestion++;
-            if (currentQuestion < questions.length) {
-                loadQuestion();
-            } else {
-                document.getElementById('feedback').innerHTML = `Test tugadi! ${coins} tanga yig'dingiz.`;
-                document.querySelector('.next-btn').style.display = 'none';
-            }
-        }
+      if (selected === correctAnswer) {
+        coin += 1;
+        document.getElementById("coinCount").innerText = coin;
+        element.style.backgroundColor = "#4CAF50";
+        element.style.color = "#fff";
+      } else {
+        element.classList.add("wrong");
+        const msg = document.createElement("div");
+        msg.className = "wrong-msg";
+        msg.innerText = `Noto‘g‘ri, ${correctAnswer}`;
+        element.appendChild(msg);
+      }
+    }
+  </script>
 
-        function loadQuestion() {
-            const q = questions[currentQuestion];
-            document.getElementById('word').textContent = q.word;
-            document.getElementById('progress').textContent = `${currentQuestion + 1}/20`;
-            document.getElementById('feedback').innerHTML = '';
-            document.querySelector('.next-btn').style.display = 'none';
-
-            const optionsDiv = document.getElementById('options');
-            optionsDiv.innerHTML = '';
-            q.options.sort(() => Math.random() - 0.5).forEach(opt => {
-                const div = document.createElement('div');
-                div.className = 'option';
-                div.onclick = () => selectOption(div, opt);
-                div.textContent = opt;
-                optionsDiv.appendChild(div);
-            });
-        }
-
-        // Boshlang'ich yuklash
-        loadQuestion();
-    </script>
 </body>
 </html>
