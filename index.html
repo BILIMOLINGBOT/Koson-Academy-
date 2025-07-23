@@ -1,155 +1,138 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Langs Vocabulary Bot</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #f4f4f4;
-      color: #222;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-    }
-    .card {
-      background: white;
-      border-radius: 16px;
-      padding: 24px;
-      width: 90%;
-      max-width: 400px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-      text-align: center;
-    }
-    .word {
-      font-size: 32px;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-    .translation {
-      font-size: 24px;
-      color: #666;
-      margin-bottom: 20px;
-    }
-    button {
-      padding: 12px 24px;
-      font-size: 16px;
-      border: none;
-      border-radius: 8px;
-      background-color: #0088cc;
-      color: white;
-      cursor: pointer;
-      margin: 10px 5px;
-    }
-    button:hover {
-      background-color: #0077b3;
-    }
-    .options {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-top: 20px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inglizcha Viktorina - A1</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 10px;
+            text-align: center;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+        }
+        .level { font-size: 20px; }
+        .coins { font-size: 18px; font-weight: bold; }
+        .coin-icon { width: 24px; vertical-align: middle; }
+        .progress { font-size: 16px; margin: 10px 0; }
+        .word { font-size: 24px; margin: 20px 0; }
+        .options { display: flex; flex-direction: column; align-items: center; gap: 15px; }
+        .option {
+            background-color: #fff;
+            color: #000;
+            padding: 10px 20px;
+            border-radius: 5px;
+            width: 80%;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .option:hover { background-color: #ddd; }
+        .option.selected { background-color: #f44336; color: #fff; }
+        .option.correct { background-color: #4CAF50; color: #fff; }
+        .feedback { margin: 10px 0; font-size: 16px; }
+        .feedback.correct { color: #4CAF50; }
+        .feedback.incorrect { color: #f44336; }
+        .next-btn {
+            background: linear-gradient(to right, #2196F3, #1976D2);
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+            display: none;
+        }
+        .next-btn:hover { opacity: 0.9; }
+        .audio-btn { margin-left: 10px; cursor: pointer; }
+    </style>
 </head>
 <body>
-  <div class="card" id="main-card">
-    <div id="learning-phase">
-      <div class="word" id="word">Today</div>
-      <div class="translation" id="translation">Bugun</div>
-      <button onclick="playAudio()">🔊 Tinglash</button>
-      <button onclick="nextPhase()">Keyingi</button>
+    <div class="header">
+        <div class="level">A1</div>
+        <div class="coins"><img src="coin.png" alt="Coin" class="coin-icon"> <span id="coinCount">6</span></div>
     </div>
-
-    <div id="test-phase" style="display: none;">
-      <div class="word" id="test-question">Today</div>
-      <div class="options">
-        <button onclick="checkAnswer(this)">Bugun</button>
-        <button onclick="checkAnswer(this)">Kecha</button>
-        <button onclick="checkAnswer(this)">Hafta</button>
-      </div>
+    <div class="progress" id="progress">1/20</div>
+    <div class="word" id="word">Today</div>
+    <div class="options" id="options">
+        <div class="option" onclick="selectOption(this, 'Bugun')">Bugun</div>
+        <div class="option" onclick="selectOption(this, 'Ertaga')">Ertaga</div>
+        <div class="option" onclick="selectOption(this, 'Kecha')">Kecha</div>
     </div>
+    <div class="feedback" id="feedback"></div>
+    <button class="next-btn" onclick="nextQuestion()">Keyingi</button>
+    <img src="audio-icon.png" alt="Audio" class="audio-btn" onclick="playAudio()" id="audioBtn">
 
-    <div id="result-phase" style="display: none;">
-      <div id="result-text" style="font-size: 20px; margin-bottom: 20px;"></div>
-      <button onclick="nextWord()">Yangi soʻz</button>
-    </div>
-  </div>
+    <script>
+        let currentQuestion = 0;
+        let coins = 6;
+        const questions = [
+            { word: "Today", correct: "Bugun", options: ["Bugun", "Ertaga", "Kecha"] },
+            // Qo'shimcha savollar bu yerga qo'shiladi
+        ];
 
-  <script>
-    const words = [
-      { word: "Today", translation: "Bugun" },
-      { word: "Yesterday", translation: "Kecha" },
-      { word: "Week", translation: "Hafta" },
-      { word: "Tomorrow", translation: "Ertaga" }
-    ];
-
-    let currentIndex = 0;
-
-    function playAudio() {
-      const word = words[currentIndex].word;
-      const utterance = new SpeechSynthesisUtterance(word);
-      utterance.lang = "en-US";
-      speechSynthesis.speak(utterance);
-    }
-
-    function nextPhase() {
-      document.getElementById("learning-phase").style.display = "none";
-      document.getElementById("test-phase").style.display = "block";
-      generateTest();
-    }
-
-    function generateTest() {
-      const correct = words[currentIndex];
-      let options = [correct.translation];
-
-      // Random distractors
-      while (options.length < 3) {
-        const random = words[Math.floor(Math.random() * words.length)];
-        if (!options.includes(random.translation)) {
-          options.push(random.translation);
+        function playAudio() {
+            const word = document.getElementById("word").textContent;
+            const audio = new Audio(`https://translate.google.com/translate_tts?ie=UTF-8&q=${word}&tl=en&client=tw-ob`);
+            audio.play();
         }
-      }
 
-      // Shuffle
-      options.sort(() => Math.random() - 0.5);
+        function selectOption(element, selected) {
+            const correct = questions[currentQuestion].correct;
+            const options = document.querySelectorAll('.option');
+            options.forEach(opt => opt.classList.remove('selected', 'correct', 'incorrect'));
 
-      document.getElementById("test-question").textContent = correct.word;
+            element.classList.add('selected');
+            if (selected === correct) {
+                element.classList.add('correct');
+                document.getElementById('feedback').innerHTML = 'To\'g\'ri! +1 tanga';
+                coins++;
+                document.getElementById('coinCount').textContent = coins;
+            } else {
+                element.classList.add('incorrect');
+                document.getElementById('feedback').innerHTML = `Noto\'g\'ri, To\'g\'ri: ${correct}`;
+            }
+            document.querySelector('.next-btn').style.display = 'block';
+        }
 
-      const buttons = document.querySelectorAll(".options button");
-      buttons.forEach((btn, idx) => {
-        btn.textContent = options[idx];
-      });
-    }
+        function nextQuestion() {
+            currentQuestion++;
+            if (currentQuestion < questions.length) {
+                loadQuestion();
+            } else {
+                document.getElementById('feedback').innerHTML = `Test tugadi! ${coins} tanga yig'dingiz.`;
+                document.querySelector('.next-btn').style.display = 'none';
+            }
+        }
 
-    function checkAnswer(btn) {
-      const correct = words[currentIndex].translation;
-      const resultText = document.getElementById("result-text");
+        function loadQuestion() {
+            const q = questions[currentQuestion];
+            document.getElementById('word').textContent = q.word;
+            document.getElementById('progress').textContent = `${currentQuestion + 1}/20`;
+            document.getElementById('feedback').innerHTML = '';
+            document.querySelector('.next-btn').style.display = 'none';
 
-      if (btn.textContent === correct) {
-        resultText.textContent = "✅ To‘g‘ri!";
-      } else {
-        resultText.textContent = `❌ Noto‘g‘ri. To‘g‘ri javob: ${correct}`;
-      }
+            const optionsDiv = document.getElementById('options');
+            optionsDiv.innerHTML = '';
+            q.options.sort(() => Math.random() - 0.5).forEach(opt => {
+                const div = document.createElement('div');
+                div.className = 'option';
+                div.onclick = () => selectOption(div, opt);
+                div.textContent = opt;
+                optionsDiv.appendChild(div);
+            });
+        }
 
-      document.getElementById("test-phase").style.display = "none";
-      document.getElementById("result-phase").style.display = "block";
-    }
-
-    function nextWord() {
-      currentIndex = (currentIndex + 1) % words.length;
-      const word = words[currentIndex];
-      document.getElementById("word").textContent = word.word;
-      document.getElementById("translation").textContent = word.translation;
-
-      document.getElementById("result-phase").style.display = "none";
-      document.getElementById("learning-phase").style.display = "block";
-    }
-  </script>
+        // Boshlang'ich yuklash
+        loadQuestion();
+    </script>
 </body>
 </html>
