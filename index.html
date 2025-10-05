@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bilim Ilova - Asosiy Sahifa</title>
+    <title>Instagram Rasm Generator - 9:16</title>
     <style>
         * {
             margin: 0;
@@ -15,287 +15,346 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             padding: 20px;
         }
 
         .container {
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .profile-section {
             background: white;
             border-radius: 20px;
             padding: 30px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
             text-align: center;
-        }
-
-        .profile-image {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            border: 4px solid #667eea;
-            margin-bottom: 15px;
-            object-fit: cover;
-        }
-
-        .profile-name {
-            font-size: 24px;
-            font-weight: bold;
             color: #333;
-            margin-bottom: 10px;
+            margin-bottom: 30px;
+            font-size: 24px;
         }
 
-        .profile-points {
-            font-size: 18px;
-            color: #667eea;
-            font-weight: 600;
-        }
-
-        .levels-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-        }
-
-        .level-card {
-            background: white;
+        .canvas-wrapper {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 9/16;
+            margin-bottom: 20px;
             border-radius: 15px;
-            padding: 30px 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: transform 0.3s, box-shadow 0.3s;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            text-decoration: none;
-            color: inherit;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
             display: block;
         }
 
-        .level-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
         }
 
-        .level-card.a1 {
-            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
 
-        .level-card.a2 {
-            background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
-        }
-
-        .level-card.b1 {
-            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
-        }
-
-        .level-card.b2 {
-            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
-        }
-
-        .level-title {
-            font-size: 32px;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 10px;
-        }
-
-        .level-points {
-            font-size: 16px;
+        label {
+            font-weight: 600;
             color: #555;
-            font-weight: 500;
+            font-size: 14px;
         }
 
-        .loading {
-            text-align: center;
+        input[type="text"],
+        textarea,
+        input[type="color"],
+        select {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+            font-family: inherit;
+        }
+
+        input[type="color"] {
+            height: 50px;
+            cursor: pointer;
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        button {
+            padding: 14px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-draw {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            font-size: 18px;
-            padding: 50px;
         }
 
-        .error {
-            background: #ff6b6b;
+        .btn-draw:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-download {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             color: white;
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            margin-bottom: 20px;
         }
 
-        @media (max-width: 480px) {
-            .levels-grid {
-                grid-template-columns: 1fr;
-            }
+        .btn-download:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+        }
+
+        .btn-clear {
+            background: #f0f0f0;
+            color: #555;
+            grid-column: 1 / -1;
+        }
+
+        .btn-clear:hover {
+            background: #e0e0e0;
+        }
+
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .btn-preset {
+            padding: 10px;
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-preset:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div id="loading" class="loading">Yuklanmoqda...</div>
-        <div id="error" class="error" style="display: none;"></div>
+        <h1>📱 Instagram Rasm Generator (9:16)</h1>
         
-        <div id="content" style="display: none;">
-            <div class="profile-section">
-                <img id="profileImage" src="https://via.placeholder.com/100" alt="Profil rasmi" class="profile-image">
-                <div id="profileName" class="profile-name">Foydalanuvchi</div>
-                <div class="profile-points">
-                    Jami ballar: <span id="totalPoints">0</span>
-                </div>
+        <div class="canvas-wrapper">
+            <canvas id="myCanvas"></canvas>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>📝 Arabcha matn:</label>
+                <input type="text" id="arabicText" placeholder="هذه عائلتي" dir="rtl">
             </div>
 
-            <div class="levels-grid">
-                <a href="a1-lessons.html" class="level-card a1">
-                    <div class="level-title">A1</div>
-                    <div class="level-points">Ballar: <span id="a1Points">0</span></div>
-                </a>
+            <div class="control-group">
+                <label>📝 O'zbekcha matn:</label>
+                <input type="text" id="uzbekText" placeholder="Bu mening oilam">
+            </div>
 
-                <a href="a2-lessons.html" class="level-card a2">
-                    <div class="level-title">A2</div>
-                    <div class="level-points">Ballar: <span id="a2Points">0</span></div>
-                </a>
+            <div class="control-group">
+                <label>🎨 Fon rangi:</label>
+                <input type="color" id="bgColor" value="#667eea">
+            </div>
 
-                <a href="b1-lessons.html" class="level-card b1">
-                    <div class="level-title">B1</div>
-                    <div class="level-points">Ballar: <span id="b1Points">0</span></div>
-                </a>
+            <div class="control-group">
+                <label>✍️ Matn rangi:</label>
+                <input type="color" id="textColor" value="#ffffff">
+            </div>
 
-                <a href="b2-lessons.html" class="level-card b2">
-                    <div class="level-title">B2</div>
-                    <div class="level-points">Ballar: <span id="b2Points">0</span></div>
-                </a>
+            <div class="control-group">
+                <label>🖼️ Rasm turi:</label>
+                <select id="imageType">
+                    <option value="family">Oila</option>
+                    <option value="father">Ota</option>
+                    <option value="mother">Ona</option>
+                    <option value="brother">Aka/Uka</option>
+                    <option value="sister">Opa/Singil</option>
+                </select>
+            </div>
+
+            <div class="preset-buttons">
+                <button class="btn-preset" onclick="setPreset('family')">👨‍👩‍👧‍👦 Oila</button>
+                <button class="btn-preset" onclick="setPreset('father')">👨 Ota</button>
+                <button class="btn-preset" onclick="setPreset('mother')">👩 Ona</button>
+                <button class="btn-preset" onclick="setPreset('brother')">👦 Aka/Uka</button>
+                <button class="btn-preset" onclick="setPreset('sister')">👧 Opa/Singil</button>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-draw" onclick="drawImage()">🎨 Chizish</button>
+                <button class="btn-download" onclick="downloadImage()">💾 Yuklash</button>
+                <button class="btn-clear" onclick="clearCanvas()">🗑️ Tozalash</button>
             </div>
         </div>
     </div>
 
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    <script>
+        const canvas = document.getElementById('myCanvas');
+        const ctx = canvas.getContext('2d');
 
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyD0gBUJNcrgvvntcrfKK7Ky8t6_9Qb96Io",
-            authDomain: "bilimilova-64833.firebaseapp.com",
-            databaseURL: "https://bilimilova-64833-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "bilimilova-64833",
-            storageBucket: "bilimilova-64833.firebasestorage.app",
-            messagingSenderId: "890689414502",
-            appId: "1:890689414502:web:8141d7aab413495c0c14a7",
-            measurementId: "G-ZBC8X1VVMZ"
+        // 9:16 format - Instagram Story/Reel o'lchami
+        canvas.width = 1080;
+        canvas.height = 1920;
+
+        const presets = {
+            family: {
+                arabic: 'هذه عائلتي',
+                uzbek: 'Bu mening oilam',
+                emoji: '👨‍👩‍👧‍👦'
+            },
+            father: {
+                arabic: 'هذا أبي',
+                uzbek: 'Bu mening otam',
+                emoji: '👨'
+            },
+            mother: {
+                arabic: 'هذه أمي',
+                uzbek: 'Bu mening onam',
+                emoji: '👩'
+            },
+            brother: {
+                arabic: 'هذا أخي',
+                uzbek: 'Bu mening akam / ukam',
+                emoji: '👦'
+            },
+            sister: {
+                arabic: 'هذه أختي',
+                uzbek: 'Bu mening opam / singlim',
+                emoji: '👧'
+            }
         };
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        function setPreset(type) {
+            const preset = presets[type];
+            document.getElementById('arabicText').value = preset.arabic;
+            document.getElementById('uzbekText').value = preset.uzbek;
+            document.getElementById('imageType').value = type;
+        }
 
-        const tg = window.Telegram.WebApp;
-        tg.expand();
+        function drawImage() {
+            const arabicText = document.getElementById('arabicText').value || 'هذه عائلتي';
+            const uzbekText = document.getElementById('uzbekText').value || 'Bu mening oilam';
+            const bgColor = document.getElementById('bgColor').value;
+            const textColor = document.getElementById('textColor').value;
+            const imageType = document.getElementById('imageType').value;
 
-        const loadingEl = document.getElementById('loading');
-        const errorEl = document.getElementById('error');
-        const contentEl = document.getElementById('content');
-
-        function showError(message) {
-            console.error('Xatolik:', message);
-            errorEl.textContent = message;
-            errorEl.style.display = 'block';
-            loadingEl.style.display = 'none';
+            // Gradient fon
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, bgColor);
+            gradient.addColorStop(1, adjustColor(bgColor, -30));
             
-            // Xatolik bo'lsa ham sahifani ko'rsatish
-            setTimeout(() => {
-                contentEl.style.display = 'block';
-            }, 1000);
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Dekorativ elementlar
+            drawDecorativeElements(bgColor);
+
+            // Markaziy emoji
+            const emoji = presets[imageType].emoji;
+            ctx.font = '400px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(emoji, canvas.width / 2, canvas.height / 2);
+
+            // Arabcha matn (yuqorida)
+            ctx.fillStyle = textColor;
+            ctx.font = 'bold 120px Arial';
+            ctx.textAlign = 'center';
+            ctx.shadowColor = 'rgba(0,0,0,0.3)';
+            ctx.shadowBlur = 20;
+            ctx.shadowOffsetY = 5;
+            ctx.fillText(arabicText, canvas.width / 2, 300);
+
+            // O'zbekcha matn (pastda)
+            ctx.font = 'bold 100px Arial';
+            ctx.fillText(uzbekText, canvas.width / 2, canvas.height - 250);
+            
+            // Shadow ni o'chirish
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetY = 0;
         }
 
-        async function loadUserData() {
-            try {
-                console.log('Ma\'lumotlar yuklanmoqda...');
-                
-                // Telegram foydalanuvchi ma'lumotlarini olish
-                const user = tg.initDataUnsafe?.user;
-                
-                console.log('Telegram user:', user);
-
-                // Agar Telegram ma'lumotlari bo'lmasa, test ma'lumotlarini ishlatish
-                const userData = {
-                    id: user?.id || 123456789,
-                    firstName: user?.first_name || 'Test',
-                    lastName: user?.last_name || 'User',
-                    username: user?.username || 'testuser',
-                    photoUrl: user?.photo_url || 'https://via.placeholder.com/100',
-                    points: {
-                        a1: 0,
-                        a2: 0,
-                        b1: 0,
-                        b2: 0,
-                        total: 0
-                    }
-                };
-
-                // Firebase autentifikatsiya
-                await signInAnonymously(auth);
-                console.log('Firebase ga ulanildi');
-
-                const userId = userData.id.toString();
-                const userDocRef = doc(db, 'users', userId);
-
-                try {
-                    // Foydalanuvchi ma'lumotlarini olish
-                    let userDoc = await getDoc(userDocRef);
-
-                    if (!userDoc.exists()) {
-                        // Yangi foydalanuvchi uchun ma'lumotlarni yaratish
-                        const newUserData = {
-                            ...userData,
-                            createdAt: new Date().toISOString(),
-                            lastVisit: new Date().toISOString()
-                        };
-
-                        await setDoc(userDocRef, newUserData);
-                        console.log('Yangi foydalanuvchi yaratildi');
-                    } else {
-                        // Mavjud ma'lumotlarni olish
-                        const existingData = userDoc.data();
-                        userData.points = existingData.points || userData.points;
-                        
-                        // Oxirgi tashrif vaqtini yangilash
-                        await setDoc(userDocRef, {
-                            lastVisit: new Date().toISOString()
-                        }, { merge: true });
-                        console.log('Foydalanuvchi ma\'lumotlari yangilandi');
-                    }
-                } catch (dbError) {
-                    console.error('Database xatosi:', dbError);
-                    // Database xatosi bo'lsa ham davom etish
-                }
-
-                // Ma'lumotlarni sahifada ko'rsatish
-                document.getElementById('profileImage').src = userData.photoUrl;
-                document.getElementById('profileName').textContent = 
-                    `${userData.firstName} ${userData.lastName}`.trim();
-                
-                document.getElementById('a1Points').textContent = userData.points.a1;
-                document.getElementById('a2Points').textContent = userData.points.a2;
-                document.getElementById('b1Points').textContent = userData.points.b1;
-                document.getElementById('b2Points').textContent = userData.points.b2;
-                document.getElementById('totalPoints').textContent = userData.points.total;
-
-                // Kontentni ko'rsatish
-                loadingEl.style.display = 'none';
-                contentEl.style.display = 'block';
-                console.log('Sahifa tayyor');
-
-            } catch (error) {
-                console.error('Umumiy xato:', error);
-                showError('Ma\'lumotlarni yuklashda xatolik: ' + error.message);
-            }
+        function drawDecorativeElements(baseColor) {
+            // Yumshoq doiralar
+            const lightColor = adjustColor(baseColor, 20);
+            ctx.fillStyle = lightColor + '20';
+            
+            ctx.beginPath();
+            ctx.arc(200, 400, 300, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.arc(canvas.width - 200, canvas.height - 400, 350, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.arc(canvas.width / 2, 200, 200, 0, Math.PI * 2);
+            ctx.fill();
         }
 
-        // Sahifa yuklanganda ma'lumotlarni olish
-        loadUserData();
+        function adjustColor(color, amount) {
+            const num = parseInt(color.replace('#', ''), 16);
+            const r = Math.max(0, Math.min(255, (num >> 16) + amount));
+            const g = Math.max(0, Math.min(255, ((num >> 8) & 0x00FF) + amount));
+            const b = Math.max(0, Math.min(255, (num & 0x0000FF) + amount));
+            return '#' + ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
+        }
+
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#f8f9fa';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function downloadImage() {
+            const link = document.createElement('a');
+            link.download = 'instagram-story-9x16.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        // Dastlabki rasm
+        setPreset('family');
+        drawImage();
     </script>
 </body>
 </html>
