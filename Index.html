@@ -1,360 +1,314 @@
-<!DOCTYPE html>
-<html lang="uz">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instagram Rasm Generator - 9:16</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+import React, { useState, useRef } from 'react';
+import { Volume2, Play, Pause, SkipBack, SkipForward, Repeat, Bookmark } from 'lucide-react';
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
+const EnglishLearningApp = () => {
+  const [sentences] = useState([
+    {
+      id: 1,
+      english: "How are you?",
+      uzbek: "Qalaysiz? Qandaysiz?",
+      category: "Kundalik Iboralar"
+    },
+    {
+      id: 2,
+      english: "Nice to meet you.",
+      uzbek: "Siz bilan tanishganimdan xursandman.",
+      category: "Kundalik Iboralar"
+    },
+    {
+      id: 3,
+      english: "What's your name?",
+      uzbek: "Ismingiz nima?",
+      category: "Kundalik Iboralar"
+    },
+    {
+      id: 4,
+      english: "Where are you from?",
+      uzbek: "Qayerdansiz?",
+      category: "Kundalik Iboralar"
+    },
+    {
+      id: 5,
+      english: "I don't understand.",
+      uzbek: "Men tushunmadim.",
+      category: "Kundalik Iboralar"
+    },
+    {
+      id: 6,
+      english: "Can you help me, please?",
+      uzbek: "Iltimos, menga yordam bera olasizmi?",
+      category: "Kundalik Iboralar"
+    },
+    {
+      id: 7,
+      english: "I'm learning English.",
+      uzbek: "Men ingliz tilini o'rganayapman.",
+      category: "Kundalik Iboralar"
+    },
+    {
+      id: 8,
+      english: "Have a nice day!",
+      uzbek: "Kuningiz yaxshi o'tsin!",
+      category: "Kundalik Iboralar"
+    },
+    {
+      id: 9,
+      english: "See you soon.",
+      uzbek: "Tez orada ko'rishamiz.",
+      category: "Kundalik Iboralar"
+    },
+    {
+      id: 10,
+      english: "Thank you very much.",
+      uzbek: "Katta rahmat.",
+      category: "Kundalik Iboralar"
+    }
+  ]);
 
-        .container {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-width: 500px;
-            width: 100%;
-        }
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(5);
+  const [highlightedSentence, setHighlightedSentence] = useState(null);
+  const [bookmarked, setBookmarked] = useState([]);
+  const [isRepeating, setIsRepeating] = useState(false);
 
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 30px;
-            font-size: 24px;
-        }
+  const currentSentence = sentences[currentIndex];
 
-        .canvas-wrapper {
-            position: relative;
-            width: 100%;
-            aspect-ratio: 9/16;
-            margin-bottom: 20px;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
+  const playAudio = async () => {
+    if (isPlaying) {
+      window.speechSynthesis.cancel();
+      setIsPlaying(false);
+      setCurrentTime(0);
+      setHighlightedSentence(null);
+      return;
+    }
 
-        canvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
+    setIsPlaying(true);
+    setCurrentTime(0);
+    
+    // Play English
+    setHighlightedSentence('english');
+    await speakText(currentSentence.english, 'en-US', 2.5);
+    
+    // Small pause
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Play Uzbek
+    setHighlightedSentence('uzbek');
+    await speakText(currentSentence.uzbek, 'uz-UZ', 2.5);
+    
+    setIsPlaying(false);
+    setCurrentTime(0);
+    setHighlightedSentence(null);
+    
+    // Auto next if repeating is off
+    if (!isRepeating && currentIndex < sentences.length - 1) {
+      setTimeout(() => {
+        setCurrentIndex(currentIndex + 1);
+      }, 800);
+    } else if (isRepeating) {
+      setTimeout(() => {
+        playAudio();
+      }, 800);
+    }
+  };
 
-        .controls {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
+  const speakText = (text, lang, estimatedDuration) => {
+    return new Promise((resolve) => {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = lang;
+      utterance.rate = 0.75;
+      
+      let interval;
+      utterance.onstart = () => {
+        let elapsed = 0;
+        interval = setInterval(() => {
+          elapsed += 0.1;
+          setCurrentTime(prev => prev + 0.1);
+        }, 100);
+      };
+      
+      utterance.onend = () => {
+        clearInterval(interval);
+        resolve();
+      };
+      
+      window.speechSynthesis.speak(utterance);
+    });
+  };
 
-        .control-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
+  const nextSentence = () => {
+    window.speechSynthesis.cancel();
+    setIsPlaying(false);
+    setCurrentTime(0);
+    setHighlightedSentence(null);
+    if (currentIndex < sentences.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+    }
+  };
 
-        label {
-            font-weight: 600;
-            color: #555;
-            font-size: 14px;
-        }
+  const prevSentence = () => {
+    window.speechSynthesis.cancel();
+    setIsPlaying(false);
+    setCurrentTime(0);
+    setHighlightedSentence(null);
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+    }
+  };
 
-        input[type="text"],
-        textarea,
-        input[type="color"],
-        select {
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: border-color 0.3s;
-        }
+  const toggleBookmark = () => {
+    if (bookmarked.includes(currentIndex)) {
+      setBookmarked(bookmarked.filter(i => i !== currentIndex));
+    } else {
+      setBookmarked([...bookmarked, currentIndex]);
+    }
+  };
 
-        input[type="text"]:focus,
-        textarea:focus,
-        select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
+  const toggleRepeat = () => {
+    setIsRepeating(!isRepeating);
+  };
 
-        textarea {
-            resize: vertical;
-            min-height: 60px;
-            font-family: inherit;
-        }
+  const formatTime = (time) => {
+    const mins = Math.floor(time / 60);
+    const secs = Math.floor(time % 60);
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
-        input[type="color"] {
-            height: 50px;
-            cursor: pointer;
-        }
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-gray-800 to-gray-900 text-white">
+      {/* Header */}
+      <div className="bg-gray-800 px-4 py-4 flex items-center justify-between border-b border-gray-700">
+        <div className="text-xl font-semibold">Kundalik Iboralar</div>
+        <div className="flex items-center gap-4">
+          <button className="text-2xl">Aa</button>
+          <button 
+            onClick={toggleBookmark}
+            className={bookmarked.includes(currentIndex) ? 'text-yellow-400' : 'text-gray-400'}
+          >
+            <Bookmark size={24} fill={bookmarked.includes(currentIndex) ? 'currentColor' : 'none'} />
+          </button>
+        </div>
+      </div>
 
-        .button-group {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 10px;
-        }
+      {/* Decorative Header */}
+      <div className="bg-gradient-to-r from-green-700 to-green-600 py-3 text-center">
+        <div className="text-lg font-arabic">English Learning</div>
+      </div>
 
-        button {
-            padding: 14px 20px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
+      {/* Title Section */}
+      <div className="text-center py-6 bg-gray-800">
+        <h1 className="text-2xl font-light tracking-wide">{currentSentence.category}</h1>
+      </div>
 
-        .btn-draw {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
+      {/* Intro Text */}
+      <div className="px-4 py-3 bg-gray-850 text-center text-sm text-gray-400 border-y border-gray-700">
+        LISTEN AND LEARN ENGLISH PHRASES
+      </div>
 
-        .btn-draw:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-download {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white;
-        }
-
-        .btn-download:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
-        }
-
-        .btn-clear {
-            background: #f0f0f0;
-            color: #555;
-            grid-column: 1 / -1;
-        }
-
-        .btn-clear:hover {
-            background: #e0e0e0;
-        }
-
-        .preset-buttons {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        .btn-preset {
-            padding: 10px;
-            background: #f8f9fa;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .btn-preset:hover {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>📱 Instagram Rasm Generator (9:16)</h1>
-        
-        <div class="canvas-wrapper">
-            <canvas id="myCanvas"></canvas>
+      {/* Main Content */}
+      <div className="px-4 py-8 space-y-6">
+        {/* English Text */}
+        <div 
+          className={`bg-gray-800 rounded-xl p-6 border-2 transition-all duration-300 ${
+            highlightedSentence === 'english' 
+              ? 'border-green-500 bg-green-900/20' 
+              : 'border-gray-700'
+          }`}
+        >
+          <div className="flex items-start gap-3 mb-3">
+            <div className="bg-green-600 rounded-full w-10 h-10 flex items-center justify-center text-sm font-bold flex-shrink-0">
+              {currentIndex + 1}
+            </div>
+            <div className="flex-1">
+              <div className="text-3xl font-light leading-relaxed text-right">
+                {currentSentence.english}
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div class="controls">
-            <div class="control-group">
-                <label>📝 Arabcha matn:</label>
-                <input type="text" id="arabicText" placeholder="هذه عائلتي" dir="rtl">
-            </div>
-
-            <div class="control-group">
-                <label>📝 O'zbekcha matn:</label>
-                <input type="text" id="uzbekText" placeholder="Bu mening oilam">
-            </div>
-
-            <div class="control-group">
-                <label>🎨 Fon rangi:</label>
-                <input type="color" id="bgColor" value="#667eea">
-            </div>
-
-            <div class="control-group">
-                <label>✍️ Matn rangi:</label>
-                <input type="color" id="textColor" value="#ffffff">
-            </div>
-
-            <div class="control-group">
-                <label>🖼️ Rasm turi:</label>
-                <select id="imageType">
-                    <option value="family">Oila</option>
-                    <option value="father">Ota</option>
-                    <option value="mother">Ona</option>
-                    <option value="brother">Aka/Uka</option>
-                    <option value="sister">Opa/Singil</option>
-                </select>
-            </div>
-
-            <div class="preset-buttons">
-                <button class="btn-preset" onclick="setPreset('family')">👨‍👩‍👧‍👦 Oila</button>
-                <button class="btn-preset" onclick="setPreset('father')">👨 Ota</button>
-                <button class="btn-preset" onclick="setPreset('mother')">👩 Ona</button>
-                <button class="btn-preset" onclick="setPreset('brother')">👦 Aka/Uka</button>
-                <button class="btn-preset" onclick="setPreset('sister')">👧 Opa/Singil</button>
-            </div>
-
-            <div class="button-group">
-                <button class="btn-draw" onclick="drawImage()">🎨 Chizish</button>
-                <button class="btn-download" onclick="downloadImage()">💾 Yuklash</button>
-                <button class="btn-clear" onclick="clearCanvas()">🗑️ Tozalash</button>
-            </div>
+        {/* Uzbek Translation */}
+        <div 
+          className={`bg-gray-800 rounded-xl p-6 border-2 transition-all duration-300 ${
+            highlightedSentence === 'uzbek' 
+              ? 'border-blue-500 bg-blue-900/20' 
+              : 'border-gray-700'
+          }`}
+        >
+          <div className="text-xl text-gray-300 leading-relaxed">
+            {currentIndex + 1}. {currentSentence.uzbek}
+          </div>
         </div>
+      </div>
+
+      {/* Audio Player - Fixed Bottom */}
+      <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-green-800 to-green-700 px-4 py-4">
+        <div className="max-w-2xl mx-auto">
+          {/* Title and Phrase Info */}
+          <div className="text-center mb-2">
+            <div className="text-sm font-medium">{currentSentence.category}</div>
+            <div className="text-xs text-green-100">{currentIndex + 1} - phrase</div>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="mb-3">
+            <div className="flex justify-between text-xs mb-1">
+              <span>{formatTime(currentTime)}</span>
+              <span>{formatTime(duration)}</span>
+            </div>
+            <div className="w-full bg-green-900 rounded-full h-1">
+              <div 
+                className="bg-white h-1 rounded-full transition-all duration-100"
+                style={{ width: `${(currentTime / duration) * 100}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Controls */}
+          <div className="flex items-center justify-center gap-6">
+            <button 
+              onClick={toggleRepeat}
+              className={`${isRepeating ? 'text-white' : 'text-green-200'}`}
+            >
+              <Repeat size={24} />
+            </button>
+            
+            <button 
+              onClick={prevSentence}
+              disabled={currentIndex === 0}
+              className="disabled:opacity-30"
+            >
+              <SkipBack size={32} fill="white" />
+            </button>
+            
+            <button 
+              onClick={playAudio}
+              className="bg-white text-green-700 rounded-full p-3 hover:scale-105 transition-transform"
+            >
+              {isPlaying ? <Pause size={32} fill="currentColor" /> : <Play size={32} fill="currentColor" />}
+            </button>
+            
+            <button 
+              onClick={nextSentence}
+              disabled={currentIndex === sentences.length - 1}
+              className="disabled:opacity-30"
+            >
+              <SkipForward size={32} fill="white" />
+            </button>
+            
+            <button className="text-green-200">
+              <Volume2 size={24} />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Spacing */}
+      <div className="h-40"></div>
     </div>
+  );
+};
 
-    <script>
-        const canvas = document.getElementById('myCanvas');
-        const ctx = canvas.getContext('2d');
-
-        // 9:16 format - Instagram Story/Reel o'lchami
-        canvas.width = 1080;
-        canvas.height = 1920;
-
-        const presets = {
-            family: {
-                arabic: 'هذه عائلتي',
-                uzbek: 'Bu mening oilam',
-                emoji: '👨‍👩‍👧‍👦'
-            },
-            father: {
-                arabic: 'هذا أبي',
-                uzbek: 'Bu mening otam',
-                emoji: '👨'
-            },
-            mother: {
-                arabic: 'هذه أمي',
-                uzbek: 'Bu mening onam',
-                emoji: '👩'
-            },
-            brother: {
-                arabic: 'هذا أخي',
-                uzbek: 'Bu mening akam / ukam',
-                emoji: '👦'
-            },
-            sister: {
-                arabic: 'هذه أختي',
-                uzbek: 'Bu mening opam / singlim',
-                emoji: '👧'
-            }
-        };
-
-        function setPreset(type) {
-            const preset = presets[type];
-            document.getElementById('arabicText').value = preset.arabic;
-            document.getElementById('uzbekText').value = preset.uzbek;
-            document.getElementById('imageType').value = type;
-        }
-
-        function drawImage() {
-            const arabicText = document.getElementById('arabicText').value || 'هذه عائلتي';
-            const uzbekText = document.getElementById('uzbekText').value || 'Bu mening oilam';
-            const bgColor = document.getElementById('bgColor').value;
-            const textColor = document.getElementById('textColor').value;
-            const imageType = document.getElementById('imageType').value;
-
-            // Gradient fon
-            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            gradient.addColorStop(0, bgColor);
-            gradient.addColorStop(1, adjustColor(bgColor, -30));
-            
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Dekorativ elementlar
-            drawDecorativeElements(bgColor);
-
-            // Markaziy emoji
-            const emoji = presets[imageType].emoji;
-            ctx.font = '400px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText(emoji, canvas.width / 2, canvas.height / 2);
-
-            // Arabcha matn (yuqorida)
-            ctx.fillStyle = textColor;
-            ctx.font = 'bold 120px Arial';
-            ctx.textAlign = 'center';
-            ctx.shadowColor = 'rgba(0,0,0,0.3)';
-            ctx.shadowBlur = 20;
-            ctx.shadowOffsetY = 5;
-            ctx.fillText(arabicText, canvas.width / 2, 300);
-
-            // O'zbekcha matn (pastda)
-            ctx.font = 'bold 100px Arial';
-            ctx.fillText(uzbekText, canvas.width / 2, canvas.height - 250);
-            
-            // Shadow ni o'chirish
-            ctx.shadowColor = 'transparent';
-            ctx.shadowBlur = 0;
-            ctx.shadowOffsetY = 0;
-        }
-
-        function drawDecorativeElements(baseColor) {
-            // Yumshoq doiralar
-            const lightColor = adjustColor(baseColor, 20);
-            ctx.fillStyle = lightColor + '20';
-            
-            ctx.beginPath();
-            ctx.arc(200, 400, 300, 0, Math.PI * 2);
-            ctx.fill();
-            
-            ctx.beginPath();
-            ctx.arc(canvas.width - 200, canvas.height - 400, 350, 0, Math.PI * 2);
-            ctx.fill();
-            
-            ctx.beginPath();
-            ctx.arc(canvas.width / 2, 200, 200, 0, Math.PI * 2);
-            ctx.fill();
-        }
-
-        function adjustColor(color, amount) {
-            const num = parseInt(color.replace('#', ''), 16);
-            const r = Math.max(0, Math.min(255, (num >> 16) + amount));
-            const g = Math.max(0, Math.min(255, ((num >> 8) & 0x00FF) + amount));
-            const b = Math.max(0, Math.min(255, (num & 0x0000FF) + amount));
-            return '#' + ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
-        }
-
-        function clearCanvas() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#f8f9fa';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-        }
-
-        function downloadImage() {
-            const link = document.createElement('a');
-            link.download = 'instagram-story-9x16.png';
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-        }
-
-        // Dastlabki rasm
-        setPreset('family');
-        drawImage();
-    </script>
-</body>
-</html>
+export default EnglishLearningApp;
