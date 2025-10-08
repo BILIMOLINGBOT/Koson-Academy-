@@ -1,314 +1,257 @@
-import React, { useState, useRef } from 'react';
-import { Volume2, Play, Pause, SkipBack, SkipForward, Repeat, Bookmark } from 'lucide-react';
-
-const EnglishLearningApp = () => {
-  const [sentences] = useState([
-    {
-      id: 1,
-      english: "How are you?",
-      uzbek: "Qalaysiz? Qandaysiz?",
-      category: "Kundalik Iboralar"
-    },
-    {
-      id: 2,
-      english: "Nice to meet you.",
-      uzbek: "Siz bilan tanishganimdan xursandman.",
-      category: "Kundalik Iboralar"
-    },
-    {
-      id: 3,
-      english: "What's your name?",
-      uzbek: "Ismingiz nima?",
-      category: "Kundalik Iboralar"
-    },
-    {
-      id: 4,
-      english: "Where are you from?",
-      uzbek: "Qayerdansiz?",
-      category: "Kundalik Iboralar"
-    },
-    {
-      id: 5,
-      english: "I don't understand.",
-      uzbek: "Men tushunmadim.",
-      category: "Kundalik Iboralar"
-    },
-    {
-      id: 6,
-      english: "Can you help me, please?",
-      uzbek: "Iltimos, menga yordam bera olasizmi?",
-      category: "Kundalik Iboralar"
-    },
-    {
-      id: 7,
-      english: "I'm learning English.",
-      uzbek: "Men ingliz tilini o'rganayapman.",
-      category: "Kundalik Iboralar"
-    },
-    {
-      id: 8,
-      english: "Have a nice day!",
-      uzbek: "Kuningiz yaxshi o'tsin!",
-      category: "Kundalik Iboralar"
-    },
-    {
-      id: 9,
-      english: "See you soon.",
-      uzbek: "Tez orada ko'rishamiz.",
-      category: "Kundalik Iboralar"
-    },
-    {
-      id: 10,
-      english: "Thank you very much.",
-      uzbek: "Katta rahmat.",
-      category: "Kundalik Iboralar"
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StoryLearn — Hikoya orqali til o‘rganish</title>
+  <style>
+    :root {
+      --bg-color: #121212;
+      --text-color: #eaeaea;
+      --accent: #00bfa5;
+      --card-bg: #1e1e1e;
     }
-  ]);
-
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(5);
-  const [highlightedSentence, setHighlightedSentence] = useState(null);
-  const [bookmarked, setBookmarked] = useState([]);
-  const [isRepeating, setIsRepeating] = useState(false);
-
-  const currentSentence = sentences[currentIndex];
-
-  const playAudio = async () => {
-    if (isPlaying) {
-      window.speechSynthesis.cancel();
-      setIsPlaying(false);
-      setCurrentTime(0);
-      setHighlightedSentence(null);
-      return;
+    body {
+      margin: 0;
+      font-family: "Poppins", sans-serif;
+      background: var(--bg-color);
+      color: var(--text-color);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
     }
-
-    setIsPlaying(true);
-    setCurrentTime(0);
-    
-    // Play English
-    setHighlightedSentence('english');
-    await speakText(currentSentence.english, 'en-US', 2.5);
-    
-    // Small pause
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // Play Uzbek
-    setHighlightedSentence('uzbek');
-    await speakText(currentSentence.uzbek, 'uz-UZ', 2.5);
-    
-    setIsPlaying(false);
-    setCurrentTime(0);
-    setHighlightedSentence(null);
-    
-    // Auto next if repeating is off
-    if (!isRepeating && currentIndex < sentences.length - 1) {
-      setTimeout(() => {
-        setCurrentIndex(currentIndex + 1);
-      }, 800);
-    } else if (isRepeating) {
-      setTimeout(() => {
-        playAudio();
-      }, 800);
+    header {
+      text-align: center;
+      padding: 20px;
+      font-size: 1.4em;
+      color: var(--accent);
+      font-weight: 600;
+      letter-spacing: 1px;
     }
-  };
+    .story-container {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 20px;
+      width: 90%;
+      max-width: 600px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      position: relative;
+      animation: fadeIn 0.6s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from {opacity: 0; transform: translateY(20px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
+    .story-title {
+      text-align: center;
+      font-size: 1.2em;
+      margin-bottom: 10px;
+      color: var(--accent);
+    }
+    .story-text {
+      line-height: 1.7;
+      font-size: 1em;
+    }
+    .story-text span {
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .story-text span:hover {
+      background: rgba(0,191,165,0.2);
+      border-radius: 5px;
+    }
+    .tooltip {
+      position: absolute;
+      background: var(--accent);
+      color: #000;
+      padding: 5px 8px;
+      border-radius: 6px;
+      font-size: 0.9em;
+      transform: translate(-50%, -150%);
+      white-space: nowrap;
+      z-index: 10;
+      display: none;
+    }
+    .audio-player {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 15px;
+    }
+    button {
+      background: var(--accent);
+      border: none;
+      border-radius: 50%;
+      color: #000;
+      width: 45px;
+      height: 45px;
+      font-size: 1.2em;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: 0.3s;
+    }
+    button:hover {
+      transform: scale(1.1);
+    }
+    .speed-select {
+      background: var(--card-bg);
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      border-radius: 10px;
+      padding: 5px 10px;
+      font-size: 0.9em;
+    }
+    .progress-container {
+      width: 100%;
+      height: 6px;
+      background: #333;
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+    .progress-bar {
+      width: 0;
+      height: 100%;
+      background: var(--accent);
+      transition: width 0.1s linear;
+    }
+    .time {
+      font-size: 0.9em;
+      color: #aaa;
+    }
+    .character-info {
+      margin-top: 15px;
+      font-size: 0.9em;
+      opacity: 0.8;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <header>📖 StoryLearn</header>
 
-  const speakText = (text, lang, estimatedDuration) => {
-    return new Promise((resolve) => {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = lang;
-      utterance.rate = 0.75;
+  <div class="story-container">
+    <h2 class="story-title">My Family 👨‍👩‍👧‍👦</h2>
+    <p class="story-text" id="storyText">
+      <span data-uz="Mening">My</span> <span data-uz="oila">family</span> <span data-uz="men uchun juda muhim">is very important to me</span> 
+      <span data-uz="chunki u menga">because it gives me</span> 
+      <span data-uz="muhabbat,">love,</span> <span data-uz="qo‘llab-quvvatlash,">support,</span> 
+      <span data-uz="va baxt beradi.">and happiness.</span>
+      <span data-uz="Bizning oilada">We are</span> <span data-uz="besh kishi bor:">five people in my family:</span> 
+      <span data-uz="otam, onam,">my father, my mother,</span> 
+      <span data-uz="opam, akam va men.">my sister, my brother, and me.</span> 
+      <span data-uz="Bizning oila katta emas, lekin">My family is not very big, but</span> 
+      <span data-uz="har doim birgamiz.">we are always together</span> 
+      <span data-uz="yaxshi va yomon paytlarda.">in good and bad times.</span>
+      <span data-uz="Otam o‘qituvchi, onam hamshira.">My father is a teacher, and my mother is a nurse.</span> 
+      <span data-uz="Ular mehnatkash va mehribon.">They are hardworking and kind people.</span>
+    </p>
+
+    <div class="tooltip" id="tooltip"></div>
+
+    <div class="audio-player">
+      <audio id="audio" src="https://www.englishlisteninghub.com/wp-content/uploads/2021/10/my-family.mp3"></audio>
       
-      let interval;
-      utterance.onstart = () => {
-        let elapsed = 0;
-        interval = setInterval(() => {
-          elapsed += 0.1;
-          setCurrentTime(prev => prev + 0.1);
-        }, 100);
-      };
-      
-      utterance.onend = () => {
-        clearInterval(interval);
-        resolve();
-      };
-      
-      window.speechSynthesis.speak(utterance);
-    });
-  };
-
-  const nextSentence = () => {
-    window.speechSynthesis.cancel();
-    setIsPlaying(false);
-    setCurrentTime(0);
-    setHighlightedSentence(null);
-    if (currentIndex < sentences.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-    }
-  };
-
-  const prevSentence = () => {
-    window.speechSynthesis.cancel();
-    setIsPlaying(false);
-    setCurrentTime(0);
-    setHighlightedSentence(null);
-    if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
-    }
-  };
-
-  const toggleBookmark = () => {
-    if (bookmarked.includes(currentIndex)) {
-      setBookmarked(bookmarked.filter(i => i !== currentIndex));
-    } else {
-      setBookmarked([...bookmarked, currentIndex]);
-    }
-  };
-
-  const toggleRepeat = () => {
-    setIsRepeating(!isRepeating);
-  };
-
-  const formatTime = (time) => {
-    const mins = Math.floor(time / 60);
-    const secs = Math.floor(time % 60);
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-800 to-gray-900 text-white">
-      {/* Header */}
-      <div className="bg-gray-800 px-4 py-4 flex items-center justify-between border-b border-gray-700">
-        <div className="text-xl font-semibold">Kundalik Iboralar</div>
-        <div className="flex items-center gap-4">
-          <button className="text-2xl">Aa</button>
-          <button 
-            onClick={toggleBookmark}
-            className={bookmarked.includes(currentIndex) ? 'text-yellow-400' : 'text-gray-400'}
-          >
-            <Bookmark size={24} fill={bookmarked.includes(currentIndex) ? 'currentColor' : 'none'} />
-          </button>
-        </div>
+      <div class="controls">
+        <button id="backward">⏪</button>
+        <button id="playPause">▶️</button>
+        <button id="forward">⏩</button>
       </div>
 
-      {/* Decorative Header */}
-      <div className="bg-gradient-to-r from-green-700 to-green-600 py-3 text-center">
-        <div className="text-lg font-arabic">English Learning</div>
+      <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
       </div>
 
-      {/* Title Section */}
-      <div className="text-center py-6 bg-gray-800">
-        <h1 className="text-2xl font-light tracking-wide">{currentSentence.category}</h1>
+      <div class="time" id="timeDisplay">0:00 / 0:00</div>
+
+      <select class="speed-select" id="speedSelect">
+        <option value="0.5">0.5x</option>
+        <option value="0.75">0.75x</option>
+        <option value="1" selected>1x</option>
+        <option value="1.25">1.25x</option>
+        <option value="1.5">1.5x</option>
+        <option value="2">2x</option>
+      </select>
+
+      <div class="character-info">
+        👩 <b>Mother:</b> Nurse<br />
+        👨 <b>Father:</b> Teacher<br />
+        👧 <b>Sister:</b> Student<br />
+        👦 <b>Brother:</b> Student
       </div>
-
-      {/* Intro Text */}
-      <div className="px-4 py-3 bg-gray-850 text-center text-sm text-gray-400 border-y border-gray-700">
-        LISTEN AND LEARN ENGLISH PHRASES
-      </div>
-
-      {/* Main Content */}
-      <div className="px-4 py-8 space-y-6">
-        {/* English Text */}
-        <div 
-          className={`bg-gray-800 rounded-xl p-6 border-2 transition-all duration-300 ${
-            highlightedSentence === 'english' 
-              ? 'border-green-500 bg-green-900/20' 
-              : 'border-gray-700'
-          }`}
-        >
-          <div className="flex items-start gap-3 mb-3">
-            <div className="bg-green-600 rounded-full w-10 h-10 flex items-center justify-center text-sm font-bold flex-shrink-0">
-              {currentIndex + 1}
-            </div>
-            <div className="flex-1">
-              <div className="text-3xl font-light leading-relaxed text-right">
-                {currentSentence.english}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Uzbek Translation */}
-        <div 
-          className={`bg-gray-800 rounded-xl p-6 border-2 transition-all duration-300 ${
-            highlightedSentence === 'uzbek' 
-              ? 'border-blue-500 bg-blue-900/20' 
-              : 'border-gray-700'
-          }`}
-        >
-          <div className="text-xl text-gray-300 leading-relaxed">
-            {currentIndex + 1}. {currentSentence.uzbek}
-          </div>
-        </div>
-      </div>
-
-      {/* Audio Player - Fixed Bottom */}
-      <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-green-800 to-green-700 px-4 py-4">
-        <div className="max-w-2xl mx-auto">
-          {/* Title and Phrase Info */}
-          <div className="text-center mb-2">
-            <div className="text-sm font-medium">{currentSentence.category}</div>
-            <div className="text-xs text-green-100">{currentIndex + 1} - phrase</div>
-          </div>
-
-          {/* Progress Bar */}
-          <div className="mb-3">
-            <div className="flex justify-between text-xs mb-1">
-              <span>{formatTime(currentTime)}</span>
-              <span>{formatTime(duration)}</span>
-            </div>
-            <div className="w-full bg-green-900 rounded-full h-1">
-              <div 
-                className="bg-white h-1 rounded-full transition-all duration-100"
-                style={{ width: `${(currentTime / duration) * 100}%` }}
-              />
-            </div>
-          </div>
-
-          {/* Controls */}
-          <div className="flex items-center justify-center gap-6">
-            <button 
-              onClick={toggleRepeat}
-              className={`${isRepeating ? 'text-white' : 'text-green-200'}`}
-            >
-              <Repeat size={24} />
-            </button>
-            
-            <button 
-              onClick={prevSentence}
-              disabled={currentIndex === 0}
-              className="disabled:opacity-30"
-            >
-              <SkipBack size={32} fill="white" />
-            </button>
-            
-            <button 
-              onClick={playAudio}
-              className="bg-white text-green-700 rounded-full p-3 hover:scale-105 transition-transform"
-            >
-              {isPlaying ? <Pause size={32} fill="currentColor" /> : <Play size={32} fill="currentColor" />}
-            </button>
-            
-            <button 
-              onClick={nextSentence}
-              disabled={currentIndex === sentences.length - 1}
-              className="disabled:opacity-30"
-            >
-              <SkipForward size={32} fill="white" />
-            </button>
-            
-            <button className="text-green-200">
-              <Volume2 size={24} />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom Spacing */}
-      <div className="h-40"></div>
     </div>
-  );
-};
+  </div>
 
-export default EnglishLearningApp;
+  <script>
+    const audio = document.getElementById('audio');
+    const playPauseBtn = document.getElementById('playPause');
+    const progressBar = document.getElementById('progressBar');
+    const timeDisplay = document.getElementById('timeDisplay');
+    const speedSelect = document.getElementById('speedSelect');
+    const tooltip = document.getElementById('tooltip');
+    const storyText = document.getElementById('storyText');
+    const backwardBtn = document.getElementById('backward');
+    const forwardBtn = document.getElementById('forward');
+
+    let isPlaying = false;
+
+    playPauseBtn.addEventListener('click', () => {
+      if (isPlaying) {
+        audio.pause();
+        playPauseBtn.textContent = '▶️';
+      } else {
+        audio.play();
+        playPauseBtn.textContent = '⏸️';
+      }
+      isPlaying = !isPlaying;
+    });
+
+    audio.addEventListener('timeupdate', () => {
+      const progress = (audio.currentTime / audio.duration) * 100;
+      progressBar.style.width = `${progress}%`;
+      const current = formatTime(audio.currentTime);
+      const total = formatTime(audio.duration);
+      timeDisplay.textContent = `${current} / ${total}`;
+    });
+
+    audio.addEventListener('ended', () => {
+      playPauseBtn.textContent = '▶️';
+      isPlaying = false;
+    });
+
+    backwardBtn.addEventListener('click', () => audio.currentTime -= 5);
+    forwardBtn.addEventListener('click', () => audio.currentTime += 5);
+    speedSelect.addEventListener('change', () => {
+      audio.playbackRate = parseFloat(speedSelect.value);
+    });
+
+    function formatTime(sec) {
+      if (isNaN(sec)) return "0:00";
+      const minutes = Math.floor(sec / 60);
+      const seconds = Math.floor(sec % 60).toString().padStart(2, '0');
+      return `${minutes}:${seconds}`;
+    }
+
+    // Tooltip tarjima funksiyasi
+    storyText.addEventListener('click', (e) => {
+      if (e.target.dataset.uz) {
+        tooltip.textContent = e.target.dataset.uz;
+        tooltip.style.display = 'block';
+        const rect = e.target.getBoundingClientRect();
+        tooltip.style.left = `${rect.left + rect.width/2}px`;
+        tooltip.style.top = `${rect.top + window.scrollY - 10}px`;
+        setTimeout(() => tooltip.style.display = 'none', 2000);
+      }
+    });
+  </script>
+</body>
+</html>
