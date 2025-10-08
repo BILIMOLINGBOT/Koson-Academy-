@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>StoryLearn — Hikoya (Tooltip tarjima va Audio)</title>
+  <title>StoryLearn — Tooltip va Audio Sync</title>
   <style>
     :root{
       --bg:#0b0d10;
@@ -11,486 +11,156 @@
       --muted:#9aa3a8;
       --text:#e6eef1;
       --accent:#00c4a7;
-      --glass: rgba(255,255,255,0.03);
-      --radius:16px;
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
     body{
-      margin:0;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      background:linear-gradient(180deg,#050607 0%, #0b0d10 100%);
-      color:var(--text);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:20px;
+      margin:0; background:var(--bg); color:var(--text);
+      font-family: Inter, sans-serif; display:flex;
+      justify-content:center; align-items:center; height:100vh; padding:20px;
     }
-
-    /* Card */
     .app{
-      width:100%;
-      max-width:760px;
-      border-radius:20px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-      box-shadow: 0 10px 30px rgba(2,6,10,0.6);
-      overflow:hidden;
-      display:flex;
-      flex-direction:column;
-      gap:16px;
-      padding:18px;
-      position:relative;
-      -webkit-tap-highlight-color: transparent;
+      max-width:750px; width:100%; background:rgba(255,255,255,0.02);
+      border-radius:20px; padding:20px; box-shadow:0 0 30px rgba(0,0,0,0.4);
     }
-
-    /* Header */
-    .top {
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
+    h1{color:var(--accent);font-size:1.2rem;margin-top:0}
+    .story{line-height:1.8; font-size:1.05rem; margin-bottom:16px}
+    .word{
+      cursor:pointer; padding:2px 4px; border-radius:6px; transition:background .15s;
     }
-    .meta {
-      display:flex;
-      gap:12px;
-      align-items:center;
+    .word:hover{background:rgba(0,196,167,0.07);}
+    .word.active{
+      background:rgba(0,196,167,0.25);
+      box-shadow:0 0 6px rgba(0,196,167,0.5);
     }
-    .badge{
-      background:var(--glass);
-      padding:8px 12px;
-      border-radius:12px;
-      font-size:0.9rem;
-      color:var(--muted);
-      display:inline-flex;
-      gap:8px;
-      align-items:center;
-      backdrop-filter: blur(6px);
+    .tooltip{
+      position:absolute; background:#fff; color:#021; padding:6px 10px;
+      border-radius:8px; font-size:0.9rem; box-shadow:0 4px 20px rgba(0,0,0,0.4);
+      transform:translate(-50%,-150%) scale(.9); opacity:0;
+      transition:opacity .18s, transform .2s; pointer-events:none;
+      white-space:nowrap; z-index:50;
     }
-    h1{
-      margin:0;
-      font-size:1.05rem;
-      color:var(--accent);
-      letter-spacing:0.2px;
+    .tooltip.show{opacity:1; transform:translate(-50%,-160%) scale(1);}
+    .controls{display:flex;gap:10px;align-items:center;margin-top:14px;}
+    .btn{
+      background:var(--accent);border:none;color:#001b18;
+      padding:10px 16px;border-radius:10px;font-weight:600;cursor:pointer;
     }
-    .subtitle{font-size:0.85rem;color:var(--muted)}
-
-    /* Story area */
-    .story {
-      background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.02));
-      border-radius:12px;
-      padding:18px;
-      line-height:1.8;
-      font-size:1rem;
-      color:var(--text);
-      box-shadow: inset 0 -2px 8px rgba(0,0,0,0.4);
-      position:relative;
-    }
-    .story p{margin:0; user-select:none;}
-    .word {
-      cursor:pointer;
-      padding:2px 4px;
-      border-radius:6px;
-      display:inline-block;
-      transition: transform .12s ease, background .18s;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .word:active{ transform: translateY(1px) scale(.995) }
-    .word:hover{ background: rgba(0,196,167,0.07) }
-    .word.active {
-      background: rgba(0,196,167,0.15);
-      color: #fff;
-      box-shadow: 0 0 0 1px rgba(0,196,167,0.3);
-    }
-    .word.playing {
-      background: rgba(0,196,167,0.25);
-      color: #fff;
-      box-shadow: 0 0 0 2px rgba(0,196,167,0.5);
-      animation: pulse 1s infinite;
-    }
-    @keyframes pulse {
-      0% { box-shadow: 0 0 0 2px rgba(0,196,167,0.5); }
-      50% { box-shadow: 0 0 0 4px rgba(0,196,167,0.3); }
-      100% { box-shadow: 0 0 0 2px rgba(0,196,167,0.5); }
-    }
-
-    /* Tooltip */
-    .tooltip {
-      position: absolute;
-      pointer-events: none;
-      background: linear-gradient(180deg,#ffffff,#e6fff7);
-      color:#03221f;
-      padding:8px 10px;
-      border-radius:10px;
-      box-shadow: 0 8px 30px rgba(2,8,8,0.5);
-      font-size:0.95rem;
-      transform-origin: center bottom;
-      transform: translate(-50%, -140%) scale(.9);
-      opacity:0;
-      transition: opacity .18s ease, transform .2s cubic-bezier(.2,.9,.3,1);
-      white-space: nowrap;
-      z-index:60;
-    }
-    .tooltip.show{
-      opacity:1;
-      transform: translate(-50%, -150%) scale(1);
-    }
-    .tooltip .pair{font-size:0.85rem;color:#06433a;opacity:0.95}
-    .tooltip .lang {font-weight:600;margin-right:8px;font-size:0.82rem;color:#03221f;opacity:0.8}
-    .tooltip .audio-btn {
-      margin-top: 4px;
-      padding: 2px 6px;
-      background: var(--accent);
-      color: #001b18;
-      border-radius: 6px;
-      font-size: 0.75rem;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      pointer-events: auto;
-    }
-
-    /* Audio controls */
-    .player {
-      display:flex;
-      flex-direction:column;
-      gap:12px;
-      align-items:center;
-      padding:6px 4px 0 4px;
-    }
-    .controls {
-      display:flex;
-      gap:10px;
-      align-items:center;
-    }
-    .btn {
-      width:50px;height:50px;border-radius:12px;border:none;
-      background:linear-gradient(180deg,var(--accent), #00b08f);
-      color:#001b18;font-weight:700;font-size:1rem;
-      display:inline-flex;align-items:center;justify-content:center;
-      box-shadow: 0 6px 18px rgba(0,196,167,0.14);
-      transition: transform .15s ease, box-shadow .15s;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .btn:active{ transform: scale(.97) }
-    .btn.ghost{ background:transparent;border:1px solid rgba(255,255,255,0.04); color:var(--muted); box-shadow:none; width:auto; padding:8px 12px; border-radius:10px }
-
-    .progress-wrap{ width:100%; display:flex; gap:10px; align-items:center; }
-    .progress {
-      -webkit-appearance:none; appearance:none;
-      height:8px; width:100%; border-radius:999px; background:#0d1113; overflow:hidden;
-      position:relative;
-      box-shadow: inset 0 1px 4px rgba(0,0,0,0.6);
-    }
-    .progress > .bar {
-      height:100%;
-      width:0%;
-      background: linear-gradient(90deg,var(--accent), #7efbd4);
-      transition: width .12s linear;
-    }
-    .time { font-size:0.85rem; color:var(--muted); min-width:72px; text-align:right }
-
-    /* small screens */
-    @media (max-width:520px){
-      .btn{ width:44px; height:44px }
-      .badge{ padding:6px 8px; font-size:0.78rem }
-    }
-
-    /* loader */
-    .loader {
-      position:absolute; inset:0; background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);
-      display:flex; align-items:center; justify-content:center; z-index:80; pointer-events:none;
-    }
-    .spinner {
-      width:44px;height:44px;border-radius:50%;
-      border:4px solid rgba(255,255,255,0.04);
-      border-top:4px solid var(--accent);
-      animation: spin 1s linear infinite;
-      box-shadow: 0 6px 20px rgba(0,196,167,0.09);
-    }
-    @keyframes spin{ to{transform:rotate(360deg)} }
-
-    /* hint */
-    .hint { font-size:0.82rem; color:var(--muted); margin-top:6px }
+    select{padding:6px 10px;border-radius:8px;background:#111;color:#eee;border:none}
+    .progress{height:8px;background:#111;border-radius:999px;overflow:hidden;margin-top:8px;}
+    .bar{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),#7efbd4);}
   </style>
 </head>
 <body>
-  <div class="app" role="application" aria-label="StoryLearn">
-    <!-- loader (simple) -->
-    <div class="loader" id="loader" aria-hidden="true">
-      <div class="spinner" aria-hidden="true"></div>
-    </div>
-
-    <div class="top">
-      <div class="meta">
-        <div class="badge">#1</div>
-        <div>
-          <h1>My Family</h1>
-          <div class="subtitle">Beginner — Short story</div>
-        </div>
-      </div>
-
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
-        <button class="btn ghost" id="replayBtn" title="Qayta tinglash">Qayta</button>
-        <div class="badge" id="langUI">UI: English / Oʻzbek</div>
-      </div>
-    </div>
-
-    <div class="story" id="storyArea" aria-live="polite">
+  <div class="app">
+    <h1>My Family</h1>
+    <div class="story" id="storyArea">
       <p id="storyText">
-        <!-- Har bir so'zni <span class="word" data-uz="..." data-start="..." data-end="...">WORD</span> ga o'rab chiqing -->
-        <span class="word" data-uz="Mening" data-start="0.5" data-end="1.2">My</span>
-        <span class="word" data-uz="oila" data-start="1.3" data-end="1.9">family</span>
-        <span class="word" data-uz="men uchun" data-start="2.0" data-end="2.5">is</span>
-        <span class="word" data-uz="juda muhim" data-start="2.6" data-end="3.5">very important</span>
-        <span class="word" data-uz="men uchun" data-start="3.6" data-end="4.0">to</span>
-        <span class="word" data-uz="menga" data-start="4.1" data-end="4.5">me</span>
-        <span class="word" data-uz="chunki" data-start="4.6" data-end="5.0">because</span>
-        <span class="word" data-uz="u menga beradi" data-start="5.1" data-end="6.0">it gives me</span>
-        <span class="word" data-uz="muhabbat" data-start="6.1" data-end="6.7">love</span>,
-        <span class="word" data-uz="qo'llab-quvvatlash" data-start="6.8" data-end="7.6">support</span>,
-        <span class="word" data-uz="va" data-start="7.7" data-end="7.9">and</span>
-        <span class="word" data-uz="baxt" data-start="8.0" data-end="8.5">happiness</span>.
-        <br/><br/>
-        <span class="word" data-uz="Biz" data-start="9.0" data-end="9.3">We</span>
-        <span class="word" data-uz="besh" data-start="9.4" data-end="9.8">are five</span>
-        <span class="word" data-uz="odam" data-start="9.9" data-end="10.3">people</span>
-        <span class="word" data-uz="oilam" data-start="10.4" data-end="10.9">in my family</span>:
-        <span class="word" data-uz="otam" data-start="11.0" data-end="11.5">my father</span>,
-        <span class="word" data-uz="onam" data-start="11.6" data-end="12.1">my mother</span>,
-        <span class="word" data-uz="opam" data-start="12.2" data-end="12.7">my sister</span>,
-        <span class="word" data-uz="akam" data-start="12.8" data-end="13.3">my brother</span>,
-        <span class="word" data-uz="va men" data-start="13.4" data-end="14.0">and me</span>.
-        <br/><br/>
-        <span class="word" data-uz="Bizning oila katta emas, lekin" data-start="14.5" data-end="16.0">My family is not very big, but</span>
-        <span class="word" data-uz="biz har doim birgamiz" data-start="16.1" data-end="17.0">we are always together</span>
-        <span class="word" data-uz="yaxshi va yomon paytlarda." data-start="17.1" data-end="18.5">in good and bad times</span>.
-        <br/><br/>
-        <span class="word" data-uz="Otam o'qituvchi" data-start="19.0" data-end="20.0">My father is a teacher</span>,
-        <span class="word" data-uz="onam hamshira" data-start="20.1" data-end="21.0">and my mother is a nurse</span>.
-        <span class="word" data-uz="Ular mehnatkash va mehribon" data-start="21.1" data-end="22.5">They are hardworking and kind people</span>.
+        <span class="word" data-uz="Mening">My</span>
+        <span class="word" data-uz="oila">family</span>
+        <span class="word" data-uz="men uchun">is</span>
+        <span class="word" data-uz="juda muhim">very important</span>
+        <span class="word" data-uz="menga">to</span>
+        <span class="word" data-uz="men">me</span>.
+        <br><br>
+        <span class="word" data-uz="Biz besh kishimiz">We are five people</span>
+        <span class="word" data-uz="oilamizda">in my family</span>:
+        <span class="word" data-uz="otam">my father</span>,
+        <span class="word" data-uz="onam">my mother</span>,
+        <span class="word" data-uz="opam">my sister</span>,
+        <span class="word" data-uz="akam">my brother</span>,
+        <span class="word" data-uz="va men">and me</span>.
       </p>
-
-      <!-- tooltip -->
-      <div class="tooltip" id="tooltip" role="tooltip" aria-hidden="true">
-        <div><span class="lang" id="tpLang">UZ</span><span class="pair" id="tpText">Tarjima</span></div>
-        <div class="audio-btn" id="tpAudioBtn">🔊 Tinglash</div>
-      </div>
+      <div class="tooltip" id="tooltip"><span id="tpText">Tarjima</span></div>
     </div>
 
-    <!-- audio player -->
-    <div class="player" aria-label="Audio player">
-      <div class="controls" role="group" aria-label="Player controls">
-        <button class="btn ghost" id="back5" title="5 s orqaga">◀◀ 5s</button>
-        <button class="btn" id="play" title="Play / Pause">▶</button>
-        <button class="btn ghost" id="forward5" title="5 s oldinga">5s ▶▶</button>
-
-        <select id="speed" class="btn ghost" aria-label="Playback speed" style="margin-left:8px">
-          <option value="0.5">0.5x</option>
-          <option value="0.75">0.75x</option>
-          <option value="1" selected>1x</option>
-          <option value="1.25">1.25x</option>
-          <option value="1.5">1.5x</option>
-          <option value="2">2x</option>
-        </select>
-      </div>
-
-      <div class="progress-wrap" style="width:100%">
-        <div class="progress" aria-hidden="false" id="progress">
-          <div class="bar" id="progressBar"></div>
-        </div>
-        <div class="time" id="time">0:00 / 0:00</div>
-      </div>
-
-      <div style="display:flex; justify-content:space-between; width:100%; margin-top:6px; align-items:center">
-        <div class="hint">🔊 Touch soʻzlarga bosib tarjimani koʻring va tinglang</div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <div class="badge" id="characters">Father: Teacher • Mother: Nurse</div>
-        </div>
-      </div>
+    <div class="controls">
+      <button class="btn" id="play">▶</button>
+      <button class="btn" id="back5">◀◀ 5s</button>
+      <button class="btn" id="forward5">5s ▶▶</button>
+      <select id="speed">
+        <option value="0.75">0.75x</option>
+        <option value="1" selected>1x</option>
+        <option value="1.25">1.25x</option>
+      </select>
+      <div id="time" style="margin-left:auto;font-size:0.9rem;color:#aaa">0:00 / 0:00</div>
     </div>
+    <div class="progress"><div class="bar" id="progressBar"></div></div>
 
-    <!-- visually-hidden audio element (you can change src to your audio file) -->
-    <audio id="audio" preload="metadata" src="https://www.englishlisteninghub.com/wp-content/uploads/2021/10/my-family.mp3"></audio>
+    <audio id="audio" src="https://www.englishlisteninghub.com/wp-content/uploads/2021/10/my-family.mp3"></audio>
   </div>
 
-<script>
-/* =========================
-   Tooltip translation logic
-   ========================= */
-const tooltip = document.getElementById('tooltip');
-const tpText = document.getElementById('tpText');
-const tpLang = document.getElementById('tpLang');
-const tpAudioBtn = document.getElementById('tpAudioBtn');
-const storyArea = document.getElementById('storyArea');
-const words = document.querySelectorAll('.word');
-let tooltipTimeout = null;
-let currentWord = null;
+  <script>
+  const words = [...document.querySelectorAll('.word')];
+  const tooltip = document.getElementById('tooltip');
+  const tpText = document.getElementById('tpText');
+  const storyArea = document.getElementById('storyArea');
+  let tooltipTimer=null;
 
-/* Show tooltip near element with text */
-function showTooltipFor(el){
-  const uz = el.dataset.uz || '';
-  // If dataset has full English phrase too, could use data-en attribute. Here we show Uzbek translation per spec.
-  tpText.textContent = uz;
-  tpLang.textContent = 'UZ';
-  // position
-  const rect = el.getBoundingClientRect();
-  const containerRect = storyArea.getBoundingClientRect();
-  // place tooltip above the word, centered
-  const left = rect.left + rect.width/2 - containerRect.left;
-  const top = rect.top - containerRect.top;
-  tooltip.style.left = left + 'px';
-  tooltip.style.top = (top) + 'px';
-  tooltip.classList.add('show');
-  tooltip.setAttribute('aria-hidden','false');
-  
-  // Store current word for audio playback
-  currentWord = el;
-
-  // hide after 2000ms
-  if (tooltipTimeout) clearTimeout(tooltipTimeout);
-  tooltipTimeout = setTimeout(hideTooltip, 2000);
-}
-
-/* hide */
-function hideTooltip(){
-  tooltip.classList.remove('show');
-  tooltip.setAttribute('aria-hidden','true');
-  currentWord = null;
-}
-
-/* click / touch handler */
-words.forEach(w => {
-  // support both click and touchstart for responsiveness
-  w.addEventListener('click', (ev) => {
-    ev.stopPropagation();
-    showTooltipFor(ev.currentTarget);
-  });
-  w.addEventListener('touchstart', (ev) => {
-    ev.stopPropagation();
-    showTooltipFor(ev.currentTarget);
-  }, {passive:true});
-});
-
-/* Hide tooltip if user taps elsewhere */
-document.addEventListener('click', (e) => {
-  if (!e.target.classList?.contains('word')) hideTooltip();
-});
-document.addEventListener('touchstart', (e) => {
-  if (!e.target.classList?.contains('word')) hideTooltip();
-}, {passive:true});
-
-/* =========================
-   Audio player logic
-   ========================= */
-const audio = document.getElementById('audio');
-const playBtn = document.getElementById('play');
-const back5 = document.getElementById('back5');
-const forward5 = document.getElementById('forward5');
-const speed = document.getElementById('speed');
-const progressBar = document.getElementById('progressBar');
-const progress = document.getElementById('progress');
-const time = document.getElementById('time');
-const replayBtn = document.getElementById('replayBtn');
-const loader = document.getElementById('loader');
-
-let isPlaying = false;
-let wordHighlightInterval = null;
-
-/* loader hide after metadata loaded (or 1.2s fallback) */
-audio.addEventListener('loadedmetadata', () => {
-  updateTime();
-  setTimeout(()=>{ loader.style.display='none' }, 200);
-});
-setTimeout(()=>{ if (loader) loader.style.display='none' }, 1200);
-
-/* play/pause */
-playBtn.addEventListener('click', () => {
-  if (audio.paused) {
-    audio.play();
-    startWordHighlighting();
-  } else {
-    audio.pause();
-    stopWordHighlighting();
+  // 🔊 Tooltip + tarjimani ovozda o‘qish
+  function showTooltipFor(el){
+    const uz = el.dataset.uz || '';
+    tpText.textContent = uz;
+    const rect = el.getBoundingClientRect();
+    const cRect = storyArea.getBoundingClientRect();
+    tooltip.style.left = (rect.left + rect.width/2 - cRect.left) + 'px';
+    tooltip.style.top = (rect.top - cRect.top) + 'px';
+    tooltip.classList.add('show');
+    if('speechSynthesis' in window && uz.trim()!==''){
+      const u = new SpeechSynthesisUtterance(uz);
+      u.lang = 'uz-UZ';
+      speechSynthesis.cancel();
+      speechSynthesis.speak(u);
+    }
+    clearTimeout(tooltipTimer);
+    tooltipTimer=setTimeout(()=>tooltip.classList.remove('show'),1800);
   }
-});
-audio.addEventListener('play', () => {
-  isPlaying = true;
-  playBtn.textContent = '⏸';
-  startWordHighlighting();
-});
-audio.addEventListener('pause', () => {
-  isPlaying = false;
-  playBtn.textContent = '▶';
-  stopWordHighlighting();
-});
 
-/* forward/back */
-back5.addEventListener('click', () => {
-  audio.currentTime = Math.max(0, audio.currentTime - 5);
-});
-forward5.addEventListener('click', () => {
-  audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + 5);
-});
-
-/* speed */
-speed.addEventListener('change', () => {
-  audio.playbackRate = parseFloat(speed.value);
-});
-
-/* progress update */
-audio.addEventListener('timeupdate', () => {
-  const pct = (audio.currentTime / (audio.duration || 1)) * 100;
-  progressBar.style.width = pct + '%';
-  updateTime();
-});
-
-/* seek by tapping progress bar (touch-friendly) */
-progress.addEventListener('click', (e) => {
-  const rect = progress.getBoundingClientRect();
-  const x = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
-  const pct = Math.min(Math.max(x / rect.width, 0), 1);
-  audio.currentTime = pct * (audio.duration || 0);
-});
-
-/* show time */
-function formatTime(s){
-  if (!s || isNaN(s)) return '0:00';
-  const m = Math.floor(s/60);
-  const sec = Math.floor(s%60).toString().padStart(2,'0');
-  return `${m}:${sec}`;
-}
-function updateTime(){
-  time.textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration)}`;
-}
-
-/* replay */
-replayBtn.addEventListener('click', () => {
-  audio.currentTime = 0;
-  audio.play();
-});
-
-/* keyboard accessibility */
-document.addEventListener('keydown', (e) => {
-  if (e.code === 'Space') {
-    e.preventDefault();
-    if (audio.paused) audio.play(); else audio.pause();
-  } else if (e.code === 'ArrowLeft') audio.currentTime = Math.max(0,audio.currentTime-5);
-  else if (e.code === 'ArrowRight') audio.currentTime = Math.min(audio.duration || 0, audio.currentTime+5);
-});
-
-/* =========================
-   Word highlighting and audio playback
-   ========================= */
-
-// Highlight words based on current audio time
-function highlightCurrentWord() {
-  const currentTime = audio.currentTime;
-  
-  // Remove all active classes first
-  words.forEach(word => {
-    word.classList.remove('active', 'playing');
+  words.forEach(w=>{
+    w.addEventListener('click',e=>{
+      e.stopPropagation(); showTooltipFor(w);
+    });
   });
-  
-  // Find and highlight the current word
-  let currentActive
+  document.addEventListener('click',()=>tooltip.classList.remove('show'));
+
+  // 🎧 Audio va sinxronlashtirish
+  const audio=document.getElementById('audio');
+  const playBtn=document.getElementById('play');
+  const back5=document.getElementById('back5');
+  const forward5=document.getElementById('forward5');
+  const speed=document.getElementById('speed');
+  const time=document.getElementById('time');
+  const bar=document.getElementById('progressBar');
+
+  function format(s){if(!s||isNaN(s))return'0:00';let m=Math.floor(s/60);let sec=Math.floor(s%60).toString().padStart(2,'0');return`${m}:${sec}`;}
+  function updateTime(){time.textContent=`${format(audio.currentTime)} / ${format(audio.duration)}`;}
+
+  playBtn.onclick=()=>{audio.paused?audio.play():audio.pause();};
+  audio.onplay=()=>playBtn.textContent='⏸';
+  audio.onpause=()=>playBtn.textContent='▶';
+  back5.onclick=()=>audio.currentTime=Math.max(0,audio.currentTime-5);
+  forward5.onclick=()=>audio.currentTime=Math.min(audio.duration,audio.currentTime+5);
+  speed.onchange=()=>audio.playbackRate=parseFloat(speed.value);
+
+  // 🔁 Auto timestamps (taxminiy)
+  const totalWords=words.length;
+  let timestamps=[];
+  audio.addEventListener('loadedmetadata',()=>{
+    const dur=audio.duration||40; // agar metadata yo‘q bo‘lsa
+    const per=dur/totalWords;
+    timestamps=words.map((w,i)=>({start:i*per,end:(i+1)*per}));
+  });
+
+  // Highlight va progress
+  audio.addEventListener('timeupdate',()=>{
+    const cur=audio.currentTime;
+    if(timestamps.length){
+      let idx=timestamps.findIndex(t=>cur>=t.start&&cur<t.end);
+      words.forEach(w=>w.classList.remove('active'));
+      if(idx!==-1&&words[idx])words[idx].classList.add('active');
+    }
+    const pct=(cur/(audio.duration||1))*100;
+    bar.style.width=pct+'%';
+    updateTime();
+  });
+  </script>
+</body>
+</html>
