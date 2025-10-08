@@ -20,6 +20,7 @@
       flex-direction: column;
       align-items: center;
       min-height: 100vh;
+      padding-top: 20px; /* Header uchun joy */
     }
     header {
       text-align: center;
@@ -37,11 +38,6 @@
       max-width: 600px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       position: relative;
-      animation: fadeIn 0.6s ease-in-out;
-    }
-    @keyframes fadeIn {
-      from {opacity: 0; transform: translateY(20px);}
-      to {opacity: 1; transform: translateY(0);}
     }
     .story-title {
       text-align: center;
@@ -52,55 +48,92 @@
     .story-text {
       line-height: 1.7;
       font-size: 1em;
+      padding-bottom: 15px; /* Tooltip uchun joy */
     }
     .story-text span {
       cursor: pointer;
       transition: background 0.3s;
+      padding: 2px 0; /* Bosish uchun maydonni oshirish */
     }
     .story-text span:hover {
       background: rgba(0,191,165,0.2);
       border-radius: 5px;
     }
+    
+    /* RASMDAGIDEK TOOLTIP USLUBI */
     .tooltip {
       position: absolute;
-      background: var(--accent);
-      color: #000;
-      padding: 5px 8px;
-      border-radius: 6px;
-      font-size: 0.9em;
-      transform: translate(-50%, -150%);
-      white-space: nowrap;
-      z-index: 10;
+      /* Background va ranglar rasmdagi kabi moslashtirilgan */
+      background: #444; 
+      color: var(--text-color); 
+      border-radius: 12px;
+      padding: 15px 20px;
+      font-size: 1em;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      
+      transform: translate(-50%, -100%); /* Markazlashtirish uchun */
+      z-index: 100;
       display: none;
+      min-width: 150px;
+      text-align: center;
     }
+    .tooltip b {
+        color: var(--accent);
+        display: block;
+        margin-top: 5px;
+        font-size: 1.1em;
+    }
+    .audio-icon {
+        background: var(--accent);
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        color: #000;
+        font-size: 1.2em;
+        margin-right: 8px;
+        vertical-align: middle;
+        cursor: pointer;
+    }
+
+    /* Qolgan Audio Player Uslublari */
     .audio-player {
-      margin-top: 20px;
+      margin-top: 30px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 10px;
+      gap: 15px;
     }
     .controls {
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 15px;
+      gap: 25px;
     }
-    button {
+    .controls button {
       background: var(--accent);
       border: none;
       border-radius: 50%;
       color: #000;
-      width: 45px;
-      height: 45px;
-      font-size: 1.2em;
+      width: 55px; /* Kattaroq tugmalar */
+      height: 55px;
+      font-size: 1.5em;
       display: flex;
       justify-content: center;
       align-items: center;
       transition: 0.3s;
     }
-    button:hover {
+    .controls button:hover {
       transform: scale(1.1);
+    }
+    #backward, #forward {
+        background: #333; /* Kichik tugmalar rangi boshqacha */
+        width: 40px;
+        height: 40px;
+        font-size: 1em;
+        color: var(--accent);
     }
     .speed-select {
       background: var(--card-bg);
@@ -133,6 +166,10 @@
       font-size: 0.9em;
       opacity: 0.8;
       line-height: 1.5;
+      background: #252525;
+      padding: 10px;
+      border-radius: 10px;
+      width: 100%;
     }
   </style>
 </head>
@@ -147,13 +184,13 @@
       <span data-uz="muhabbat,">love,</span> <span data-uz="qo‘llab-quvvatlash,">support,</span> 
       <span data-uz="va baxt beradi.">and happiness.</span>
       <span data-uz="Bizning oilada">We are</span> <span data-uz="besh kishi bor:">five people in my family:</span> 
-      <span data-uz="otam, onam,">my father, my mother,</span> 
-      <span data-uz="opam, akam va men.">my sister, my brother, and me.</span> 
+      <span data-uz="otam,">my father,</span> <span data-uz="onam,">my mother,</span> 
+      <span data-uz="opam,">my sister,</span> <span data-uz="akam">my brother,</span> <span data-uz="va men.">and me.</span> 
       <span data-uz="Bizning oila katta emas, lekin">My family is not very big, but</span> 
       <span data-uz="har doim birgamiz.">we are always together</span> 
       <span data-uz="yaxshi va yomon paytlarda.">in good and bad times.</span>
-      <span data-uz="Otam o‘qituvchi, onam hamshira.">My father is a teacher, and my mother is a nurse.</span> 
-      <span data-uz="Ular mehnatkash va mehribon.">They are hardworking and kind people.</span>
+      <span data-uz="Otam o‘qituvchi,">My father is a teacher,</span> <span data-uz="onam hamshira.">and my mother is a nurse.</span> 
+      <span data-uz="Ular mehnatkash">They are hardworking</span> <span data-uz="va mehribon.">and kind people.</span>
     </p>
 
     <div class="tooltip" id="tooltip"></div>
@@ -203,6 +240,9 @@
     const forwardBtn = document.getElementById('forward');
 
     let isPlaying = false;
+    let tooltipTimeout;
+
+    // --- Audio Player Controls ---
 
     playPauseBtn.addEventListener('click', () => {
       if (isPlaying) {
@@ -223,34 +263,90 @@
       timeDisplay.textContent = `${current} / ${total}`;
     });
 
+    audio.addEventListener('loadedmetadata', () => {
+        // Audio yuklangandan keyin umumiy vaqtni yangilash
+        const total = formatTime(audio.duration);
+        timeDisplay.textContent = `0:00 / ${total}`;
+    });
+
     audio.addEventListener('ended', () => {
       playPauseBtn.textContent = '▶️';
       isPlaying = false;
     });
 
-    backwardBtn.addEventListener('click', () => audio.currentTime -= 5);
-    forwardBtn.addEventListener('click', () => audio.currentTime += 5);
+    backwardBtn.addEventListener('click', () => audio.currentTime = Math.max(0, audio.currentTime - 5));
+    forwardBtn.addEventListener('click', () => audio.currentTime = Math.min(audio.duration, audio.currentTime + 5));
+    
     speedSelect.addEventListener('change', () => {
       audio.playbackRate = parseFloat(speedSelect.value);
     });
 
     function formatTime(sec) {
-      if (isNaN(sec)) return "0:00";
+      if (isNaN(sec) || sec === Infinity) return "0:00";
       const minutes = Math.floor(sec / 60);
       const seconds = Math.floor(sec % 60).toString().padStart(2, '0');
       return `${minutes}:${seconds}`;
     }
 
-    // Tooltip tarjima funksiyasi
+    // --- So'z Talaffuzi Funksiyasi ---
+    function speakWord(text) {
+        if ('speechSynthesis' in window) {
+            // Avvalgi nutqni to'xtatish
+            window.speechSynthesis.cancel();
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            // Ingliz tilini aniqlash
+            utterance.lang = 'en-US'; 
+            window.speechSynthesis.speak(utterance);
+        } else {
+            console.warn("Speech Synthesis (Talaffuz) bu brauzerda qo'llab-quvvatlanmaydi.");
+        }
+    }
+
+    // --- Tooltip va Tarjima/Audio Listener ---
     storyText.addEventListener('click', (e) => {
-      if (e.target.dataset.uz) {
-        tooltip.textContent = e.target.dataset.uz;
+      const clickedSpan = e.target.closest('span');
+      
+      if (clickedSpan && clickedSpan.dataset.uz) {
+        const englishWord = clickedSpan.textContent.trim();
+        const uzbekTranslation = clickedSpan.dataset.uz;
+
+        // Tooltipni yashirish uchun avvalgi taymerni to'xtatish
+        clearTimeout(tooltipTimeout);
+
+        // 1. Tooltipni Ko'rsatish
+        // Talaffuz uchun audio iconini qo'shamiz va matnni formatlaymiz
+        tooltip.innerHTML = `
+            <span class="audio-icon" onclick="speakWord('${englishWord.replace(/'/g, "\\'")}')">🔊</span>
+            ${englishWord}
+            <br/>
+            <b>${uzbekTranslation}</b>
+        `;
         tooltip.style.display = 'block';
-        const rect = e.target.getBoundingClientRect();
-        tooltip.style.left = `${rect.left + rect.width/2}px`;
+        
+        const rect = clickedSpan.getBoundingClientRect();
+        
+        // Tooltipni so'z ustiga joylashtirish
+        tooltip.style.left = `${rect.left + rect.width / 2}px`;
         tooltip.style.top = `${rect.top + window.scrollY - 10}px`;
-        setTimeout(() => tooltip.style.display = 'none', 2000);
+
+        // 2. So'zni Talaffuz Qilish
+        speakWord(englishWord);
+
+        // 3. 3 sekunddan keyin tooltipni yashirish
+        tooltipTimeout = setTimeout(() => {
+             tooltip.style.display = 'none';
+        }, 3000); 
       }
+    });
+
+    // Boshqa joyni bosganda tooltipni yashirish
+    document.addEventListener('click', (e) => {
+        // Agar bosilgan element storyText ichida bo'lmasa, tooltipni yashirish
+        if (!e.target.closest('#storyText') && !e.target.closest('#tooltip')) {
+             clearTimeout(tooltipTimeout);
+             tooltip.style.display = 'none';
+        }
     });
   </script>
 </body>
