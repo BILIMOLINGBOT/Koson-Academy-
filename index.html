@@ -1,607 +1,257 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LinguaLearn - Til O'rganish Ilovasi</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        /* Asosiy CSS */
-        :root {
-            --bg-dark: #1a1a1a;
-            --text-light: #e5e5e5;
-            --primary: #1cb0f6;
-            --secondary: #ffc800;
-            --accent: #ff9600;
-            --gray: #777777;
-            --success: #58cc02;
-            --card-bg: #2d2d2d;
-            --hover-bg: #3a3a3a;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-dark);
-            color: var(--text-light);
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
-
-        .app-container {
-            max-width: 800px;
-            margin: 0 auto;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Header qismi */
-        .header {
-            background-color: #2d2d2d;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #444;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .status-bar {
-            display: flex;
-            gap: 15px;
-            font-size: 14px;
-            color: var(--gray);
-        }
-
-        .chapter-title {
-            font-size: 20px;
-            font-weight: bold;
-            text-align: center;
-            flex: 1;
-        }
-
-        /* Asosiy kontent */
-        .main-content {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-        }
-
-        .story-paragraph {
-            margin-bottom: 20px;
-            font-size: 17px;
-            line-height: 1.7;
-        }
-
-        .word {
-            cursor: pointer;
-            padding: 2px 1px;
-            border-radius: 3px;
-            transition: all 0.2s ease;
-        }
-
-        .word:hover {
-            background-color: rgba(28, 176, 246, 0.2);
-        }
-
-        .word.learning {
-            color: var(--secondary);
-            font-weight: 500;
-        }
-
-        .word.known {
-            color: var(--success);
-        }
-
-        /* Audio Player */
-        .audio-player {
-            background-color: #2d2d2d;
-            padding: 20px;
-            border-top: 1px solid #444;
-            position: sticky;
-            bottom: 0;
-        }
-
-        .mode-selector {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .mode-btn {
-            padding: 8px 16px;
-            border-radius: 8px;
-            background-color: #444;
-            border: none;
-            color: var(--text-light);
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .mode-btn.active {
-            background-color: var(--primary);
-            color: white;
-        }
-
-        .progress-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .time-display {
-            font-size: 14px;
-            color: var(--gray);
-            min-width: 40px;
-        }
-
-        .progress-bar {
-            flex: 1;
-            height: 6px;
-            background-color: #444;
-            border-radius: 3px;
-            position: relative;
-            cursor: pointer;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background-color: var(--primary);
-            border-radius: 3px;
-            width: 13%; /* Demo uchun */
-        }
-
-        .controls {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 30px;
-        }
-
-        .control-btn {
-            background: none;
-            border: none;
-            color: var(--text-light);
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 5px;
-            font-size: 12px;
-        }
-
-        .play-btn {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background-color: var(--primary);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            font-size: 20px;
-        }
-
-        .speed-control {
-            display: flex;
-            justify-content: center;
-            margin-top: 15px;
-            position: relative;
-        }
-
-        .speed-btn {
-            padding: 6px 12px;
-            background-color: #444;
-            border: none;
-            border-radius: 6px;
-            color: var(--text-light);
-            cursor: pointer;
-        }
-
-        .speed-options {
-            position: absolute;
-            bottom: 100%;
-            background-color: #3a3a3a;
-            border-radius: 8px;
-            padding: 8px;
-            display: none;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 5px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
-
-        .speed-options.show {
-            display: grid;
-        }
-
-        .speed-option {
-            padding: 6px 10px;
-            background-color: #444;
-            border: none;
-            border-radius: 4px;
-            color: var(--text-light);
-            cursor: pointer;
-            font-size: 12px;
-        }
-
-        .speed-option.active {
-            background-color: var(--primary);
-        }
-
-        /* So'z popup */
-        .popup-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.7);
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .popup-overlay.show {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .word-popup {
-            background-color: var(--card-bg);
-            border-radius: 16px 16px 0 0;
-            width: 100%;
-            max-width: 500px;
-            padding: 24px;
-            transform: translateY(100%);
-            transition: transform 0.3s ease;
-        }
-
-        .popup-overlay.show .word-popup {
-            transform: translateY(0);
-        }
-
-        .popup-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .popup-word {
-            font-size: 24px;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-
-        .popup-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .popup-action {
-            background: none;
-            border: none;
-            color: var(--gray);
-            font-size: 18px;
-            cursor: pointer;
-            padding: 5px;
-        }
-
-        .translation {
-            font-size: 20px;
-            color: var(--accent);
-            margin-bottom: 24px;
-            text-align: center;
-        }
-
-        .learning-buttons {
-            display: flex;
-            gap: 12px;
-        }
-
-        .learning-btn {
-            flex: 1;
-            padding: 14px;
-            border: none;
-            border-radius: 10px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .learning-btn.learning {
-            background-color: var(--secondary);
-            color: #333;
-        }
-
-        .learning-btn.known {
-            background-color: #444;
-            color: var(--text-light);
-        }
-
-        .learning-btn.known.active {
-            background-color: var(--success);
-            color: white;
-        }
-
-        /* Responsive dizayn */
-        @media (min-width: 768px) {
-            .chapter-title {
-                font-size: 24px;
-            }
-            
-            .story-paragraph {
-                font-size: 18px;
-            }
-            
-            .word-popup {
-                border-radius: 16px;
-                max-width: 400px;
-                transform: translateY(20px) scale(0.9);
-            }
-            
-            .popup-overlay {
-                align-items: center;
-            }
-            
-            .popup-overlay.show .word-popup {
-                transform: translateY(0) scale(1);
-            }
-        }
-
-        /* Animatsiyalar */
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .fade-in {
-            animation: fadeIn 0.3s ease;
-        }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #2d2d2d;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #555;
-            border-radius: 3px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #777;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StoryLearn — Hikoya orqali til o‘rganish</title>
+  <style>
+    :root {
+      --bg-color: #121212;
+      --text-color: #eaeaea;
+      --accent: #00bfa5;
+      --card-bg: #1e1e1e;
+    }
+    body {
+      margin: 0;
+      font-family: "Poppins", sans-serif;
+      background: var(--bg-color);
+      color: var(--text-color);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    header {
+      text-align: center;
+      padding: 20px;
+      font-size: 1.4em;
+      color: var(--accent);
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+    .story-container {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 20px;
+      width: 90%;
+      max-width: 600px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      position: relative;
+      animation: fadeIn 0.6s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from {opacity: 0; transform: translateY(20px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
+    .story-title {
+      text-align: center;
+      font-size: 1.2em;
+      margin-bottom: 10px;
+      color: var(--accent);
+    }
+    .story-text {
+      line-height: 1.7;
+      font-size: 1em;
+    }
+    .story-text span {
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .story-text span:hover {
+      background: rgba(0,191,165,0.2);
+      border-radius: 5px;
+    }
+    .tooltip {
+      position: absolute;
+      background: var(--accent);
+      color: #000;
+      padding: 5px 8px;
+      border-radius: 6px;
+      font-size: 0.9em;
+      transform: translate(-50%, -150%);
+      white-space: nowrap;
+      z-index: 10;
+      display: none;
+    }
+    .audio-player {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 15px;
+    }
+    button {
+      background: var(--accent);
+      border: none;
+      border-radius: 50%;
+      color: #000;
+      width: 45px;
+      height: 45px;
+      font-size: 1.2em;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: 0.3s;
+    }
+    button:hover {
+      transform: scale(1.1);
+    }
+    .speed-select {
+      background: var(--card-bg);
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      border-radius: 10px;
+      padding: 5px 10px;
+      font-size: 0.9em;
+    }
+    .progress-container {
+      width: 100%;
+      height: 6px;
+      background: #333;
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+    .progress-bar {
+      width: 0;
+      height: 100%;
+      background: var(--accent);
+      transition: width 0.1s linear;
+    }
+    .time {
+      font-size: 0.9em;
+      color: #aaa;
+    }
+    .character-info {
+      margin-top: 15px;
+      font-size: 0.9em;
+      opacity: 0.8;
+      line-height: 1.5;
+    }
+  </style>
 </head>
 <body>
-    <div class="app-container">
-        <!-- Header qismi -->
-        <header class="header">
-            <div class="status-bar">
-                <span>10:24</span>
-                <span><i class="fas fa-signal"></i></span>
-                <span><i class="fas fa-battery-three-quarters"></i></span>
-            </div>
-            <h1 class="chapter-title">Chapter 1: The Jogger</h1>
-            <div style="width: 80px;"></div> <!-- Balans uchun -->
-        </header>
+  <header>📖 StoryLearn</header>
 
-        <!-- Asosiy kontent -->
-        <main class="main-content">
-            <div class="story-paragraph">
-                <span class="word">Dan</span> <span class="word">and</span> <span class="word known">Sue</span> <span class="word">are</span> 
-                <span class="word">police</span> <span class="word">officers</span> <span class="word">in</span> <span class="word">London</span>.
-            </div>
-            
-            <div class="story-paragraph">
-                <span class="word">It</span> <span class="word">is</span> <span class="word">a</span> <span class="word">Tuesday</span> 
-                <span class="word">morning</span>, <span class="word">and</span> <span class="word">Dan</span> <span class="word">is</span> 
-                <span class="word">angry</span>.
-            </div>
-            
-            <div class="story-paragraph">
-                '<span class="word">What's</span> <span class="word">the</span> <span class="word">matter</span>, <span class="word">Dan</span>?' 
-                <span class="word">Sue</span> <span class="word">asks</span>.
-            </div>
-            
-            <div class="story-paragraph">
-                '<span class="word">Look</span> <span class="word">at</span> <span class="word">this</span>,' <span class="word">Dan</span> 
-                <span class="word">says</span>. '<span class="word">Every</span> <span class="word">day</span> <span class="word">someone</span> 
-                <span class="word">steals</span> <span class="word">money</span> <span class="word">from</span> <span class="word">people</span> 
-                <span class="word">near</span> <span class="word">the</span> <span class="word">shops</span>. <span class="word">We</span> 
-                <span class="word learning">must</span> <span class="word">stop</span> <span class="word">this</span>.'
-            </div>
-            
-            <div class="story-paragraph">
-                '<span class="word">Yes</span>, <span class="word">of</span> <span class="word">course</span>,' <span class="word">Sue</span> 
-                <span class="word">says</span>. '<span class="word">But</span> <span class="word">how</span>?'
-            </div>
-        </main>
+  <div class="story-container">
+    <h2 class="story-title">My Family 👨‍👩‍👧‍👦</h2>
+    <p class="story-text" id="storyText">
+      <span data-uz="Mening">My</span> <span data-uz="oila">family</span> <span data-uz="men uchun juda muhim">is very important to me</span> 
+      <span data-uz="chunki u menga">because it gives me</span> 
+      <span data-uz="muhabbat,">love,</span> <span data-uz="qo‘llab-quvvatlash,">support,</span> 
+      <span data-uz="va baxt beradi.">and happiness.</span>
+      <span data-uz="Bizning oilada">We are</span> <span data-uz="besh kishi bor:">five people in my family:</span> 
+      <span data-uz="otam, onam,">my father, my mother,</span> 
+      <span data-uz="opam, akam va men.">my sister, my brother, and me.</span> 
+      <span data-uz="Bizning oila katta emas, lekin">My family is not very big, but</span> 
+      <span data-uz="har doim birgamiz.">we are always together</span> 
+      <span data-uz="yaxshi va yomon paytlarda.">in good and bad times.</span>
+      <span data-uz="Otam o‘qituvchi, onam hamshira.">My father is a teacher, and my mother is a nurse.</span> 
+      <span data-uz="Ular mehnatkash va mehribon.">They are hardworking and kind people.</span>
+    </p>
 
-        <!-- Audio Player -->
-        <div class="audio-player">
-            <div class="mode-selector">
-                <button class="mode-btn">📖 Read</button>
-                <button class="mode-btn">🎧 Listen</button>
-                <button class="mode-btn active">🔊 Read with</button>
-            </div>
-            
-            <div class="progress-container">
-                <span class="time-display">00:59</span>
-                <div class="progress-bar">
-                    <div class="progress-fill"></div>
-                </div>
-                <span class="time-display">04:46</span>
-            </div>
-            
-            <div class="controls">
-                <button class="control-btn backward-btn">
-                    <div class="control-icon">
-                        <i class="fas fa-backward"></i>
-                    </div>
-                    <span>5s</span>
-                </button>
-                
-                <button class="play-btn">
-                    <i class="fas fa-play"></i>
-                </button>
-                
-                <button class="control-btn forward-btn">
-                    <div class="control-icon">
-                        <i class="fas fa-forward"></i>
-                    </div>
-                    <span>5s</span>
-                </button>
-            </div>
-            
-            <div class="speed-control">
-                <button class="speed-btn">1x <i class="fas fa-chevron-down"></i></button>
-                <div class="speed-options">
-                    <button class="speed-option">0.5x</button>
-                    <button class="speed-option">0.75x</button>
-                    <button class="speed-option active">1x</button>
-                    <button class="speed-option">1.25x</button>
-                    <button class="speed-option">1.5x</button>
-                    <button class="speed-option">2x</button>
-                </div>
-            </div>
-        </div>
+    <div class="tooltip" id="tooltip"></div>
+
+    <div class="audio-player">
+      <audio id="audio" src="https://www.englishlisteninghub.com/wp-content/uploads/2021/10/my-family.mp3"></audio>
+      
+      <div class="controls">
+        <button id="backward">⏪</button>
+        <button id="playPause">▶️</button>
+        <button id="forward">⏩</button>
+      </div>
+
+      <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+
+      <div class="time" id="timeDisplay">0:00 / 0:00</div>
+
+      <select class="speed-select" id="speedSelect">
+        <option value="0.5">0.5x</option>
+        <option value="0.75">0.75x</option>
+        <option value="1" selected>1x</option>
+        <option value="1.25">1.25x</option>
+        <option value="1.5">1.5x</option>
+        <option value="2">2x</option>
+      </select>
+
+      <div class="character-info">
+        👩 <b>Mother:</b> Nurse<br />
+        👨 <b>Father:</b> Teacher<br />
+        👧 <b>Sister:</b> Student<br />
+        👦 <b>Brother:</b> Student
+      </div>
     </div>
+  </div>
 
-    <!-- So'z popup -->
-    <div class="popup-overlay" id="popupOverlay">
-        <div class="word-popup">
-            <div class="popup-header">
-                <h2 class="popup-word" id="popupWord">must</h2>
-                <div class="popup-actions">
-                    <button class="popup-action"><i class="fas fa-volume-up"></i></button>
-                    <button class="popup-action"><i class="fas fa-book"></i></button>
-                    <button class="popup-action"><i class="fas fa-cog"></i></button>
-                    <button class="popup-action"><i class="fas fa-flag"></i></button>
-                    <button class="popup-action" id="closePopup"><i class="fas fa-times"></i></button>
-                </div>
-            </div>
-            
-            <div class="translation" id="popupTranslation">يجب أن</div>
-            
-            <div class="learning-buttons">
-                <button class="learning-btn learning" id="learningBtn">Learning</button>
-                <button class="learning-btn known" id="knownBtn">I know</button>
-            </div>
-        </div>
-    </div>
+  <script>
+    const audio = document.getElementById('audio');
+    const playPauseBtn = document.getElementById('playPause');
+    const progressBar = document.getElementById('progressBar');
+    const timeDisplay = document.getElementById('timeDisplay');
+    const speedSelect = document.getElementById('speedSelect');
+    const tooltip = document.getElementById('tooltip');
+    const storyText = document.getElementById('storyText');
+    const backwardBtn = document.getElementById('backward');
+    const forwardBtn = document.getElementById('forward');
 
-    <script>
-        // DOM elementlari
-        const popupOverlay = document.getElementById('popupOverlay');
-        const popupWord = document.getElementById('popupWord');
-        const popupTranslation = document.getElementById('popupTranslation');
-        const closePopup = document.getElementById('closePopup');
-        const learningBtn = document.getElementById('learningBtn');
-        const knownBtn = document.getElementById('knownBtn');
-        const words = document.querySelectorAll('.word');
-        const playBtn = document.querySelector('.play-btn');
-        const speedBtn = document.querySelector('.speed-btn');
-        const speedOptions = document.querySelector('.speed-options');
-        const modeBtns = document.querySelectorAll('.mode-btn');
-        const progressBar = document.querySelector('.progress-bar');
-        const progressFill = document.querySelector('.progress-fill');
+    let isPlaying = false;
 
-        // So'zlar lug'ati
-        const wordDictionary = {
-            "Dan": { translation: "دان", status: "new" },
-            "and": { translation: "و", status: "new" },
-            "Sue": { translation: "سو", status: "known" },
-            "are": { translation: "يكون", status: "new" },
-            "police": { translation: "الشرطة", status: "new" },
-            "officers": { translation: "ضباط", status: "new" },
-            "in": { translation: "في", status: "new" },
-            "London": { translation: "لندن", status: "new" },
-            "It": { translation: "إنه", status: "new" },
-            "is": { translation: "يكون", status: "new" },
-            "a": { translation: "أ", status: "new" },
-            "Tuesday": { translation: "الثلاثاء", status: "new" },
-            "morning": { translation: "صباح", status: "new" },
-            "angry": { translation: "غاضب", status: "new" },
-            "What's": { translation: "ما", status: "new" },
-            "the": { translation: "ال", status: "new" },
-            "matter": { translation: "مسألة", status: "new" },
-            "asks": { translation: "يسأل", status: "new" },
-            "Look": { translation: "انظر", status: "new" },
-            "at": { translation: "في", status: "new" },
-            "this": { translation: "هذا", status: "new" },
-            "says": { translation: "يقول", status: "new" },
-            "Every": { translation: "كل", status: "new" },
-            "day": { translation: "يوم", status: "new" },
-            "someone": { translation: "شخص ما", status: "new" },
-            "steals": { translation: "يسرق", status: "new" },
-            "money": { translation: "مال", status: "new" },
-            "from": { translation: "من", status: "new" },
-            "people": { translation: "الناس", status: "new" },
-            "near": { translation: "بالقرب من", status: "new" },
-            "shops": { translation: "المتاجر", status: "new" },
-            "We": { translation: "نحن", status: "new" },
-            "must": { translation: "يجب أن", status: "learning" },
-            "stop": { translation: "توقف", status: "new" },
-            "Yes": { translation: "نعم", status: "new" },
-            "of": { translation: "من", status: "new" },
-            "course": { translation: "بالطبع", status: "new" },
-            "But": { translation: "لكن", status: "new" },
-            "how": { translation: "كيف", status: "new" }
-        };
+    playPauseBtn.addEventListener('click', () => {
+      if (isPlaying) {
+        audio.pause();
+        playPauseBtn.textContent = '▶️';
+      } else {
+        audio.play();
+        playPauseBtn.textContent = '⏸️';
+      }
+      isPlaying = !isPlaying;
+    });
 
-        // So'zga bosilganda popup ochish
-        words.forEach(word => {
-            word.addEventListener('click', () => {
-                const wordText = word.textContent;
-                popupWord.textContent = wordText;
-                
-                if (wordDictionary[wordText]) {
-                    popupTranslation.textContent = wordDictionary[wordText].translation;
-                    
-                    // Learning statusni yangilash
-                    if (wordDictionary[wordText].status === 'learning') {
-                        learningBtn.classList.add('active');
-                        knownBtn.classList.remove('active');
-                    } else if (wordDictionary[wordText].status === 'known') {
-                        knownBtn.classList.add('active');
-                        learningBtn.classList.remove('active');
-                    } else {
-                        learningBtn.classList.remove('active');
-                        knownBtn.classList.remove('active');
-                    }
-                }
-                
-                popupOverlay.classList.add('show');
-            });
-        });
+    audio.addEventListener('timeupdate', () => {
+      const progress = (audio.currentTime / audio.duration) * 100;
+      progressBar.style.width = `${progress}%`;
+      const current = formatTime(audio.currentTime);
+      const total = formatTime(audio.duration);
+      timeDisplay.textContent = `${current} / ${total}`;
+    });
 
-        // Popup yopish
-        closePopup.addEventListener('click', () => {
-            popupOverlay.classList.remove('show');
-        });
+    audio.addEventListener('ended', () => {
+      playPauseBtn.textContent = '▶️';
+      isPlaying = false;
+    });
 
-        // Overlayga bosilganda popup yopish
-        popupOverlay.addEventListener('click', (e) => {
-            if (e.target === popupOverlay) {
-       
+    backwardBtn.addEventListener('click', () => audio.currentTime -= 5);
+    forwardBtn.addEventListener('click', () => audio.currentTime += 5);
+    speedSelect.addEventListener('change', () => {
+      audio.playbackRate = parseFloat(speedSelect.value);
+    });
+
+    function formatTime(sec) {
+      if (isNaN(sec)) return "0:00";
+      const minutes = Math.floor(sec / 60);
+      const seconds = Math.floor(sec % 60).toString().padStart(2, '0');
+      return `${minutes}:${seconds}`;
+    }
+
+    // Tooltip tarjima funksiyasi
+    storyText.addEventListener('click', (e) => {
+      if (e.target.dataset.uz) {
+        tooltip.textContent = e.target.dataset.uz;
+        tooltip.style.display = 'block';
+        const rect = e.target.getBoundingClientRect();
+        tooltip.style.left = `${rect.left + rect.width/2}px`;
+        tooltip.style.top = `${rect.top + window.scrollY - 10}px`;
+        setTimeout(() => tooltip.style.display = 'none', 2000);
+      }
+    });
+  </script>
+</body>
+</html>
