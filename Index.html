@@ -1,365 +1,122 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Play, Pause, SkipBack, SkipForward, Volume2, BookOpen, Settings, Flag } from 'lucide-react';
-
-const LanguageLearningApp = () => {
-  // State management
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(286); // 4:46 in seconds
-  const [playbackSpeed, setPlaybackSpeed] = useState(1);
-  const [selectedWord, setSelectedWord] = useState(null);
-  const [showPopup, setShowPopup] = useState(false);
-  const [learningWords, setLearningWords] = useState([]);
-  const [knownWords, setKnownWords] = useState([]);
-  const [currentMode, setCurrentMode] = useState('read');
-  const [showSpeedMenu, setShowSpeedMenu] = useState(false);
-  
-  const audioRef = useRef(null);
-  const progressRef = useRef(null);
-
-  // Story content
-  const story = {
-    chapter: "Chapter 1: The Jogger",
-    paragraphs: [
-      "Dan and Sue are police officers in London.",
-      "It is a Tuesday morning, and Dan is angry.",
-      "'What's the matter, Dan?' Sue asks.",
-      "'Look at this,' Dan says. 'Every day someone steals money from people near the shops. We must stop this.'",
-      "'Yes, of course,' Sue says. 'But how?'"
-    ]
-  };
-
-  // Word translations
-  const wordTranslations = {
-    'police': { uz: 'politsiya', ar: 'شرطة', ru: 'полиция' },
-    'officers': { uz: 'xodimlar', ar: 'ضباط', ru: 'офицеры' },
-    'angry': { uz: 'jahldor', ar: 'غاضب', ru: 'злой' },
-    'matter': { uz: 'muammo', ar: 'مسألة', ru: 'дело' },
-    'every': { uz: 'har', ar: 'كل', ru: 'каждый' },
-    'someone': { uz: 'kimdir', ar: 'شخص ما', ru: 'кто-то' },
-    'steals': { uz: "o'g'irlaydi", ar: 'يسرق', ru: 'крадет' },
-    'money': { uz: 'pul', ar: 'مال', ru: 'деньги' },
-    'must': { uz: 'kerak', ar: 'يجب أن', ru: 'должен' },
-    'stop': { uz: "to'xtatish", ar: 'يوقف', ru: 'остановить' },
-    'course': { uz: 'albatta', ar: 'بالطبع', ru: 'конечно' }
-  };
-
-  // Format time
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  // Handle play/pause
-  const togglePlay = () => {
-    setIsPlaying(!isPlaying);
-  };
-
-  // Handle forward/backward
-  const skipBackward = () => {
-    setCurrentTime(Math.max(0, currentTime - 5));
-  };
-
-  const skipForward = () => {
-    setCurrentTime(Math.min(duration, currentTime + 5));
-  };
-
-  // Handle progress bar click
-  const handleProgressClick = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const percentage = x / rect.width;
-    setCurrentTime(percentage * duration);
-  };
-
-  // Handle word click
-  const handleWordClick = (word) => {
-    const cleanWord = word.toLowerCase().replace(/[.,!?'"]/g, '');
-    if (wordTranslations[cleanWord]) {
-      setSelectedWord(cleanWord);
-      setShowPopup(true);
-    }
-  };
-
-  // Mark word as learning
-  const markAsLearning = () => {
-    if (selectedWord && !learningWords.includes(selectedWord)) {
-      setLearningWords([...learningWords, selectedWord]);
-      setKnownWords(knownWords.filter(w => w !== selectedWord));
-    }
-  };
-
-  // Mark word as known
-  const markAsKnown = () => {
-    if (selectedWord && !knownWords.includes(selectedWord)) {
-      setKnownWords([...knownWords, selectedWord]);
-      setLearningWords(learningWords.filter(w => w !== selectedWord));
-    }
-  };
-
-  // Get word color
-  const getWordColor = (word) => {
-    const cleanWord = word.toLowerCase().replace(/[.,!?'"]/g, '');
-    if (learningWords.includes(cleanWord)) return 'text-yellow-400';
-    if (knownWords.includes(cleanWord)) return 'text-green-400';
-    if (wordTranslations[cleanWord]) return 'text-blue-300';
-    return 'text-gray-200';
-  };
-
-  // Simulate audio progress
-  useEffect(() => {
-    let interval;
-    if (isPlaying) {
-      interval = setInterval(() => {
-        setCurrentTime(prev => {
-          if (prev >= duration) {
-            setIsPlaying(false);
-            return duration;
-          }
-          return prev + 0.1;
-        });
-      }, 100);
-    }
-    return () => clearInterval(interval);
-  }, [isPlaying, duration]);
-
-  const speeds = [0.5, 0.75, 1, 1.25, 1.5, 2];
-
-  return (
-    <div className="min-h-screen bg-gray-900 text-gray-200 font-sans">
-      {/* Header */}
-      <div className="bg-gray-800 px-5 py-4 border-b border-gray-700">
-        <h1 className="text-2xl font-bold text-gray-100">{story.chapter}</h1>
-      </div>
-
-      {/* Story Content */}
-      <div className="px-5 py-6 pb-64 max-w-2xl mx-auto">
-        {story.paragraphs.map((paragraph, idx) => (
-          <p key={idx} className="mb-5 text-lg leading-relaxed">
-            {paragraph.split(' ').map((word, widx) => {
-              const cleanWord = word.toLowerCase().replace(/[.,!?'"]/g, '');
-              const hasTranslation = wordTranslations[cleanWord];
-              return (
-                <span key={widx}>
-                  <span
-                    className={`${getWordColor(word)} ${
-                      hasTranslation ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''
-                    }`}
-                    onClick={() => hasTranslation && handleWordClick(word)}
-                  >
-                    {word}
-                  </span>
-                  {' '}
-                </span>
-              );
-            })}
-          </p>
-        ))}
-      </div>
-
-      {/* Word Popup */}
-      {showPopup && selectedWord && (
-        <>
-          <div 
-            className="fixed inset-0 bg-black bg-opacity-50 z-40"
-            onClick={() => setShowPopup(false)}
-          />
-          <div className="fixed bottom-0 left-0 right-0 bg-gray-800 rounded-t-3xl p-6 z-50 animate-slide-up shadow-2xl">
-            {/* Popup Header */}
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-2xl font-bold text-white capitalize">{selectedWord}</h3>
-              <div className="flex gap-3">
-                <button className="p-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition">
-                  <Volume2 size={20} className="text-blue-400" />
-                </button>
-                <button className="p-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition">
-                  <BookOpen size={20} className="text-gray-300" />
-                </button>
-                <button className="p-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition">
-                  <Settings size={20} className="text-gray-300" />
-                </button>
-                <button className="p-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition">
-                  <Flag size={20} className="text-gray-300" />
-                </button>
-              </div>
-            </div>
-
-            {/* Translation */}
-            <div className="mb-6 p-4 bg-gray-700 rounded-lg">
-              <p className="text-3xl text-center text-orange-400 font-semibold">
-                {wordTranslations[selectedWord]?.ar || 'يجب أن'}
-              </p>
-              <p className="text-center text-gray-400 mt-2">
-                {wordTranslations[selectedWord]?.uz || 'kerak'}
-              </p>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex gap-3">
-              <button
-                onClick={markAsLearning}
-                className={`flex-1 py-3 px-6 rounded-xl font-semibold transition ${
-                  learningWords.includes(selectedWord)
-                    ? 'bg-yellow-500 text-gray-900'
-                    : 'bg-yellow-500 bg-opacity-30 text-yellow-400 hover:bg-opacity-40'
-                }`}
-              >
-                Learning
-              </button>
-              <button
-                onClick={markAsKnown}
-                className={`flex-1 py-3 px-6 rounded-xl font-semibold transition ${
-                  knownWords.includes(selectedWord)
-                    ? 'bg-green-500 text-gray-900'
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                }`}
-              >
-                I know
-              </button>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* Audio Player - Fixed Bottom */}
-      <div className="fixed bottom-0 left-0 right-0 bg-gray-800 border-t border-gray-700 px-5 py-4 shadow-2xl">
-        {/* Mode Selector */}
-        <div className="flex gap-2 mb-4 justify-center">
-          <button
-            onClick={() => setCurrentMode('read')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
-              currentMode === 'read' ? 'bg-gray-700 text-blue-400' : 'bg-gray-900 text-gray-500'
-            }`}
-          >
-            <BookOpen size={18} />
-            <span className="text-sm font-medium">Read</span>
-          </button>
-          <button
-            onClick={() => setCurrentMode('listen')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
-              currentMode === 'listen' ? 'bg-gray-700 text-blue-400' : 'bg-gray-900 text-gray-500'
-            }`}
-          >
-            <Volume2 size={18} />
-            <span className="text-sm font-medium">Listen</span>
-          </button>
-          <button
-            onClick={() => setCurrentMode('readWith')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
-              currentMode === 'readWith' ? 'bg-gray-700 text-blue-400' : 'bg-gray-900 text-gray-500'
-            }`}
-          >
-            <Volume2 size={18} />
-            <span className="text-sm font-medium">Read with</span>
-          </button>
-        </div>
-
-        {/* Progress Bar */}
-        <div className="mb-4">
-          <div className="flex justify-between text-xs text-gray-400 mb-2">
-            <span>{formatTime(currentTime)}</span>
-            <div className="relative">
-              <button 
-                onClick={() => setShowSpeedMenu(!showSpeedMenu)}
-                className="text-gray-400 hover:text-white transition"
-              >
-                {playbackSpeed}x
-              </button>
-              {showSpeedMenu && (
-                <div className="absolute bottom-full mb-2 right-0 bg-gray-700 rounded-lg p-2 shadow-xl">
-                  {speeds.map(speed => (
-                    <button
-                      key={speed}
-                      onClick={() => {
-                        setPlaybackSpeed(speed);
-                        setShowSpeedMenu(false);
-                      }}
-                      className={`block w-full text-left px-3 py-2 rounded hover:bg-gray-600 transition ${
-                        playbackSpeed === speed ? 'text-blue-400' : 'text-gray-300'
-                      }`}
-                    >
-                      {speed}x
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-            <span>{formatTime(duration)}</span>
-          </div>
-          <div
-            ref={progressRef}
-            onClick={handleProgressClick}
-            className="h-1 bg-gray-700 rounded-full cursor-pointer relative"
-          >
-            <div
-              className="h-full bg-blue-500 rounded-full relative"
-              style={{ width: `${(currentTime / duration) * 100}%` }}
-            >
-              <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-blue-500 rounded-full shadow-lg" />
-            </div>
-          </div>
-        </div>
-
-        {/* Controls */}
-        <div className="flex items-center justify-center gap-6">
-          {/* Backward */}
-          <button
-            onClick={skipBackward}
-            className="flex flex-col items-center gap-1 text-gray-400 hover:text-white transition"
-          >
-            <div className="relative">
-              <SkipBack size={32} fill="currentColor" />
-              <span className="absolute inset-0 flex items-center justify-center text-xs font-bold">
-                5
-              </span>
-            </div>
-            <span className="text-xs">Backward</span>
-          </button>
-
-          {/* Play/Pause */}
-          <button
-            onClick={togglePlay}
-            className="w-16 h-16 bg-blue-500 hover:bg-blue-600 rounded-full flex items-center justify-center transition-all transform hover:scale-105 active:scale-95 shadow-lg"
-          >
-            {isPlaying ? (
-              <Pause size={28} fill="white" className="text-white" />
-            ) : (
-              <Play size={28} fill="white" className="text-white ml-1" />
-            )}
-          </button>
-
-          {/* Forward */}
-          <button
-            onClick={skipForward}
-            className="flex flex-col items-center gap-1 text-gray-400 hover:text-white transition"
-          >
-            <div className="relative">
-              <SkipForward size={32} fill="currentColor" />
-              <span className="absolute inset-0 flex items-center justify-center text-xs font-bold">
-                5
-              </span>
-            </div>
-            <span className="text-xs">Forward</span>
-          </button>
-        </div>
-      </div>
-
-      <style jsx>{`
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language Learning App</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+    <script src="https://unpkg.com/lucide-react@latest/dist/umd/lucide.js"></script>
+    <style>
         @keyframes slide-up {
-          from {
-            transform: translateY(100%);
-          }
-          to {
-            transform: translateY(0);
-          }
+            from {
+                transform: translateY(100%);
+            }
+            to {
+                transform: translateY(0);
+            }
         }
         .animate-slide-up {
-          animation: slide-up 0.3s ease-out;
+            animation: slide-up 0.3s ease-out;
         }
-      `}</style>
-    </div>
-  );
-};
+    </style>
+</head>
+<body class="min-h-screen bg-gray-900 text-gray-200 font-sans">
+    <div id="app">
+        <!-- Header -->
+        <div class="bg-gray-800 px-5 py-4 border-b border-gray-700">
+            <h1 class="text-2xl font-bold text-gray-100">Chapter 1: The Jogger</h1>
+        </div>
 
-export default LanguageLearningApp;
+        <!-- Story Content -->
+        <div class="px-5 py-6 pb-64 max-w-2xl mx-auto">
+            <p class="mb-5 text-lg leading-relaxed">
+                <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">Dan</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">and</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">Sue</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">are</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">police</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">officers</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">in</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">London.</span>
+            </p>
+            <p class="mb-5 text-lg leading-relaxed">
+                <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">It</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">is</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">a</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">Tuesday</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">morning,</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">and</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">Dan</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">is</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">angry.</span>
+            </p>
+            <p class="mb-5 text-lg leading-relaxed">
+                <span class="text-gray-200">'What's</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">the</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">matter,</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">Dan?'</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">Sue</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">asks.</span>
+            </p>
+            <p class="mb-5 text-lg leading-relaxed">
+                <span class="text-gray-200">'Look</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">at</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">this,'</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">Dan</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">says.</span> <span class="text-gray-200">'Every</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">day</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">someone</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">steals</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">money</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">from</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">people</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">near</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">the</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">shops.</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">We</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">must</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">stop</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">this.'</span>
+            </p>
+            <p class="mb-5 text-lg leading-relaxed">
+                <span class="text-gray-200">'Yes,</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">of</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">course,'</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">Sue</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">says.</span> <span class="text-gray-200">'But</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">how?'</span>
+            </p>
+        </div>
+
+        <!-- Audio Player - Fixed Bottom -->
+        <div class="fixed bottom-0 left-0 right-0 bg-gray-800 border-t border-gray-700 px-5 py-4 shadow-2xl">
+            <!-- Mode Selector -->
+            <div class="flex gap-2 mb-4 justify-center">
+                <button class="flex items-center gap-2 px-4 py-2 rounded-lg transition bg-gray-700 text-blue-400">
+                    <i data-lucide="book-open" class="w-4 h-4"></i>
+                    <span class="text-sm font-medium">Read</span>
+                </button>
+                <button class="flex items-center gap-2 px-4 py-2 rounded-lg transition bg-gray-900 text-gray-500">
+                    <i data-lucide="volume-2" class="w-4 h-4"></i>
+                    <span class="text-sm font-medium">Listen</span>
+                </button>
+                <button class="flex items-center gap-2 px-4 py-2 rounded-lg transition bg-gray-900 text-gray-500">
+                    <i data-lucide="volume-2" class="w-4 h-4"></i>
+                    <span class="text-sm font-medium">Read with</span>
+                </button>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="mb-4">
+                <div class="flex justify-between text-xs text-gray-400 mb-2">
+                    <span>00:00</span>
+                    <div class="relative">
+                        <button class="text-gray-400 hover:text-white transition">
+                            1x
+                        </button>
+                    </div>
+                    <span>04:46</span>
+                </div>
+                <div class="h-1 bg-gray-700 rounded-full cursor-pointer relative">
+                    <div class="h-full bg-blue-500 rounded-full relative" style="width: 0%">
+                        <div class="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-blue-500 rounded-full shadow-lg"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="flex items-center justify-center gap-6">
+                <!-- Backward -->
+                <button class="flex flex-col items-center gap-1 text-gray-400 hover:text-white transition">
+                    <div class="relative">
+                        <i data-lucide="skip-back" class="w-8 h-8"></i>
+                        <span class="absolute inset-0 flex items-center justify-center text-xs font-bold">
+                            5
+                        </span>
+                    </div>
+                    <span class="text-xs">Backward</span>
+                </button>
+
+                <!-- Play/Pause -->
+                <button class="w-16 h-16 bg-blue-500 hover:bg-blue-600 rounded-full flex items-center justify-center transition-all transform hover:scale-105 active:scale-95 shadow-lg">
+                    <i data-lucide="play" class="w-7 h-7 text-white ml-1"></i>
+                </button>
+
+                <!-- Forward -->
+                <button class="flex flex-col items-center gap-1 text-gray-400 hover:text-white transition">
+                    <div class="relative">
+                        <i data-lucide="skip-forward" class="w-8 h-8"></i>
+                        <span class="absolute inset-0 flex items-center justify-center text-xs font-bold">
+                            5
+                        </span>
+                    </div>
+                    <span class="text-xs">Forward</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+    </script>
+</body>
+</html>
