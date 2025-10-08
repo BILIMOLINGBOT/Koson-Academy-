@@ -3,281 +3,298 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LanguaLearn - Hikoya</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>Tilmoq | Hikoya O'qish</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
-        /*
-         * 1. QORONG'I TEMA (DARK MODE)
-         */
+        /* Asosiy Dizayn: Dark Mode va Responsivlik */
         :root {
-            --primary-bg: #121212; /* Qorong'i fon */
-            --secondary-bg: #1e1e1e; /* Elementlar foni */
-            --text-color: #e0e0e0; /* Oq/Och kulrang matn */
-            --accent-color: #00bcd4; /* Yorqin aksent (neon ko'k) */
-            --highlight-color: #00796b; /* Matn highlight rangi */
-            --button-hover: #333333;
+            --bg-dark: #121212;
+            --text-light: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --accent-color: #00bcd4; /* Firuza-ko'k */
+            --card-bg: #1e1e1e;
         }
 
         body {
-            background-color: var(--primary-bg);
-            color: var(--text-color);
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px; /* Mobil qurilma maksimal kengligi */
+            padding: 20px 15px;
             box-sizing: border-box;
         }
 
-        /*
-         * 2. RESPONSIVE DIZAYN
-         */
-        .container {
-            max-width: 600px;
-            margin: auto;
-            padding: 0;
-        }
-
-        /*
-         * 3. XUSUSIYATLAR UCHUN STYLING
-         */
-        .header {
+        /* Yuqori Qism (Header) */
+        .story-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
 
-        .level-badge {
-            background-color: var(--highlight-color);
+        .story-meta h1 {
+            font-size: 1.5rem;
+            margin: 0;
+            color: var(--text-light);
+        }
+
+        .story-meta p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: 5px;
+        }
+
+        .story-level {
+            background-color: var(--accent-color);
+            color: var(--bg-dark);
             padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 0.8em;
+            border-radius: 5px;
             font-weight: bold;
+            font-size: 0.8rem;
         }
 
-        /* Matn Bo'limi */
+        /* Hikoya Matni Bo'limi */
         .story-text {
-            background-color: var(--secondary-bg);
+            background-color: var(--card-bg);
             padding: 20px;
             border-radius: 12px;
             line-height: 1.8;
-            font-size: 1.1em;
+            font-size: 1.1rem;
             margin-bottom: 30px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-            /* 'So'z Tarjimasi' imitatsiyasi */
-            cursor: pointer;
-        }
-        .story-text span:hover {
-            text-decoration: underline;
-            color: var(--accent-color);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
 
-        /*
-         * Audio Player Qismi
-         */
-        .audio-player {
-            background-color: var(--secondary-bg);
+        /* Interaktiv Matn Stilistikasi */
+        .story-text span {
+            cursor: pointer;
+            transition: color 0.2s;
+            position: relative;
+            /* Audio ijro etilayotgan so'z */
+        }
+        
+        .story-text .highlighted {
+            color: var(--accent-color);
+            font-weight: 500;
+        }
+
+        /* Tooltip (Tarjima ko'rinishi) */
+        .tooltip {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.85);
+            color: var(--text-light);
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            z-index: 10;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+        
+        .story-text span:hover .tooltip {
+            opacity: 1;
+        }
+
+        /* Audio Boshqaruvlari */
+        .audio-controls {
+            background-color: var(--card-bg);
             padding: 15px;
             border-radius: 12px;
-            position: fixed; /* Ekranning pastida qotiriladi */
+            position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            width: 100%;
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.5);
-            box-sizing: border-box;
+            z-index: 99;
+            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.5);
             max-width: 600px;
-            margin: auto;
+            margin: 0 auto;
         }
 
-        .controls {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-        }
-
-        .control-button {
-            background: none;
-            border: none;
-            color: var(--text-color);
-            font-size: 1.5em;
-            cursor: pointer;
-            padding: 10px;
-            transition: color 0.2s, background-color 0.2s;
-            border-radius: 50%;
-        }
-
-        .control-button:hover {
-            background-color: var(--button-hover);
-            color: var(--accent-color);
-        }
-
-        .play-pause-button {
-            font-size: 2.5em;
-            color: var(--accent-color);
-        }
-        .play-pause-button:hover {
-            background-color: var(--button-hover);
-        }
-
-        /* Progress Bar */
-        .progress-container {
-            width: 100%;
-            height: 8px;
-            background-color: #333;
-            border-radius: 4px;
-            margin: 10px 0;
-            cursor: pointer;
+        .progress-bar-area {
+            margin-bottom: 15px;
         }
 
         .progress-bar {
+            height: 6px;
+            background-color: #333;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .progress-indicator {
             height: 100%;
-            width: 30%; /* Misol uchun 30% progress */
+            width: 45%; /* Namuna: 45% o'tgan */
             background-color: var(--accent-color);
-            border-radius: 4px;
-            transition: width 0.1s linear;
+            border-radius: 3px;
+            transition: width 0.3s;
         }
 
         .time-display {
             display: flex;
             justify-content: space-between;
-            font-size: 0.9em;
-            margin-bottom: 5px;
-        }
-        
-        /* Tezlik Sozlamasi */
-        .speed-setting {
-            color: var(--accent-color);
-            font-weight: bold;
-            padding: 5px 10px;
-            background-color: #333;
-            border-radius: 8px;
-        }
-        
-        /* Qo'shimcha ikonka uchun */
-        .story-options {
-            font-size: 1.2em;
-            cursor: pointer;
-            color: var(--text-color);
-        }
-        
-        .story-info {
-            background-color: var(--secondary-bg);
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            font-size: 0.9em;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 5px;
         }
 
-        /* Matnni yashirish/ko'rsatish tugmasi */
-        .toggle-text-btn {
-            background-color: var(--secondary-bg);
-            border: 2px solid var(--accent-color);
-            color: var(--accent-color);
-            padding: 8px 15px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background-color 0.2s;
-        }
-        .toggle-text-btn:hover {
-            background-color: var(--highlight-color);
-            color: var(--text-color);
-        }
-
-        /* Yuklanish Animatsiyasi (soddalashtirilgan) */
-        .loading-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(18, 18, 18, 0.95);
-            display: none; /* JS orqali ko'rsatiladi */
-            justify-content: center;
+        .control-buttons {
+            display: flex;
+            justify-content: space-around;
             align-items: center;
-            z-index: 1000;
         }
-        .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-top: 4px solid var(--accent-color);
+
+        .control-buttons button {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            padding: 10px;
+            transition: transform 0.2s, color 0.2s;
+        }
+
+        .control-buttons button:hover {
+            color: var(--accent-color);
+        }
+
+        .control-buttons .material-icons {
+            font-size: 28px;
+        }
+        
+        .control-buttons .main-play-pause {
+            background-color: var(--accent-color);
+            color: var(--bg-dark);
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
+            padding: 15px;
+            box-shadow: 0 2px 10px rgba(0, 187, 212, 0.5);
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+
+        .control-buttons .main-play-pause .material-icons {
+            font-size: 36px;
         }
     </style>
 </head>
 <body>
+
     <div class="container">
-        <div class="loading-overlay" id="loadingOverlay">
-            <div class="spinner"></div>
-        </div>
-
-        <div class="header">
-            <div>
-                <h1>Hikoya №1: Mening Oilam</h1>
-                <span class="level-badge">Boshlang'ich (A2)</span>
-            </div>
-            <i class="fas fa-flag story-options"></i> </div>
-
-        <div class="story-info">
-            <strong>Karakterlar:</strong> Otam (teacher), Onam (nurse), Sister, Brother, and Me.
-        </div>
         
-        <button class="toggle-text-btn" id="toggleTextBtn">
-            <i class="fas fa-eye"></i> Matnni Yashirish
-        </button>
+        <div class="story-header">
+            <div class="story-meta">
+                <h1>My Family</h1>
+                <p>Hikoya #001 | Ingliz Tili</p>
+            </div>
+            <div class="story-level">Boshlang'ich (A1)</div>
+        </div>
 
-        <div class="story-text" id="storyText">
+        <div class="story-text">
             <p>
-                My <span>family</span> is very <span>important</span> to me because it gives me <span>love</span>, <span>support</span>, and <span>happiness</span>. We are five people in my family: my <span>father</span>, my <span>mother</span>, my <span>sister</span>, my <span>brother</span>, and me. My family is not very <span>big</span>, but we are always <span>together</span> in <span>good</span> and <span>bad</span> times. My father is a <span>teacher</span>, and my mother is a <span>nurse</span>. They are <span>hardworking</span> and <span>kind</span> people.
-            </p>
-            <p>
-                <span class="highlighted-sentence">
-                    They are hardworking and kind people.
-                </span>
+                <span class="highlighted">My</span> 
+                <span class="highlighted">family</span> 
+                <span class="highlighted">is</span> 
+                <span class="highlighted">very</span> 
+                <span>important 
+                    <span class="tooltip">important: muhim, ahamiyatli</span>
+                </span> 
+                <span>to</span> 
+                <span>me</span> 
+                <span>because</span> 
+                <span>it</span> 
+                <span>gives</span> 
+                <span>me</span> 
+                <span>love,</span> 
+                <span>support,</span> 
+                <span>and</span> 
+                <span>happiness.</span> 
+                
+                <span>We</span> 
+                <span>are</span> 
+                <span>five</span> 
+                <span>people</span> 
+                <span>in</span> 
+                <span>my</span> 
+                <span>family:</span> 
+                <span>my</span> 
+                <span>father,</span> 
+                <span>my</span> 
+                <span>mother,</span> 
+                <span>my</span> 
+                <span>sister,</span> 
+                <span>my</span> 
+                <span>brother,</span> 
+                <span>and</span> 
+                <span>me.</span> 
+                
+                <span>My</span> 
+                <span>father</span> 
+                <span>is</span> 
+                <span>a</span> 
+                <span>teacher,</span> 
+                <span>and</span> 
+                <span>my</span> 
+                <span>mother</span> 
+                <span>is</span> 
+                <span>a</span> 
+                <span>nurse.</span> 
+                <span>They</span> 
+                <span>are</span> 
+                <span>hardworking</span> 
+                <span>and</span> 
+                <span>kind</span> 
+                <span>people.</span>
             </p>
         </div>
         
         <div style="height: 100px;"></div>
+
     </div>
 
-    <div class="audio-player">
-        <div class="time-display">
-            <span>0:08</span>
-            <span class="speed-setting">1.0x</span>
-            <span>0:55</span>
+    <div class="audio-controls">
+        
+        <div class="progress-bar-area">
+            <div class="progress-bar">
+                <div class="progress-indicator"></div>
+            </div>
+            <div class="time-display">
+                <span id="current-time">0:45</span>
+                <span id="total-time">2:30</span>
+            </div>
         </div>
-        <div class="progress-container">
-            <div class="progress-bar"></div>
+
+        <div class="control-buttons">
+            
+            <button title="Audio tezligini sozlash">0.75x</button>
+            
+            <button title="5 soniya orqaga o'tish">
+                <i class="material-icons">replay_5</i>
+            </button>
+            
+            <button class="main-play-pause" title="O'ynatish/To'xtatish">
+                <i class="material-icons">pause</i>
+                </button>
+            
+            <button title="5 soniya oldinga o'tish">
+                <i class="material-icons">forward_5</i>
+            </button>
+
+            <button title="Qayta tinglash">
+                <i class="material-icons">repeat</i>
+            </button>
+
         </div>
-        <div class="controls">
-            <button class="control-button"><i class="fas fa-redo-alt"></i></button> <button class="control-button"><i class="fas fa-backward"></i></button> <button class="control-button play-pause-button"><i class="fas fa-pause"></i></button> <button class="control-button"><i class="fas fa-forward"></i></button> <button class="control-button"><i class="fas fa-headphones"></i></button> </div>
     </div>
 
-    <script>
-        const storyText = document.getElementById('storyText');
-        const toggleBtn = document.getElementById('toggleTextBtn');
-
-        // Matnni yashirish/ko'rsatish funksiyasi
-        toggleBtn.addEventListener('click', function() {
-            const isHidden = storyText.style.display === 'none';
-            if (isHidden) {
-                storyText.style.display = 'block';
-                toggleBtn.innerHTML = '<i class="fas fa-eye"></i> Matnni Yashirish';
-            } else {
-                storyText.style.display = 'none';
-                toggleBtn.innerHTML = '<i class="fas fa-eye-slash"></i> Matnni Ko\'rsatish';
-            }
-        });
-
-        // Yuklanish animatsiyasini imitatsiya qilish (Masalan, 2 soniya)
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        loadingOverlay.style.display = 'flex'; // Yuklanishni boshlash
-        setTimeout(() => {
-             loadingOverlay.style.display = 'none'; // Yuklanishni tugatish
-        }, 2000);
-    </script>
 </body>
 </html>
