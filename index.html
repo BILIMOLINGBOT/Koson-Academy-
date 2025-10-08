@@ -1,122 +1,607 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Language Learning App</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
-    <script src="https://unpkg.com/lucide-react@latest/dist/umd/lucide.js"></script>
+    <title>LinguaLearn - Til O'rganish Ilovasi</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @keyframes slide-up {
-            from {
-                transform: translateY(100%);
+        /* Asosiy CSS */
+        :root {
+            --bg-dark: #1a1a1a;
+            --text-light: #e5e5e5;
+            --primary: #1cb0f6;
+            --secondary: #ffc800;
+            --accent: #ff9600;
+            --gray: #777777;
+            --success: #58cc02;
+            --card-bg: #2d2d2d;
+            --hover-bg: #3a3a3a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            max-width: 800px;
+            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header qismi */
+        .header {
+            background-color: #2d2d2d;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #444;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .status-bar {
+            display: flex;
+            gap: 15px;
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        .chapter-title {
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            flex: 1;
+        }
+
+        /* Asosiy kontent */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .story-paragraph {
+            margin-bottom: 20px;
+            font-size: 17px;
+            line-height: 1.7;
+        }
+
+        .word {
+            cursor: pointer;
+            padding: 2px 1px;
+            border-radius: 3px;
+            transition: all 0.2s ease;
+        }
+
+        .word:hover {
+            background-color: rgba(28, 176, 246, 0.2);
+        }
+
+        .word.learning {
+            color: var(--secondary);
+            font-weight: 500;
+        }
+
+        .word.known {
+            color: var(--success);
+        }
+
+        /* Audio Player */
+        .audio-player {
+            background-color: #2d2d2d;
+            padding: 20px;
+            border-top: 1px solid #444;
+            position: sticky;
+            bottom: 0;
+        }
+
+        .mode-selector {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .mode-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            background-color: #444;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .mode-btn.active {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .progress-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .time-display {
+            font-size: 14px;
+            color: var(--gray);
+            min-width: 40px;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 6px;
+            background-color: #444;
+            border-radius: 3px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--primary);
+            border-radius: 3px;
+            width: 13%; /* Demo uchun */
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .control-btn {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+        }
+
+        .play-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        .speed-control {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+            position: relative;
+        }
+
+        .speed-btn {
+            padding: 6px 12px;
+            background-color: #444;
+            border: none;
+            border-radius: 6px;
+            color: var(--text-light);
+            cursor: pointer;
+        }
+
+        .speed-options {
+            position: absolute;
+            bottom: 100%;
+            background-color: #3a3a3a;
+            border-radius: 8px;
+            padding: 8px;
+            display: none;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .speed-options.show {
+            display: grid;
+        }
+
+        .speed-option {
+            padding: 6px 10px;
+            background-color: #444;
+            border: none;
+            border-radius: 4px;
+            color: var(--text-light);
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .speed-option.active {
+            background-color: var(--primary);
+        }
+
+        /* So'z popup */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .popup-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .word-popup {
+            background-color: var(--card-bg);
+            border-radius: 16px 16px 0 0;
+            width: 100%;
+            max-width: 500px;
+            padding: 24px;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .popup-overlay.show .word-popup {
+            transform: translateY(0);
+        }
+
+        .popup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .popup-word {
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .popup-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .popup-action {
+            background: none;
+            border: none;
+            color: var(--gray);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .translation {
+            font-size: 20px;
+            color: var(--accent);
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .learning-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .learning-btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .learning-btn.learning {
+            background-color: var(--secondary);
+            color: #333;
+        }
+
+        .learning-btn.known {
+            background-color: #444;
+            color: var(--text-light);
+        }
+
+        .learning-btn.known.active {
+            background-color: var(--success);
+            color: white;
+        }
+
+        /* Responsive dizayn */
+        @media (min-width: 768px) {
+            .chapter-title {
+                font-size: 24px;
             }
-            to {
-                transform: translateY(0);
+            
+            .story-paragraph {
+                font-size: 18px;
+            }
+            
+            .word-popup {
+                border-radius: 16px;
+                max-width: 400px;
+                transform: translateY(20px) scale(0.9);
+            }
+            
+            .popup-overlay {
+                align-items: center;
+            }
+            
+            .popup-overlay.show .word-popup {
+                transform: translateY(0) scale(1);
             }
         }
-        .animate-slide-up {
-            animation: slide-up 0.3s ease-out;
+
+        /* Animatsiyalar */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #2d2d2d;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #777;
         }
     </style>
 </head>
-<body class="min-h-screen bg-gray-900 text-gray-200 font-sans">
-    <div id="app">
-        <!-- Header -->
-        <div class="bg-gray-800 px-5 py-4 border-b border-gray-700">
-            <h1 class="text-2xl font-bold text-gray-100">Chapter 1: The Jogger</h1>
-        </div>
+<body>
+    <div class="app-container">
+        <!-- Header qismi -->
+        <header class="header">
+            <div class="status-bar">
+                <span>10:24</span>
+                <span><i class="fas fa-signal"></i></span>
+                <span><i class="fas fa-battery-three-quarters"></i></span>
+            </div>
+            <h1 class="chapter-title">Chapter 1: The Jogger</h1>
+            <div style="width: 80px;"></div> <!-- Balans uchun -->
+        </header>
 
-        <!-- Story Content -->
-        <div class="px-5 py-6 pb-64 max-w-2xl mx-auto">
-            <p class="mb-5 text-lg leading-relaxed">
-                <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">Dan</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">and</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">Sue</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">are</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">police</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">officers</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">in</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">London.</span>
-            </p>
-            <p class="mb-5 text-lg leading-relaxed">
-                <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">It</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">is</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">a</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">Tuesday</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">morning,</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">and</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">Dan</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">is</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">angry.</span>
-            </p>
-            <p class="mb-5 text-lg leading-relaxed">
-                <span class="text-gray-200">'What's</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">the</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">matter,</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">Dan?'</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">Sue</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">asks.</span>
-            </p>
-            <p class="mb-5 text-lg leading-relaxed">
-                <span class="text-gray-200">'Look</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">at</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">this,'</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">Dan</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">says.</span> <span class="text-gray-200">'Every</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">day</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">someone</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">steals</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">money</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">from</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">people</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">near</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">the</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">shops.</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">We</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">must</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">stop</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">this.'</span>
-            </p>
-            <p class="mb-5 text-lg leading-relaxed">
-                <span class="text-gray-200">'Yes,</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">of</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">course,'</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">Sue</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">says.</span> <span class="text-gray-200">'But</span> <span class="text-blue-300 cursor-pointer hover:opacity-80 transition-opacity">how?'</span>
-            </p>
-        </div>
+        <!-- Asosiy kontent -->
+        <main class="main-content">
+            <div class="story-paragraph">
+                <span class="word">Dan</span> <span class="word">and</span> <span class="word known">Sue</span> <span class="word">are</span> 
+                <span class="word">police</span> <span class="word">officers</span> <span class="word">in</span> <span class="word">London</span>.
+            </div>
+            
+            <div class="story-paragraph">
+                <span class="word">It</span> <span class="word">is</span> <span class="word">a</span> <span class="word">Tuesday</span> 
+                <span class="word">morning</span>, <span class="word">and</span> <span class="word">Dan</span> <span class="word">is</span> 
+                <span class="word">angry</span>.
+            </div>
+            
+            <div class="story-paragraph">
+                '<span class="word">What's</span> <span class="word">the</span> <span class="word">matter</span>, <span class="word">Dan</span>?' 
+                <span class="word">Sue</span> <span class="word">asks</span>.
+            </div>
+            
+            <div class="story-paragraph">
+                '<span class="word">Look</span> <span class="word">at</span> <span class="word">this</span>,' <span class="word">Dan</span> 
+                <span class="word">says</span>. '<span class="word">Every</span> <span class="word">day</span> <span class="word">someone</span> 
+                <span class="word">steals</span> <span class="word">money</span> <span class="word">from</span> <span class="word">people</span> 
+                <span class="word">near</span> <span class="word">the</span> <span class="word">shops</span>. <span class="word">We</span> 
+                <span class="word learning">must</span> <span class="word">stop</span> <span class="word">this</span>.'
+            </div>
+            
+            <div class="story-paragraph">
+                '<span class="word">Yes</span>, <span class="word">of</span> <span class="word">course</span>,' <span class="word">Sue</span> 
+                <span class="word">says</span>. '<span class="word">But</span> <span class="word">how</span>?'
+            </div>
+        </main>
 
-        <!-- Audio Player - Fixed Bottom -->
-        <div class="fixed bottom-0 left-0 right-0 bg-gray-800 border-t border-gray-700 px-5 py-4 shadow-2xl">
-            <!-- Mode Selector -->
-            <div class="flex gap-2 mb-4 justify-center">
-                <button class="flex items-center gap-2 px-4 py-2 rounded-lg transition bg-gray-700 text-blue-400">
-                    <i data-lucide="book-open" class="w-4 h-4"></i>
-                    <span class="text-sm font-medium">Read</span>
+        <!-- Audio Player -->
+        <div class="audio-player">
+            <div class="mode-selector">
+                <button class="mode-btn">📖 Read</button>
+                <button class="mode-btn">🎧 Listen</button>
+                <button class="mode-btn active">🔊 Read with</button>
+            </div>
+            
+            <div class="progress-container">
+                <span class="time-display">00:59</span>
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+                <span class="time-display">04:46</span>
+            </div>
+            
+            <div class="controls">
+                <button class="control-btn backward-btn">
+                    <div class="control-icon">
+                        <i class="fas fa-backward"></i>
+                    </div>
+                    <span>5s</span>
                 </button>
-                <button class="flex items-center gap-2 px-4 py-2 rounded-lg transition bg-gray-900 text-gray-500">
-                    <i data-lucide="volume-2" class="w-4 h-4"></i>
-                    <span class="text-sm font-medium">Listen</span>
+                
+                <button class="play-btn">
+                    <i class="fas fa-play"></i>
                 </button>
-                <button class="flex items-center gap-2 px-4 py-2 rounded-lg transition bg-gray-900 text-gray-500">
-                    <i data-lucide="volume-2" class="w-4 h-4"></i>
-                    <span class="text-sm font-medium">Read with</span>
+                
+                <button class="control-btn forward-btn">
+                    <div class="control-icon">
+                        <i class="fas fa-forward"></i>
+                    </div>
+                    <span>5s</span>
                 </button>
             </div>
-
-            <!-- Progress Bar -->
-            <div class="mb-4">
-                <div class="flex justify-between text-xs text-gray-400 mb-2">
-                    <span>00:00</span>
-                    <div class="relative">
-                        <button class="text-gray-400 hover:text-white transition">
-                            1x
-                        </button>
-                    </div>
-                    <span>04:46</span>
-                </div>
-                <div class="h-1 bg-gray-700 rounded-full cursor-pointer relative">
-                    <div class="h-full bg-blue-500 rounded-full relative" style="width: 0%">
-                        <div class="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-blue-500 rounded-full shadow-lg"></div>
-                    </div>
+            
+            <div class="speed-control">
+                <button class="speed-btn">1x <i class="fas fa-chevron-down"></i></button>
+                <div class="speed-options">
+                    <button class="speed-option">0.5x</button>
+                    <button class="speed-option">0.75x</button>
+                    <button class="speed-option active">1x</button>
+                    <button class="speed-option">1.25x</button>
+                    <button class="speed-option">1.5x</button>
+                    <button class="speed-option">2x</button>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <!-- Controls -->
-            <div class="flex items-center justify-center gap-6">
-                <!-- Backward -->
-                <button class="flex flex-col items-center gap-1 text-gray-400 hover:text-white transition">
-                    <div class="relative">
-                        <i data-lucide="skip-back" class="w-8 h-8"></i>
-                        <span class="absolute inset-0 flex items-center justify-center text-xs font-bold">
-                            5
-                        </span>
-                    </div>
-                    <span class="text-xs">Backward</span>
-                </button>
-
-                <!-- Play/Pause -->
-                <button class="w-16 h-16 bg-blue-500 hover:bg-blue-600 rounded-full flex items-center justify-center transition-all transform hover:scale-105 active:scale-95 shadow-lg">
-                    <i data-lucide="play" class="w-7 h-7 text-white ml-1"></i>
-                </button>
-
-                <!-- Forward -->
-                <button class="flex flex-col items-center gap-1 text-gray-400 hover:text-white transition">
-                    <div class="relative">
-                        <i data-lucide="skip-forward" class="w-8 h-8"></i>
-                        <span class="absolute inset-0 flex items-center justify-center text-xs font-bold">
-                            5
-                        </span>
-                    </div>
-                    <span class="text-xs">Forward</span>
-                </button>
+    <!-- So'z popup -->
+    <div class="popup-overlay" id="popupOverlay">
+        <div class="word-popup">
+            <div class="popup-header">
+                <h2 class="popup-word" id="popupWord">must</h2>
+                <div class="popup-actions">
+                    <button class="popup-action"><i class="fas fa-volume-up"></i></button>
+                    <button class="popup-action"><i class="fas fa-book"></i></button>
+                    <button class="popup-action"><i class="fas fa-cog"></i></button>
+                    <button class="popup-action"><i class="fas fa-flag"></i></button>
+                    <button class="popup-action" id="closePopup"><i class="fas fa-times"></i></button>
+                </div>
+            </div>
+            
+            <div class="translation" id="popupTranslation">يجب أن</div>
+            
+            <div class="learning-buttons">
+                <button class="learning-btn learning" id="learningBtn">Learning</button>
+                <button class="learning-btn known" id="knownBtn">I know</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Initialize Lucide icons
-        lucide.createIcons();
-    </script>
-</body>
-</html>
+        // DOM elementlari
+        const popupOverlay = document.getElementById('popupOverlay');
+        const popupWord = document.getElementById('popupWord');
+        const popupTranslation = document.getElementById('popupTranslation');
+        const closePopup = document.getElementById('closePopup');
+        const learningBtn = document.getElementById('learningBtn');
+        const knownBtn = document.getElementById('knownBtn');
+        const words = document.querySelectorAll('.word');
+        const playBtn = document.querySelector('.play-btn');
+        const speedBtn = document.querySelector('.speed-btn');
+        const speedOptions = document.querySelector('.speed-options');
+        const modeBtns = document.querySelectorAll('.mode-btn');
+        const progressBar = document.querySelector('.progress-bar');
+        const progressFill = document.querySelector('.progress-fill');
+
+        // So'zlar lug'ati
+        const wordDictionary = {
+            "Dan": { translation: "دان", status: "new" },
+            "and": { translation: "و", status: "new" },
+            "Sue": { translation: "سو", status: "known" },
+            "are": { translation: "يكون", status: "new" },
+            "police": { translation: "الشرطة", status: "new" },
+            "officers": { translation: "ضباط", status: "new" },
+            "in": { translation: "في", status: "new" },
+            "London": { translation: "لندن", status: "new" },
+            "It": { translation: "إنه", status: "new" },
+            "is": { translation: "يكون", status: "new" },
+            "a": { translation: "أ", status: "new" },
+            "Tuesday": { translation: "الثلاثاء", status: "new" },
+            "morning": { translation: "صباح", status: "new" },
+            "angry": { translation: "غاضب", status: "new" },
+            "What's": { translation: "ما", status: "new" },
+            "the": { translation: "ال", status: "new" },
+            "matter": { translation: "مسألة", status: "new" },
+            "asks": { translation: "يسأل", status: "new" },
+            "Look": { translation: "انظر", status: "new" },
+            "at": { translation: "في", status: "new" },
+            "this": { translation: "هذا", status: "new" },
+            "says": { translation: "يقول", status: "new" },
+            "Every": { translation: "كل", status: "new" },
+            "day": { translation: "يوم", status: "new" },
+            "someone": { translation: "شخص ما", status: "new" },
+            "steals": { translation: "يسرق", status: "new" },
+            "money": { translation: "مال", status: "new" },
+            "from": { translation: "من", status: "new" },
+            "people": { translation: "الناس", status: "new" },
+            "near": { translation: "بالقرب من", status: "new" },
+            "shops": { translation: "المتاجر", status: "new" },
+            "We": { translation: "نحن", status: "new" },
+            "must": { translation: "يجب أن", status: "learning" },
+            "stop": { translation: "توقف", status: "new" },
+            "Yes": { translation: "نعم", status: "new" },
+            "of": { translation: "من", status: "new" },
+            "course": { translation: "بالطبع", status: "new" },
+            "But": { translation: "لكن", status: "new" },
+            "how": { translation: "كيف", status: "new" }
+        };
+
+        // So'zga bosilganda popup ochish
+        words.forEach(word => {
+            word.addEventListener('click', () => {
+                const wordText = word.textContent;
+                popupWord.textContent = wordText;
+                
+                if (wordDictionary[wordText]) {
+                    popupTranslation.textContent = wordDictionary[wordText].translation;
+                    
+                    // Learning statusni yangilash
+                    if (wordDictionary[wordText].status === 'learning') {
+                        learningBtn.classList.add('active');
+                        knownBtn.classList.remove('active');
+                    } else if (wordDictionary[wordText].status === 'known') {
+                        knownBtn.classList.add('active');
+                        learningBtn.classList.remove('active');
+                    } else {
+                        learningBtn.classList.remove('active');
+                        knownBtn.classList.remove('active');
+                    }
+                }
+                
+                popupOverlay.classList.add('show');
+            });
+        });
+
+        // Popup yopish
+        closePopup.addEventListener('click', () => {
+            popupOverlay.classList.remove('show');
+        });
+
+        // Overlayga bosilganda popup yopish
+        popupOverlay.addEventListener('click', (e) => {
+            if (e.target === popupOverlay) {
+       
