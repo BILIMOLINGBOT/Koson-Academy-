@@ -1,302 +1,365 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>StoryLearn — Hikoya orqali til o‘rganish</title>
-<style>
-  :root {
-    --bg-color: #0d0d0d;
-    --text-color: #eaeaea;
-    --accent: #00bfa5;
-    --card-bg: #1a1a1a;
-  }
-  * {
-    box-sizing: border-box;
-    transition: all 0.3s ease;
-  }
-  body {
-    margin: 0;
-    font-family: "Poppins", sans-serif;
-    background: var(--bg-color);
-    color: var(--text-color);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-  header {
-    text-align: center;
-    padding: 25px 10px;
-    font-size: 1.5em;
-    color: var(--accent);
-    font-weight: 600;
-    letter-spacing: 1px;
-    animation: fadeDown 0.8s ease-out;
-  }
-  @keyframes fadeDown {
-    from {opacity: 0; transform: translateY(-30px);}
-    to {opacity: 1; transform: translateY(0);}
-  }
-  .story-container {
-    background: var(--card-bg);
-    border-radius: 20px;
-    padding: 25px;
-    width: 90%;
-    max-width: 600px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-    position: relative;
-    animation: fadeUp 1s ease-in-out;
-  }
-  @keyframes fadeUp {
-    from {opacity: 0; transform: translateY(40px);}
-    to {opacity: 1; transform: translateY(0);}
-  }
-  .story-title {
-    text-align: center;
-    font-size: 1.3em;
-    margin-bottom: 12px;
-    color: var(--accent);
-  }
-  .story-text {
-    line-height: 1.8;
-    font-size: 1em;
-    text-align: justify;
-  }
-  .story-text span {
-    cursor: pointer;
-    padding: 2px 4px;
-    border-radius: 6px;
-  }
-  .story-text span:hover {
-    background: rgba(0,191,165,0.15);
-    transition: background 0.2s ease-in;
-  }
-  .tooltip {
-    position: absolute;
-    background: var(--accent);
-    color: #000;
-    padding: 6px 10px;
-    border-radius: 8px;
-    font-size: 0.9em;
-    transform: translate(-50%, -150%) scale(0.8);
-    white-space: nowrap;
-    opacity: 0;
-    z-index: 10;
-    transition: all 0.25s ease-out;
-  }
-  .tooltip.show {
-    opacity: 1;
-    transform: translate(-50%, -150%) scale(1);
-  }
+import React, { useState, useRef, useEffect } from 'react';
+import { Play, Pause, SkipBack, SkipForward, Volume2, BookOpen, Settings, Flag } from 'lucide-react';
 
-  .audio-player {
-    margin-top: 25px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
-  }
-  .controls {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 18px;
-  }
-  button {
-    background: var(--accent);
-    border: none;
-    border-radius: 50%;
-    color: #000;
-    width: 50px;
-    height: 50px;
-    font-size: 1.2em;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
-  }
-  button:hover {
-    transform: scale(1.15);
-    box-shadow: 0 0 10px var(--accent);
-  }
-  .speed-select {
-    background: var(--card-bg);
-    color: var(--accent);
-    border: 1px solid var(--accent);
-    border-radius: 10px;
-    padding: 6px 12px;
-    font-size: 0.9em;
-  }
-  .progress-container {
-    width: 100%;
-    height: 8px;
-    background: #333;
-    border-radius: 4px;
-    overflow: hidden;
-    position: relative;
-  }
-  .progress-bar {
-    width: 0;
-    height: 100%;
-    background: linear-gradient(90deg, #00bfa5, #26ffc2);
-    transition: width 0.1s linear;
-  }
-  .time {
-    font-size: 0.9em;
-    color: #aaa;
-  }
-  .character-info {
-    margin-top: 15px;
-    font-size: 0.9em;
-    opacity: 0.8;
-    line-height: 1.5;
-  }
+const LanguageLearningApp = () => {
+  // State management
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(286); // 4:46 in seconds
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [selectedWord, setSelectedWord] = useState(null);
+  const [showPopup, setShowPopup] = useState(false);
+  const [learningWords, setLearningWords] = useState([]);
+  const [knownWords, setKnownWords] = useState([]);
+  const [currentMode, setCurrentMode] = useState('read');
+  const [showSpeedMenu, setShowSpeedMenu] = useState(false);
+  
+  const audioRef = useRef(null);
+  const progressRef = useRef(null);
 
-  /* Yuklanish animatsiyasi */
-  .loading {
-    position: fixed;
-    inset: 0;
-    background: var(--bg-color);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 999;
-    animation: fadeOut 1s ease forwards;
-    animation-delay: 1.5s;
-  }
-  .loader {
-    width: 60px;
-    height: 60px;
-    border: 5px solid #222;
-    border-top: 5px solid var(--accent);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-  }
-  @keyframes spin {to {transform: rotate(360deg);}}
-  @keyframes fadeOut {
-    to {opacity: 0; visibility: hidden;}
-  }
-</style>
-</head>
-<body>
-  <div class="loading"><div class="loader"></div></div>
-  <header>📖 StoryLearn</header>
+  // Story content
+  const story = {
+    chapter: "Chapter 1: The Jogger",
+    paragraphs: [
+      "Dan and Sue are police officers in London.",
+      "It is a Tuesday morning, and Dan is angry.",
+      "'What's the matter, Dan?' Sue asks.",
+      "'Look at this,' Dan says. 'Every day someone steals money from people near the shops. We must stop this.'",
+      "'Yes, of course,' Sue says. 'But how?'"
+    ]
+  };
 
-  <div class="story-container">
-    <h2 class="story-title">My Family 👨‍👩‍👧‍👦</h2>
-    <p class="story-text" id="storyText">
-      <span data-uz="Mening">My</span> <span data-uz="oila">family</span> <span data-uz="men uchun juda muhim">is very important to me</span> 
-      <span data-uz="chunki u menga">because it gives me</span> 
-      <span data-uz="muhabbat,">love,</span> <span data-uz="qo‘llab-quvvatlash,">support,</span> 
-      <span data-uz="va baxt beradi.">and happiness.</span>
-      <span data-uz="Bizning oilada">We are</span> <span data-uz="besh kishi bor:">five people in my family:</span> 
-      <span data-uz="otam, onam,">my father, my mother,</span> 
-      <span data-uz="opam, akam va men.">my sister, my brother, and me.</span> 
-      <span data-uz="Bizning oila katta emas, lekin">My family is not very big, but</span> 
-      <span data-uz="har doim birgamiz.">we are always together</span> 
-      <span data-uz="yaxshi va yomon paytlarda.">in good and bad times.</span>
-      <span data-uz="Otam o‘qituvchi, onam hamshira.">My father is a teacher, and my mother is a nurse.</span> 
-      <span data-uz="Ular mehnatkash va mehribon.">They are hardworking and kind people.</span>
-    </p>
+  // Word translations
+  const wordTranslations = {
+    'police': { uz: 'politsiya', ar: 'شرطة', ru: 'полиция' },
+    'officers': { uz: 'xodimlar', ar: 'ضباط', ru: 'офицеры' },
+    'angry': { uz: 'jahldor', ar: 'غاضب', ru: 'злой' },
+    'matter': { uz: 'muammo', ar: 'مسألة', ru: 'дело' },
+    'every': { uz: 'har', ar: 'كل', ru: 'каждый' },
+    'someone': { uz: 'kimdir', ar: 'شخص ما', ru: 'кто-то' },
+    'steals': { uz: "o'g'irlaydi", ar: 'يسرق', ru: 'крадет' },
+    'money': { uz: 'pul', ar: 'مال', ru: 'деньги' },
+    'must': { uz: 'kerak', ar: 'يجب أن', ru: 'должен' },
+    'stop': { uz: "to'xtatish", ar: 'يوقف', ru: 'остановить' },
+    'course': { uz: 'albatta', ar: 'بالطبع', ru: 'конечно' }
+  };
 
-    <div class="tooltip" id="tooltip"></div>
+  // Format time
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
-    <div class="audio-player">
-      <audio id="audio" src="https://www.englishlisteninghub.com/wp-content/uploads/2021/10/my-family.mp3"></audio>
-      
-      <div class="controls">
-        <button id="backward">⏪</button>
-        <button id="playPause">▶️</button>
-        <button id="forward">⏩</button>
-      </div>
+  // Handle play/pause
+  const togglePlay = () => {
+    setIsPlaying(!isPlaying);
+  };
 
-      <div class="progress-container">
-        <div class="progress-bar" id="progressBar"></div>
-      </div>
+  // Handle forward/backward
+  const skipBackward = () => {
+    setCurrentTime(Math.max(0, currentTime - 5));
+  };
 
-      <div class="time" id="timeDisplay">0:00 / 0:00</div>
+  const skipForward = () => {
+    setCurrentTime(Math.min(duration, currentTime + 5));
+  };
 
-      <select class="speed-select" id="speedSelect">
-        <option value="0.5">0.5x</option>
-        <option value="0.75">0.75x</option>
-        <option value="1" selected>1x</option>
-        <option value="1.25">1.25x</option>
-        <option value="1.5">1.5x</option>
-        <option value="2">2x</option>
-      </select>
+  // Handle progress bar click
+  const handleProgressClick = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const percentage = x / rect.width;
+    setCurrentTime(percentage * duration);
+  };
 
-      <div class="character-info">
-        👩 <b>Mother:</b> Nurse<br />
-        👨 <b>Father:</b> Teacher<br />
-        👧 <b>Sister:</b> Student<br />
-        👦 <b>Brother:</b> Student
-      </div>
-    </div>
-  </div>
+  // Handle word click
+  const handleWordClick = (word) => {
+    const cleanWord = word.toLowerCase().replace(/[.,!?'"]/g, '');
+    if (wordTranslations[cleanWord]) {
+      setSelectedWord(cleanWord);
+      setShowPopup(true);
+    }
+  };
 
-<script>
-  const audio = document.getElementById('audio');
-  const playPauseBtn = document.getElementById('playPause');
-  const progressBar = document.getElementById('progressBar');
-  const timeDisplay = document.getElementById('timeDisplay');
-  const speedSelect = document.getElementById('speedSelect');
-  const tooltip = document.getElementById('tooltip');
-  const storyText = document.getElementById('storyText');
-  const backwardBtn = document.getElementById('backward');
-  const forwardBtn = document.getElementById('forward');
+  // Mark word as learning
+  const markAsLearning = () => {
+    if (selectedWord && !learningWords.includes(selectedWord)) {
+      setLearningWords([...learningWords, selectedWord]);
+      setKnownWords(knownWords.filter(w => w !== selectedWord));
+    }
+  };
 
-  let isPlaying = false;
+  // Mark word as known
+  const markAsKnown = () => {
+    if (selectedWord && !knownWords.includes(selectedWord)) {
+      setKnownWords([...knownWords, selectedWord]);
+      setLearningWords(learningWords.filter(w => w !== selectedWord));
+    }
+  };
 
-  playPauseBtn.addEventListener('click', () => {
+  // Get word color
+  const getWordColor = (word) => {
+    const cleanWord = word.toLowerCase().replace(/[.,!?'"]/g, '');
+    if (learningWords.includes(cleanWord)) return 'text-yellow-400';
+    if (knownWords.includes(cleanWord)) return 'text-green-400';
+    if (wordTranslations[cleanWord]) return 'text-blue-300';
+    return 'text-gray-200';
+  };
+
+  // Simulate audio progress
+  useEffect(() => {
+    let interval;
     if (isPlaying) {
-      audio.pause();
-      playPauseBtn.textContent = '▶️';
-    } else {
-      audio.play();
-      playPauseBtn.textContent = '⏸️';
+      interval = setInterval(() => {
+        setCurrentTime(prev => {
+          if (prev >= duration) {
+            setIsPlaying(false);
+            return duration;
+          }
+          return prev + 0.1;
+        });
+      }, 100);
     }
-    isPlaying = !isPlaying;
-  });
+    return () => clearInterval(interval);
+  }, [isPlaying, duration]);
 
-  audio.addEventListener('timeupdate', () => {
-    const progress = (audio.currentTime / audio.duration) * 100;
-    progressBar.style.width = `${progress}%`;
-    const current = formatTime(audio.currentTime);
-    const total = formatTime(audio.duration);
-    timeDisplay.textContent = `${current} / ${total}`;
-  });
+  const speeds = [0.5, 0.75, 1, 1.25, 1.5, 2];
 
-  audio.addEventListener('ended', () => {
-    playPauseBtn.textContent = '▶️';
-    isPlaying = false;
-  });
+  return (
+    <div className="min-h-screen bg-gray-900 text-gray-200 font-sans">
+      {/* Header */}
+      <div className="bg-gray-800 px-5 py-4 border-b border-gray-700">
+        <h1 className="text-2xl font-bold text-gray-100">{story.chapter}</h1>
+      </div>
 
-  backwardBtn.addEventListener('click', () => audio.currentTime -= 5);
-  forwardBtn.addEventListener('click', () => audio.currentTime += 5);
-  speedSelect.addEventListener('change', () => {
-    audio.playbackRate = parseFloat(speedSelect.value);
-  });
+      {/* Story Content */}
+      <div className="px-5 py-6 pb-64 max-w-2xl mx-auto">
+        {story.paragraphs.map((paragraph, idx) => (
+          <p key={idx} className="mb-5 text-lg leading-relaxed">
+            {paragraph.split(' ').map((word, widx) => {
+              const cleanWord = word.toLowerCase().replace(/[.,!?'"]/g, '');
+              const hasTranslation = wordTranslations[cleanWord];
+              return (
+                <span key={widx}>
+                  <span
+                    className={`${getWordColor(word)} ${
+                      hasTranslation ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''
+                    }`}
+                    onClick={() => hasTranslation && handleWordClick(word)}
+                  >
+                    {word}
+                  </span>
+                  {' '}
+                </span>
+              );
+            })}
+          </p>
+        ))}
+      </div>
 
-  function formatTime(sec) {
-    if (isNaN(sec)) return "0:00";
-    const minutes = Math.floor(sec / 60);
-    const seconds = Math.floor(sec % 60).toString().padStart(2, '0');
-    return `${minutes}:${seconds}`;
-  }
+      {/* Word Popup */}
+      {showPopup && selectedWord && (
+        <>
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-40"
+            onClick={() => setShowPopup(false)}
+          />
+          <div className="fixed bottom-0 left-0 right-0 bg-gray-800 rounded-t-3xl p-6 z-50 animate-slide-up shadow-2xl">
+            {/* Popup Header */}
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-2xl font-bold text-white capitalize">{selectedWord}</h3>
+              <div className="flex gap-3">
+                <button className="p-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition">
+                  <Volume2 size={20} className="text-blue-400" />
+                </button>
+                <button className="p-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition">
+                  <BookOpen size={20} className="text-gray-300" />
+                </button>
+                <button className="p-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition">
+                  <Settings size={20} className="text-gray-300" />
+                </button>
+                <button className="p-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition">
+                  <Flag size={20} className="text-gray-300" />
+                </button>
+              </div>
+            </div>
 
-  // Tooltip smooth chiqishi
-  storyText.addEventListener('click', (e) => {
-    if (e.target.dataset.uz) {
-      tooltip.textContent = e.target.dataset.uz;
-      const rect = e.target.getBoundingClientRect();
-      tooltip.style.left = `${rect.left + rect.width/2}px`;
-      tooltip.style.top = `${rect.top + window.scrollY - 10}px`;
-      tooltip.classList.add('show');
-      setTimeout(() => tooltip.classList.remove('show'), 2000);
-    }
-  });
-</script>
-</body>
-</html>
+            {/* Translation */}
+            <div className="mb-6 p-4 bg-gray-700 rounded-lg">
+              <p className="text-3xl text-center text-orange-400 font-semibold">
+                {wordTranslations[selectedWord]?.ar || 'يجب أن'}
+              </p>
+              <p className="text-center text-gray-400 mt-2">
+                {wordTranslations[selectedWord]?.uz || 'kerak'}
+              </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              <button
+                onClick={markAsLearning}
+                className={`flex-1 py-3 px-6 rounded-xl font-semibold transition ${
+                  learningWords.includes(selectedWord)
+                    ? 'bg-yellow-500 text-gray-900'
+                    : 'bg-yellow-500 bg-opacity-30 text-yellow-400 hover:bg-opacity-40'
+                }`}
+              >
+                Learning
+              </button>
+              <button
+                onClick={markAsKnown}
+                className={`flex-1 py-3 px-6 rounded-xl font-semibold transition ${
+                  knownWords.includes(selectedWord)
+                    ? 'bg-green-500 text-gray-900'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
+              >
+                I know
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Audio Player - Fixed Bottom */}
+      <div className="fixed bottom-0 left-0 right-0 bg-gray-800 border-t border-gray-700 px-5 py-4 shadow-2xl">
+        {/* Mode Selector */}
+        <div className="flex gap-2 mb-4 justify-center">
+          <button
+            onClick={() => setCurrentMode('read')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
+              currentMode === 'read' ? 'bg-gray-700 text-blue-400' : 'bg-gray-900 text-gray-500'
+            }`}
+          >
+            <BookOpen size={18} />
+            <span className="text-sm font-medium">Read</span>
+          </button>
+          <button
+            onClick={() => setCurrentMode('listen')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
+              currentMode === 'listen' ? 'bg-gray-700 text-blue-400' : 'bg-gray-900 text-gray-500'
+            }`}
+          >
+            <Volume2 size={18} />
+            <span className="text-sm font-medium">Listen</span>
+          </button>
+          <button
+            onClick={() => setCurrentMode('readWith')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
+              currentMode === 'readWith' ? 'bg-gray-700 text-blue-400' : 'bg-gray-900 text-gray-500'
+            }`}
+          >
+            <Volume2 size={18} />
+            <span className="text-sm font-medium">Read with</span>
+          </button>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="mb-4">
+          <div className="flex justify-between text-xs text-gray-400 mb-2">
+            <span>{formatTime(currentTime)}</span>
+            <div className="relative">
+              <button 
+                onClick={() => setShowSpeedMenu(!showSpeedMenu)}
+                className="text-gray-400 hover:text-white transition"
+              >
+                {playbackSpeed}x
+              </button>
+              {showSpeedMenu && (
+                <div className="absolute bottom-full mb-2 right-0 bg-gray-700 rounded-lg p-2 shadow-xl">
+                  {speeds.map(speed => (
+                    <button
+                      key={speed}
+                      onClick={() => {
+                        setPlaybackSpeed(speed);
+                        setShowSpeedMenu(false);
+                      }}
+                      className={`block w-full text-left px-3 py-2 rounded hover:bg-gray-600 transition ${
+                        playbackSpeed === speed ? 'text-blue-400' : 'text-gray-300'
+                      }`}
+                    >
+                      {speed}x
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <span>{formatTime(duration)}</span>
+          </div>
+          <div
+            ref={progressRef}
+            onClick={handleProgressClick}
+            className="h-1 bg-gray-700 rounded-full cursor-pointer relative"
+          >
+            <div
+              className="h-full bg-blue-500 rounded-full relative"
+              style={{ width: `${(currentTime / duration) * 100}%` }}
+            >
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-blue-500 rounded-full shadow-lg" />
+            </div>
+          </div>
+        </div>
+
+        {/* Controls */}
+        <div className="flex items-center justify-center gap-6">
+          {/* Backward */}
+          <button
+            onClick={skipBackward}
+            className="flex flex-col items-center gap-1 text-gray-400 hover:text-white transition"
+          >
+            <div className="relative">
+              <SkipBack size={32} fill="currentColor" />
+              <span className="absolute inset-0 flex items-center justify-center text-xs font-bold">
+                5
+              </span>
+            </div>
+            <span className="text-xs">Backward</span>
+          </button>
+
+          {/* Play/Pause */}
+          <button
+            onClick={togglePlay}
+            className="w-16 h-16 bg-blue-500 hover:bg-blue-600 rounded-full flex items-center justify-center transition-all transform hover:scale-105 active:scale-95 shadow-lg"
+          >
+            {isPlaying ? (
+              <Pause size={28} fill="white" className="text-white" />
+            ) : (
+              <Play size={28} fill="white" className="text-white ml-1" />
+            )}
+          </button>
+
+          {/* Forward */}
+          <button
+            onClick={skipForward}
+            className="flex flex-col items-center gap-1 text-gray-400 hover:text-white transition"
+          >
+            <div className="relative">
+              <SkipForward size={32} fill="currentColor" />
+              <span className="absolute inset-0 flex items-center justify-center text-xs font-bold">
+                5
+              </span>
+            </div>
+            <span className="text-xs">Forward</span>
+          </button>
+        </div>
+      </div>
+
+      <style jsx>{`
+        @keyframes slide-up {
+          from {
+            transform: translateY(100%);
+          }
+          to {
+            transform: translateY(0);
+          }
+        }
+        .animate-slide-up {
+          animation: slide-up 0.3s ease-out;
+        }
+      `}</style>
+    </div>
+  );
+};
+
+export default LanguageLearningApp;
