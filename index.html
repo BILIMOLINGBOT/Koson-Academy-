@@ -13,6 +13,9 @@
       --accent:#00c4a7;
       --glass: rgba(255,255,255,0.03);
       --radius:16px;
+      /* New CSS for Vocabulary Chart */
+      --table-header: #00705f;
+      --table-border: rgba(255,255,255,0.05);
     }
     *{box-sizing:border-box}
     html,body{height:100%}
@@ -183,11 +186,46 @@
 
     /* hint */
     .hint { font-size:0.82rem; color:var(--muted); margin-top:6px }
+
+    /* Vocabulary Chart Styles */
+    .vocabulary {
+        margin-top: 20px;
+        padding-top: 10px;
+        border-top: 1px solid var(--glass);
+    }
+    .vocabulary h2 {
+        font-size: 1.15rem;
+        color: var(--accent);
+        margin-top: 0;
+        margin-bottom: 12px;
+    }
+    .vocab-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+    }
+    .vocab-table th, .vocab-table td {
+        padding: 10px 12px;
+        text-align: left;
+        border-bottom: 1px solid var(--table-border);
+    }
+    .vocab-table th {
+        background: var(--table-header);
+        color: var(--text);
+        font-weight: 600;
+        position: sticky;
+        top: 0;
+    }
+    .vocab-table tr:last-child td {
+        border-bottom: none;
+    }
+    .vocab-uz {
+        color: var(--muted);
+    }
   </style>
 </head>
 <body>
   <div class="app" role="application" aria-label="StoryLearn">
-    <!-- loader (simple) -->
     <div class="loader" id="loader" aria-hidden="true">
       <div class="spinner" aria-hidden="true"></div>
     </div>
@@ -209,7 +247,6 @@
 
     <div class="story" id="storyArea" aria-live="polite">
       <p id="storyText">
-        <!-- Har bir so'zni <span class="word" data-uz="...">WORD</span> ga o'rab chiqing -->
         <span class="word" data-uz="Mening">My</span>
         <span class="word" data-uz="oila">family</span>
         <span class="word" data-uz="men uchun">is</span>
@@ -242,13 +279,11 @@
         <span class="word" data-uz="Ular mehnatkash va mehribon">They are hardworking and kind people</span>.
       </p>
 
-      <!-- tooltip -->
       <div class="tooltip" id="tooltip" role="tooltip" aria-hidden="true">
         <div><span class="lang" id="tpLang">UZ</span><span class="pair" id="tpText">Tarjima</span></div>
       </div>
     </div>
 
-    <!-- audio player -->
     <div class="player" aria-label="Audio player">
       <div class="controls" role="group" aria-label="Player controls">
         <button class="btn ghost" id="back5" title="5 s orqaga">◀◀ 5s</button>
@@ -279,9 +314,23 @@
         </div>
       </div>
     </div>
+    
+    <div class="vocabulary">
+        <h2>Lugʻat (Vocabulary)</h2>
+        <table class="vocab-table">
+            <thead>
+                <tr>
+                    <th>Inglizcha (English)</th>
+                    <th>Oʻzbekcha (Uzbek)</th>
+                </tr>
+            </thead>
+            <tbody id="vocabBody">
+                </tbody>
+        </table>
+    </div>
 
-    <!-- visually-hidden audio element (you can change src to your audio file) -->
     <audio id="audio" preload="metadata" src="https://www.englishlisteninghub.com/wp-content/uploads/2021/10/my-family.mp3"></audio>
+    <audio id="clickSfx" preload="auto" src="https://assets.mixkit.co/sfx/download/mixkit-interface-device-click-2019.wav"></audio>
   </div>
 
 <script>
@@ -293,12 +342,19 @@ const tpText = document.getElementById('tpText');
 const tpLang = document.getElementById('tpLang');
 const storyArea = document.getElementById('storyArea');
 const words = document.querySelectorAll('.word');
+const clickSfx = document.getElementById('clickSfx'); // New SFX element
 let tooltipTimeout = null;
 
-/* Show tooltip near element with text */
+/* Play click sound and show tooltip */
 function showTooltipFor(el){
   const uz = el.dataset.uz || '';
-  // If dataset has full English phrase too, could use data-en attribute. Here we show Uzbek translation per spec.
+  
+  // 1. Play Click Sound
+  // Reset and play to allow rapid successive clicks
+  clickSfx.currentTime = 0; 
+  clickSfx.play().catch(e => console.log('Click audio play error:', e)); // Handle potential play error
+
+  // 2. Show Tooltip
   tpText.textContent = uz;
   tpLang.textContent = 'UZ';
   // position
@@ -449,6 +505,47 @@ words.forEach(w=>{
   }, {passive:true});
   w.addEventListener('touchend', ()=>{ if (longPressTimer) clearTimeout(longPressTimer) }, {passive:true});
 });
+
+
+/* =========================
+   Vocabulary Chart Logic (New)
+   ========================= */
+const vocabBody = document.getElementById('vocabBody');
+
+function generateVocabularyChart() {
+    const uniqueWords = new Map();
+
+    words.forEach(wordElement => {
+        const english = wordElement.textContent.trim();
+        const uzbek = wordElement.dataset.uz.trim();
+
+        // Use the English word as the key, convert to lowercase for better grouping
+        const key = english.toLowerCase();
+
+        // Only add if not already present to show unique words only
+        if (key && uzbek && !uniqueWords.has(key)) {
+            uniqueWords.set(key, { english: english, uzbek: uzbek });
+        }
+    });
+
+    let html = '';
+    // Sort words alphabetically by English word for clean chart presentation
+    const sortedWords = Array.from(uniqueWords.values()).sort((a, b) => a.english.localeCompare(b.english));
+
+    sortedWords.forEach(word => {
+        html += `
+            <tr>
+                <td>${word.english}</td>
+                <td class="vocab-uz">${word.uzbek}</td>
+            </tr>
+        `;
+    });
+
+    vocabBody.innerHTML = html;
+}
+
+// Call the function to build the chart when the script loads
+generateVocabularyChart();
 
 /* End of script */
 </script>
