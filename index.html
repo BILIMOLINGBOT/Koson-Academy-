@@ -1,300 +1,456 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tilmoq | Hikoya O'qish</title>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <style>
-        /* Asosiy Dizayn: Dark Mode va Responsivlik */
-        :root {
-            --bg-dark: #121212;
-            --text-light: #e0e0e0;
-            --text-secondary: #a0a0a0;
-            --accent-color: #00bcd4; /* Firuza-ko'k */
-            --card-bg: #1e1e1e;
-        }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>StoryLearn — Hikoya (Tooltip tarjima)</title>
+  <style>
+    :root{
+      --bg:#0b0d10;
+      --card:#101216;
+      --muted:#9aa3a8;
+      --text:#e6eef1;
+      --accent:#00c4a7;
+      --glass: rgba(255,255,255,0.03);
+      --radius:16px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background:linear-gradient(180deg,#050607 0%, #0b0d10 100%);
+      color:var(--text);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+    }
 
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-light);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 100vh;
-        }
+    /* Card */
+    .app{
+      width:100%;
+      max-width:760px;
+      border-radius:20px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      box-shadow: 0 10px 30px rgba(2,6,10,0.6);
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+      gap:16px;
+      padding:18px;
+      position:relative;
+      -webkit-tap-highlight-color: transparent;
+    }
 
-        .container {
-            width: 100%;
-            max-width: 600px; /* Mobil qurilma maksimal kengligi */
-            padding: 20px 15px;
-            box-sizing: border-box;
-        }
+    /* Header */
+    .top {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .meta {
+      display:flex;
+      gap:12px;
+      align-items:center;
+    }
+    .badge{
+      background:var(--glass);
+      padding:8px 12px;
+      border-radius:12px;
+      font-size:0.9rem;
+      color:var(--muted);
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      backdrop-filter: blur(6px);
+    }
+    h1{
+      margin:0;
+      font-size:1.05rem;
+      color:var(--accent);
+      letter-spacing:0.2px;
+    }
+    .subtitle{font-size:0.85rem;color:var(--muted)}
 
-        /* Yuqori Qism (Header) */
-        .story-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-        }
+    /* Story area */
+    .story {
+      background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.02));
+      border-radius:12px;
+      padding:18px;
+      line-height:1.8;
+      font-size:1rem;
+      color:var(--text);
+      box-shadow: inset 0 -2px 8px rgba(0,0,0,0.4);
+      position:relative;
+    }
+    .story p{margin:0; user-select:none;}
+    .word {
+      cursor:pointer;
+      padding:2px 4px;
+      border-radius:6px;
+      display:inline-block;
+      transition: transform .12s ease, background .18s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .word:active{ transform: translateY(1px) scale(.995) }
+    .word:hover{ background: rgba(0,196,167,0.07) }
 
-        .story-meta h1 {
-            font-size: 1.5rem;
-            margin: 0;
-            color: var(--text-light);
-        }
+    /* Tooltip */
+    .tooltip {
+      position: absolute;
+      pointer-events: none;
+      background: linear-gradient(180deg,#ffffff,#e6fff7);
+      color:#03221f;
+      padding:8px 10px;
+      border-radius:10px;
+      box-shadow: 0 8px 30px rgba(2,8,8,0.5);
+      font-size:0.95rem;
+      transform-origin: center bottom;
+      transform: translate(-50%, -140%) scale(.9);
+      opacity:0;
+      transition: opacity .18s ease, transform .2s cubic-bezier(.2,.9,.3,1);
+      white-space: nowrap;
+      z-index:60;
+    }
+    .tooltip.show{
+      opacity:1;
+      transform: translate(-50%, -150%) scale(1);
+    }
+    .tooltip .pair{font-size:0.85rem;color:#06433a;opacity:0.95}
+    .tooltip .lang {font-weight:600;margin-right:8px;font-size:0.82rem;color:#03221f;opacity:0.8}
 
-        .story-meta p {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            margin-top: 5px;
-        }
+    /* Audio controls */
+    .player {
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      align-items:center;
+      padding:6px 4px 0 4px;
+    }
+    .controls {
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+    .btn {
+      width:50px;height:50px;border-radius:12px;border:none;
+      background:linear-gradient(180deg,var(--accent), #00b08f);
+      color:#001b18;font-weight:700;font-size:1rem;
+      display:inline-flex;align-items:center;justify-content:center;
+      box-shadow: 0 6px 18px rgba(0,196,167,0.14);
+      transition: transform .15s ease, box-shadow .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn:active{ transform: scale(.97) }
+    .btn.ghost{ background:transparent;border:1px solid rgba(255,255,255,0.04); color:var(--muted); box-shadow:none; width:auto; padding:8px 12px; border-radius:10px }
 
-        .story-level {
-            background-color: var(--accent-color);
-            color: var(--bg-dark);
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-weight: bold;
-            font-size: 0.8rem;
-        }
+    .progress-wrap{ width:100%; display:flex; gap:10px; align-items:center; }
+    .progress {
+      -webkit-appearance:none; appearance:none;
+      height:8px; width:100%; border-radius:999px; background:#0d1113; overflow:hidden;
+      position:relative;
+      box-shadow: inset 0 1px 4px rgba(0,0,0,0.6);
+    }
+    .progress > .bar {
+      height:100%;
+      width:0%;
+      background: linear-gradient(90deg,var(--accent), #7efbd4);
+      transition: width .12s linear;
+    }
+    .time { font-size:0.85rem; color:var(--muted); min-width:72px; text-align:right }
 
-        /* Hikoya Matni Bo'limi */
-        .story-text {
-            background-color: var(--card-bg);
-            padding: 20px;
-            border-radius: 12px;
-            line-height: 1.8;
-            font-size: 1.1rem;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        }
+    /* small screens */
+    @media (max-width:520px){
+      .btn{ width:44px; height:44px }
+      .badge{ padding:6px 8px; font-size:0.78rem }
+    }
 
-        /* Interaktiv Matn Stilistikasi */
-        .story-text span {
-            cursor: pointer;
-            transition: color 0.2s;
-            position: relative;
-            /* Audio ijro etilayotgan so'z */
-        }
-        
-        .story-text .highlighted {
-            color: var(--accent-color);
-            font-weight: 500;
-        }
+    /* loader */
+    .loader {
+      position:absolute; inset:0; background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);
+      display:flex; align-items:center; justify-content:center; z-index:80; pointer-events:none;
+    }
+    .spinner {
+      width:44px;height:44px;border-radius:50%;
+      border:4px solid rgba(255,255,255,0.04);
+      border-top:4px solid var(--accent);
+      animation: spin 1s linear infinite;
+      box-shadow: 0 6px 20px rgba(0,196,167,0.09);
+    }
+    @keyframes spin{ to{transform:rotate(360deg)} }
 
-        /* Tooltip (Tarjima ko'rinishi) */
-        .tooltip {
-            position: absolute;
-            background-color: rgba(0, 0, 0, 0.85);
-            color: var(--text-light);
-            padding: 5px 10px;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            z-index: 10;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s ease;
-        }
-        
-        .story-text span:hover .tooltip {
-            opacity: 1;
-        }
-
-        /* Audio Boshqaruvlari */
-        .audio-controls {
-            background-color: var(--card-bg);
-            padding: 15px;
-            border-radius: 12px;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 99;
-            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.5);
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .progress-bar-area {
-            margin-bottom: 15px;
-        }
-
-        .progress-bar {
-            height: 6px;
-            background-color: #333;
-            border-radius: 3px;
-            cursor: pointer;
-        }
-
-        .progress-indicator {
-            height: 100%;
-            width: 45%; /* Namuna: 45% o'tgan */
-            background-color: var(--accent-color);
-            border-radius: 3px;
-            transition: width 0.3s;
-        }
-
-        .time-display {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            margin-top: 5px;
-        }
-
-        .control-buttons {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-        }
-
-        .control-buttons button {
-            background: none;
-            border: none;
-            color: var(--text-light);
-            cursor: pointer;
-            padding: 10px;
-            transition: transform 0.2s, color 0.2s;
-        }
-
-        .control-buttons button:hover {
-            color: var(--accent-color);
-        }
-
-        .control-buttons .material-icons {
-            font-size: 28px;
-        }
-        
-        .control-buttons .main-play-pause {
-            background-color: var(--accent-color);
-            color: var(--bg-dark);
-            border-radius: 50%;
-            padding: 15px;
-            box-shadow: 0 2px 10px rgba(0, 187, 212, 0.5);
-        }
-
-        .control-buttons .main-play-pause .material-icons {
-            font-size: 36px;
-        }
-    </style>
+    /* hint */
+    .hint { font-size:0.82rem; color:var(--muted); margin-top:6px }
+  </style>
 </head>
 <body>
-
-    <div class="container">
-        
-        <div class="story-header">
-            <div class="story-meta">
-                <h1>My Family</h1>
-                <p>Hikoya #001 | Ingliz Tili</p>
-            </div>
-            <div class="story-level">Boshlang'ich (A1)</div>
-        </div>
-
-        <div class="story-text">
-            <p>
-                <span class="highlighted">My</span> 
-                <span class="highlighted">family</span> 
-                <span class="highlighted">is</span> 
-                <span class="highlighted">very</span> 
-                <span>important 
-                    <span class="tooltip">important: muhim, ahamiyatli</span>
-                </span> 
-                <span>to</span> 
-                <span>me</span> 
-                <span>because</span> 
-                <span>it</span> 
-                <span>gives</span> 
-                <span>me</span> 
-                <span>love,</span> 
-                <span>support,</span> 
-                <span>and</span> 
-                <span>happiness.</span> 
-                
-                <span>We</span> 
-                <span>are</span> 
-                <span>five</span> 
-                <span>people</span> 
-                <span>in</span> 
-                <span>my</span> 
-                <span>family:</span> 
-                <span>my</span> 
-                <span>father,</span> 
-                <span>my</span> 
-                <span>mother,</span> 
-                <span>my</span> 
-                <span>sister,</span> 
-                <span>my</span> 
-                <span>brother,</span> 
-                <span>and</span> 
-                <span>me.</span> 
-                
-                <span>My</span> 
-                <span>father</span> 
-                <span>is</span> 
-                <span>a</span> 
-                <span>teacher,</span> 
-                <span>and</span> 
-                <span>my</span> 
-                <span>mother</span> 
-                <span>is</span> 
-                <span>a</span> 
-                <span>nurse.</span> 
-                <span>They</span> 
-                <span>are</span> 
-                <span>hardworking</span> 
-                <span>and</span> 
-                <span>kind</span> 
-                <span>people.</span>
-            </p>
-        </div>
-        
-        <div style="height: 100px;"></div>
-
+  <div class="app" role="application" aria-label="StoryLearn">
+    <!-- loader (simple) -->
+    <div class="loader" id="loader" aria-hidden="true">
+      <div class="spinner" aria-hidden="true"></div>
     </div>
 
-    <div class="audio-controls">
-        
-        <div class="progress-bar-area">
-            <div class="progress-bar">
-                <div class="progress-indicator"></div>
-            </div>
-            <div class="time-display">
-                <span id="current-time">0:45</span>
-                <span id="total-time">2:30</span>
-            </div>
+    <div class="top">
+      <div class="meta">
+        <div class="badge">#1</div>
+        <div>
+          <h1>My Family</h1>
+          <div class="subtitle">Beginner — Short story</div>
         </div>
+      </div>
 
-        <div class="control-buttons">
-            
-            <button title="Audio tezligini sozlash">0.75x</button>
-            
-            <button title="5 soniya orqaga o'tish">
-                <i class="material-icons">replay_5</i>
-            </button>
-            
-            <button class="main-play-pause" title="O'ynatish/To'xtatish">
-                <i class="material-icons">pause</i>
-                </button>
-            
-            <button title="5 soniya oldinga o'tish">
-                <i class="material-icons">forward_5</i>
-            </button>
-
-            <button title="Qayta tinglash">
-                <i class="material-icons">repeat</i>
-            </button>
-
-        </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+        <button class="btn ghost" id="replayBtn" title="Qayta tinglash">Qayta</button>
+        <div class="badge" id="langUI">UI: English / Oʻzbek</div>
+      </div>
     </div>
 
+    <div class="story" id="storyArea" aria-live="polite">
+      <p id="storyText">
+        <!-- Har bir so'zni <span class="word" data-uz="...">WORD</span> ga o'rab chiqing -->
+        <span class="word" data-uz="Mening">My</span>
+        <span class="word" data-uz="oila">family</span>
+        <span class="word" data-uz="men uchun">is</span>
+        <span class="word" data-uz="juda muhim">very important</span>
+        <span class="word" data-uz="men uchun">to</span>
+        <span class="word" data-uz="menga">me</span>
+        <span class="word" data-uz="chunki">because</span>
+        <span class="word" data-uz="u menga beradi">it gives me</span>
+        <span class="word" data-uz="muhabbat">love</span>,
+        <span class="word" data-uz="qo'llab-quvvatlash">support</span>,
+        <span class="word" data-uz="va">and</span>
+        <span class="word" data-uz="baxt">happiness</span>.
+        <br/><br/>
+        <span class="word" data-uz="Biz">We</span>
+        <span class="word" data-uz="besh">are five</span>
+        <span class="word" data-uz="odam">people</span>
+        <span class="word" data-uz="oilam">in my family</span>:
+        <span class="word" data-uz="otam">my father</span>,
+        <span class="word" data-uz="onam">my mother</span>,
+        <span class="word" data-uz="opam">my sister</span>,
+        <span class="word" data-uz="akam">my brother</span>,
+        <span class="word" data-uz="va men">and me</span>.
+        <br/><br/>
+        <span class="word" data-uz="Bizning oila katta emas, lekin">My family is not very big, but</span>
+        <span class="word" data-uz="biz har doim birgamiz">we are always together</span>
+        <span class="word" data-uz="yaxshi va yomon paytlarda.">in good and bad times</span>.
+        <br/><br/>
+        <span class="word" data-uz="Otam o'qituvchi">My father is a teacher</span>,
+        <span class="word" data-uz="onam hamshira">and my mother is a nurse</span>.
+        <span class="word" data-uz="Ular mehnatkash va mehribon">They are hardworking and kind people</span>.
+      </p>
+
+      <!-- tooltip -->
+      <div class="tooltip" id="tooltip" role="tooltip" aria-hidden="true">
+        <div><span class="lang" id="tpLang">UZ</span><span class="pair" id="tpText">Tarjima</span></div>
+      </div>
+    </div>
+
+    <!-- audio player -->
+    <div class="player" aria-label="Audio player">
+      <div class="controls" role="group" aria-label="Player controls">
+        <button class="btn ghost" id="back5" title="5 s orqaga">◀◀ 5s</button>
+        <button class="btn" id="play" title="Play / Pause">▶</button>
+        <button class="btn ghost" id="forward5" title="5 s oldinga">5s ▶▶</button>
+
+        <select id="speed" class="btn ghost" aria-label="Playback speed" style="margin-left:8px">
+          <option value="0.5">0.5x</option>
+          <option value="0.75">0.75x</option>
+          <option value="1" selected>1x</option>
+          <option value="1.25">1.25x</option>
+          <option value="1.5">1.5x</option>
+          <option value="2">2x</option>
+        </select>
+      </div>
+
+      <div class="progress-wrap" style="width:100%">
+        <div class="progress" aria-hidden="false" id="progress">
+          <div class="bar" id="progressBar"></div>
+        </div>
+        <div class="time" id="time">0:00 / 0:00</div>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; width:100%; margin-top:6px; align-items:center">
+        <div class="hint">🔊 Touch soʻzlarga bosib tarjimani koʻring</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div class="badge" id="characters">Father: Teacher • Mother: Nurse</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- visually-hidden audio element (you can change src to your audio file) -->
+    <audio id="audio" preload="metadata" src="https://www.englishlisteninghub.com/wp-content/uploads/2021/10/my-family.mp3"></audio>
+  </div>
+
+<script>
+/* =========================
+   Tooltip translation logic
+   ========================= */
+const tooltip = document.getElementById('tooltip');
+const tpText = document.getElementById('tpText');
+const tpLang = document.getElementById('tpLang');
+const storyArea = document.getElementById('storyArea');
+const words = document.querySelectorAll('.word');
+let tooltipTimeout = null;
+
+/* Show tooltip near element with text */
+function showTooltipFor(el){
+  const uz = el.dataset.uz || '';
+  // If dataset has full English phrase too, could use data-en attribute. Here we show Uzbek translation per spec.
+  tpText.textContent = uz;
+  tpLang.textContent = 'UZ';
+  // position
+  const rect = el.getBoundingClientRect();
+  const containerRect = storyArea.getBoundingClientRect();
+  // place tooltip above the word, centered
+  const left = rect.left + rect.width/2 - containerRect.left;
+  const top = rect.top - containerRect.top;
+  tooltip.style.left = left + 'px';
+  tooltip.style.top = (top) + 'px';
+  tooltip.classList.add('show');
+  tooltip.setAttribute('aria-hidden','false');
+
+  // hide after 2000ms
+  if (tooltipTimeout) clearTimeout(tooltipTimeout);
+  tooltipTimeout = setTimeout(hideTooltip, 2000);
+}
+
+/* hide */
+function hideTooltip(){
+  tooltip.classList.remove('show');
+  tooltip.setAttribute('aria-hidden','true');
+}
+
+/* click / touch handler */
+words.forEach(w => {
+  // support both click and touchstart for responsiveness
+  w.addEventListener('click', (ev) => {
+    ev.stopPropagation();
+    showTooltipFor(ev.currentTarget);
+  });
+  w.addEventListener('touchstart', (ev) => {
+    ev.stopPropagation();
+    showTooltipFor(ev.currentTarget);
+  }, {passive:true});
+});
+
+/* Hide tooltip if user taps elsewhere */
+document.addEventListener('click', (e) => {
+  if (!e.target.classList?.contains('word')) hideTooltip();
+});
+document.addEventListener('touchstart', (e) => {
+  if (!e.target.classList?.contains('word')) hideTooltip();
+}, {passive:true});
+
+/* =========================
+   Audio player logic
+   ========================= */
+const audio = document.getElementById('audio');
+const playBtn = document.getElementById('play');
+const back5 = document.getElementById('back5');
+const forward5 = document.getElementById('forward5');
+const speed = document.getElementById('speed');
+const progressBar = document.getElementById('progressBar');
+const progress = document.getElementById('progress');
+const time = document.getElementById('time');
+const replayBtn = document.getElementById('replayBtn');
+const loader = document.getElementById('loader');
+
+let isPlaying = false;
+
+/* loader hide after metadata loaded (or 1.2s fallback) */
+audio.addEventListener('loadedmetadata', () => {
+  updateTime();
+  setTimeout(()=>{ loader.style.display='none' }, 200);
+});
+setTimeout(()=>{ if (loader) loader.style.display='none' }, 1200);
+
+/* play/pause */
+playBtn.addEventListener('click', () => {
+  if (audio.paused) {
+    audio.play();
+  } else audio.pause();
+});
+audio.addEventListener('play', () => {
+  isPlaying = true;
+  playBtn.textContent = '⏸';
+});
+audio.addEventListener('pause', () => {
+  isPlaying = false;
+  playBtn.textContent = '▶';
+});
+
+/* forward/back */
+back5.addEventListener('click', () => {
+  audio.currentTime = Math.max(0, audio.currentTime - 5);
+});
+forward5.addEventListener('click', () => {
+  audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + 5);
+});
+
+/* speed */
+speed.addEventListener('change', () => {
+  audio.playbackRate = parseFloat(speed.value);
+});
+
+/* progress update */
+audio.addEventListener('timeupdate', () => {
+  const pct = (audio.currentTime / (audio.duration || 1)) * 100;
+  progressBar.style.width = pct + '%';
+  updateTime();
+});
+
+/* seek by tapping progress bar (touch-friendly) */
+progress.addEventListener('click', (e) => {
+  const rect = progress.getBoundingClientRect();
+  const x = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
+  const pct = Math.min(Math.max(x / rect.width, 0), 1);
+  audio.currentTime = pct * (audio.duration || 0);
+});
+
+/* show time */
+function formatTime(s){
+  if (!s || isNaN(s)) return '0:00';
+  const m = Math.floor(s/60);
+  const sec = Math.floor(s%60).toString().padStart(2,'0');
+  return `${m}:${sec}`;
+}
+function updateTime(){
+  time.textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration)}`;
+}
+
+/* replay */
+replayBtn.addEventListener('click', () => {
+  audio.currentTime = 0;
+  audio.play();
+});
+
+/* keyboard accessibility */
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'Space') {
+    e.preventDefault();
+    if (audio.paused) audio.play(); else audio.pause();
+  } else if (e.code === 'ArrowLeft') audio.currentTime = Math.max(0,audio.currentTime-5);
+  else if (e.code === 'ArrowRight') audio.currentTime = Math.min(audio.duration || 0, audio.currentTime+5);
+});
+
+/* Accessibility: if user taps and holds a word (long press), pin tooltip until tapped elsewhere */
+/* simple long-press implementation */
+let longPressTimer = null;
+words.forEach(w=>{
+  w.addEventListener('touchstart', (ev)=>{
+    longPressTimer = setTimeout(()=>{
+      // pin the tooltip: cancel auto-hide
+      if (tooltipTimeout) clearTimeout(tooltipTimeout);
+      showTooltipFor(w);
+    }, 500);
+  }, {passive:true});
+  w.addEventListener('touchend', ()=>{ if (longPressTimer) clearTimeout(longPressTimer) }, {passive:true});
+});
+
+/* End of script */
+</script>
 </body>
 </html>
