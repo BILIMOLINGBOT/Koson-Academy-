@@ -1,149 +1,162 @@
-<!doctype html>
-<html lang="uz">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Sayt sarlavhasi — Logo misoli</title>
-  <style>
+<!-- Bottom navigation: Bosh sahifa, Videolar, Qidiruv, Bildirnoma/Chat -->
+<style>
+  :root{
+    --bg: #ffffff;
+    --surface: #f7f7f8;
+    --muted: #667085;
+    --accent: #0b84ff;
+    --icon-size: 24px;
+    --nav-height: 64px;
+    --safe-area: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark){
     :root{
-      --bg:#ffffff;
-      --text:#111827;
-      --muted:#6b7280;
-      --accent:#2563eb;
-      --header-h:64px;
+      --bg: #0b0b0c;
+      --surface: #0f1720;
+      --muted: #9aa4b2;
+      --accent: #4ea8ff;
     }
-    [data-theme="dark"]{
-      --bg:#0b1220;
-      --text:#e6eef8;
-      --muted:#9aa7bf;
-      --accent:#60a5fa;
-    }
+  }
 
-    *{box-sizing:border-box}
-    body{
-      margin:0; font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      background:var(--bg); color:var(--text);
-      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+  .bottom-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 8px calc(12px + var(--safe-area));
+    background: linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.85));
+    backdrop-filter: blur(6px);
+    box-shadow: 0 -6px 18px rgba(8,10,15,0.06);
+    display: flex;
+    gap: 8px;
+    justify-content: space-between;
+    align-items: center;
+    height: calc(var(--nav-height) + var(--safe-area));
+    z-index: 999;
+  }
+  /* Dark fallback background */
+  @media (prefers-color-scheme: dark){
+    .bottom-nav{
+      background: linear-gradient(180deg, rgba(12,14,18,0.6), rgba(12,14,18,0.9));
+      box-shadow: 0 -6px 18px rgba(0,0,0,0.6);
     }
+  }
 
-    header{
-      height:var(--header-h);
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:16px;
-      padding:0 16px;
-      border-bottom:1px solid rgba(0,0,0,0.06);
-      background:linear-gradient(180deg, rgba(255,255,255,0.6), transparent);
-      position:sticky; top:0; z-index:50;
-    }
-    [data-theme="dark"] header{
-      border-bottom:1px solid rgba(255,255,255,0.04);
-      background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
-    }
+  .nav-btn{
+    flex: 1;
+    max-width: 80px;
+    height: 48px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    text-decoration: none;
+    color: var(--muted);
+    font-size: 11px;
+    border-radius: 12px;
+    transition: color .18s ease, background .18s ease, transform .08s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .nav-btn:active{ transform: translateY(1px); }
 
-    .brand{
-      display:flex; align-items:center; gap:12px;
-      text-decoration:none; color:var(--text);
-    }
-    .logo{
-      width:44px; height:44px; border-radius:10px; object-fit:cover;
-      background:linear-gradient(135deg,#f3f4f6,#e6eef8);
-      box-shadow:0 2px 6px rgba(16,24,40,0.06);
-    }
-    .brand-name{
-      font-weight:600; font-size:16px; line-height:1;
-    }
-    nav{
-      display:flex; align-items:center; gap:12px;
-    }
-    .nav-btn{
-      display:inline-flex; align-items:center; justify-content:center;
-      height:40px; min-width:40px; padding:6px 10px;
-      border-radius:10px; cursor:pointer; text-decoration:none; color:var(--muted);
-      font-size:18px;
-    }
-    .nav-btn[aria-current="true"]{ color:var(--accent); font-weight:600; }
+  .nav-btn svg{
+    width: var(--icon-size);
+    height: var(--icon-size);
+    stroke: currentColor;
+    fill: none;
+  }
 
-    /* small screens */
-    @media (max-width:640px){
-      .brand-name{ display:none; }
-      header{ padding:0 10px; }
-    }
+  .nav-btn.active{
+    color: var(--accent);
+    background: rgba(11,132,255,0.06);
+  }
 
-    /* fallback text when logo fails */
-    .logo-fallback{
-      display:inline-flex; align-items:center; justify-content:center;
-      width:44px; height:44px; border-radius:10px;
-      background:linear-gradient(135deg,#e2e8f0,#c7d2fe);
-      color:#0f172a; font-weight:700; font-size:18px;
-    }
+  /* Badge for notifications */
+  .badge{
+    position: relative;
+    display:inline-block;
+  }
+  .badge::after{
+    content: attr(data-count);
+    position: absolute;
+    top: -6px;
+    right: -10px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    background: #ff3b30;
+    color: #fff;
+    font-size: 11px;
+    line-height: 18px;
+    border-radius: 999px;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    display: none;
+  }
+  .badge[data-count]:not([data-count="0"])::after{ display: inline-block; }
 
-    /* simple content area */
-    main{ padding:20px; max-width:980px; margin:20px auto; color:var(--muted); }
-    .controls{ display:flex; gap:8px; align-items:center; }
-    button.toggle{
-      background:transparent; border:1px solid rgba(0,0,0,0.06); padding:6px 10px; border-radius:8px; cursor:pointer;
-    }
-    [data-theme="dark"] button.toggle{ border:1px solid rgba(255,255,255,0.06); }
-  </style>
-</head>
-<body>
+  /* Responsive tweaks */
+  @media(min-width:700px){
+    .bottom-nav{ max-width: 720px; margin: 0 auto; left: 50%; transform: translateX(-50%); border-radius: 14px 14px 0 0; }
+    .nav-btn{ max-width: 120px; }
+  }
+</style>
 
-<header>
-  <!-- Brand (logo + text). Rasm src ni siz bergan URL bilan to'g'ridan-to'g'ri almashtirdim -->
-  <a class="brand" href="/" aria-label="Bosh sahifa — Brend">
-    <img
-      class="logo"
-      src="http://www.w3.org/2000/svgogotipi"
-      onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';"
-    />
-    <!-- Fallback: agar rasm yuklanmasa bu chiqadi -->
-    <span class="logo-fallback" style="display:none;">CH</span>
-
-    <span class="brand-name">Chumchuq</span>
+<nav class="bottom-nav" role="navigation" aria-label="Asosiy navigatsiya">
+  <!-- Bosh sahifa -->
+  <a href="/home" class="nav-btn active" aria-label="Bosh sahifa" id="nav-home">
+    <!-- House SVG (siz bergan) -->
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house-icon lucide-house" aria-hidden="true">
+      <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/>
+      <path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+    </svg>
+    <span>Bosh</span>
   </a>
 
-  <!-- Navigation (emoji ikonlar siz bergan ketma-ketlikda) -->
-  <nav aria-label="Sayt navigatsiyasi">
-    <a class="nav-btn" href="/" title="Bosh sahifa" aria-current="true">http://www.w3.org/2000/svg</a>
-    <a class="nav-btn" href="/search" title="Qidiruv">🔍</a>
-    <a class="nav-btn" href="/messages" title="Xabarlar">✉️</a>
-    <a class="nav-btn" href="/notifications" title="Bildirishnomalar">🔔</a>
-    <a class="nav-btn" href="/profile" title="Profil">http://www.w3.org/2000/svg</a>
-  </nav>
-</header>
+  <!-- Videolar -->
+  <a href="/videos" class="nav-btn" aria-label="Videolar" id="nav-videos">
+    <!-- Agar o'zingizning play SVGingiz bo'lsa almashtiring. Hozir message-circle SVG qo'yildi -->
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle-icon lucide-message-circle" aria-hidden="true">
+      <path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/>
+    </svg>
+    <span>Videolar</span>
+  </a>
 
-<main>
-  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
-    <div>
-      <h2 style="margin:0 0 8px 0;">Logo misoli</h2>
-      <p style="margin:0;color:var(--muted)">Siz kiritgan rasm URL logotip sifatida yuqorida joylashtirildi. Mobil ekranlarda brend nomi yashirinadi va faqat ramka (logo) ko‘rinadi.</p>
-    </div>
+  <!-- Qidiruv -->
+  <a href="/search" class="nav-btn" aria-label="Qidiruv" id="nav-search">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search-icon lucide-search" aria-hidden="true">
+      <path d="m21 21-4.34-4.34"/>
+      <circle cx="11" cy="11" r="8"/>
+    </svg>
+    <span>Qidiruv</span>
+  </a>
 
-    <div class="controls">
-      <button class="toggle" id="themeToggle" title="Dark/Light rejimni almashtirish">Dark/Light</button>
-    </div>
-  </div>
-</main>
+  <!-- Bildirnoma / Chat -->
+  <a href="/notifications" class="nav-btn badge" aria-label="Bildirnomalar" id="nav-notifs" data-count="3">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell-icon lucide-bell" aria-hidden="true">
+      <path d="M10.268 21a2 2 0 0 0 3.464 0"/>
+      <path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/>
+    </svg>
+    <span>Bildir.</span>
+  </a>
+</nav>
 
 <script>
-  // Dark-mode toggle — oddiy va saqlovchi funksionallik
-  const btn = document.getElementById('themeToggle');
-  const root = document.documentElement;
-  const saved = localStorage.getItem('theme') || 'light';
-  if (saved === 'dark') root.setAttribute('data-theme','dark');
-
-  btn.addEventListener('click', () => {
-    if (root.getAttribute('data-theme') === 'dark') {
-      root.removeAttribute('data-theme');
-      localStorage.setItem('theme','light');
-    } else {
-      root.setAttribute('data-theme','dark');
-      localStorage.setItem('theme','dark');
-    }
+  // Aktiv tabni o'zgartirish (oddiy)
+  document.querySelectorAll('.nav-btn').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      // agar link ochilsa sahifa yuklanadi; UI da faqat class o'zgartiramiz
+      document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
+      btn.classList.add('active');
+    });
   });
-</script>
 
-</body>
-</html>
+  // Misol: dinamik badge yangilash funksiyasi
+  function setNotificationCount(n){
+    const el = document.getElementById('nav-notifs');
+    if(!el) return;
+    el.setAttribute('data-count', String(n));
+  }
+  // setNotificationCount(0); // badgeni yashirish / ko'rsatish uchun ishlating
+</script>
