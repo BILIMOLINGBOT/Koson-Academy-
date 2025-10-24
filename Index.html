@@ -1,111 +1,191 @@
-<!-- 🌙 Mobil pastki navigatsiya (Bosh sahifa, Videolar, Qidiruv, Bildirnoma) -->
-<style>
-  :root {
-    --bg: #ffffff;
-    --text: #333;
-    --muted: #888;
-    --accent: #007bff;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #0f0f0f;
-      --text: #eee;
-      --muted: #aaa;
-      --accent: #4ea8ff;
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Chumchuq — Bosh sahifa</title>
+  <style>
+    /* -------------------------
+       Tema (vars + prefers)
+       -------------------------*/
+    :root{
+      --bg: #ffffff;
+      --surface: #f6f7fb;
+      --text: #111827;
+      --muted: #6b7280;
+      --accent: #ff3b30; /* video/play color */
+      --nav-height: 68px;
+      --glass: rgba(255,255,255,0.6);
     }
-  }
 
-  body {
-    margin: 0;
-    padding-bottom: 70px;
-    background: var(--bg);
-    color: var(--text);
-    font-family: system-ui, sans-serif;
-  }
+    @media (prefers-color-scheme: dark){
+      :root{
+        --bg: #0b1220;
+        --surface: #071026;
+        --text: #e6eef8;
+        --muted: #9aa6b2;
+        --accent: #ff6b6b;
+        --glass: rgba(10,15,25,0.4);
+      }
+    }
 
-  .bottom-nav {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 60px;
-    background: var(--bg);
-    border-top: 1px solid rgba(0,0,0,0.1);
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    backdrop-filter: blur(10px);
-    z-index: 999;
-  }
+    /* ---------- Page layout ---------- */
+    html,body{
+      height:100%;
+      margin:0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: linear-gradient(180deg,var(--bg),var(--surface));
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      transition: background .25s ease, color .25s ease;
+    }
 
-  .nav-btn {
-    flex: 1;
-    text-align: center;
-    color: var(--muted);
-    text-decoration: none;
-    font-size: 11px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    transition: color 0.2s ease;
-  }
+    /* Top bar */
+    .topbar{
+      height:var(--nav-height);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:10px 16px;
+      position:sticky;
+      top:0;
+      backdrop-filter: blur(6px);
+      background: linear-gradient(180deg,var(--glass),transparent);
+      border-bottom: 1px solid rgba(0,0,0,0.04);
+      z-index:50;
+    }
 
-  .nav-btn.active {
-    color: var(--accent);
-  }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+    .logo{
+      width:44px;
+      height:44px;
+      border-radius:8px;
+      background:linear-gradient(135deg,var(--accent), #ff9a9a);
+      display:grid;
+      place-items:center;
+      color:white;
+      font-weight:700;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+    .brand h1{
+      margin:0;
+      font-size:16px;
+      letter-spacing:0.2px;
+    }
 
-  .nav-btn svg {
-    width: 24px;
-    height: 24px;
-    stroke: currentColor;
-    fill: none;
-  }
-</style>
+    /* Center: nav items (icons + label) */
+    nav.main-nav{
+      display:flex;
+      gap:6px;
+      align-items:center;
+    }
 
-<nav class="bottom-nav">
-  <!-- 🏠 Bosh sahifa -->
-  <a href="#" class="nav-btn active" id="home">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/>
-      <path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-    </svg>
-    <span>Bosh</span>
-  </a>
+    .nav-item{
+      display:inline-grid;
+      grid-auto-flow:column;
+      grid-auto-columns:auto;
+      gap:10px;
+      align-items:center;
+      padding:8px 12px;
+      border-radius:10px;
+      cursor:pointer;
+      color:var(--muted);
+      text-decoration:none;
+      user-select:none;
+      transition: background .12s ease, color .12s ease, transform .06s ease;
+    }
+    .nav-item:focus{ outline:2px solid rgba(0,0,0,0.07); outline-offset:2px; }
+    .nav-item:hover{ background:rgba(0,0,0,0.04); color:var(--text); transform:translateY(-1px); }
+    @media (prefers-color-scheme: dark){
+      .nav-item:hover{ background:rgba(255,255,255,0.03); }
+    }
 
-  <!-- ▶️ Videolar -->
-  <a href="#" class="nav-btn" id="videos">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-      <polygon points="5 3 19 12 5 21 5 3"/>
-    </svg>
-    <span>Videolar</span>
-  </a>
+    .nav-item svg{ width:22px; height:22px; display:block; }
 
-  <!-- 🔍 Qidiruv -->
-  <a href="#" class="nav-btn" id="search">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-      <path d="m21 21-4.34-4.34"/>
-      <circle cx="11" cy="11" r="8"/>
-    </svg>
-    <span>Qidiruv</span>
-  </a>
+    /* Right: account area */
+    .right-controls{
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+    .icon-btn{
+      display:inline-grid;
+      place-items:center;
+      width:40px;height:40px;border-radius:10px;
+      cursor:pointer; color:var(--muted);
+      background:transparent; border:0;
+    }
+    .icon-btn:hover{ background:rgba(0,0,0,0.04); color:var(--text); transform:translateY(-1px); }
 
-  <!-- 🔔 Bildirnoma -->
-  <a href="#" class="nav-btn" id="notify">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M10.268 21a2 2 0 0 0 3.464 0"/>
-      <path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/>
-    </svg>
-    <span>Bildir.</span>
-  </a>
-</nav>
+    /* Simple page content placeholder */
+    main{
+      padding:20px;
+      max-width:1100px;
+      margin:18px auto;
+    }
+    .hero{
+      background:linear-gradient(180deg, rgba(255,255,255,0.03), transparent);
+      padding:28px;
+      border-radius:12px;
+      box-shadow: 0 6px 20px rgba(8,15,30,0.05);
+      color:var(--text);
+    }
 
-<script>
-  // 🔄 Aktiv ikonka o‘zgartirish
-  document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-    });
-  });
-</script>
+    /* small helper: tooltips */
+    .sr-only{ position: absolute; width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0; }
+
+    /* manual theme override when user toggles */
+    :root[data-theme="dark"]{
+      --bg: #0b1220;
+      --surface: #071026;
+      --text: #e6eef8;
+      --muted: #9aa6b2;
+      --accent: #ff6b6b;
+      --glass: rgba(10,15,25,0.4);
+    }
+    :root[data-theme="light"]{
+      --bg: #ffffff;
+      --surface: #f6f7fb;
+      --text: #111827;
+      --muted: #6b7280;
+      --accent: #ff3b30;
+      --glass: rgba(255,255,255,0.6);
+    }
+
+    /* Responsive */
+    @media (max-width:720px){
+      .brand h1{ display:none; }
+      .topbar{ padding:8px; }
+      .nav-item{ padding:8px; border-radius:8px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar" role="banner">
+    <div class="brand" aria-hidden="false">
+      <div class="logo" aria-hidden="true">C</div>
+      <h1>Chumchuq</h1>
+    </div>
+
+    <nav class="main-nav" role="navigation" aria-label="Asosiy menyu">
+      <!-- Uy / Home -->
+      <a href="#" class="nav-item" title="Bosh sahifa (Uy)" aria-label="Bosh sahifa">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house-icon lucide-house" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        <span class="sr-only">Bosh sahifa</span>
+      </a>
+
+      <!-- Qidiruv -->
+      <a href="#" class="nav-item" title="Qidiruv tizimi" aria-label="Qidiruv">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search-icon lucide-search" aria-hidden="true"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+        <span class="sr-only">Qidiruv</span>
+      </a>
+
+      <!-- Chat -->
+      <a href="#" class="nav-item" title="Chat" aria-label="Chat">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle-icon lucide-message-circle" aria-hidden="true"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29
