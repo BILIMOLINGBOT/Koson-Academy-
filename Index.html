@@ -1,191 +1,542 @@
-<!doctype html>
-<html lang="uz">
+<!DOCTYPE html>
+<html lang="uz" class="dark">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Chumchuq — Bosh sahifa</title>
-  <style>
-    /* -------------------------
-       Tema (vars + prefers)
-       -------------------------*/
-    :root{
-      --bg: #ffffff;
-      --surface: #f6f7fb;
-      --text: #111827;
-      --muted: #6b7280;
-      --accent: #ff3b30; /* video/play color */
-      --nav-height: 68px;
-      --glass: rgba(255,255,255,0.6);
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Platforma</title>
+    <style>
+        :root {
+            --primary-color: #ff0000;
+            --bg-color: #ffffff;
+            --text-color: #0f0f0f;
+            --sidebar-bg: #f9f9f9;
+            --card-bg: #ffffff;
+            --border-color: #e5e5e5;
+            --hover-color: #f2f2f2;
+        }
 
-    @media (prefers-color-scheme: dark){
-      :root{
-        --bg: #0b1220;
-        --surface: #071026;
-        --text: #e6eef8;
-        --muted: #9aa6b2;
-        --accent: #ff6b6b;
-        --glass: rgba(10,15,25,0.4);
-      }
-    }
+        .dark {
+            --primary-color: #ff0000;
+            --bg-color: #0f0f0f;
+            --text-color: #f1f1f1;
+            --sidebar-bg: #202020;
+            --card-bg: #181818;
+            --border-color: #303030;
+            --hover-color: #272727;
+        }
 
-    /* ---------- Page layout ---------- */
-    html,body{
-      height:100%;
-      margin:0;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      background: linear-gradient(180deg,var(--bg),var(--surface));
-      color:var(--text);
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
-      transition: background .25s ease, color .25s ease;
-    }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', Arial, sans-serif;
+        }
 
-    /* Top bar */
-    .topbar{
-      height:var(--nav-height);
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      padding:10px 16px;
-      position:sticky;
-      top:0;
-      backdrop-filter: blur(6px);
-      background: linear-gradient(180deg,var(--glass),transparent);
-      border-bottom: 1px solid rgba(0,0,0,0.04);
-      z-index:50;
-    }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
 
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:12px;
-    }
-    .logo{
-      width:44px;
-      height:44px;
-      border-radius:8px;
-      background:linear-gradient(135deg,var(--accent), #ff9a9a);
-      display:grid;
-      place-items:center;
-      color:white;
-      font-weight:700;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-    }
-    .brand h1{
-      margin:0;
-      font-size:16px;
-      letter-spacing:0.2px;
-    }
+        .container {
+            display: flex;
+            height: 100vh;
+        }
 
-    /* Center: nav items (icons + label) */
-    nav.main-nav{
-      display:flex;
-      gap:6px;
-      align-items:center;
-    }
+        /* Sidebar styles */
+        .sidebar {
+            width: 240px;
+            background-color: var(--sidebar-bg);
+            padding: 12px;
+            overflow-y: auto;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+        }
 
-    .nav-item{
-      display:inline-grid;
-      grid-auto-flow:column;
-      grid-auto-columns:auto;
-      gap:10px;
-      align-items:center;
-      padding:8px 12px;
-      border-radius:10px;
-      cursor:pointer;
-      color:var(--muted);
-      text-decoration:none;
-      user-select:none;
-      transition: background .12s ease, color .12s ease, transform .06s ease;
-    }
-    .nav-item:focus{ outline:2px solid rgba(0,0,0,0.07); outline-offset:2px; }
-    .nav-item:hover{ background:rgba(0,0,0,0.04); color:var(--text); transform:translateY(-1px); }
-    @media (prefers-color-scheme: dark){
-      .nav-item:hover{ background:rgba(255,255,255,0.03); }
-    }
+        .sidebar-section {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 12px;
+        }
 
-    .nav-item svg{ width:22px; height:22px; display:block; }
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-bottom: 4px;
+            transition: background-color 0.2s;
+        }
 
-    /* Right: account area */
-    .right-controls{
-      display:flex;
-      gap:8px;
-      align-items:center;
-    }
-    .icon-btn{
-      display:inline-grid;
-      place-items:center;
-      width:40px;height:40px;border-radius:10px;
-      cursor:pointer; color:var(--muted);
-      background:transparent; border:0;
-    }
-    .icon-btn:hover{ background:rgba(0,0,0,0.04); color:var(--text); transform:translateY(-1px); }
+        .sidebar-item:hover {
+            background-color: var(--hover-color);
+        }
 
-    /* Simple page content placeholder */
-    main{
-      padding:20px;
-      max-width:1100px;
-      margin:18px auto;
-    }
-    .hero{
-      background:linear-gradient(180deg, rgba(255,255,255,0.03), transparent);
-      padding:28px;
-      border-radius:12px;
-      box-shadow: 0 6px 20px rgba(8,15,30,0.05);
-      color:var(--text);
-    }
+        .sidebar-item.active {
+            background-color: var(--hover-color);
+            font-weight: 500;
+        }
 
-    /* small helper: tooltips */
-    .sr-only{ position: absolute; width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0; }
+        .sidebar-icon {
+            margin-right: 24px;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-    /* manual theme override when user toggles */
-    :root[data-theme="dark"]{
-      --bg: #0b1220;
-      --surface: #071026;
-      --text: #e6eef8;
-      --muted: #9aa6b2;
-      --accent: #ff6b6b;
-      --glass: rgba(10,15,25,0.4);
-    }
-    :root[data-theme="light"]{
-      --bg: #ffffff;
-      --surface: #f6f7fb;
-      --text: #111827;
-      --muted: #6b7280;
-      --accent: #ff3b30;
-      --glass: rgba(255,255,255,0.6);
-    }
+        /* Main content styles */
+        .main-content {
+            flex: 1;
+            margin-left: 240px;
+            padding: 20px;
+            overflow-y: auto;
+        }
 
-    /* Responsive */
-    @media (max-width:720px){
-      .brand h1{ display:none; }
-      .topbar{ padding:8px; }
-      .nav-item{ padding:8px; border-radius:8px; }
-    }
-  </style>
+        /* Header styles */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px 16px;
+            position: sticky;
+            top: 0;
+            background-color: var(--bg-color);
+            z-index: 10;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .logo svg {
+            margin-right: 8px;
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            flex: 0 1 728px;
+            margin: 0 40px;
+        }
+
+        .search-input {
+            flex: 1;
+            height: 40px;
+            padding: 0 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 20px 0 0 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-size: 16px;
+        }
+
+        .search-button {
+            height: 40px;
+            width: 64px;
+            border: 1px solid var(--border-color);
+            border-left: none;
+            border-radius: 0 20px 20px 0;
+            background-color: var(--hover-color);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header-icons {
+            display: flex;
+            align-items: center;
+        }
+
+        .icon-button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .icon-button:hover {
+            background-color: var(--hover-color);
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            margin-left: 8px;
+            cursor: pointer;
+        }
+
+        /* Video grid styles */
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px 0;
+        }
+
+        .video-card {
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .video-card:hover {
+            transform: scale(1.03);
+        }
+
+        .thumbnail {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .video-duration {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .video-info {
+            display: flex;
+            padding: 12px 0;
+        }
+
+        .channel-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--border-color);
+            margin-right: 12px;
+        }
+
+        .video-title {
+            font-weight: 500;
+            margin-bottom: 4px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .video-meta {
+            color: #606060;
+            font-size: 14px;
+        }
+
+        .dark .video-meta {
+            color: #aaa;
+        }
+
+        /* Theme toggle */
+        .theme-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+        }
+
+        /* Responsive design */
+        @media (max-width: 1200px) {
+            .sidebar {
+                width: 72px;
+            }
+            .sidebar-item span {
+                display: none;
+            }
+            .sidebar-icon {
+                margin-right: 0;
+            }
+            .main-content {
+                margin-left: 72px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .search-bar {
+                flex: 1;
+                margin: 0 16px;
+            }
+            .video-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
+        }
+
+        @media (max-width: 576px) {
+            .sidebar {
+                display: none;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .video-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
-  <header class="topbar" role="banner">
-    <div class="brand" aria-hidden="false">
-      <div class="logo" aria-hidden="true">C</div>
-      <h1>Chumchuq</h1>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-item active">
+                    <div class="sidebar-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/>
+                            <path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                        </svg>
+                    </div>
+                    <span>Bosh sahifa</span>
+                </div>
+                <div class="sidebar-item">
+                    <div class="sidebar-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m21 21-4.34-4.34"/>
+                            <circle cx="11" cy="11" r="8"/>
+                        </svg>
+                    </div>
+                    <span>Qidiruv</span>
+                </div>
+            </div>
+            
+            <div class="sidebar-section">
+                <div class="sidebar-item">
+                    <div class="sidebar-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/>
+                        </svg>
+                    </div>
+                    <span>Chat</span>
+                </div>
+                <div class="sidebar-item">
+                    <div class="sidebar-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M10.268 21a2 2 0 0 0 3.464 0"/>
+                            <path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/>
+                        </svg>
+                    </div>
+                    <span>Bildirishnoma</span>
+                </div>
+                <div class="sidebar-item">
+                    <div class="sidebar-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 20a6 6 0 0 0-12 0"/>
+                            <circle cx="12" cy="10" r="4"/>
+                            <circle cx="12" cy="12" r="10"/>
+                        </svg>
+                    </div>
+                    <span>Hisob</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <div class="logo">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/>
+                    </svg>
+                    VideoPlatform
+                </div>
+                
+                <div class="search-bar">
+                    <input type="text" class="search-input" placeholder="Qidirish...">
+                    <button class="search-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m21 21-4.34-4.34"/>
+                            <circle cx="11" cy="11" r="8"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="header-icons">
+                    <div class="icon-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/>
+                        </svg>
+                    </div>
+                    <div class="icon-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M10.268 21a2 2 0 0 0 3.464 0"/>
+                            <path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/>
+                        </svg>
+                    </div>
+                    <div class="user-avatar"></div>
+                </div>
+            </div>
+
+            <!-- Video Grid -->
+            <div class="video-grid">
+                <!-- Video Card 1 -->
+                <div class="video-card">
+                    <div class="thumbnail">
+                        <div style="background: linear-gradient(45deg, #ff6b6b, #ffa500); height: 100%;"></div>
+                        <div class="video-duration">10:15</div>
+                    </div>
+                    <div class="video-info">
+                        <div class="channel-avatar"></div>
+                        <div>
+                            <div class="video-title">Dasturlash bo'yicha yangi dars - HTML va CSS asoslari</div>
+                            <div class="video-meta">Dasturlash Akademiyasi</div>
+                            <div class="video-meta">245 ming tomosha • 3 kun oldin</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Video Card 2 -->
+                <div class="video-card">
+                    <div class="thumbnail">
+                        <div style="background: linear-gradient(45deg, #4ecdc4, #44a08d); height: 100%;"></div>
+                        <div class="video-duration">15:42</div>
+                    </div>
+                    <div class="video-info">
+                        <div class="channel-avatar"></div>
+                        <div>
+                            <div class="video-title">O'zbekiston sayohati - Samarqand va Buxoro shaharlari</div>
+                            <div class="video-meta">Sayohat Dunyosi</div>
+                            <div class="video-meta">1.2 million tomosha • 1 hafta oldin</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Video Card 3 -->
+                <div class="video-card">
+                    <div class="thumbnail">
+                        <div style="background: linear-gradient(45deg, #ff9a9e, #fad0c4); height: 100%;"></div>
+                        <div class="video-duration">7:33</div>
+                    </div>
+                    <div class="video-info">
+                        <div class="channel-avatar"></div>
+                        <div>
+                            <div class="video-title">Eng yaxshi 10 ta O'zbek taomlari retsepti</div>
+                            <div class="video-meta">Oshpazlik San'ati</div>
+                            <div class="video-meta">890 ming tomosha • 5 kun oldin</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Video Card 4 -->
+                <div class="video-card">
+                    <div class="thumbnail">
+                        <div style="background: linear-gradient(45deg, #a18cd1, #fbc2eb); height: 100%;"></div>
+                        <div class="video-duration">12:05</div>
+                    </div>
+                    <div class="video-info">
+                        <div class="channel-avatar"></div>
+                        <div>
+                            <div class="video-title">JavaScript darslari - DOM manipulyatsiyasi</div>
+                            <div class="video-meta">Web Dasturlash</div>
+                            <div class="video-meta">567 ming tomosha • 2 kun oldin</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Video Card 5 -->
+                <div class="video-card">
+                    <div class="thumbnail">
+                        <div style="background: linear-gradient(45deg, #ffecd2, #fcb69f); height: 100%;"></div>
+                        <div class="video-duration">18:22</div>
+                    </div>
+                    <div class="video-info">
+                        <div class="channel-avatar"></div>
+                        <div>
+                            <div class="video-title">Yangi iPhone 14 qanday? - To'liq sharh</div>
+                            <div class="video-meta">Texnologiya Dunyosi</div>
+                            <div class="video-meta">2.1 million tomosha • 4 kun oldin</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Video Card 6 -->
+                <div class="video-card">
+                    <div class="thumbnail">
+                        <div style="background: linear-gradient(45deg, #84fab0, #8fd3f4); height: 100%;"></div>
+                        <div class="video-duration">9:47</div>
+                    </div>
+                    <div class="video-info">
+                        <div class="channel-avatar"></div>
+                        <div>
+                            <div class="video-title">Mashhur O'zbek qo'shiqlari - Eng yaxshi to'plam</div>
+                            <div class="video-meta">Musiqa Olami</div>
+                            <div class="video-meta">3.4 million tomosha • 2 hafta oldin</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <nav class="main-nav" role="navigation" aria-label="Asosiy menyu">
-      <!-- Uy / Home -->
-      <a href="#" class="nav-item" title="Bosh sahifa (Uy)" aria-label="Bosh sahifa">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house-icon lucide-house" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-        <span class="sr-only">Bosh sahifa</span>
-      </a>
+    <!-- Theme Toggle Button -->
+    <div class="theme-toggle" id="themeToggle">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"/>
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+        </svg>
+    </div>
 
-      <!-- Qidiruv -->
-      <a href="#" class="nav-item" title="Qidiruv tizimi" aria-label="Qidiruv">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search-icon lucide-search" aria-hidden="true"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
-        <span class="sr-only">Qidiruv</span>
-      </a>
+    <script>
+        // Dark/Light mode toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const htmlElement = document.documentElement;
+        
+        themeToggle.addEventListener('click', () => {
+            if (htmlElement.classList.contains('dark')) {
+                htmlElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                htmlElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        });
 
-      <!-- Chat -->
-      <a href="#" class="nav-item" title="Chat" aria-label="Chat">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle-icon lucide-message-circle" aria-hidden="true"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29
+        // Check for saved theme preference or respect OS color scheme
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            htmlElement.classList.toggle('dark', savedTheme === 'dark');
+        } else {
+            // If no saved preference, check system preference
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                htmlElement.classList.add('dark');
+            }
+        }
+
+        // Listen for sy
