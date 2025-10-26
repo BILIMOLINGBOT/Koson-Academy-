@@ -3,39 +3,426 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chumchuq - Uy</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Chumchuq Video Platforma</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      color: #111;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* Header (logo markazda) */
+    header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 12px;
+      background-color: #fff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    header img {
+      height: 50px;
+      width: auto;
+    }
+
+    /* Video grid (YouTube uslubida) */
+    .videos {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+      padding: 16px;
+      flex-grow: 1;
+    }
+
+    .video {
+      background-color: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      transition: transform 0.2s ease;
+      cursor: pointer;
+    }
+
+    .video:hover {
+      transform: scale(1.02);
+    }
+
+    .video img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+    }
+
+    .video .info {
+      padding: 10px;
+    }
+
+    .video .title {
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .video .channel {
+      color: #666;
+      font-size: 14px;
+    }
+
+    /* Pastki navigatsiya paneli */
+    nav {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      background-color: #fff;
+      border-top: 1px solid #ddd;
+      padding: 10px 0;
+      position: sticky;
+      bottom: 0;
+      z-index: 10;
+    }
+
+    nav a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+    }
+
+    nav svg {
+      width: 28px;
+      height: 28px;
+      stroke: #333;
+      transition: 0.3s;
+    }
+
+    nav a.active svg {
+      stroke: #007bff;
+    }
+
+    nav svg:hover {
+      stroke: #007bff;
+      transform: scale(1.1);
+    }
+
+    /* Dark rejim */
+    @media (prefers-color-scheme: dark) {
+      body {
+        background-color: #121212;
+        color: #eee;
+      }
+      header, nav {
+        background-color: #1e1e1e;
+      }
+      .video {
+        background-color: #1c1c1c;
+      }
+      nav svg {
+        stroke: #eee;
+      }
+      .video .channel {
+        color: #aaa;
+      }
+    }
+
+    /* Modal oynasi */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 90%;
+      max-height: 90%;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 24px;
+      cursor: pointer;
+      color: #333;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .modal-content {
+        background-color: #1e1e1e;
+        color: #eee;
+      }
+      .close-btn {
+        color: #eee;
+      }
+    }
+  </style>
 </head>
 <body>
+
+  <!-- Logotip markazda -->
   <header>
     <img src="https://image2url.com/images/1761392264440-f2d170c9-e67f-4161-a345-7a1d4dd2ef7b.svg" alt="Chumchuq Logotip">
   </header>
 
-  <main>
-    <h2>Bosh sahifa</h2>
-    <p>Bu yerda tavsiya etilgan videolar ko‘rsatiladi.</p>
+  <!-- Video ro'yxati -->
+  <main class="videos">
+    <div class="video" onclick="openVideo('Ingliz tili darsi 1')">
+      <img src="https://picsum.photos/500/300?1" alt="Video 1">
+      <div class="info">
+        <div class="title">Ingliz tili darsi 1</div>
+        <div class="channel">BilimSher</div>
+      </div>
+    </div>
+    <div class="video" onclick="openVideo('Ingliz tili darsi 2')">
+      <img src="https://picsum.photos/500/300?2" alt="Video 2">
+      <div class="info">
+        <div class="title">Ingliz tili darsi 2</div>
+        <div class="channel">BilimSher</div>
+      </div>
+    </div>
+    <div class="video" onclick="openVideo('Speaking mashg\'uloti')">
+      <img src="https://picsum.photos/500/300?3" alt="Video 3">
+      <div class="info">
+        <div class="title">Speaking mashg'uloti</div>
+        <div class="channel">BilimSher</div>
+      </div>
+    </div>
+    <div class="video" onclick="openVideo('Grammar qoidalari')">
+      <img src="https://picsum.photos/500/300?4" alt="Video 4">
+      <div class="info">
+        <div class="title">Grammar qoidalari</div>
+        <div class="channel">BilimSher</div>
+      </div>
+    </div>
+    <div class="video" onclick="openVideo('Vocabulary boyitish')">
+      <img src="https://picsum.photos/500/300?5" alt="Video 5">
+      <div class="info">
+        <div class="title">Vocabulary boyitish</div>
+        <div class="channel">BilimSher</div>
+      </div>
+    </div>
+    <div class="video" onclick="openVideo('Listening mashqlari')">
+      <img src="https://picsum.photos/500/300?6" alt="Video 6">
+      <div class="info">
+        <div class="title">Listening mashqlari</div>
+        <div class="channel">BilimSher</div>
+      </div>
+    </div>
   </main>
 
+  <!-- Pastki navigatsiya menyu -->
   <nav>
-    <a href="index.html" class="active">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+    <!-- Uy -->
+    <a href="#" class="active">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house-icon"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
     </a>
 
-    <a href="search.html">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+    <!-- Qidiruv -->
+    <a href="#" onclick="openPage('search')">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search-icon"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
     </a>
 
-    <a href="chat.html">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/></svg>
+    <!-- Chat -->
+    <a href="#" onclick="openPage('chat')">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle-icon"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/></svg>
     </a>
 
-    <a href="notifications.html">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg>
+    <!-- Bildirishnoma -->
+    <a href="#" onclick="openPage('notifications')">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell-icon"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg>
     </a>
 
-    <a href="account.html">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 20a6 6 0 0 0-12 0"/><circle cx="12" cy="10" r="4"/><circle cx="12" cy="12" r="10"/></svg>
+    <!-- Account -->
+    <a href="#" onclick="openPage('account')">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-user-round-icon"><path d="M18 20a6 6 0 0 0-12 0"/><circle cx="12" cy="10" r="4"/><circle cx="12" cy="12" r="10"/></svg>
     </a>
   </nav>
+
+  <!-- Video modal oynasi -->
+  <div id="videoModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeVideo()">&times;</span>
+      <h2 id="videoTitle">Video nomi</h2>
+      <div style="width: 100%; height: 300px; background-color: #000; margin: 15px 0; display: flex; justify-content: center; align-items: center; color: white;">
+        Video pleyer - Bu yerda video ijro etiladi
+      </div>
+      <p><strong>Kanal:</strong> BilimSher</p>
+      <p id="videoDescription">Video tavsifi bu yerda ko'rsatiladi...</p>
+    </div>
+  </div>
+
+  <!-- Sahifa modal oynasi -->
+  <div id="pageModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closePage()">&times;</span>
+      <div id="pageContent">
+        <!-- Sahifa kontenti bu yerda ko'rsatiladi -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Video ochish funksiyasi
+    function openVideo(title) {
+      const modal = document.getElementById('videoModal');
+      const videoTitle = document.getElementById('videoTitle');
+      const videoDescription = document.getElementById('videoDescription');
+      
+      videoTitle.textContent = title;
+      videoDescription.textContent = `${title} - Bu video ingliz tilini o'rganishga yordam beradi. Video davomiyligi: 15 daqiqa.`;
+      
+      modal.style.display = 'flex';
+    }
+
+    // Video yopish funksiyasi
+    function closeVideo() {
+      document.getElementById('videoModal').style.display = 'none';
+    }
+
+    // Sahifa ochish funksiyasi
+    function openPage(page) {
+      const modal = document.getElementById('pageModal');
+      const pageContent = document.getElementById('pageContent');
+      
+      let content = '';
+      let title = '';
+      
+      switch(page) {
+        case 'search':
+          title = 'Qidiruv';
+          content = `
+            <h2>Qidiruv</h2>
+            <div style="margin: 15px 0;">
+              <input type="text" placeholder="Qidirish..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+            </div>
+            <h3>So'nggi qidiruvlar</h3>
+            <div style="margin-top: 10px;">
+              <span style="display: inline-block; background: #f0f0f0; padding: 5px 10px; margin: 5px; border-radius: 15px;">Ingliz tili</span>
+              <span style="display: inline-block; background: #f0f0f0; padding: 5px 10px; margin: 5px; border-radius: 15px;">Grammar</span>
+              <span style="display: inline-block; background: #f0f0f0; padding: 5px 10px; margin: 5px; border-radius: 15px;">Speaking</span>
+            </div>
+          `;
+          break;
+        case 'chat':
+          title = 'Suhbatlar';
+          content = `
+            <h2>Suhbatlar</h2>
+            <div style="margin-top: 15px;">
+              <div style="display: flex; align-items: center; padding: 10px; border-bottom: 1px solid #eee;">
+                <div style="width: 40px; height: 40px; background: #ddd; border-radius: 50%; margin-right: 10px;"></div>
+                <div>
+                  <div style="font-weight: bold;">BilimSher</div>
+                  <div style="font-size: 14px; color: #666;">Yangi video qo'shildi</div>
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; padding: 10px; border-bottom: 1px solid #eee;">
+                <div style="width: 40px; height: 40px; background: #ddd; border-radius: 50%; margin-right: 10px;"></div>
+                <div>
+                  <div style="font-weight: bold;">O'qituvchi Anvar</div>
+                  <div style="font-size: 14px; color: #666;">Savolingiz bormi?</div>
+                </div>
+              </div>
+            </div>
+          `;
+          break;
+        case 'notifications':
+          title = 'Bildirishnomalar';
+          content = `
+            <h2>Bildirishnomalar</h2>
+            <div style="margin-top: 15px;">
+              <div style="padding: 10px; border-bottom: 1px solid #eee; background: #f0f8ff;">
+                <div style="font-weight: bold;">Yangi video</div>
+                <div>BilimSher kanaliga yangi video qo'shildi</div>
+                <div style="font-size: 12px; color: #666;">1 soat oldin</div>
+              </div>
+              <div style="padding: 10px; border-bottom: 1px solid #eee;">
+                <div style="font-weight: bold;">Xabar</div>
+                <div>O'qituvchi Anvar sizga xabar yubordi</div>
+                <div style="font-size: 12px; color: #666;">3 soat oldin</div>
+              </div>
+            </div>
+          `;
+          break;
+        case 'account':
+          title = 'Profil';
+          content = `
+            <h2>Profil</h2>
+            <div style="text-align: center; margin: 15px 0;">
+              <div style="width: 80px; height: 80px; background: #ddd; border-radius: 50%; margin: 0 auto 10px;"></div>
+              <div style="font-weight: bold;">Foydalanuvchi</div>
+              <div style="color: #666;">user@example.com</div>
+            </div>
+            <div style="display: flex; justify-content: space-around; margin: 20px 0;">
+              <div style="text-align: center;">
+                <div style="font-weight: bold;">24</div>
+                <div style="font-size: 14px; color: #666;">Kuzatuvlar</div>
+              </div>
+              <div style="text-align: center;">
+                <div style="font-weight: bold;">156</div>
+                <div style="font-size: 14px; color: #666;">Layklar</div>
+              </div>
+              <div style="text-align: center;">
+                <div style="font-weight: bold;">12</div>
+                <div style="font-size: 14px; color: #666;">Izohlar</div>
+              </div>
+            </div>
+            <div style="margin-top: 20px;">
+              <div style="padding: 10px; border-bottom: 1px solid #eee;">Mening kurslarim</div>
+              <div style="padding: 10px; border-bottom: 1px solid #eee;">Saqlangan videolar</div>
+              <div style="padding: 10px; border-bottom: 1px solid #eee;">Sozlamalar</div>
+              <div style="padding: 10px; border-bottom: 1px solid #eee;">Yordam</div>
+              <div style="padding: 10px; border-bottom: 1px solid #eee;">Chiqish</div>
+            </div>
+          `;
+          break;
+      }
+      
+      pageContent.innerHTML = `<h2>${title}</h2>${content}`;
+      modal.style.display = 'flex';
+    }
+
+    // Sahifa yopish funksiyasi
+    function closePage() {
+      document.getElementById('pageModal').style.display = 'none';
+    }
+
+    // Modal tashqarisiga bosganda yopish
+    window.onclick = function(event) {
+      const videoModal = document.getElementById('videoModal');
+      const pageModal = document.getElementById('pageModal');
+      
+      if (event.target === videoModal) {
+        videoModal.style.display = 'none';
+      }
+      if (event.target === pageModal) {
+        pageModal.style.display = 'none';
+      }
+    }
+  </script>
+
 </body>
 </html>
