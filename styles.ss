@@ -1,125 +1,82 @@
-body {
+* {
   margin: 0;
-  font-family: 'Inter', sans-serif;
-  background-color: #0B0C10;
-  color: #FFFFFF;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-main {
-  max-width: 400px;
-  margin: auto;
-  padding: 20px;
-}
-
-.logo {
-  font-family: 'Poppins', sans-serif;
-  font-size: 28px;
-  color: #FFD700;
-  text-align: center;
-}
-
-.subtitle {
-  text-align: center;
-  font-size: 14px;
-  margin-bottom: 20px;
-}
-
-h2 {
-  text-align: center;
-  font-family: 'Poppins', sans-serif;
-  margin-bottom: 20px;
-}
-
-.input-group {
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f9f9f9;
+  color: #111;
   display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Header (logo markazda) */
+header {
+  display: flex;
+  justify-content: center;
   align-items: center;
-  background-color: #1F1F1F;
-  border-radius: 12px;
-  padding: 10px;
-  margin-bottom: 20px;
-}
-
-.input-group input {
-  border: none;
-  background: transparent;
-  color: #FFD700;
-  font-size: 16px;
-  flex: 1;
-}
-
-.flag {
-  margin-right: 10px;
-}
-
-button {
-  width: 100%;
   padding: 12px;
-  border: none;
-  border-radius: 16px;
-  background: linear-gradient(45deg, #0066FF, #8A2BE2);
-  color: white;
-  font-size: 16px;
-  cursor: pointer;
+  background-color: #fff;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
-button:disabled {
-  background-color: #444;
-  cursor: not-allowed;
+header img {
+  height: 45px;
+  width: auto;
 }
 
-.link {
-  text-align: center;
-  margin-top: 10px;
+/* Kontent joyi */
+main {
+  flex-grow: 1;
+  padding: 16px;
 }
 
-.otp-group {
+/* Navigatsiya */
+nav {
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px;
+  justify-content: space-around;
+  align-items: center;
+  background-color: #fff;
+  border-top: 1px solid #ddd;
+  padding: 10px 0;
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
 }
 
-.otp-group input {
-  width: 60px;
-  height: 60px;
-  font-size: 24px;
-  text-align: center;
-  border-radius: 12px;
-  border: 2px solid #FFD700;
+nav svg {
+  width: 28px;
+  height: 28px;
+  stroke: #333;
+  transition: 0.3s;
 }
 
-.timer {
-  text-align: center;
-  margin-bottom: 20px;
+nav svg:hover {
+  stroke: #007bff;
+  transform: scale(1.1);
 }
 
-.dob-group {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
+/* Faol ikonka */
+nav a.active svg {
+  stroke: #007bff;
 }
 
-select {
-  flex: 1;
-  padding: 10px;
-  border-radius: 12px;
-  border: none;
-}
-
-.loader {
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #FFD700;
-  border-radius: 50%;
-  width: 30px;
-  height: 30px;
-  animation: spin 1s linear infinite;
-  margin: 20px auto;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.hidden {
-  display: none;
+/* Dark rejim */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #121212;
+    color: #eee;
+  }
+  header, nav {
+    background-color: #1e1e1e;
+  }
+  nav svg {
+    stroke: #eee;
+  }
 }
