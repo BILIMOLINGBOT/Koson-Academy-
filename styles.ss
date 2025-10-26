@@ -27,17 +27,17 @@ header {
 }
 
 header img {
-  height: 45px;
+  height: 50px;
   width: auto;
 }
 
-/* Kontent joyi */
+/* Asosiy kontent */
 main {
   flex-grow: 1;
   padding: 16px;
 }
 
-/* Navigatsiya */
+/* Pastki navigatsiya paneli */
 nav {
   display: flex;
   justify-content: space-around;
@@ -50,6 +50,13 @@ nav {
   z-index: 10;
 }
 
+nav a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
 nav svg {
   width: 28px;
   height: 28px;
@@ -57,14 +64,13 @@ nav svg {
   transition: 0.3s;
 }
 
+nav a.active svg {
+  stroke: #007bff;
+}
+
 nav svg:hover {
   stroke: #007bff;
   transform: scale(1.1);
-}
-
-/* Faol ikonka */
-nav a.active svg {
-  stroke: #007bff;
 }
 
 /* Dark rejim */
