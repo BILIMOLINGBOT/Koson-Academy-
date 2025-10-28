@@ -1,405 +1,122 @@
-<!DOCTYPE html><html lang="tr">
+<!DOCTYPE html>
+<html lang="uz">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>X Uslubida Profil — BilimSher</title>
-  <!-- Firebase v10 modul importlar (ES modules) -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import { getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";// --- Firebase konfiguratsiyasi (o'zingizning config bilan almashtiring) ---
-const firebaseConfig = {
-  apiKey: "AIzaSyD0gBUJNcrgvvntcrfKK7Ky8t6_9Qb96Io",
-  authDomain: "bilimilova-64833.firebaseapp.com",
-  databaseURL: "https://bilimilova-64833-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "bilimilova-64833",
-  storageBucket: "bilimilova-64833.appspot.com",
-  messagingSenderId: "890689414502",
-  appId: "1:890689414502:web:8141d7aab413495c0c14a7",
-  measurementId: "G-ZBC8X1VVMZ"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const storage = getStorage(app);
-
-// --- DOM elementlar ---
-const signInBtn = document.getElementById('signInBtn');
-const signOutBtn = document.getElementById('signOutBtn');
-const avatarInput = document.getElementById('avatarInput');
-const bannerInput = document.getElementById('bannerInput');
-const avatarPreview = document.getElementById('avatarPreviewImg');
-const bannerPreview = document.getElementById('bannerPreview');
-const saveProfileBtn = document.getElementById('saveProfileBtn');
-const displayNameInput = document.getElementById('displayName');
-const bioInput = document.getElementById('bio');
-const userHandleEl = document.getElementById('userHandle');
-const followersEl = document.getElementById('followersCount');
-const followingEl = document.getElementById('followingCount');
-const uploadProgressEl = document.getElementById('uploadProgress');
-
-let currentUser = null;
-let avatarFile = null;
-let bannerFile = null;
-
-// --- Google sign-in (misol uchun) ---
-signInBtn.addEventListener('click', async () => {
-  const provider = new GoogleAuthProvider();
-  try {
-    await signInWithPopup(auth, provider);
-  } catch (err) {
-    console.error('Sign-in xatolik:', err);
-    alert('Kirishda xatolik: ' + err.message);
-  }
-});
-
-signOutBtn.addEventListener('click', async () => {
-  try {
-    await auth.signOut();
-  } catch (err) {
-    console.error('Sign out xatolik:', err);
-  }
-});
-
-// --- Auth holatini kuzatish ---
-onAuthStateChanged(auth, async (user) => {
-  currentUser = user;
-  if (user) {
-    document.body.classList.remove('signed-out');
-    await loadProfile();
-  } else {
-    document.body.classList.add('signed-out');
-    // default previewlar
-    avatarPreview.src = './default-avatar.png';
-    bannerPreview.style.backgroundImage = 'linear-gradient(90deg,#111,#333)';
-    displayNameInput.value = '';
-    bioInput.value = '';
-    userHandleEl.textContent = '@guest';
-    followersEl.textContent = '0';
-    followingEl.textContent = '0';
-  }
-});
-
-// --- Fayl inputlari uchun preview ---
-avatarInput.addEventListener('change', (e) => {
-  const f = e.target.files[0];
-  if (!f) return;
-  if (!f.type.startsWith('image/')) {
-    alert('Iltimos, rasm fayli tanlang.');
-    return;
-  }
-  if (f.size > 3 * 1024 * 1024) { // 3MB limit
-    alert('Rasm hajmi 3MB dan kichik bo'lishi kerak.');
-    return;
-  }
-  avatarFile = f;
-  const reader = new FileReader();
-  reader.onload = (ev) => avatarPreview.src = ev.target.result;
-  reader.readAsDataURL(f);
-});
-
-bannerInput.addEventListener('change', (e) => {
-  const f = e.target.files[0];
-  if (!f) return;
-  if (!f.type.startsWith('image/')) {
-    alert('Iltimos, rasm fayli tanlang.');
-    return;
-  }
-  if (f.size > 5 * 1024 * 1024) { // 5MB limit
-    alert('Banner hajmi 5MB dan kichik bo\'lishi kerak.');
-    return;
-  }
-  bannerFile = f;
-  const reader = new FileReader();
-  reader.onload = (ev) => bannerPreview.style.backgroundImage = `url(${ev.target.result})`;
-  reader.readAsDataURL(f);
-});
-
-// --- Profilni yuklab olish (Firestore) ---
-async function loadProfile() {
-  if (!currentUser) return;
-  const uRef = doc(db, 'users', currentUser.uid);
-  try {
-    const snap = await getDoc(uRef);
-    if (snap.exists()) {
-      const data = snap.data();
-      displayNameInput.value = data.name || currentUser.displayName || '';
-      bioInput.value = data.bio || '';
-      userHandleEl.textContent = (data.handle) ? `@${data.handle}` : (currentUser.displayName ? `@${slugify(currentUser.displayName)}` : '@user');
-      followersEl.textContent = data.followers || 0;
-      followingEl.textContent = data.following || 0;
-
-      if (data.photoURL) avatarPreview.src = data.photoURL;
-      if (data.bannerURL) bannerPreview.style.backgroundImage = `url(${data.bannerURL})`;
-    } else {
-      // yangi user hujjati
-      await setDoc(uRef, {
-        uid: currentUser.uid,
-        name: currentUser.displayName || '',
-        bio: '',
-        handle: (currentUser.email) ? currentUser.email.split('@')[0] : currentUser.uid.slice(0,6),
-        followers: 0,
-        following: 0
-      });
-      // defaultlar
-      displayNameInput.value = currentUser.displayName || '';
-      userHandleEl.textContent = '@' + (currentUser.email ? currentUser.email.split('@')[0] : currentUser.uid.slice(0,6));
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VK Profil</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f2f2f2;
+      color: #333;
     }
-  } catch (err) {
-    console.error('Profile yuklash xatolik:', err);
-  }
-}
-
-// --- Profilni saqlash va kerak bo'lsa rasmni Storage ga yuklash ---
-saveProfileBtn.addEventListener('click', async () => {
-  if (!currentUser) { alert('Iltimos, avval tizimga kiring.'); return; }
-  saveProfileBtn.disabled = true;
-  uploadProgressEl.style.width = '0%';
-
-  try {
-    const updates = {};
-    if (displayNameInput.value) updates.name = displayNameInput.value.trim();
-    if (bioInput.value) updates.bio = bioInput.value.trim();
-
-    // Avatarni yuklash
-    if (avatarFile) {
-      const avRef = storageRef(storage, `avatars/${currentUser.uid}_${Date.now()}`);
-      const uploadTask = uploadBytesResumable(avRef, avatarFile);
-      await trackUpload(uploadTask, (pct) => uploadProgressEl.style.width = pct + '%');
-      const avatarURL = await getDownloadURL(avRef);
-      updates.photoURL = avatarURL;
-      avatarFile = null; // tozalash
+    .profile-header {
+      background: linear-gradient(135deg, #0077ff, #00c6ff);
+      padding: 20px;
+      color: white;
+      text-align: center;
     }
-
-    // Bannerni yuklash
-    if (bannerFile) {
-      const bRef = storageRef(storage, `banners/${currentUser.uid}_${Date.now()}`);
-      const uploadTask2 = uploadBytesResumable(bRef, bannerFile);
-      await trackUpload(uploadTask2, (pct) => uploadProgressEl.style.width = pct + '%');
-      const bannerURL = await getDownloadURL(bRef);
-      updates.bannerURL = bannerURL;
-      bannerFile = null;
+    .profile-header h1 {
+      margin: 10px 0 5px;
+      font-size: 24px;
     }
-
-    // Firestore hujjatini yangilash
-    const uRef = doc(db, 'users', currentUser.uid);
-    await updateDoc(uRef, updates);
-
-    alert('Profil muvaffaqiyatli yangilandi!');
-  } catch (err) {
-    console.error('Profilni saqlashda xatolik:', err);
-    alert('Saqlashda xatolik: ' + err.message);
-  } finally {
-    saveProfileBtn.disabled = false;
-    uploadProgressEl.style.width = '0%';
-  }
-});
-
-// --- Upload progress kuzatuvchi (Promise) ---
-function trackUpload(task, onProgress) {
-  return new Promise((resolve, reject) => {
-    task.on('state_changed', (snapshot) => {
-      const pct = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
-      onProgress(pct);
-    }, (err) => reject(err), () => resolve());
-  });
-}
-
-// --- Oddiy slugify ---
-function slugify(text) {
-  return text.toString().toLowerCase().replace(/\s+/g, '')
-    .replace(/[^a-z0-9_]/g, '')
-    .slice(0, 20);
-}
-
-  </script>  <style>
-    :root {
-      --bg: #000;
-      --panel: #0b0b0b;
-      --muted: #71767b;
-      --accent: #1d9bf0;
+    .profile-header p {
+      margin: 0;
+      font-size: 14px;
+      opacity: 0.9;
     }
-
-    html,body{height:100%;}
-    body{
-      margin:0;
-      background:var(--bg);
-      color:#fff;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
-      display:flex;
-      justify-content:center;
-      padding:24px 12px;
+    .avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      border: 3px solid white;
+      margin: -50px auto 10px;
+      background-image: url('https://via.placeholder.com/100');
+      background-size: cover;
+      background-position: center;
     }
-
-    .frame{
-      width:100%;
-      max-width:720px;
-      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-      border:1px solid #212325;
-      border-radius:12px;
-      overflow:hidden;
-      box-shadow:0 6px 24px rgba(0,0,0,0.6);
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin: 10px 0;
     }
-
-    /* Banner */
-    .banner{
-      height:200px;
-      background:linear-gradient(90deg,#111,#333);
-      background-size:cover;
-      background-position:center;
-      position:relative;
+    .stats div {
+      text-align: center;
     }
-
-    .banner .change-btn{
-      position:absolute;
-      right:12px;
-      top:12px;
-      background:rgba(0,0,0,0.45);
-      border:1px solid rgba(255,255,255,0.04);
-      color:var(--accent);
-      padding:8px 12px;
-      border-radius:20px;
-      cursor:pointer;
-      font-weight:700;
+    .stats strong {
+      display: block;
+      font-size: 18px;
     }
-
-    .avatar-wrap{
-      position:relative;
-      padding:12px 16px 0 16px;
-      display:flex;
-      justify-content:space-between;
-      align-items:end;
+    .bio {
+      padding: 0 20px;
+      font-size: 15px;
+      text-align: center;
+      margin-bottom: 10px;
     }
-
-    .avatar{
-      width:134px;
-      height:134px;
-      border-radius:50%;
-      border:6px solid var(--bg);
-      overflow:hidden;
-      background:#222;
-      margin-top:-68px;
+    .link {
+      text-align: center;
+      margin-bottom: 20px;
     }
-
-    .avatar img{width:100%;height:100%;object-fit:cover;display:block}
-
-    .actions{display:flex;gap:8px;align-items:center}
-    .btn{background:transparent;border:1px solid #2f3336;padding:8px 14px;border-radius:20px;color:#fff;font-weight:700;cursor:pointer}
-    .btn.primary{background:var(--accent);border:none}
-
-    .meta{
-      padding:8px 16px 18px 16px;
+    .link a {
+      color: #0077ff;
+      text-decoration: none;
+      font-size: 14px;
     }
-
-    .name{font-size:20px;font-weight:800}
-    .handle{color:var(--muted);margin-top:4px}
-    .bio{margin-top:12px;font-size:15px}
-
-    .counts{display:flex;gap:18px;margin-top:12px;color:var(--muted)}
-    .counts strong{color:#fff;margin-right:6px}
-
-    .nav{display:flex;border-top:1px solid #212325;border-bottom:1px solid #212325}
-    .nav button{flex:1;padding:12px 8px;background:transparent;border:0;color:var(--muted);cursor:pointer}
-    .nav button.active{color:#fff;border-bottom:3px solid var(--accent);font-weight:700}
-
-    /* edit form */
-    .edit-panel{padding:16px;display:grid;gap:12px}
-    label{font-size:13px;color:var(--muted)}
-    input[type="text"], textarea{width:100%;padding:10px;border-radius:10px;background:#071017;border:1px solid #172027;color:#fff;border:1px solid #222}
-    .small{font-size:13px;color:var(--muted)}
-
-    .file-input{display:none}
-
-    .progress-bar{height:6px;background:#071017;border-radius:6px;overflow:hidden;margin-top:8px}
-    .progress-bar > div{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),#0ea5e9)}
-
-    @media(max-width:520px){
-      .avatar{width:100px;height:100px;margin-top:-50px}
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      padding: 0 20px 20px;
     }
-  </style></head>
-<body class="signed-out">
-  <div class="frame"><!-- Banner -->
-<div id="bannerPreview" class="banner">
-  <button class="change-btn" title="Bannerni o'zgartirish" onclick="document.getElementById('bannerInput').click()">Bannerni o'zgartirish</button>
-</div>
+    .buttons button {
+      flex: 1;
+      padding: 10px;
+      font-size: 15px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .subscribe {
+      background-color: #0077ff;
+      color: white;
+    }
+    .message {
+      background-color: #e0e0e0;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div class="profile-header">
+    <div class="avatar"></div>
+    <h1>VK Company</h1>
+    <p>@vk_company</p>
+  </div>
 
-<!-- Avatar va actions -->
-<div class="avatar-wrap">
-  <div style="display:flex;gap:16px;align-items:flex-end">
-    <div class="avatar">
-      <img id="avatarPreviewImg" src="./default-avatar.png" alt="avatar">
+  <div class="stats">
+    <div>
+      <strong>125.9K</strong>
+      Obunachilar
     </div>
     <div>
-      <div class="name" id="displayNamePreview">Kullanıcı Adı</div>
-      <div class="handle" id="userHandle">@kullaniciadi</div>
+      <strong>1,024</strong>
+      Postlar
     </div>
   </div>
 
-  <div class="actions">
-    <button id="signInBtn" class="btn">Kirish</button>
-    <button id="signOutBtn" class="btn" style="display:none">Chiqish</button>
-    <button class="btn">A'zolik</button>
-  </div>
-</div>
-
-<div class="meta">
-  <div class="bio" id="bioPreview">Bu yerda foydalanuvchi haqida qisqacha bio yoziladi.</div>
-  <div class="counts"><span><strong id="followingCount">12</strong> Following</span><span><strong id="followersCount">120</strong> Followers</span></div>
-</div>
-
-<div class="nav">
-  <button class="active">Gönderiler</button>
-  <button>Medya</button>
-  <button>Beğeniler</button>
-  <button>Hakkında</button>
-</div>
-
-<!-- Edit panel (profil sozlamalari) -->
-<div class="edit-panel">
-  <div>
-    <label>Ism</label>
-    <input id="displayName" type="text" placeholder="Ismingizni kiriting">
+  <div class="bio">
+    Sotsial tarmoqlar kuchidan foydalanib xizmatlar yaratamiz. Odamlar va kompaniyalarga yordam beramiz.
   </div>
 
-  <div>
-    <label>Bio</label>
-    <textarea id="bio" rows="3" placeholder="Bio yozing..."></textarea>
+  <div class="link">
+    <a href="http://vk.company" target="_blank">vk.company</a>
   </div>
 
-  <div>
-    <label>Avatar (3MB gacha)</label>
-    <input id="avatarInput" class="file-input" type="file" accept="image/*">
-    <div class="small">Avatarni yangilash uchun rasm tanlang yoki avatarga bosing.</div>
+  <div class="buttons">
+    <button class="subscribe">Obuna bo'lish</button>
+    <button class="message">Xabar</button>
   </div>
-
-  <div>
-    <label>Banner (5MB gacha)</label>
-    <input id="bannerInput" class="file-input" type="file" accept="image/*">
-  </div>
-
-  <div style="display:flex;gap:8px;align-items:center">
-    <button id="saveProfileBtn" class="btn primary">Profilni saqlash</button>
-    <div class="progress-bar"><div id="uploadProgress"></div></div>
-  </div>
-
-  <div class="small">E'tibor: Bu sahifani ishlab chiqish uchun Firebase Storage va Firestore kerak bo'ladi. Xizmatlarga ruxsatlar to'g'ri o'rnatilganligiga ishonch hosil qiling.</div>
-</div>
-
-<!-- Invisible inputs to trigger file selection from UI script -->
-<!-- (these are referenced in the module script at the top) -->
-
-  </div>  <!-- Script: connect visible buttons to hidden inputs so inline onclicks work -->  <script>
-    // Hook up banner change button -> input
-    document.querySelector('.change-btn').addEventListener('click', (e) => {
-      e.preventDefault();
-      document.getElementById('bannerInput').click();
-    });
-
-    // Show/Hide sign buttons based on auth state (simple UI sync done in module)
-    // The module uses onAuthStateChanged and will toggle body class and load profile.
-  </script></body>
+</body>
 </html>
