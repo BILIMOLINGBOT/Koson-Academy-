@@ -1,42 +1,293 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Qidiruv</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Search</title>
+  <style>
+    :root {
+      --bg: #0b0b0f;
+      --bg-elev: #14141a;
+      --text: #e7e7ea;
+      --muted: #9aa0a6;
+      --accent: #2f7df4; /* blue search icon color */
+      --border: #23232a;
+      --focus: #3b82f6;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f6f7fb;
+        --bg-elev: #ffffff;
+        --text: #0f1115;
+        --muted: #5b6675;
+        --accent: #2f7df4;
+        --border: #e6e8ef;
+        --focus: #3b82f6;
+      }
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    }
+
+    /* Safe area padding for phones */
+    .app {
+      min-height: 100%;
+      padding: env(safe-area-inset-top) 12px env(safe-area-inset-bottom);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* Top bar with search */
+    .search-bar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--bg);
+      padding-top: 8px;
+      padding-bottom: 4px;
+    }
+
+    .field {
+      display: grid;
+      grid-template-columns: 40px 1fr 40px;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-elev);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 8px;
+    }
+
+    .icon {
+      width: 40px; height: 40px;
+      display: grid;
+      place-items: center;
+      color: var(--accent);
+    }
+
+    .input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-size: 16px;
+      line-height: 24px;
+    }
+
+    .input::placeholder {
+      color: var(--muted);
+    }
+
+    .clear-btn {
+      width: 40px; height: 40px;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      border: none;
+      background: transparent;
+      border-radius: 8px;
+    }
+
+    .clear-btn:active { opacity: 0.8; }
+
+    /* Language toggle (optional, subtle) */
+    .lang {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      padding: 0 4px;
+      user-select: none;
+    }
+
+    .lang button {
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: 999px;
+    }
+
+    .lang button.active {
+      color: var(--text);
+      border-color: var(--accent);
+    }
+
+    /* Results area (empty state — dark background) */
+    .results {
+      flex: 1;
+      border-radius: 12px;
+      background: var(--bg);
+      border: 1px dashed var(--border);
+      display: grid;
+      place-items: center;
+      text-align: center;
+      color: var(--muted);
+      padding: 24px;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px; height: 1px;
+      padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0,0,0,0);
+      white-space: nowrap; border: 0;
+    }
+
+    /* Touch-friendly hit areas */
+    @media (hover: none) {
+      .clear-btn, .lang button { padding: 8px 12px; }
+    }
+  </style>
 </head>
 <body>
-  <header>
-    <img src="https://image2url.com/images/1761392264440-f2d170c9-e67f-4161-a345-7a1d4dd2ef7b.svg" alt="Chumchuq Logotip">
-  </header>
+  <div class="app">
+    <header class="search-bar" role="search">
+      <label class="sr-only" for="q">Search</label>
+      <div class="field">
+        <div class="icon" aria-hidden="true">
+          <!-- Magnifying glass -->
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="7"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </div>
+        <input id="q" class="input" type="search" placeholder="Search" autocomplete="off" />
+        <button class="clear-btn" id="clear" aria-label="Clear search">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
 
-  <main>
-    <h2>Qidiruv tizimi</h2>
-    <p>Videolarni izlang...</p>
-  </main>
+      <!-- Optional UZ · EN toggle to mirror keyboard hint -->
+      <div class="lang" aria-label="Language toggle">
+        <span>UZ · EN</span>
+        <button type="button" id="lang-uz" class="active">UZ</button>
+        <button type="button" id="lang-en">EN</button>
+      </div>
+    </header>
 
-  <!-- Pastki navigatsiya -->
-  <nav>
-    <a href="index.html">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-    </a>
+    <main class="results" id="results" aria-live="polite">
+      <div id="empty">
+        <p>Type to search.</p>
+      </div>
+    </main>
+  </div>
 
-    <a href="search.html" class="active">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
-    </a>
+  <script>
+    const input = document.getElementById('q');
+    const clearBtn = document.getElementById('clear');
+    const results = document.getElementById('results');
+    const empty = document.getElementById('empty');
+    const langUZ = document.getElementById('lang-uz');
+    const langEN = document.getElementById('lang-en');
 
-    <a href="chat.html">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/></svg>
-    </a>
+    function showEmpty() {
+      results.innerHTML = '';
+      results.appendChild(empty);
+    }
 
-    <a href="notifications.html">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg>
-    </a>
+    function showResults(items) {
+      const list = document.createElement('div');
+      list.style.width = '100%';
+      list.style.maxWidth = '720px';
+      list.style.margin = '0 auto';
+      list.style.display = 'grid';
+      list.style.gap = '8px';
 
-    <a href="account.html">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 20a6 6 0 0 0-12 0"/><circle cx="12" cy="10" r="4"/><circle cx="12" cy="12" r="10"/></svg>
-    </a>
-  </nav>
+      items.forEach(text => {
+        const row = document.createElement('div');
+        row.style.display = 'flex';
+        row.style.alignItems = 'center';
+        row.style.justifyContent = 'space-between';
+        row.style.padding = '12px 14px';
+        row.style.border = '1px solid var(--border)';
+        row.style.borderRadius = '10px';
+        row.style.background = 'var(--bg-elev)';
+
+        const span = document.createElement('span');
+        span.textContent = text;
+        span.style.color = 'var(--text)';
+        span.style.fontSize = '15px';
+
+        const open = document.createElement('button');
+        open.textContent = 'Open';
+        open.style.background = 'transparent';
+        open.style.border = '1px solid var(--border)';
+        open.style.color = 'var(--muted)';
+        open.style.borderRadius = '8px';
+        open.style.padding = '6px 10px';
+
+        row.appendChild(span);
+        row.appendChild(open);
+        list.appendChild(row);
+      });
+
+      results.innerHTML = '';
+      results.appendChild(list);
+    }
+
+    // Mock search — replace with real API call
+    function performSearch(query) {
+      const q = query.trim();
+      if (!q) { showEmpty(); return; }
+      // Simulate results
+      const data = [
+        `${q} — example result A`,
+        `${q} — example result B`,
+        `${q} — example result C`
+      ];
+      showResults(data);
+    }
+
+    input.addEventListener('input', (e) => {
+      performSearch(e.target.value);
+    });
+
+    clearBtn.addEventListener('click', () => {
+      input.value = '';
+      input.focus();
+      showEmpty();
+    });
+
+    function setLang(active) {
+      if (active === 'UZ') {
+        langUZ.classList.add('active');
+        langEN.classList.remove('active');
+        input.placeholder = 'Qidirish';
+      } else {
+        langEN.classList.add('active');
+        langUZ.classList.remove('active');
+        input.placeholder = 'Search';
+      }
+    }
+
+    langUZ.addEventListener('click', () => setLang('UZ'));
+    langEN.addEventListener('click', () => setLang('EN'));
+
+    // Initial state
+    setLang('EN');
+    showEmpty();
+
+    // Submit on Enter (mobile keyboard search key)
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        performSearch(input.value);
+      }
+    });
+  </script>
 </body>
 </html>
