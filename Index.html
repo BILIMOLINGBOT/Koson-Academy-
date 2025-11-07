@@ -3,173 +3,426 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chumchuq Video Platforma</title>
+  <title id="page-title">Profil - Javlonbek</title>
+  <script type="module">
+    // Firebase moduli importlari (bu yerda to'g'ridan-to'g'ri import qilindi)
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+    import { getDatabase, ref, set, onValue, get } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-database.js";
+    import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-storage.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
+
+
+    // ⚠️ Global O'zgaruvchilar (Canvas muhitiga moslash uchun)
+    const firebaseConfig = {
+      apiKey: "AIzaSyD0gBUJNcrgvvntcrfKK7Ky8t6_9Qb96Io",
+      authDomain: "bilimilova-64833.firebaseapp.com",
+      databaseURL: "https://bilimilova-64833-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "bilimilova-64833",
+      storageBucket: "bilimilova-64833.firebasestorage.app",
+      messagingSenderId: "890689414502",
+      appId: "1:890689414502:web:8141d7aab413495c0c14a7",
+      measurementId: "G-ZBC8X1VVMZ"
+    };
+    
+    // Foydalanuvchi ID (Aniq loyihada Auth orqali olinishi kerak)
+    let USER_ID = 'javlonbek_default_user'; 
+
+    // Firebase'ni initsializatsiya qilish
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const storage = getStorage(app);
+    const auth = getAuth(app);
+    
+    // Auth va USER_ID ni o'rnatish
+    // Osonlik uchun anonim kirishdan foydalanildi
+    signInAnonymously(auth).then((result) => {
+        USER_ID = result.user.uid;
+        console.log("Anonim foydalanuvchi kirishi muvaffaqiyatli:", USER_ID);
+        // Auth o'rnatilgandan so'ng ma'lumotlarni yuklashni chaqirish muhim!
+        loadProfileData(); 
+        setupRealtimeListener();
+    }).catch((error) => {
+        console.error("Anonim kirishda xato:", error);
+    });
+
+    // =======================================================
+    // Ilova holatini boshqarish (Sahifani almashtirish)
+    // =======================================================
+    const ProfilePage = document.getElementById('profile-page');
+    const EditingPage = document.getElementById('editing-page');
+
+    function navigate(page) {
+        if (page === 'profile') {
+            ProfilePage.classList.remove('hidden');
+            EditingPage.classList.add('hidden');
+            document.getElementById('page-title').textContent = 'Profil - Javlonbek';
+        } else if (page === 'editing') {
+            ProfilePage.classList.add('hidden');
+            EditingPage.classList.remove('hidden');
+            document.getElementById('page-title').textContent = 'Profilni tahrirlash';
+            loadFormData(); // Tahrirlash sahifasiga o'tganda ma'lumotlarni yuklash
+        }
+    }
+    window.navigate = navigate;
+    window.onload = () => navigate('profile'); // Boshlang'ich sahifa
+
+    // =======================================================
+    // PROFIL SAHIFASI (Profil.html qismi) FUNKSIYALARI
+    // =======================================================
+    function setupRealtimeListener() {
+        const userRef = ref(db, 'users/' + USER_ID);
+        onValue(userRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                // Ma'lumotlarni sahifaga joylash
+                document.getElementById('profile-name').textContent = data.fullname || data.username || 'Javlonbek';
+                document.getElementById('location-info').innerHTML = `📍 ${data.region || 'Noma\'lum'} &nbsp;&nbsp; 💼 Blogger`;
+                document.getElementById('birthdate-info').textContent = data.birthdate || '';
+                document.getElementById('bio-info').textContent = data.bio || 'Bu yerda qisqa bio yozilishi mumkin.';
+                
+                // Rasmlarni yuklash
+                const profileSection = document.getElementById('profile-section');
+                const profileImage = document.getElementById('profile-image');
+
+                if (data.coverImageUrl) {
+                    profileSection.style.backgroundImage = `url('${data.coverImageUrl}')`;
+                } else {
+                     profileSection.style.backgroundImage = 'none'; 
+                }
+
+                if (data.profilePictureUrl) {
+                    profileImage.style.backgroundImage = `url('${data.profilePictureUrl}')`;
+                } else {
+                    profileImage.style.backgroundImage = 'none'; 
+                }
+                
+                // Havolalarni ko'rsatish
+                const linksInfoDiv = document.getElementById('links-info');
+                linksInfoDiv.innerHTML = '';
+                if (data.links && data.links.length > 0) {
+                    data.links.forEach(link => {
+                        if (link.url && link.name) {
+                            const p = document.createElement('p');
+                            p.innerHTML = `🌐 <strong><a href="${link.url}" target="_blank">${link.name}</a></strong>`;
+                            linksInfoDiv.appendChild(p);
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    // =======================================================
+    // TAHRIRLASH SAHIFASI (editing.html qismi) FUNKSIYALARI
+    // =======================================================
+    
+    // Havola qo'shish funksiyasi
+    function addLink(url = '', name = '', canRemove = true) {
+      const linksDiv = document.getElementById("links");
+      const div = document.createElement("div");
+      div.classList.add("link-item");
+      
+      let removeBtn = '';
+      if (canRemove) {
+          removeBtn = `<button type="button" class="btn-remove" onclick="this.parentNode.remove()">X</button>`;
+      }
+
+      div.innerHTML = `
+        <input type="text" placeholder="URL manzili" class="link-url" value="${url}">
+        <input type="text" placeholder="Nom (masalan: Telegram)" class="link-name" value="${name}">
+        ${removeBtn}
+      `;
+      linksDiv.appendChild(div);
+    }
+    window.addLink = addLink;
+
+    // Ma'lumotlarni formaga yuklash
+    async function loadFormData() {
+        const userRef = ref(db, 'users/' + USER_ID);
+        try {
+            const snapshot = await get(userRef);
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                document.getElementById('fullname').value = data.fullname || '';
+                document.getElementById('username').value = data.username || '';
+                document.getElementById('birthdate').value = data.birthdate || '';
+                document.getElementById('region').value = data.region || '';
+                document.getElementById('bio').value = data.bio || '';
+
+                const linksDiv = document.getElementById('links');
+                linksDiv.innerHTML = ''; // Avvalgi havolalarni tozalash
+                if (data.links && data.links.length > 0) {
+                    data.links.forEach(link => {
+                        addLink(link.url, link.name);
+                    });
+                } else {
+                     addLink('', ''); // Agar havola bo'lmasa, bitta bo'sh joy qo'shish
+                }
+            } else {
+                 document.getElementById('links').innerHTML = '';
+                 addLink('', ''); 
+            }
+        } catch (error) {
+            console.error("Forma ma'lumotlarini yuklashda xato:", error);
+        }
+    }
+
+    // Ma'lumotlarni saqlash funksiyasi
+    async function saveProfile(e) {
+        e.preventDefault();
+        const saveBtn = document.getElementById('btn-save');
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Saqlanmoqda...';
+
+        const fullname = document.getElementById('fullname').value;
+        const username = document.getElementById('username').value;
+        const birthdate = document.getElementById('birthdate').value;
+        const region = document.getElementById('region').value;
+        const bio = document.getElementById('bio').value;
+        const coverImageFile = document.getElementById('cover_image').files[0];
+        const profilePictureFile = document.getElementById('profile_picture').files[0];
+        
+        // Havolalarni yig'ish
+        const links = Array.from(document.querySelectorAll('.link-item')).map(item => ({
+            url: item.querySelector('.link-url').value,
+            name: item.querySelector('.link-name').value
+        })).filter(link => link.url.trim() !== '' && link.name.trim() !== '');
+
+        let profileData = {
+            fullname,
+            username,
+            birthdate,
+            region,
+            bio,
+            links,
+        };
+
+        try {
+            // Rasmlarni yuklash va URLni olish
+            if (coverImageFile) {
+                const cRef = storageRef(storage, `users/${USER_ID}/cover_image/${coverImageFile.name}`);
+                await uploadBytes(cRef, coverImageFile);
+                profileData.coverImageUrl = await getDownloadURL(cRef);
+            }
+
+            if (profilePictureFile) {
+                const pRef = storageRef(storage, `users/${USER_ID}/profile_picture/${profilePictureFile.name}`);
+                await uploadBytes(pRef, profilePictureFile);
+                profileData.profilePictureUrl = await getDownloadURL(pRef);
+            }
+            
+            // Database'ga yozish (yoki mavjudlarini o'zgartirish)
+            const existingDataSnapshot = await get(ref(db, 'users/' + USER_ID));
+            const existingData = existingDataSnapshot.val() || {};
+
+            // Agar rasm yuklanmagan bo'lsa, avvalgi URLni saqlab qolish
+            profileData.coverImageUrl = profileData.coverImageUrl || existingData.coverImageUrl || '';
+            profileData.profilePictureUrl = profileData.profilePictureUrl || existingData.profilePictureUrl || '';
+
+            await set(ref(db, 'users/' + USER_ID), profileData);
+
+            alert("Profil muvaffaqiyatli saqlandi!");
+            navigate('profile'); // Profil sahifasiga qaytish
+            
+        } catch (error) {
+            console.error("Ma'lumotlarni saqlashda xato:", error);
+            alert("Saqlashda xato yuz berdi: " + error.message);
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Saqlash';
+        }
+    }
+    window.saveProfile = saveProfile;
+
+    // =======================================================
+    // STANDART FUNKSIYALAR
+    // =======================================================
+    function goBack() { window.history.back(); }
+    window.goBack = goBack;
+
+    function editProfile() { navigate('editing'); }
+    window.editProfile = editProfile;
+
+    function openSettings() { /* settings.html funksiyasi */ }
+    window.openSettings = openSettings;
+
+    function uploadVideo() { /* update.html funksiyasi */ }
+    window.uploadVideo = uploadVideo;
+
+    function showTab(tab) {
+      const content = document.getElementById("tab-content");
+      const buttons = document.querySelectorAll(".tab-btn");
+      buttons.forEach(btn => btn.classList.remove("active"));
+
+      if (tab === "videos") {
+        content.innerHTML = "<p>🎬 Videolar ro'yxati shu yerda chiqadi...</p>";
+        buttons[0].classList.add("active");
+      } else {
+        content.innerHTML = "<p>📂 Pleylilar ro'yxati shu yerda chiqadi...</p>";
+        buttons[1].classList.add("active");
+      }
+    }
+    window.showTab = showTab;
+  </script>
+
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    /* Global uslublar */
+    .hidden { display: none !important; }
 
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f9f9f9;
-      color: #111;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f5f5; }
 
-    header {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 12px;
-      background-color: #fff;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
+    /* Header uslublari */
+    .header { background-color: #2c2c2c; padding: 15px; display: flex; justify-content: space-between; align-items: center; color: white; }
+    .header-left, .header-right { display: flex; gap: 20px; align-items: center; }
+    .icon-btn { background: none; border: none; color: white; font-size: 24px; cursor: pointer; padding: 5px; }
 
-    header img {
-      height: 50px;
-      width: auto;
+    /* Profil Sahifasi Uslublari */
+    .profile-section {
+      background-size: cover; background-position: center; background-repeat: no-repeat;
+      background-color: #2c2c2c; /* Zaxira fon */
+      padding: 30px 20px; color: white; display: flex; align-items: center; gap: 30px;
+      text-shadow: 0 0 5px rgba(0, 0, 0, 0.7);
+      transition: background-image 0.5s ease;
     }
-
-    .videos {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 16px;
-      padding: 16px;
-      flex-grow: 1;
+    .profile-image {
+      width: 120px; height: 120px; border-radius: 50%; border: 5px solid #4a90e2; background-color: white;
+      background-size: cover; background-position: center; flex-shrink: 0;
     }
+    .profile-name { font-size: 28px; font-weight: 300; }
+    .content { padding: 20px; background-color: #f5f5f5; min-height: calc(100vh - 80px); }
+    .profile-info { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; font-size: 16px; line-height: 1.6; color: #333; }
+    .profile-tabs { display: flex; gap: 15px; margin-bottom: 20px; }
+    .tab-btn { flex: 1; padding: 12px 0; border: none; border-radius: 25px; background-color: #e0e0e0; cursor: pointer; font-size: 15px; transition: all 0.3s ease; }
+    .tab-btn.active { background-color: #4a90e2; color: white; font-weight: 500; }
+    .fab { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; border-radius: 50%; background-color: #4a90e2; color: white; font-size: 32px; border: none; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.3); transition: all 0.3s ease; }
+    
+    /* Tahrirlash Sahifasi Uslublari */
+    .edit-container { max-width: 600px; margin: 30px auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    label { display: block; margin-bottom: 6px; font-weight: 500; color: #333; }
+    input, select, textarea { width: 100%; padding: 12px; margin-bottom: 18px; border: 1px solid #ccc; border-radius: 8px; font-size: 15px; }
+    input[type="file"] { border: 1px dashed #4a90e2; padding: 12px; background-color: #f9f9f9; cursor: pointer; }
+    .link-item { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
+    .link-item input { flex: 1; margin: 0; }
+    .btn { padding: 12px 25px; border: none; border-radius: 25px; font-size: 15px; cursor: pointer; transition: all 0.3s ease; }
+    .btn-save { background-color: #4a90e2; color: white; font-weight: 500; }
+    .btn-add { background-color: #e0e0e0; color: #333; font-size: 14px; padding: 8px 15px; border-radius: 20px; }
+    .btn-remove { background-color: #ff4d4d; color: white; border-radius: 50%; width: 30px; height: 30px; font-size: 12px; cursor: pointer; border: none;}
 
-    .video {
-      background-color: #fff;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      transition: transform 0.2s ease;
-    }
-
-    .video:hover {
-      transform: scale(1.02);
-    }
-
-    .video img {
-      width: 100%;
-      height: 180px;
-      object-fit: cover;
-    }
-
-    .video .info {
-      padding: 10px;
-    }
-
-    .video .title {
-      font-size: 16px;
-      font-weight: bold;
-      margin-bottom: 5px;
-    }
-
-    .video .channel {
-      color: #666;
-      font-size: 14px;
-    }
-
-    nav {
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      background-color: #fff;
-      border-top: 1px solid #ddd;
-      padding: 10px 0;
-      position: sticky;
-      bottom: 0;
-      z-index: 10;
-    }
-
-    nav a {
-      text-decoration: none;
-    }
-
-    nav svg {
-      width: 28px;
-      height: 28px;
-      stroke: #333;
-      transition: 0.3s;
-    }
-
-    nav svg:hover {
-      stroke: #007bff;
-      transform: scale(1.1);
-    }
-
-    @media (prefers-color-scheme: dark) {
-      body {
-        background-color: #121212;
-        color: #eee;
-      }
-      header, nav {
-        background-color: #1e1e1e;
-      }
-      .video {
-        background-color: #1c1c1c;
-      }
-      nav svg {
-        stroke: #eee;
-      }
+    /* Responsive */
+    @media (max-width: 768px) {
+      .profile-section { flex-direction: column; align-items: flex-start; }
+      .profile-left { width: 100%; }
+      .action-buttons { width: 100%; justify-content: flex-start; }
     }
   </style>
 </head>
 <body>
 
-  <header>
-    <img src="https://image2url.com/images/1761392264440-f2d170c9-e67f-4161-a345-7a1d4dd2ef7b.svg" alt="Chumchuq Logotip">
-  </header>
+  <!-- ======================================================= -->
+  <!-- 1. PROFIL SAHIFASI (Profil.html o'rniga) -->
+  <!-- ======================================================= -->
+  <div id="profile-page" class="app-page">
+    <div class="header">
+      <div class="header-left">
+        <button class="icon-btn" onclick="goBack()">←</button>
+      </div>
+      <div class="header-right">
+        <button class="icon-btn">🔔</button>
+        <button class="icon-btn" onclick="openSettings()">⋮</button>
+      </div>
+    </div>
 
-  <main class="videos">
-    <div class="video">
-      <img src="https://picsum.photos/500/300?1" alt="Video 1">
-      <div class="info">
-        <div class="title">Ingliz tili darsi 1</div>
-        <div class="channel">BilimSher</div>
+    <div class="profile-section" id="profile-section">
+      <div class="profile-left">
+        <div class="profile-image" id="profile-image"></div>
+        <h1 class="profile-name" id="profile-name">Profil yuklanmoqda...</h1>
+      </div>
+      
+      <div class="action-buttons">
+        <button class="btn btn-edit" onclick="editProfile()">Tahrirlash</button>
       </div>
     </div>
-    <div class="video">
-      <img src="https://picsum.photos/500/300?2" alt="Video 2">
-      <div class="info">
-        <div class="title">Ingliz tili darsi 2</div>
-        <div class="channel">BilimSher</div>
-      </div>
-    </div>
-    <div class="video">
-      <img src="https://picsum.photos/500/300?3" alt="Video 3">
-      <div class="info">
-        <div class="title">Speaking mashg‘uloti</div>
-        <div class="channel">BilimSher</div>
-      </div>
-    </div>
-  </main>
 
-  <nav>
-    <a href="index.html">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-    </a>
-    <a href="search.html">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
-    </a>
-    <a href="chat.html">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/></svg>
-    </a>
-    <a href="notifications.html">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg>
-    </a>
-    <a href="account.html">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18 20a6 6 0 0 0-12 0"/><circle cx="12" cy="10" r="4"/><circle cx="12" cy="12" r="10"/></svg>
-    </a>
-  </nav>
+    <div class="content">
+      <div class="profile-info">
+        <p id="location-info">📍 Yuklanmoqda...</p>
+        <p id="birthdate-info">Yuklanmoqda...</p>
+        <p><strong>Bio:</strong> <span id="bio-info">Yuklanmoqda...</span></p>
+        <div id="links-info"></div>
+        <p><strong>500</strong> Obunachilar &nbsp;&nbsp; <strong>20</strong> Obunalar &nbsp;&nbsp; <strong>30</strong> ta video</p>
+      </div>
+
+      <div class="profile-tabs">
+        <button class="tab-btn active" onclick="showTab('videos')">Videolar</button>
+        <button class="tab-btn" onclick="showTab('playlists')">Pleylilar</button>
+      </div>
+
+      <div id="tab-content">
+        <p>🎬 Videolar ro'yxati shu yerda chiqadi...</p>
+      </div>
+    </div>
+
+    <button class="fab" onclick="uploadVideo()">+</button>
+  </div>
+
+  <!-- ======================================================= -->
+  <!-- 2. TAHRIRLASH SAHIFASI (editing.html o'rniga) -->
+  <!-- ======================================================= -->
+  <div id="editing-page" class="app-page hidden">
+    <div class="header">Profilni tahrirlash</div>
+
+    <div class="edit-container">
+      <form onsubmit="saveProfile(event)">
+        <label for="fullname">Ism va familiya</label>
+        <input type="text" id="fullname" placeholder="Ism Familiya" required>
+
+        <label for="username">Username</label>
+        <input type="text" id="username" placeholder="@username" required>
+
+        <label for="cover_image">Profil fon rasmi (Banner)</label>
+        <input type="file" id="cover_image" accept="image/*">
+        
+        <label for="profile_picture">Profil rasmi</label>
+        <input type="file" id="profile_picture" accept="image/*">
+
+        <label for="birthdate">Tug‘ilgan sana</label>
+        <input type="date" id="birthdate" required>
+
+        <label for="region">Manzil</label>
+        <select id="region" required>
+          <option value="">Viloyatni tanlang</option>
+          <option>Andijon viloyati</option>
+          <option>Buxoro viloyati</option>
+          <option>Farg‘ona viloyati</option>
+          <option>Jizzax viloyati</option>
+          <option>Namangan viloyati</option>
+          <option>Navoiy viloyati</option>
+          <option>Qashqadaryo viloyati</option>
+          <option>Qoraqalpog‘iston Respublikasi</option>
+          <option>Samarqand viloyati</option>
+          <option>Sirdaryo viloyati</option>
+          <option>Surxondaryo viloyati</option>
+          <option>Toshkent viloyati</option>
+          <option>Toshkent shahri</option>
+          <option>Xorazm viloyati</option>
+        </select>
+
+        <label for="bio">Bio (maksimal 200 ta belgi)</label>
+        <textarea id="bio" maxlength="200" placeholder="O‘zingiz haqingizda qisqa bio yozing..."></textarea>
+
+        <label>Havolalar</label>
+        <div class="links" id="links">
+          <!-- Havolalar shu yerga JS orqali yuklanadi -->
+        </div>
+        <button type="button" class="btn btn-add" onclick="addLink()">+ Havola qo‘shish</button>
+
+        <br><br>
+        <button type="submit" class="btn btn-save" id="btn-save">Saqlash</button>
+      </form>
+    </div>
+  </div>
 
 </body>
 </html>
+
