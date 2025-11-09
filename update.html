@@ -5,7 +5,182 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Yangi Video Yuklash</title>
   <style>
-    /* ... mavjud stillar ... */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background-color: #000;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      align-items: flex-start;
+      padding: 20px 0;
+    }
+
+    .video-modal-content {
+      background-color: #000;
+      width: 600px;
+      border-radius: 16px;
+      border: 1px solid #2f3336;
+      overflow: hidden;
+    }
+
+    .video-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 15px;
+      border-bottom: 1px solid #2f3336;
+    }
+
+    .video-cancel-btn, .video-post-btn {
+      background: none;
+      border: none;
+      color: #1da1f2;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .video-post-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .video-modal-title {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .video-form-container {
+      padding: 15px;
+    }
+
+    .video-preview {
+      width: 100%;
+      height: 0;
+      padding-bottom: 56.25%; /* 16:9 nisbat */
+      background-color: #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .video-preview video {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .video-preview-placeholder {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #8b98a5;
+    }
+
+    .video-preview-placeholder svg {
+      margin-bottom: 10px;
+      opacity: 0.7;
+    }
+
+    .video-form-group {
+      margin-bottom: 20px;
+    }
+
+    .video-form-group label {
+      display: block;
+      margin-bottom: 5px;
+      color: #8b98a5;
+      font-size: 14px;
+    }
+
+    .video-form-group input,
+    .video-form-group textarea {
+      width: 100%;
+      background-color: transparent;
+      border: 1px solid #333;
+      border-radius: 4px;
+      padding: 10px;
+      color: #fff;
+      font-size: 16px;
+    }
+
+    .video-form-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .video-form-group input:focus,
+    .video-form-group textarea:focus {
+      border-color: #1da1f2;
+      outline: none;
+    }
+
+    .upload-video-btn {
+      background-color: #1da1f2;
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .upload-video-btn:hover {
+      background-color: #0c84d1;
+    }
+
+    .video-info {
+      color: #8b98a5;
+      font-size: 12px;
+      margin-top: 5px;
+    }
+
+    .char-counter {
+      text-align: right;
+      font-size: 12px;
+      color: #8b98a5;
+      margin-top: 5px;
+    }
+
+    .char-counter.warning {
+      color: #ffad1f;
+    }
+
+    .char-counter.error {
+      color: #e0245e;
+    }
+
+    @media (max-width: 640px) {
+      .video-modal-content {
+        width: 95%;
+      }
+      
+      body {
+        padding: 10px 0;
+      }
+    }
   </style>
 </head>
 <body>
@@ -17,16 +192,140 @@
       <button class="video-post-btn" id="videoPostBtn" disabled>Saqlash</button>
     </div>
     <div class="video-form-container">
-      <!-- ... mavjud forma elementlari ... -->
+      <div class="video-form-group">
+        <label>Video (16:9 formatda bo'lishi kerak)</label>
+        <div class="video-preview" id="videoPreview">
+          <div class="video-preview-placeholder">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M14 2H6C4.9 2 4.01 2.9 4.01 4L4 20C4 21.1 4.89 22 5.99 22H18C19.1 22 20 21.1 20 20V8L14 2ZM6 20V4H13V9H18V20H6Z" fill="currentColor"/>
+              <path d="M8 12H16V14H8V12ZM8 16H16V18H8V16Z" fill="currentColor"/>
+            </svg>
+            Video yuklang
+            <button class="upload-video-btn" id="uploadVideoBtn" style="margin-top: 15px;">Video yuklash</button>
+          </div>
+        </div>
+        <div class="video-info">Iltimos, 16:9 formatdagi videolarni yuklang (masalan: 1920x1080, 1280x720)</div>
+      </div>
+      <div class="video-form-group">
+        <label for="videoTitle">Sarlavha yozing</label>
+        <input type="text" id="videoTitle" placeholder="Video sarlavhasi..." maxlength="100">
+        <div class="char-counter" id="titleCounter">0/100</div>
+      </div>
+      <div class="video-form-group">
+        <label for="videoDescription">Tavsif</label>
+        <textarea id="videoDescription" placeholder="Video tavsifini yozing..." maxlength="500"></textarea>
+        <div class="char-counter" id="descriptionCounter">0/500</div>
+      </div>
+      <div class="video-form-group">
+        <label for="videoKeywords">Kalit soʻzlar</label>
+        <input type="text" id="videoKeywords" placeholder="Kalit so'zlar, vergul bilan ajratilgan..." maxlength="200">
+        <div class="char-counter" id="keywordsCounter">0/200</div>
+      </div>
     </div>
   </div>
 
   <input type="file" id="videoInput" accept="video/*" style="display: none;">
 
   <script>
-    // ... mavjud kodlar ...
+    const videoCancelBtn = document.getElementById('videoCancelBtn');
+    const videoPostBtn = document.getElementById('videoPostBtn');
+    const uploadVideoBtn = document.getElementById('uploadVideoBtn');
+    const videoInput = document.getElementById('videoInput');
+    const videoPreview = document.getElementById('videoPreview');
+    const videoTitle = document.getElementById('videoTitle');
+    const videoDescription = document.getElementById('videoDescription');
+    const videoKeywords = document.getElementById('videoKeywords');
+    const titleCounter = document.getElementById('titleCounter');
+    const descriptionCounter = document.getElementById('descriptionCounter');
+    const keywordsCounter = document.getElementById('keywordsCounter');
 
-    // Saqlash
+    // Belgilar sonini hisoblash
+    function updateCharCounter(element, counter, maxLength) {
+      const length = element.value.length;
+      counter.textContent = `${length}/${maxLength}`;
+      
+      // Rangni o'zgartirish
+      if (length > maxLength * 0.9) {
+        counter.className = 'char-counter error';
+      } else if (length > maxLength * 0.75) {
+        counter.className = 'char-counter warning';
+      } else {
+        counter.className = 'char-counter';
+      }
+    }
+
+    // Input maydonlarini kuzatish
+    videoTitle.addEventListener('input', () => {
+      updateCharCounter(videoTitle, titleCounter, 100);
+      checkFormValidity();
+    });
+
+    videoDescription.addEventListener('input', () => {
+      updateCharCounter(videoDescription, descriptionCounter, 500);
+      checkFormValidity();
+    });
+
+    videoKeywords.addEventListener('input', () => {
+      updateCharCounter(videoKeywords, keywordsCounter, 200);
+      checkFormValidity();
+    });
+
+    // Yuklash tugmasi
+    uploadVideoBtn.addEventListener('click', () => videoInput.click());
+
+    videoInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        // Video formatini tekshirish
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        
+        video.onloadedmetadata = function() {
+          window.URL.revokeObjectURL(video.src);
+          const videoRatio = video.videoWidth / video.videoHeight;
+          const targetRatio = 16/9;
+          const ratioDiff = Math.abs(videoRatio - targetRatio);
+          
+          // Agar video 16:9 formatda bo'lmasa, ogohlantirish
+          if (ratioDiff > 0.1) {
+            const confirmUpload = confirm(`Sizning videoning o'lchami ${video.videoWidth}x${video.videoHeight} (${videoRatio.toFixed(2)}:1).\nBu 16:9 (1.78:1) formatda emas. Davom etasizmi?`);
+            if (!confirmUpload) {
+              return;
+            }
+          }
+          
+          // Video yuklash
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            const videoElement = document.createElement('video');
+            videoElement.src = ev.target.result;
+            videoElement.controls = true;
+            videoPreview.innerHTML = '';
+            videoPreview.appendChild(videoElement);
+            checkFormValidity();
+          };
+          reader.readAsDataURL(file);
+        };
+        
+        video.src = URL.createObjectURL(file);
+      }
+    });
+
+    // Form holatini tekshirish (Saqlash tugmasini faollashtirish)
+    function checkFormValidity() {
+      const hasVideo = videoPreview.querySelector('video') !== null;
+      const hasTitle = videoTitle.value.trim() !== '';
+      videoPostBtn.disabled = !(hasVideo && hasTitle);
+    }
+
+    // Bekor qilish
+    videoCancelBtn.addEventListener('click', () => {
+      if (confirm('Yuklashni bekor qilmoqchimisiz? Barcha ma\'lumotlar yo\'qoladi.')) {
+        window.location.href = 'profil.html';
+      }
+    });
+
+    // Saqlash (yuklash simulyatsiyasi)
     videoPostBtn.addEventListener('click', () => {
       // Ma'lumotlarni tekshirish
       if (!videoTitle.value.trim()) {
@@ -35,63 +334,28 @@
         return;
       }
 
-      // Video yuklash jarayonini boshlash
-      const uploadData = {
+      // localStorage ga saqlash (faqat metadata, video fayl saqlanmaydi chunki localStorage cheklangan)
+      const newVideo = {
+        title: videoTitle.value,
+        description: videoDescription.value,
+        keywords: videoKeywords.value,
         status: 'uploading',
-        progress: 0,
-        timeRemaining: 'Tayyorlanmoqda...',
-        title: videoTitle.value
+        startTime: Date.now(),
+        totalTime: 120000 // 2 daqiqa (120 soniya * 1000 ms) simulyatsiya vaqti
       };
-      
-      localStorage.setItem('videoUpload', JSON.stringify(uploadData));
-      
-      // Yuklash jarayonini simulyatsiya qilish
-      simulateUpload(uploadData);
+
+      let videos = JSON.parse(localStorage.getItem('videos')) || [];
+      videos.push(newVideo);
+      localStorage.setItem('videos', JSON.stringify(videos));
+
+      alert('Video yuklanish jarayoni boshlandi!');
+      window.location.href = 'profil.html';
     });
 
-    // Video yuklash jarayonini simulyatsiya qilish
-    function simulateUpload(uploadData) {
-      let progress = 0;
-      const interval = setInterval(() => {
-        progress += Math.random() * 10;
-        
-        if (progress >= 100) {
-          progress = 100;
-          clearInterval(interval);
-          
-          // Yuklash tugaganligini belgilash
-          uploadData.status = 'completed';
-          localStorage.setItem('videoUpload', JSON.stringify(uploadData));
-          
-          console.log('Video yuklandi:', {
-            file: videoInput.files[0],
-            title: videoTitle.value,
-            description: videoDescription.value,
-            keywords: videoKeywords.value
-          });
-          
-          alert('Video muvaffaqiyatli yuklandi!');
-          window.location.href = 'profil.html';
-        } else {
-          // Yuklash davom etayotganligini yangilash
-          uploadData.progress = Math.round(progress);
-          
-          // Qolgan vaqtni hisoblash
-          const remainingSeconds = Math.round((100 - progress) / 5);
-          if (remainingSeconds < 60) {
-            uploadData.timeRemaining = `${remainingSeconds} soniya qoldi`;
-          } else {
-            const minutes = Math.floor(remainingSeconds / 60);
-            const seconds = remainingSeconds % 60;
-            uploadData.timeRemaining = `${minutes} daqiqa ${seconds} soniya qoldi`;
-          }
-          
-          localStorage.setItem('videoUpload', JSON.stringify(uploadData));
-        }
-      }, 500);
-    }
-
-    // ... mavjud kodlar ...
+    // Dastlabki belgilar sonini yangilash
+    updateCharCounter(videoTitle, titleCounter, 100);
+    updateCharCounter(videoDescription, descriptionCounter, 500);
+    updateCharCounter(videoKeywords, keywordsCounter, 200);
   </script>
 
 </body>
