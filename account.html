@@ -1,4 +1,3 @@
-<!-- profil.html -->
 <!DOCTYPE html>
 <html lang="uz">
 <head>
@@ -6,166 +5,49 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Twitter Profil - @javlonbek</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    /* ... mavjud stillar ... */
+    
+    /* Video yuklash holati uchun yangi stillar */
+    .upload-status {
+      background-color: #15202b;
+      border: 1px solid #1da1f2;
+      border-radius: 8px;
+      padding: 12px;
+      margin: 15px 20px;
+      display: none;
     }
-
-    body {
-      background-color: #000;
-      color: #fff;
-      display: flex;
-      justify-content: center;
-      position: relative;
+    
+    .upload-status.active {
+      display: block;
     }
-
-    .container {
-      width: 600px;
-      border-left: 1px solid #2f3336;
-      border-right: 1px solid #2f3336;
-      min-height: 100vh;
-      background-color: #000;
-    }
-
-    .header {
-      position: relative;
-    }
-
-    .cover {
+    
+    .upload-progress {
       width: 100%;
-      height: 200px;
-      background-color: #333;
-      cursor: pointer;
+      height: 6px;
+      background-color: #2f3336;
+      border-radius: 3px;
+      margin: 8px 0;
+      overflow: hidden;
     }
-
-    .avatar {
-      position: absolute;
-      bottom: -50px;
-      left: 20px;
-      width: 100px;
-      height: 100px;
-      border: 4px solid #000;
-      border-radius: 50%;
-      background: url('https://source.unsplash.com/200x200/?portrait') no-repeat center/cover;
-      cursor: pointer;
-    }
-
-    .profile-info {
-      padding: 60px 20px 20px;
-      position: relative;
-    }
-
-    .edit-btn {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      background-color: transparent;
-      color: #fff;
-      border: 1px solid #536471;
-      border-radius: 20px;
-      padding: 8px 16px;
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
-
-    .edit-btn:hover {
-      background-color: rgba(255, 255, 255, 0.1);
-    }
-
-    .profile-info h2 {
-      font-size: 22px;
-      font-weight: 700;
-      margin-bottom: 2px;
-    }
-
-    .username {
-      color: #8b98a5;
-      font-size: 16px;
-      margin-bottom: 8px;
-    }
-
-    .location {
-      color: #fff;
-      font-size: 15px;
-      margin-bottom: 10px;
-    }
-
-    .follow-info {
-      display: flex;
-      gap: 20px;
-      margin-top: 10px;
-      font-size: 15px;
-    }
-
-    .follow-info span strong {
-      color: #fff;
-      font-weight: 700;
-    }
-
-    .follow-info span {
-      color: #8b98a5;
-    }
-
-    .tabs {
-      display: flex;
-      border-bottom: 1px solid #2f3336;
-      margin-top: 20px;
-    }
-
-    .tab {
-      flex: 1;
-      text-align: center;
-      padding: 15px 0;
-      font-size: 15px;
-      font-weight: 500;
-      color: #8b98a5;
-      cursor: pointer;
-    }
-
-    .tab.active {
-      color: #fff;
-      border-bottom: 2px solid #1da1f2;
-    }
-
-    .tab:hover {
-      background-color: rgba(255, 255, 255, 0.05);
-    }
-
-    /* Yangi post yaratish tugmasi (o'ng pastda) */
-    .compose-btn {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
+    
+    .upload-progress-bar {
+      height: 100%;
       background-color: #1da1f2;
-      color: #fff;
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      font-size: 30px;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    
+    .upload-info {
       display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: 0 2px 10px rgba(29, 161, 242, 0.5);
-      transition: background-color 0.2s;
-      z-index: 50;
+      justify-content: space-between;
+      font-size: 14px;
+      color: #8b98a5;
     }
-
-    .compose-btn:hover {
-      background-color: #0c84d1;
-    }
-
-    @media (max-width: 640px) {
-      .container {
-        width: 100%;
-      }
-      .compose-btn {
-        bottom: 80px; /* Android navigation bar uchun */
-      }
+    
+    .upload-title {
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 5px;
     }
   </style>
 </head>
@@ -189,6 +71,18 @@
       </div>
     </div>
 
+    <!-- Video yuklash holati -->
+    <div class="upload-status" id="uploadStatus">
+      <div class="upload-title" id="uploadTitle">Video yuklanmoqda...</div>
+      <div class="upload-progress">
+        <div class="upload-progress-bar" id="uploadProgressBar"></div>
+      </div>
+      <div class="upload-info">
+        <span id="uploadPercentage">0%</span>
+        <span id="uploadTime">Tayyorlanmoqda...</span>
+      </div>
+    </div>
+
     <div class="tabs">
       <div class="tab active">Video</div>
       <div class="tab">Pleyli</div>
@@ -203,13 +97,13 @@
     // Profil tahrirlash tugmasi
     const editBtn = document.getElementById('editBtn');
     editBtn.addEventListener('click', () => {
-      window.location.href = 'editing.html'; // Tahrirlash sahifasiga o'tish
+      window.location.href = 'editing.html';
     });
 
     // Yangi post tugmasi
     const composeBtn = document.getElementById('composeBtn');
     composeBtn.addEventListener('click', () => {
-      window.location.href = 'update.html'; // Yangi video yuklash sahifasiga o'tish
+      window.location.href = 'update.html';
     });
 
     // Tablar faol holati
@@ -219,6 +113,38 @@
         tab.classList.add('active');
       });
     });
+
+    // Video yuklash holatini tekshirish
+    function checkUploadStatus() {
+      const uploadData = localStorage.getItem('videoUpload');
+      
+      if (uploadData) {
+        const upload = JSON.parse(uploadData);
+        const uploadStatus = document.getElementById('uploadStatus');
+        const uploadProgressBar = document.getElementById('uploadProgressBar');
+        const uploadPercentage = document.getElementById('uploadPercentage');
+        const uploadTime = document.getElementById('uploadTime');
+        const uploadTitle = document.getElementById('uploadTitle');
+        
+        if (upload.status === 'uploading') {
+          uploadStatus.classList.add('active');
+          uploadProgressBar.style.width = `${upload.progress}%`;
+          uploadPercentage.textContent = `${upload.progress}%`;
+          uploadTime.textContent = upload.timeRemaining;
+          uploadTitle.textContent = upload.title;
+        } else if (upload.status === 'completed') {
+          // Yuklash tugagach, statusni yashirish
+          localStorage.removeItem('videoUpload');
+          uploadStatus.classList.remove('active');
+        }
+      }
+    }
+
+    // Yuklash holatini 2 soniyada bir yangilash
+    setInterval(checkUploadStatus, 2000);
+    
+    // Sahifa yuklanganda tekshirish
+    document.addEventListener('DOMContentLoaded', checkUploadStatus);
   </script>
 
 </body>
