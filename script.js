@@ -1,402 +1,338 @@
-class InstagramComments {
-    constructor() {
-        this.comments = [];
-        this.currentUser = 'current_user';
-        this.replyModal = document.getElementById('replyModal');
-        this.repliesList = document.getElementById('repliesList');
-        this.originalComment = document.getElementById('originalComment');
-        this.replyInput = document.getElementById('replyInput');
-        this.postReplyBtn = document.getElementById('postReplyBtn');
-        this.backBtn = document.getElementById('backBtn');
-        this.closeModalBtn = document.getElementById('closeModalBtn');
-        this.commentInput = document.getElementById('commentInput');
-        this.postBtn = document.getElementById('postBtn');
-        this.commentsList = document.getElementById('commentsList');
-        
-        this.currentReplyingTo = null;
-        
-        this.init();
-    }
+document.addEventListener('DOMContentLoaded', () => {
+    // Elementlarni tanlab olish
+    const likeBtn = document.getElementById('like-btn');
+    const dislikeBtn = document.getElementById('dislike-btn');
+    const saveBtn = document.getElementById('save-btn');
+    const commentsBtn = document.getElementById('comments-btn');
+    const subscribeBtn = document.getElementById('subscribe-btn');
+    const modal = document.getElementById('commentsModal');
+    const closeBtn = document.querySelector('.close-btn');
+    const commentInput = document.querySelector('.comment-input');
+    const submitBtn = document.querySelector('.submit-btn');
+    const cancelBtn = document.querySelector('.cancel-btn');
+    const commentsList = document.getElementById('commentsList');
+    const noCommentsIndicator = document.getElementById('no-comments-indicator');
+    const commentsMainCount = document.getElementById('comments-main-count');
+    const commentsModalCount = document.getElementById('comments-modal-count');
+    const likeCountDisplay = document.getElementById('like-count');
+    const dislikeCountDisplay = document.getElementById('dislike-count');
 
-    init() {
-        this.loadSampleData();
-        this.setupEventListeners();
-        this.renderComments();
-    }
+    // Boshlang'ich ma'lumotlar
+    let likeCount = 12000;
+    let dislikeCount = 2500;
+    let commentsCount = 0;
+    let userReaction = null;
+    let isSubscribed = false;
 
-    loadSampleData() {
-        this.comments = [
-            {
-                id: 1,
-                username: 'javlonbek_rustamov',
-                avatar: 'user-javlonbek',
-                text: 'Ajoyib kontsert! Biletlarni qayerdan sotib olsa bo\'ladi? 🎫',
-                timestamp: '2h',
-                likes: 45,
-                liked: false,
-                replies: [
-                    {
-                        id: 101,
-                        username: 'ozoda_music',
-                        avatar: 'user-ozoda',
-                        text: 'Biletlar tez orada @ticketuz saytida sotuvga chiqadi 😊',
-                        timestamp: '1h',
-                        likes: 23,
-                        liked: true
-                    },
-                    {
-                        id: 102,
-                        username: 'sardor_music',
-                        avatar: 'user-sardor',
-                        text: 'Men ham kutayapman!',
-                        timestamp: '45m',
-                        likes: 8,
-                        liked: false
-                    }
-                ]
-            },
-            {
-                id: 2,
-                username: 'dilshod_rahmonov',
-                avatar: 'user-dilshod',
-                text: 'Qanday qo\'shiqlar yangi? O\'tgan yilgi kontsertdagi qo\'shiqlarni ham kuylaysizmi?',
-                timestamp: '3h',
-                likes: 32,
-                liked: false,
-                replies: []
-            },
-            {
-                id: 3,
-                username: 'aziza_photography',
-                avatar: 'user-aziza',
-                text: 'Ranglar va dekoratsiya juda chiroyli! Suratlar ajoyib chiqgan 📸',
-                timestamp: '4h',
-                likes: 67,
-                liked: true,
-                replies: [
-                    {
-                        id: 301,
-                        username: 'ozoda_music',
-                        avatar: 'user-ozoda',
-                        text: 'Rahmat! Sizning suratlaringiz ham juda zo\'r 😍',
-                        timestamp: '3h',
-                        likes: 15,
-                        liked: true
-                    }
-                ]
-            },
-            {
-                id: 4,
-                username: 'bekzod_travel',
-                avatar: 'user-bekzod',
-                text: 'Qaysi shaharlarga kelasiz? Samarqandga ham kelasizmi?',
-                timestamp: '5h',
-                likes: 28,
-                liked: false,
-                replies: []
-            },
-            {
-                id: 5,
-                username: 'shaxnoza_art',
-                avatar: 'user-shaxnoza',
-                text: 'Kostyumlaringiz juda chiroyli! Kim dizayn qilgan? 👗',
-                timestamp: '6h',
-                likes: 41,
-                liked: false,
-                replies: []
-            }
-        ];
-    }
-
-    setupEventListeners() {
-        // Comment input
-        this.commentInput.addEventListener('input', () => {
-            this.postBtn.disabled = this.commentInput.value.trim() === '';
-        });
-
-        this.commentInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey && !this.postBtn.disabled) {
-                e.preventDefault();
-                this.addComment();
-            }
-        });
-
-        this.postBtn.addEventListener('click', () => {
-            this.addComment();
-        });
-
-        // Reply input
-        this.replyInput.addEventListener('input', () => {
-            this.postReplyBtn.disabled = this.replyInput.value.trim() === '';
-        });
-
-        this.replyInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey && !this.postReplyBtn.disabled) {
-                e.preventDefault();
-                this.addReply();
-            }
-        });
-
-        this.postReplyBtn.addEventListener('click', () => {
-            this.addReply();
-        });
-
-        // Modal controls
-        this.backBtn.addEventListener('click', () => {
-            this.closeReplyModal();
-        });
-
-        this.closeModalBtn.addEventListener('click', () => {
-            this.closeReplyModal();
-        });
-
-        // Click outside modal to close
-        this.replyModal.addEventListener('click', (e) => {
-            if (e.target === this.replyModal) {
-                this.closeReplyModal();
-            }
-        });
-
-        // Like button for post
-        document.querySelector('.like-btn').addEventListener('click', (e) => {
-            const btn = e.currentTarget;
-            btn.classList.toggle('active');
-            
-            const likesCount = document.querySelector('.likes-count');
-            const currentLikes = parseInt(likesCount.textContent.replace(/,/g, ''));
-            
-            if (btn.classList.contains('active')) {
-                likesCount.textContent = this.formatNumber(currentLikes + 1);
-                btn.classList.add('like-animation');
-                setTimeout(() => btn.classList.remove('like-animation'), 300);
-            } else {
-                likesCount.textContent = this.formatNumber(currentLikes - 1);
-            }
-        });
-    }
-
-    addComment() {
-        const text = this.commentInput.value.trim();
-        if (!text) return;
-
-        const newComment = {
-            id: Date.now(),
-            username: this.currentUser,
-            avatar: 'user-current',
-            text: text,
-            timestamp: 'Just now',
-            likes: 0,
-            liked: false,
-            replies: []
+    // Ma'lumotlarni saqlash funksiyasi
+    const saveToStorage = () => {
+        const data = {
+            likeCount,
+            dislikeCount,
+            commentsCount,
+            userReaction,
+            isSubscribed
         };
+        localStorage.setItem('videoReactions', JSON.stringify(data));
+    };
 
-        this.comments.unshift(newComment);
-        this.commentInput.value = '';
-        this.postBtn.disabled = true;
-        this.renderComments();
-        
-        // Update comments count
-        this.updateCommentsCount();
-        
-        this.showNotification('Comment added successfully');
-    }
-
-    addReply() {
-        const text = this.replyInput.value.trim();
-        if (!text || !this.currentReplyingTo) return;
-
-        const newReply = {
-            id: Date.now(),
-            username: this.currentUser,
-            avatar: 'user-current',
-            text: text,
-            timestamp: 'Just now',
-            likes: 0,
-            liked: false
-        };
-
-        const comment = this.comments.find(c => c.id === this.currentReplyingTo);
-        if (comment) {
-            comment.replies.push(newReply);
-            this.replyInput.value = '';
-            this.postReplyBtn.disabled = true;
-            this.renderReplies();
+    // Ma'lumotlarni yuklash funksiyasi
+    const loadFromStorage = () => {
+        const savedData = localStorage.getItem('videoReactions');
+        if (savedData) {
+            const data = JSON.parse(savedData);
+            likeCount = data.likeCount || likeCount;
+            dislikeCount = data.dislikeCount || dislikeCount;
+            commentsCount = data.commentsCount || commentsCount;
+            userReaction = data.userReaction || null;
+            isSubscribed = data.isSubscribed || false;
             
-            this.showNotification('Reply added successfully');
-        }
-    }
-
-    openReplyModal(commentId) {
-        const comment = this.comments.find(c => c.id === commentId);
-        if (!comment) return;
-
-        this.currentReplyingTo = commentId;
-        this.renderOriginalComment(comment);
-        this.renderReplies();
-        this.replyModal.classList.add('show');
-        document.body.style.overflow = 'hidden';
-        
-        // Focus on reply input
-        setTimeout(() => {
-            this.replyInput.focus();
-        }, 100);
-    }
-
-    closeReplyModal() {
-        this.replyModal.classList.remove('show');
-        document.body.style.overflow = 'auto';
-        this.currentReplyingTo = null;
-    }
-
-    renderOriginalComment(comment) {
-        this.originalComment.innerHTML = this.createCommentHTML(comment, true);
-    }
-
-    renderReplies() {
-        if (!this.currentReplyingTo) return;
-
-        const comment = this.comments.find(c => c.id === this.currentReplyingTo);
-        if (!comment) return;
-
-        this.repliesList.innerHTML = comment.replies
-            .map(reply => this.createCommentHTML(reply, false))
-            .join('');
-    }
-
-    renderComments() {
-        this.commentsList.innerHTML = this.comments
-            .map(comment => this.createCommentHTML(comment, false))
-            .join('');
-    }
-
-    createCommentHTML(comment, isOriginal = false) {
-        const hasReplies = comment.replies && comment.replies.length > 0;
-        const showReplies = hasReplies && !isOriginal;
-
-        return `
-            <div class="comment" data-comment-id="${comment.id}">
-                <div class="comment-avatar ${comment.avatar}">${comment.username.charAt(0).toUpperCase()}</div>
-                <div class="comment-content">
-                    <div class="comment-header">
-                        <span class="comment-username">${comment.username}</span>
-                        <span class="comment-time">${comment.timestamp}</span>
-                    </div>
-                    <div class="comment-text">${this.escapeHTML(comment.text)}</div>
-                    <div class="comment-actions">
-                        <button class="comment-action like ${comment.liked ? 'active' : ''}" 
-                                onclick="app.toggleLike(${comment.id}, ${isOriginal})">
-                            <svg viewBox="0 0 24 24" fill="${comment.liked ? 'currentColor' : 'none'}" stroke="currentColor">
-                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                            </svg>
-                            <span>${comment.likes}</span>
-                        </button>
-                        ${!isOriginal ? `
-                            <button class="reply-btn" onclick="app.openReplyModal(${comment.id})">
-                                Reply
-                            </button>
-                        ` : ''}
-                    </div>
-                    ${showReplies ? `
-                        <div class="replies">
-                            ${comment.replies.slice(0, 2).map(reply => this.createCommentHTML(reply, false)).join('')}
-                            ${comment.replies.length > 2 ? `
-                                <button class="view-replies" onclick="app.openReplyModal(${comment.id})">
-                                    View ${comment.replies.length - 2} more replies
-                                </button>
-                            ` : ''}
-                        </div>
-                    ` : ''}
-                </div>
-            </div>
-        `;
-    }
-
-    toggleLike(commentId, isOriginal) {
-        let comment;
-        
-        if (isOriginal) {
-            comment = this.comments.find(c => c.id === this.currentReplyingTo);
-        } else {
-            if (this.currentReplyingTo) {
-                // Like in reply modal
-                const parentComment = this.comments.find(c => c.id === this.currentReplyingTo);
-                comment = parentComment.replies.find(r => r.id === commentId);
-            } else {
-                // Like in main comments
-                comment = this.comments.find(c => c.id === commentId);
+            // Foydalanuvchi reaktsiyasini ko'rsatish
+            if (userReaction === 'like') {
+                likeBtn.classList.add('active');
+            } else if (userReaction === 'dislike') {
+                dislikeBtn.classList.add('active');
+            }
+            
+            // Obuna holatini ko'rsatish
+            if (isSubscribed) {
+                subscribeBtn.textContent = "Obuna bo'lingan";
+                subscribeBtn.classList.add('subscribed');
             }
         }
+    };
 
-        if (comment) {
-            comment.liked = !comment.liked;
-            comment.likes += comment.liked ? 1 : -1;
-            
-            if (this.currentReplyingTo) {
-                this.renderReplies();
-                if (isOriginal) {
-                    this.renderOriginalComment(this.comments.find(c => c.id === this.currentReplyingTo));
-                }
-            } else {
-                this.renderComments();
-            }
-        }
-    }
-
-    updateCommentsCount() {
-        const totalComments = this.comments.reduce((total, comment) => {
-            return total + 1 + comment.replies.length;
-        }, 0);
-        
-        document.querySelector('.comments-count').textContent = `${totalComments} Comments`;
-    }
-
-    formatNumber(num) {
+    // Raqamlarni formatlash funksiyasi
+    function formatNumber(num) {
         if (num >= 1000000) {
-            return (num / 1000000).toFixed(1) + 'M';
+            return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
         }
         if (num >= 1000) {
-            return (num / 1000).toFixed(1) + 'K';
+            return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
         }
         return num.toString();
     }
 
-    escapeHTML(str) {
-        const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
-    }
+    // Hisoblagichlarni yangilash funksiyasi
+    function updateCounts() {
+        likeCountDisplay.textContent = formatNumber(likeCount);
+        dislikeCountDisplay.textContent = formatNumber(dislikeCount);
+        commentsMainCount.textContent = commentsCount;
+        commentsModalCount.textContent = commentsCount;
 
-    showNotification(message) {
-        // Create notification element
+        // Fikrlar ro'yxati va "fikrlar yo'q" xabarini boshqarish
+        if (commentsCount > 0) {
+            noCommentsIndicator.style.display = 'none';
+            commentsList.style.display = 'block';
+        } else {
+            noCommentsIndicator.style.display = 'flex';
+            commentsList.style.display = 'none';
+        }
+        
+        // Ma'lumotlarni saqlash
+        saveToStorage();
+    }
+    
+    // Xabarlarni ko'rsatish funksiyasi
+    function showNotification(message, duration = 3000) {
+        // Mavjud xabarni olib tashlash
+        const existingNotification = document.querySelector('.notification');
+        if (existingNotification) {
+            existingNotification.remove();
+        }
+        
+        // Yangi xabar yaratish
         const notification = document.createElement('div');
         notification.className = 'notification';
         notification.textContent = message;
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #262626;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
-            z-index: 10000;
-            font-size: 14px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        `;
         
         document.body.appendChild(notification);
         
-        // Remove after 3 seconds
+        // Progress bar yaratish
+        const progressBar = document.createElement('div');
+        progressBar.className = 'progress-bar';
+        notification.appendChild(progressBar);
+        
+        // Animatsiya
         setTimeout(() => {
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
-            }
-        }, 3000);
+            progressBar.style.width = '100%';
+        }, 10);
+        
+        // Xabarni olib tashlash
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, duration);
     }
-}
 
-// Initialize the app
-const app = new InstagramComments();
+    // Like tugmasi logikasi
+    likeBtn.addEventListener('click', () => {
+        const wasActive = likeBtn.classList.contains('active');
+        
+        if (wasActive) {
+            // Like olib tashlanmoqda
+            likeBtn.classList.remove('active');
+            likeCount--;
+            userReaction = null;
+            showNotification("Siz like ni olib tashladingiz");
+        } else {
+            // Like qo'shilmoqda
+            likeBtn.classList.add('active');
+            likeCount++;
+            
+            // Agar dislike aktiv bo'lsa, uni olib tashlash
+            if (dislikeBtn.classList.contains('active')) {
+                dislikeBtn.classList.remove('active');
+                dislikeCount--;
+            }
+            
+            userReaction = 'like';
+            showNotification("Siz videoni like qildingiz");
+        }
+        updateCounts();
+    });
 
-// Make app globally available for onclick handlers
-window.app = app;
+    // Dislike tugmasi logikasi
+    dislikeBtn.addEventListener('click', () => {
+        const wasActive = dislikeBtn.classList.contains('active');
+        
+        if (wasActive) {
+            // Dislike olib tashlanmoqda
+            dislikeBtn.classList.remove('active');
+            dislikeCount--;
+            userReaction = null;
+            showNotification("Siz dislike ni olib tashladingiz");
+        } else {
+            // Dislike qo'shilmoqda
+            dislikeBtn.classList.add('active');
+            dislikeCount++;
+            
+            // Agar like aktiv bo'lsa, uni olib tashlash
+            if (likeBtn.classList.contains('active')) {
+                likeBtn.classList.remove('active');
+                likeCount--;
+            }
+            
+            userReaction = 'dislike';
+            showNotification("Siz videoni dislike qildingiz");
+        }
+        updateCounts();
+    });
+
+    // Saqlash tugmasi logikasi
+    saveBtn.addEventListener('click', () => {
+        const isActive = saveBtn.classList.toggle('active');
+        
+        // Saqlash holatini saqlash
+        const savedVideos = JSON.parse(localStorage.getItem('savedVideos') || '{}');
+        if (isActive) {
+            savedVideos['currentVideo'] = true;
+            showNotification("Video saqlandi");
+        } else {
+            delete savedVideos['currentVideo'];
+            showNotification("Video saqlanganlar ro'yxatidan olib tashlandi");
+        }
+        localStorage.setItem('savedVideos', JSON.stringify(savedVideos));
+    });
+
+    // Obuna bo'lish tugmasi logikasi
+    subscribeBtn.addEventListener('click', () => {
+        isSubscribed = !isSubscribed;
+        
+        if (isSubscribed) {
+            subscribeBtn.textContent = "Obuna bo'lingan";
+            subscribeBtn.classList.add('subscribed');
+            showNotification("Asia Films HD kanaliga obuna bo'ldingiz");
+        } else {
+            subscribeBtn.textContent = "Obuna bo'lish";
+            subscribeBtn.classList.remove('subscribed');
+            showNotification("Asia Films HD kanalidan obunani olib tashladingiz");
+        }
+        
+        saveToStorage();
+    });
+
+    // Fikrlar tugmasi bosilganda modalni ochish
+    commentsBtn.addEventListener('click', () => {
+        modal.style.display = 'block';
+        setTimeout(() => modal.classList.add('show'), 10);
+        document.body.style.overflow = 'hidden';
+        // Fokusni fikr qoldirish maydoniga o'tkazish
+        setTimeout(() => commentInput.focus(), 300);
+    });
+
+    // Modalni yopish
+    closeBtn.addEventListener('click', () => {
+        modal.classList.remove('show');
+        setTimeout(() => {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }, 300);
+    });
+
+    // Modal tashqarisiga bosilganda yopish
+    window.addEventListener('click', (event) => {
+        if (event.target === modal) {
+            modal.classList.remove('show');
+            setTimeout(() => {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }, 300);
+        }
+    });
+
+    // Textarea avto kengayishi
+    function adjustTextareaHeight() {
+        commentInput.style.height = 'auto';
+        commentInput.style.height = `${commentInput.scrollHeight}px`;
+    }
+
+    // Fikr qoldirish maydoni bo'sh bo'lsa, tugmani o'chirib qo'yish
+    commentInput.addEventListener('input', () => {
+        adjustTextareaHeight();
+        if (commentInput.value.trim() !== '') {
+            submitBtn.disabled = false;
+        } else {
+            submitBtn.disabled = true;
+        }
+    });
+
+    // Enter tugmasi bilan fikr qo'shish (shift+enter yangi qator uchun)
+    commentInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey && !submitBtn.disabled) {
+            e.preventDefault();
+            addComment();
+        }
+    });
+
+    // Bekor qilish tugmasi
+    cancelBtn.addEventListener('click', () => {
+        commentInput.value = '';
+        submitBtn.disabled = true;
+        adjustTextareaHeight();
+    });
+
+    // Fikr qo'shish funksiyasi
+    function addComment() {
+        if (commentInput.value.trim() !== '') {
+            // Yangi fikrni yaratish
+            const newComment = document.createElement('div');
+            newComment.className = 'comment';
+            newComment.innerHTML = `
+                <div class="comment-avatar">S</div>
+                <div class="comment-content">
+                    <div class="comment-header">
+                        <div class="comment-author">Siz</div>
+                        <div class="comment-time">hozirgina</div>
+                    </div>
+                    <div class="comment-text">${commentInput.value}</div>
+                    <div class="comment-actions">
+                        <div class="comment-action">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+                            </svg>
+                            <span>0</span>
+                        </div>
+                        <div class="comment-action">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"/>
+                            </svg>
+                        </div>
+                        <div class="comment-reply">Javob berish</div>
+                    </div>
+                </div>
+            `;
+            
+            // Yangi fikrni ro'yxatga qo'shish
+            commentsList.prepend(newComment);
+            commentsCount++;
+            updateCounts();
+            
+            // Input maydonini tozalash
+            commentInput.value = '';
+            submitBtn.disabled = true;
+            adjustTextareaHeight();
+            
+            // Fikr muvaffaqiyatli qo'shildi xabari
+            showNotification("Fikringiz muvaffaqiyatli qo'shildi");
+        }
+    }
+
+    // Fikr qo'shish tugmasi
+    submitBtn.addEventListener('click', addComment);
+
+    // Sahifa yuklanganda ma'lumotlarni yuklash
+    loadFromStorage();
+    updateCounts();
+    adjustTextareaHeight();
+    
+    // Saqlash tugmasining holatini yuklash
+    const savedVideos = JSON.parse(localStorage.getItem('savedVideos') || '{}');
+    if (savedVideos['currentVideo']) {
+        saveBtn.classList.add('active');
+    }
+});
