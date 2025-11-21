@@ -1,132 +1,181 @@
-// === Modal toggling ===
-const commentsModal = document.getElementById("commentsModal");
-const replyModal = document.getElementById("replyModal");
+document.addEventListener('DOMContentLoaded', () => {
+    // ... oldingi kod ...
 
-document.querySelectorAll(".close-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-        btn.closest(".modal").style.display = "none";
-    });
-});
+    // Javob berish funksiyalari
+    function initReplySystem() {
+        // Javob berish tugmalari
+        document.querySelectorAll('.comment-reply').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const comment = this.closest('.comment');
+                const replyContainer = comment.querySelector('.reply-input-container');
+                const allReplyContainers = document.querySelectorAll('.reply-input-container');
+                
+                // Boshqa barcha javob maydonlarini yopish
+                allReplyContainers.forEach(container => {
+                    if (container !== replyContainer) {
+                        container.style.display = 'none';
+                    }
+                });
+                
+                // Joriy javob maydonini ochish/yopish
+                if (replyContainer.style.display === 'block') {
+                    replyContainer.style.display = 'none';
+                } else {
+                    replyContainer.style.display = 'block';
+                    replyContainer.querySelector('.reply-input').focus();
+                }
+            });
+        });
 
-document.getElementById("back-to-comments").addEventListener("click", () => {
-    replyModal.style.display = "none";
-    commentsModal.style.display = "block";
-});
+        // Javob yuborish
+        document.querySelectorAll('.submit-reply-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const replyContainer = this.closest('.reply-input-container');
+                const replyInput = replyContainer.querySelector('.reply-input');
+                const comment = replyContainer.closest('.comment');
+                const repliesContainer = comment.querySelector('.replies-container');
+                
+                addReply(repliesContainer, replyInput.value.trim());
+                
+                // Tozalash
+                replyInput.value = '';
+                replyContainer.style.display = 'none';
+                this.disabled = true;
+            });
+        });
 
-// === Add Comment ===
-const commentInput = document.querySelector(".comment-input");
-const submitBtn = document.querySelector(".submit-btn");
-const cancelBtn = document.querySelector(".cancel-btn");
-const commentsList = document.getElementById("commentsList");
-const noCommentsIndicator = document.getElementById("no-comments-indicator");
-const commentsCount = document.getElementById("comments-modal-count");
+        // Javob bekor qilish
+        document.querySelectorAll('.cancel-reply-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const replyContainer = this.closest('.reply-input-container');
+                const replyInput = replyContainer.querySelector('.reply-input');
+                
+                replyInput.value = '';
+                replyContainer.style.display = 'none';
+            });
+        });
 
-commentInput.addEventListener("input", () => {
-    submitBtn.disabled = commentInput.value.trim() === "";
-});
+        // Javob input validatsiyasi
+        document.querySelectorAll('.reply-input').forEach(input => {
+            input.addEventListener('input', function() {
+                const submitBtn = this.closest('.reply-input-container').querySelector('.submit-reply-btn');
+                submitBtn.disabled = this.value.trim() === '';
+            });
+        });
 
-submitBtn.addEventListener("click", () => {
-    const text = commentInput.value.trim();
-    if (!text) return;
+        // Fikr like/dislike
+        document.querySelectorAll('.comment-action').forEach(action => {
+            action.addEventListener('click', function() {
+                if (this.classList.contains('like-action')) {
+                    handleCommentLike(this);
+                } else if (this.classList.contains('dislike-action')) {
+                    handleCommentDislike(this);
+                }
+            });
+        });
+    }
 
-    const commentItem = document.createElement("div");
-    commentItem.className = "comment-with-replies";
-    commentItem.innerHTML = `
-        <div class="reply-item">
+    // Javob qo'shish funksiyasi
+    function addReply(container, replyText) {
+        const replyId = Date.now();
+        const replyElement = document.createElement('div');
+        replyElement.className = 'reply';
+        replyElement.setAttribute('data-reply-id', replyId);
+        
+        replyElement.innerHTML = `
             <div class="comment-avatar">S</div>
             <div class="comment-content">
                 <div class="comment-header">
-                    <span class="comment-author">User</span>
-                    <span class="comment-time">hozir</span>
+                    <div class="comment-author">Siz</div>
+                    <div class="comment-time">hozirgina</div>
                 </div>
-                <div class="comment-text">${text}</div>
+                <div class="comment-text">${replyText}</div>
                 <div class="comment-actions">
-                    <div class="comment-like">👍 <span>0</span></div>
-                    <div class="comment-dislike">👎 <span>0</span></div>
-                    <div class="comment-reply-btn">Javob berish</div>
+                    <div class="comment-action like-action">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1-2-2h3"/>
+                        </svg>
+                        <span class="like-count">0</span>
+                    </div>
+                    <div class="comment-action dislike-action">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38-9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"/>
+                        </svg>
+                    </div>
                 </div>
             </div>
-        </div>
-    `;
+        `;
+        
+        container.appendChild(replyElement);
+        
+        // Yangi javobga event listener qo'shish
+        replyElement.querySelectorAll('.comment-action').forEach(action => {
+            action.addEventListener('click', function() {
+                if (this.classList.contains('like-action')) {
+                    handleCommentLike(this);
+                } else if (this.classList.contains('dislike-action')) {
+                    handleCommentDislike(this);
+                }
+            });
+        });
+        
+        showNotification("Javobingiz muvaffaqiyatli qo'shildi");
+    }
 
-    commentsList.appendChild(commentItem);
-    commentsList.style.display = "block";
-    noCommentsIndicator.style.display = "none";
+    // Fikr like funksiyasi
+    function handleCommentLike(likeBtn) {
+        const isActive = likeBtn.classList.contains('active');
+        const likeCountElement = likeBtn.querySelector('.like-count');
+        let likeCount = parseInt(likeCountElement.textContent);
+        
+        if (isActive) {
+            likeBtn.classList.remove('active');
+            likeCount--;
+            showNotification("Like olib tashlandi");
+        } else {
+            likeBtn.classList.add('active');
+            likeCount++;
+            
+            // Dislike ni olib tashlash
+            const dislikeBtn = likeBtn.closest('.comment-actions').querySelector('.dislike-action');
+            if (dislikeBtn.classList.contains('active')) {
+                dislikeBtn.classList.remove('active');
+            }
+            
+            showNotification("Fikr like qilindi");
+        }
+        
+        likeCountElement.textContent = likeCount;
+    }
 
-    commentsCount.textContent = parseInt(commentsCount.textContent) + 1;
-    commentInput.value = "";
-    submitBtn.disabled = true;
+    // Fikr dislike funksiyasi
+    function handleCommentDislike(dislikeBtn) {
+        const isActive = dislikeBtn.classList.contains('active');
+        
+        if (isActive) {
+            dislikeBtn.classList.remove('active');
+            showNotification("Dislike olib tashlandi");
+        } else {
+            dislikeBtn.classList.add('active');
+            
+            // Like ni olib tashlash
+            const likeBtn = dislikeBtn.closest('.comment-actions').querySelector('.like-action');
+            if (likeBtn.classList.contains('active')) {
+                likeBtn.classList.remove('active');
+                const likeCountElement = likeBtn.querySelector('.like-count');
+                let likeCount = parseInt(likeCountElement.textContent);
+                likeCountElement.textContent = Math.max(0, likeCount - 1);
+            }
+            
+            showNotification("Fikr dislike qilindi");
+        }
+    }
 
-    // Reply button logic
-    commentItem.querySelector(".comment-reply-btn").addEventListener("click", () => {
-        commentsModal.style.display = "none";
-        replyModal.style.display = "block";
-        document.getElementById("original-comment").innerHTML = commentItem.outerHTML;
-    });
-
-    // Like/Dislike logic
-    const likeBtn = commentItem.querySelector(".comment-like");
-    const dislikeBtn = commentItem.querySelector(".comment-dislike");
-
-    likeBtn.addEventListener("click", () => {
-        likeBtn.classList.toggle("active");
-        const count = likeBtn.querySelector("span");
-        count.textContent = likeBtn.classList.contains("active") ? 1 : 0;
-        dislikeBtn.classList.remove("active");
-        dislikeBtn.querySelector("span").textContent = 0;
-    });
-
-    dislikeBtn.addEventListener("click", () => {
-        dislikeBtn.classList.toggle("active");
-        const count = dislikeBtn.querySelector("span");
-        count.textContent = dislikeBtn.classList.contains("active") ? 1 : 0;
-        likeBtn.classList.remove("active");
-        likeBtn.querySelector("span").textContent = 0;
-    });
-});
-
-cancelBtn.addEventListener("click", () => {
-    commentInput.value = "";
-    submitBtn.disabled = true;
-});
-
-// === Add Reply ===
-const replyInput = document.querySelector(".reply-input");
-const submitReplyBtn = document.querySelector(".submit-reply-btn");
-const cancelReplyBtn = document.querySelector(".cancel-reply-btn");
-const repliesList = document.getElementById("repliesList");
-
-replyInput.addEventListener("input", () => {
-    submitReplyBtn.disabled = replyInput.value.trim() === "";
-});
-
-submitReplyBtn.addEventListener("click", () => {
-    const text = replyInput.value.trim();
-    if (!text) return;
-
-    const replyItem = document.createElement("div");
-    replyItem.className = "reply-item";
-    replyItem.innerHTML = `
-        <div class="comment-avatar">S</div>
-        <div class="comment-content">
-            <div class="comment-header">
-                <span class="comment-author">User</span>
-                <span class="comment-time">hozir</span>
-            </div>
-            <div class="comment-text">${text}</div>
-            <div class="comment-actions">
-                <div class="comment-like">👍 <span>0</span></div>
-                <div class="comment-dislike">👎 <span>0</span></div>
-            </div>
-        </div>
-    `;
-
-    repliesList.appendChild(replyItem);
-    replyInput.value = "";
-    submitReplyBtn.disabled = true;
-});
-
-cancelReplyBtn.addEventListener("click", () => {
-    replyInput.value = "";
-    submitReplyBtn.disabled = true;
+    // Sahifa yuklanganda
+    loadFromStorage();
+    updateCounts();
+    adjustTextareaHeight();
+    initReplySystem(); // Javob berish tizimini ishga tushirish
+    
+    // ... qolgan kod ...
 });
