@@ -1,9 +1,9 @@
-// DASTLABKI MA'LUMOTLAR (Ma'lumotlar bazasiga taqlid)
+// DASTLABKI MA'LUMOTLAR
 let comments = [
     {
         id: 1,
         author: "nafisaning_dunyosi",
-        avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop",
+        avatar: null,
         text: "Nechi dubl bo'ldi😂 shapaloqqa",
         time: "2 kun oldin",
         likes: 1743,
@@ -14,7 +14,7 @@ let comments = [
     {
         id: 2,
         author: "shoirabonu_essens",
-        avatar: null, // Avatar yo'q bo'lsa harf chiqadi
+        avatar: null,
         text: "Yegan oshim burnimdan chiqdi degan joyi wu😂",
         time: "22 soat oldin",
         likes: 5,
@@ -37,26 +37,122 @@ let comments = [
 ];
 
 // DOM Elementlar
-const commentsContainer = document.getElementById('comments-list');
-const mainInput = document.getElementById('main-input');
-const submitMainBtn = document.getElementById('submit-main');
-const cancelMainBtn = document.getElementById('cancel-main');
-const totalCountSpan = document.getElementById('total-comments-count');
+const commentsModal = document.getElementById('commentsModal');
+const closeBtn = document.querySelector('.close-btn');
+const commentsBtn = document.getElementById('comments-btn');
+const commentsList = document.getElementById('commentsList');
+const noCommentsIndicator = document.getElementById('no-comments-indicator');
+const commentInput = document.querySelector('.comment-input');
+const submitCommentBtn = document.querySelector('.submit-btn');
+const cancelCommentBtn = document.querySelector('.cancel-btn');
+const commentsModalCount = document.getElementById('comments-modal-count');
+const commentsMainCount = document.getElementById('comments-main-count');
+const subscribeBtn = document.getElementById('subscribe-btn');
+const likeBtn = document.getElementById('like-btn');
+const dislikeBtn = document.getElementById('dislike-btn');
+const likeCount = document.getElementById('like-count');
+const dislikeCount = document.getElementById('dislike-count');
 
-// --- FUNKSIYALAR ---
+// Modalni ochish
+commentsBtn.addEventListener('click', () => {
+    commentsModal.style.display = 'block';
+    renderComments();
+});
 
-// 1. Fikrlarni ekranga chiqarish (Recursive render)
+// Modalni yopish
+closeBtn.addEventListener('click', () => {
+    commentsModal.style.display = 'none';
+});
+
+// Tashqariga bosganda modalni yopish
+window.addEventListener('click', (e) => {
+    if (e.target === commentsModal) {
+        commentsModal.style.display = 'none';
+    }
+});
+
+// Obuna bo'lish tugmasi
+subscribeBtn.addEventListener('click', () => {
+    if (subscribeBtn.classList.contains('subscribed')) {
+        subscribeBtn.classList.remove('subscribed');
+        subscribeBtn.textContent = 'Obuna bo\'lish';
+    } else {
+        subscribeBtn.classList.add('subscribed');
+        subscribeBtn.textContent = 'Obuna bo\'lingan';
+    }
+});
+
+// Like tugmasi
+let isLiked = false;
+let isDisliked = false;
+let currentLikes = 12000;
+let currentDislikes = 2500;
+
+likeBtn.addEventListener('click', () => {
+    if (isLiked) {
+        currentLikes--;
+        isLiked = false;
+        likeBtn.style.backgroundColor = '';
+    } else {
+        currentLikes++;
+        isLiked = true;
+        likeBtn.style.backgroundColor = 'rgba(62, 166, 255, 0.2)';
+        
+        if (isDisliked) {
+            currentDislikes--;
+            isDisliked = false;
+            dislikeBtn.style.backgroundColor = '';
+        }
+    }
+    updateCounts();
+});
+
+dislikeBtn.addEventListener('click', () => {
+    if (isDisliked) {
+        currentDislikes--;
+        isDisliked = false;
+        dislikeBtn.style.backgroundColor = '';
+    } else {
+        currentDislikes++;
+        isDisliked = true;
+        dislikeBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+        
+        if (isLiked) {
+            currentLikes--;
+            isLiked = false;
+            likeBtn.style.backgroundColor = '';
+        }
+    }
+    updateCounts();
+});
+
+function updateCounts() {
+    likeCount.textContent = formatNumber(currentLikes);
+    dislikeCount.textContent = formatNumber(currentDislikes);
+}
+
+// Fikrlarni ekranga chiqarish
 function renderComments() {
-    commentsContainer.innerHTML = '';
+    commentsList.innerHTML = '';
     let total = 0;
 
     comments.forEach(comment => {
         total++; // Asosiy fikr
         total += countReplies(comment.replies); // Javoblar sonini qo'shish
-        commentsContainer.appendChild(createCommentHTML(comment));
+        commentsList.appendChild(createCommentHTML(comment));
     });
     
-    totalCountSpan.innerText = total;
+    commentsModalCount.textContent = total;
+    commentsMainCount.textContent = total;
+    
+    // Agar fikrlar bo'lsa, "fikrlar yo'q" ko'rsatkichini yashirish
+    if (total > 0) {
+        noCommentsIndicator.style.display = 'none';
+        commentsList.style.display = 'block';
+    } else {
+        noCommentsIndicator.style.display = 'block';
+        commentsList.style.display = 'none';
+    }
 }
 
 // Javoblarni sanash uchun yordamchi
@@ -67,7 +163,7 @@ function countReplies(replies) {
     return count;
 }
 
-// 2. HTML Element yaratish (Komponent)
+// HTML Element yaratish (Komponent)
 function createCommentHTML(data, isReply = false) {
     const div = document.createElement('div');
     div.className = 'comment-item';
@@ -104,7 +200,7 @@ function createCommentHTML(data, isReply = false) {
             <div id="reply-box-${data.id}"></div>
 
             <div class="replies-list" id="replies-${data.id}">
-                </div>
+            </div>
         </div>
     `;
 
@@ -119,7 +215,7 @@ function createCommentHTML(data, isReply = false) {
     return div;
 }
 
-// 3. Like / Dislike Logikasi
+// Like / Dislike Logikasi
 function handleLike(id) {
     const item = findCommentRecursive(comments, id);
     if (!item) return;
@@ -154,7 +250,7 @@ function handleDislike(id) {
     renderComments();
 }
 
-// 4. Javob berish (Reply) qutisini ochish/yopish
+// Javob berish (Reply) qutisini ochish/yopish
 function toggleReplyBox(id) {
     const box = document.getElementById(`reply-box-${id}`);
     
@@ -175,9 +271,9 @@ function toggleReplyBox(id) {
                 <div class="input-wrapper">
                     <input type="text" id="input-${id}" class="comment-input" placeholder="Javob yozing...">
                 </div>
-                <div class="submit-actions" style="justify-content: flex-start;">
-                    <button class="btn btn-submit" style="padding: 6px 12px; font-size: 12px;" onclick="submitReply(${id})">Yuborish</button>
-                    <button class="btn btn-cancel" style="padding: 6px 12px; font-size: 12px;" onclick="toggleReplyBox(${id})">Bekor qilish</button>
+                <div class="comment-buttons" style="justify-content: flex-start;">
+                    <button class="comment-btn submit-btn" style="padding: 6px 12px; font-size: 12px;" onclick="submitReply(${id})">Yuborish</button>
+                    <button class="comment-btn cancel-btn" style="padding: 6px 12px; font-size: 12px;" onclick="toggleReplyBox(${id})">Bekor qilish</button>
                 </div>
             </div>
         </div>
@@ -185,7 +281,7 @@ function toggleReplyBox(id) {
     setTimeout(() => document.getElementById(`input-${id}`).focus(), 100);
 }
 
-// 5. Javobni yuborish
+// Javobni yuborish
 function submitReply(parentId) {
     const input = document.getElementById(`input-${parentId}`);
     const text = input.value.trim();
@@ -206,18 +302,19 @@ function submitReply(parentId) {
             replies: []
         });
         renderComments();
+        toggleReplyBox(parentId); // Yopish
     }
 }
 
-// 6. Asosiy fikr qo'shish
-mainInput.addEventListener('input', (e) => {
-    submitMainBtn.disabled = e.target.value.trim() === '';
+// Asosiy fikr qo'shish
+commentInput.addEventListener('input', (e) => {
+    submitCommentBtn.disabled = e.target.value.trim() === '';
     e.target.style.height = 'auto';
     e.target.style.height = e.target.scrollHeight + 'px';
 });
 
-submitMainBtn.addEventListener('click', () => {
-    const text = mainInput.value.trim();
+submitCommentBtn.addEventListener('click', () => {
+    const text = commentInput.value.trim();
     if (!text) return;
 
     comments.unshift({
@@ -232,24 +329,24 @@ submitMainBtn.addEventListener('click', () => {
         replies: []
     });
 
-    mainInput.value = '';
-    mainInput.style.height = 'auto';
-    submitMainBtn.disabled = true;
+    commentInput.value = '';
+    commentInput.style.height = 'auto';
+    submitCommentBtn.disabled = true;
     renderComments();
 });
 
-cancelMainBtn.addEventListener('click', () => {
-    mainInput.value = '';
-    submitMainBtn.disabled = true;
+cancelCommentBtn.addEventListener('click', () => {
+    commentInput.value = '';
+    submitCommentBtn.disabled = true;
 });
 
 // --- YORDAMCHI FUNKSIYALAR ---
 
 // Emojini inputga qo'shish
 window.addEmoji = function(emoji) {
-    mainInput.value += emoji;
-    submitMainBtn.disabled = false;
-    mainInput.focus();
+    commentInput.value += emoji;
+    submitCommentBtn.disabled = false;
+    commentInput.focus();
 };
 
 // ID bo'yicha fikrni topish (Rekursiv qidiruv)
@@ -272,3 +369,4 @@ function formatNumber(num) {
 
 // Dastur ishga tushishi
 renderComments();
+updateCounts();
