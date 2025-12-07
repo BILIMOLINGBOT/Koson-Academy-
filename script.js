@@ -119,6 +119,19 @@ function createCommentElement(comment, isReply = false) {
         const replyBtn = div.querySelector('.comment-reply');
         replyBtn.addEventListener('click', () => toggleReplyForm(comment.id));
         
+        // Javoblarni ko'rsatish
+        if (comment.replies && comment.replies.length > 0) {
+            const repliesContainer = document.createElement('div');
+            repliesContainer.className = 'replies-container';
+            
+            comment.replies.forEach(reply => {
+                const replyEl = createCommentElement(reply, true);
+                repliesContainer.appendChild(replyEl);
+            });
+            
+            div.appendChild(repliesContainer);
+        }
+        
         // Javob berish formasi
         const replyForm = document.createElement('div');
         replyForm.className = 'reply-form';
@@ -139,19 +152,6 @@ function createCommentElement(comment, isReply = false) {
         `;
         
         div.appendChild(replyForm);
-        
-        // Javoblarni ko'rsatish (forma ostida)
-        if (comment.replies && comment.replies.length > 0) {
-            const repliesContainer = document.createElement('div');
-            repliesContainer.className = 'replies-container';
-            
-            comment.replies.forEach(reply => {
-                const replyEl = createCommentElement(reply, true);
-                repliesContainer.appendChild(replyEl);
-            });
-            
-            div.appendChild(repliesContainer);
-        }
         
         // Javob input hodisalari
         setTimeout(() => {
@@ -176,7 +176,9 @@ function createCommentElement(comment, isReply = false) {
                 });
                 
                 replyBtn.addEventListener('click', () => {
-                    addReply(comment.id, replyInput.value.trim(), comment.author);
+                    if (replyInput.value.trim()) {
+                        addReply(comment.id, replyInput.value.trim(), comment.author);
+                    }
                 });
             }
         }, 0);
@@ -217,7 +219,10 @@ function toggleReplyForm(commentId) {
             replyForm.classList.add('show');
             currentReplyId = commentId;
             setTimeout(() => {
-                document.getElementById(`reply-input-${commentId}`).focus();
+                const replyInput = document.getElementById(`reply-input-${commentId}`);
+                if (replyInput) {
+                    replyInput.focus();
+                }
             }, 100);
         }
     }
@@ -314,6 +319,7 @@ document.getElementById('comments-btn').addEventListener('click', () => {
     const modal = document.getElementById('commentsModal');
     modal.style.display = 'block';
     setTimeout(() => modal.classList.add('show'), 10);
+    setTimeout(() => document.getElementById('commentInput').focus(), 100);
 });
 
 // Modalni yopish
