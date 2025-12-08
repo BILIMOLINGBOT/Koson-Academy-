@@ -119,19 +119,6 @@ function createCommentElement(comment, isReply = false) {
         const replyBtn = div.querySelector('.comment-reply');
         replyBtn.addEventListener('click', () => toggleReplyForm(comment.id));
         
-        // Javoblarni ko'rsatish
-        if (comment.replies && comment.replies.length > 0) {
-            const repliesContainer = document.createElement('div');
-            repliesContainer.className = 'replies-container';
-            
-            comment.replies.forEach(reply => {
-                const replyEl = createCommentElement(reply, true);
-                repliesContainer.appendChild(replyEl);
-            });
-            
-            div.appendChild(repliesContainer);
-        }
-        
         // Javob berish formasi
         const replyForm = document.createElement('div');
         replyForm.className = 'reply-form';
@@ -152,6 +139,19 @@ function createCommentElement(comment, isReply = false) {
         `;
         
         div.appendChild(replyForm);
+        
+        // Javoblarni ko'rsatish (forma ostida)
+        if (comment.replies && comment.replies.length > 0) {
+            const repliesContainer = document.createElement('div');
+            repliesContainer.className = 'replies-container';
+            
+            comment.replies.forEach(reply => {
+                const replyEl = createCommentElement(reply, true);
+                repliesContainer.appendChild(replyEl);
+            });
+            
+            div.appendChild(repliesContainer);
+        }
         
         // Javob input hodisalari
         setTimeout(() => {
@@ -234,7 +234,7 @@ function addReply(commentId, text, replyToAuthor) {
             author: 'Siz',
             avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80',
             text: text,
-            time: 'hozirgina',
+            time: '1s',
             likes: 0,
             liked: false,
             replyTo: replyToAuthor
@@ -244,6 +244,14 @@ function addReply(commentId, text, replyToAuthor) {
         currentReplyId = null;
         renderComments();
         showNotification('Javobingiz qo\'shildi');
+        
+        // Modal ochilgan bo'lsa, pastga scroll qilish
+        setTimeout(() => {
+            const repliesContainer = document.querySelector(`#reply-form-${commentId}`).nextElementSibling;
+            if (repliesContainer) {
+                repliesContainer.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }, 100);
     }
 }
 
@@ -259,7 +267,7 @@ function addComment() {
         author: 'Siz',
         avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80',
         text: text,
-        time: 'hozirgina',
+        time: '1s',
         likes: 0,
         liked: false,
         replies: []
@@ -268,7 +276,6 @@ function addComment() {
     comments.unshift(newComment);
     input.value = '';
     document.getElementById('commentSendBtn').disabled = true;
-    document.getElementById('commentSendBtn').classList.remove('active');
     renderComments();
     showNotification('Fikringiz qo\'shildi');
 }
@@ -338,11 +345,6 @@ const commentSendBtn = document.getElementById('commentSendBtn');
 
 commentInput.addEventListener('input', () => {
     commentSendBtn.disabled = !commentInput.value.trim();
-    if (commentInput.value.trim()) {
-        commentSendBtn.classList.add('active');
-    } else {
-        commentSendBtn.classList.remove('active');
-    }
 });
 
 commentSendBtn.addEventListener('click', addComment);
