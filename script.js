@@ -549,6 +549,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
+    
     // Boshlang'ich render
     renderComments();
     
@@ -556,4 +557,79 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.recommended-video').forEach(video => {
         video.addEventListener('click', function() {
             const title = this.querySelector('.recommended-video-title').textContent;
-         
+            showNotification(`"${title}" videosini ochish`);
+        });
+    });
+    
+    // Escape tugmasi bilan modalni yopish
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('commentsModal');
+            if (modal.style.display === 'block') {
+                modal.classList.remove('show');
+                setTimeout(() => modal.style.display = 'none', 300);
+            }
+        }
+    });
+    
+    // Instagram style double tap to like for video
+    const videoPlayer = document.querySelector('.video-player');
+    let tapCount = 0;
+    let tapTimer;
+    
+    videoPlayer.addEventListener('click', function(e) {
+        tapCount++;
+        
+        if (tapCount === 1) {
+            tapTimer = setTimeout(() => {
+                tapCount = 0;
+            }, 300);
+        } else if (tapCount === 2) {
+            clearTimeout(tapTimer);
+            tapCount = 0;
+            
+            // Double tap detected - like the video
+            const heartBtn = document.getElementById('heart-btn');
+            if (!isHearted) {
+                isHearted = true;
+                heartBtn.classList.add('active');
+                heartBtn.classList.add('heart-animation');
+                heartCount += 1;
+                updateCounts();
+                
+                setTimeout(() => {
+                    heartBtn.classList.remove('heart-animation');
+                }, 300);
+                
+                // Show heart animation on video
+                const heart = document.createElement('div');
+                heart.style.position = 'absolute';
+                heart.style.top = `${e.offsetY}px`;
+                heart.style.left = `${e.offsetX}px`;
+                heart.style.transform = 'translate(-50%, -50%)';
+                heart.style.fontSize = '60px';
+                heart.style.color = '#ed4956';
+                heart.style.zIndex = '10';
+                heart.style.pointerEvents = 'none';
+                heart.style.opacity = '0';
+                heart.style.transition = 'all 0.5s';
+                heart.innerHTML = '❤️';
+                
+                videoPlayer.appendChild(heart);
+                
+                setTimeout(() => {
+                    heart.style.opacity = '1';
+                    heart.style.transform = 'translate(-50%, -50%) scale(1.5)';
+                }, 10);
+                
+                setTimeout(() => {
+                    heart.style.opacity = '0';
+                    heart.style.transform = 'translate(-50%, -50%) scale(0.5)';
+                    setTimeout(() => heart.remove(), 500);
+                }, 800);
+                
+                showNotification('Yoqdi ❤️');
+            }
+        }
+    });
+});
