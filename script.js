@@ -1,12 +1,12 @@
-// Ma'lumotlar - rasmda ko'rsatilgan fikrlar
+// Ma'lumotlar - Instagram uslubida
 const comments = [
     {
         id: 1,
         author: 'aziz_mahmudov88',
         avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80',
         text: 'Azam aka vaqtni to\'g\'ri taqsimlaydilar.',
-        time: '1 hafta',
-        likes: 0,
+        time: '1w',
+        likes: 24,
         liked: false,
         replies: []
     },
@@ -15,8 +15,8 @@ const comments = [
         author: 'fozilov_asilbekk',
         avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80',
         text: 'Hozir @aziz_mahmudov88 yozadi "Azam aka yomon narsa tavsiya qilmaydi" deb',
-        time: '2 hafta',
-        likes: 0,
+        time: '2w',
+        likes: 12,
         liked: false,
         replies: [
             {
@@ -24,47 +24,59 @@ const comments = [
                 author: 'fozilov_asilbekk',
                 avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80',
                 text: '@fozilov_asilbekk ayttimku yozadi deb',
-                time: '1 hafta',
-                likes: 0,
+                time: '1w',
+                likes: 3,
                 liked: false,
                 replyTo: 'fozilov_asilbekk'
             }
-        ]
+        ],
+        showReplies: true
     },
     {
         id: 4,
         author: 'abdulvahhob.saytolg',
         avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80',
         text: 'Lekin ozom iPhone ishlataman, sizlar buni ishlatinglar',
-        time: '2 hafta',
-        likes: 0,
-        liked: false,
+        time: '2w',
+        likes: 8,
+        liked: true,
         replies: [
             {
                 id: 5,
                 author: 'javohirgroup_',
                 avatar: 'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?w=80',
                 text: 'Shapkezdan Pushtuqa o\'xshab qolibsiz',
-                time: '1 hafta',
-                likes: 0,
+                time: '1w',
+                likes: 15,
                 liked: false,
                 replyTo: 'abdulvahhob.saytolg'
             }
-        ]
+        ],
+        showReplies: true
     }
 ];
 
-let heartCount = 12000;
+let heartCount = 12567;
 let isHearted = false;
 let isSaved = false;
 let isSubscribed = false;
 let currentReplyId = null;
+let commentData = [...comments];
 
 // Raqamlarni formatlash
 function formatNumber(num) {
     if (num >= 1000000) return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
-    if (num >= 1000) return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+    if (num >= 1000) return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
     return num.toString();
+}
+
+// Vaqtni formatlash
+function formatTime(time) {
+    if (time.includes('w')) return time;
+    if (time.includes('soat')) return time;
+    if (time.includes('min')) return time;
+    if (time === 'hozirgina') return 'hozir';
+    return time;
 }
 
 // Xabarnoma ko'rsatish
@@ -85,7 +97,7 @@ function renderComments() {
     const commentsList = document.getElementById('commentsList');
     const noComments = document.getElementById('no-comments-indicator');
     
-    if (comments.length === 0) {
+    if (commentData.length === 0) {
         commentsList.style.display = 'none';
         noComments.style.display = 'flex';
     } else {
@@ -93,7 +105,7 @@ function renderComments() {
         noComments.style.display = 'none';
         commentsList.innerHTML = '';
         
-        comments.forEach(comment => {
+        commentData.forEach(comment => {
             const commentEl = createCommentElement(comment);
             commentsList.appendChild(commentEl);
         });
@@ -103,17 +115,10 @@ function renderComments() {
 }
 
 // Fikr elementi yaratish
-function createCommentElement(comment, isReply = false, parentCommentId = null) {
+function createCommentElement(comment, isReply = false) {
     const div = document.createElement('div');
     div.className = isReply ? 'comment reply-comment' : 'comment';
-    
-    // Elementga ID qo'shamiz
-    if (comment.id) {
-        div.setAttribute('data-comment-id', comment.id);
-        if (isReply) {
-            div.setAttribute('data-reply-id', comment.id);
-        }
-    }
+    div.setAttribute('data-id', comment.id);
     
     // Mentionni alohida ajratish
     let commentHTML = comment.text;
@@ -135,24 +140,24 @@ function createCommentElement(comment, isReply = false, parentCommentId = null) 
     }
     
     // Like tugmasi matni
-    const likeText = comment.likes > 0 ? comment.likes : '';
+    const likeText = comment.likes > 0 ? formatNumber(comment.likes) : '';
     
     div.innerHTML = `
         <img src="${comment.avatar}" alt="${comment.author}" class="comment-avatar">
         <div class="comment-content">
             <div class="comment-header">
                 <div class="comment-author">${comment.author}</div>
-                <div class="comment-time">${comment.time}${comment.time.includes('avval') ? '' : ' avval'}</div>
+                <div class="comment-time">${formatTime(comment.time)}</div>
             </div>
             <div class="comment-text">${commentHTML}</div>
             <div class="comment-actions">
-                <div class="comment-action comment-like ${comment.liked ? 'active' : ''}" data-id="${comment.id}">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="${comment.liked ? '#ff0000' : 'none'}" stroke="currentColor" stroke-width="2">
+                <button class="comment-action comment-like ${comment.liked ? 'active' : ''}" data-id="${comment.id}">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="${comment.liked ? '#ed4956' : 'none'}" stroke="currentColor" stroke-width="2">
                         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                     </svg>
-                    <span class="comment-like-count">${likeText}</span>
-                </div>
-                ${!isReply ? `<div class="comment-reply" data-id="${comment.id}">Javob berish</div>` : ''}
+                    ${likeText}
+                </button>
+                ${!isReply ? `<button class="comment-reply" data-id="${comment.id}">Javob berish</button>` : ''}
             </div>
         </div>
     `;
@@ -160,6 +165,7 @@ function createCommentElement(comment, isReply = false, parentCommentId = null) 
     // Like tugmasi
     const likeBtn = div.querySelector('.comment-like');
     likeBtn.addEventListener('click', (e) => {
+        e.preventDefault();
         e.stopPropagation();
         toggleCommentLike(comment.id, isReply);
     });
@@ -168,6 +174,7 @@ function createCommentElement(comment, isReply = false, parentCommentId = null) 
     if (!isReply) {
         const replyBtn = div.querySelector('.comment-reply');
         replyBtn.addEventListener('click', (e) => {
+            e.preventDefault();
             e.stopPropagation();
             toggleReplyForm(comment.id);
         });
@@ -177,12 +184,49 @@ function createCommentElement(comment, isReply = false, parentCommentId = null) 
             const repliesContainer = document.createElement('div');
             repliesContainer.className = 'replies-container';
             
-            comment.replies.forEach(reply => {
-                const replyEl = createCommentElement(reply, true, comment.id);
-                repliesContainer.appendChild(replyEl);
-            });
+            // View replies button
+            if (comment.replies.length > 0 && !comment.showReplies) {
+                const viewRepliesBtn = document.createElement('button');
+                viewRepliesBtn.className = 'view-replies';
+                viewRepliesBtn.innerHTML = `
+                    <span>${comment.replies.length} javobni ko'rish</span>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                `;
+                viewRepliesBtn.addEventListener('click', () => {
+                    toggleReplies(comment.id);
+                });
+                
+                const actionsDiv = div.querySelector('.comment-actions');
+                actionsDiv.appendChild(viewRepliesBtn);
+            }
             
-            div.appendChild(repliesContainer);
+            // Agar replylar ko'rsatilishi kerak bo'lsa
+            if (comment.showReplies) {
+                comment.replies.forEach(reply => {
+                    const replyEl = createCommentElement(reply, true);
+                    repliesContainer.appendChild(replyEl);
+                });
+                
+                div.appendChild(repliesContainer);
+                
+                // Hide replies button
+                const hideRepliesBtn = document.createElement('button');
+                hideRepliesBtn.className = 'view-replies expanded';
+                hideRepliesBtn.innerHTML = `
+                    <span>Javoblarni yashirish</span>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                `;
+                hideRepliesBtn.addEventListener('click', () => {
+                    toggleReplies(comment.id);
+                });
+                
+                const actionsDiv = div.querySelector('.comment-actions');
+                actionsDiv.appendChild(hideRepliesBtn);
+            }
         }
         
         // Javob berish formasi
@@ -190,17 +234,9 @@ function createCommentElement(comment, isReply = false, parentCommentId = null) 
         replyForm.className = 'reply-form';
         replyForm.id = `reply-form-${comment.id}`;
         replyForm.innerHTML = `
-            <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80" alt="You" class="add-comment-avatar" style="width: 32px; height: 32px;">
-            <div class="comment-input-container" style="flex: 1; position: relative;">
-                <div class="reply-input-wrapper">
-                    <textarea class="reply-input" placeholder="@${comment.author} ga javob yozing..." id="reply-input-${comment.id}"></textarea>
-                    <button class="reply-send-btn" id="reply-btn-${comment.id}" disabled>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="12" y1="19" x2="12" y2="5"></line>
-                            <polyline points="5 12 12 5 19 12"></polyline>
-                        </svg>
-                    </button>
-                </div>
+            <div class="reply-input-wrapper">
+                <input type="text" class="reply-input" placeholder="@${comment.author} ga javob yozing..." id="reply-input-${comment.id}">
+                <button class="reply-send-btn" id="reply-btn-${comment.id}" disabled>Yuborish</button>
             </div>
         `;
         
@@ -215,20 +251,10 @@ function createCommentElement(comment, isReply = false, parentCommentId = null) 
                 replyInput.addEventListener('input', () => {
                     const hasText = replyInput.value.trim().length > 0;
                     replyBtn.disabled = !hasText;
-                    
-                    if (hasText) {
-                        replyBtn.classList.add('active');
-                    } else {
-                        replyBtn.classList.remove('active');
-                    }
-                    
-                    // Auto resize textarea
-                    replyInput.style.height = 'auto';
-                    replyInput.style.height = Math.min(replyInput.scrollHeight, 80) + 'px';
                 });
                 
                 replyInput.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter' && !e.shiftKey && replyInput.value.trim()) {
+                    if (e.key === 'Enter' && replyInput.value.trim()) {
                         e.preventDefault();
                         addReply(comment.id, replyInput.value.trim(), comment.author);
                     }
@@ -252,21 +278,50 @@ function createCommentElement(comment, isReply = false, parentCommentId = null) 
 // Fikr like tugmasi
 function toggleCommentLike(commentId, isReply) {
     if (isReply) {
-        comments.forEach(c => {
-            const reply = c.replies.find(r => r.id === commentId);
-            if (reply) {
-                reply.liked = !reply.liked;
-                reply.likes += reply.liked ? 1 : -1;
+        commentData.forEach(c => {
+            if (c.replies) {
+                const reply = c.replies.find(r => r.id === commentId);
+                if (reply) {
+                    reply.liked = !reply.liked;
+                    reply.likes += reply.liked ? 1 : -1;
+                    
+                    // Animation
+                    const likeBtn = document.querySelector(`[data-id="${commentId}"] .comment-like`);
+                    if (likeBtn) {
+                        likeBtn.classList.add('heart-animation');
+                        setTimeout(() => {
+                            likeBtn.classList.remove('heart-animation');
+                        }, 300);
+                    }
+                }
             }
         });
     } else {
-        const comment = comments.find(c => c.id === commentId);
+        const comment = commentData.find(c => c.id === commentId);
         if (comment) {
             comment.liked = !comment.liked;
             comment.likes += comment.liked ? 1 : -1;
+            
+            // Animation
+            const likeBtn = document.querySelector(`[data-id="${commentId}"] .comment-like`);
+            if (likeBtn) {
+                likeBtn.classList.add('heart-animation');
+                setTimeout(() => {
+                    likeBtn.classList.remove('heart-animation');
+                }, 300);
+            }
         }
     }
     renderComments();
+}
+
+// Javoblarni ko'rsatish/yashirish
+function toggleReplies(commentId) {
+    const comment = commentData.find(c => c.id === commentId);
+    if (comment) {
+        comment.showReplies = !comment.showReplies;
+        renderComments();
+    }
 }
 
 // Javob berish formasini ochish/yopish
@@ -304,7 +359,7 @@ function toggleReplyForm(commentId) {
 function addReply(commentId, text, replyToAuthor) {
     if (!text || text.trim().length === 0) return;
     
-    const comment = comments.find(c => c.id === commentId);
+    const comment = commentData.find(c => c.id === commentId);
     if (comment) {
         const newReply = {
             id: Date.now(),
@@ -323,6 +378,7 @@ function addReply(commentId, text, replyToAuthor) {
         
         // Javobni arrayga qo'shish
         comment.replies.push(newReply);
+        comment.showReplies = true;
         
         // Reply formani yopish va inputni tozalash
         const replyForm = document.getElementById(`reply-form-${commentId}`);
@@ -334,7 +390,6 @@ function addReply(commentId, text, replyToAuthor) {
         
         if (replyInput) {
             replyInput.value = '';
-            replyInput.style.height = 'auto';
             replyInput.dispatchEvent(new Event('input'));
         }
         
@@ -346,15 +401,9 @@ function addReply(commentId, text, replyToAuthor) {
         
         // Yangi javobni ko'rish uchun scroll qilish
         setTimeout(() => {
-            const newReplyElement = document.querySelector(`[data-reply-id="${newReply.id}"]`);
+            const newReplyElement = document.querySelector(`[data-id="${newReply.id}"]`);
             if (newReplyElement) {
                 newReplyElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                newReplyElement.classList.add('new-reply');
-                
-                // 3 sekunddan keyin animatsiya classini olib tashlash
-                setTimeout(() => {
-                    newReplyElement.classList.remove('new-reply');
-                }, 3000);
             }
         }, 100);
     }
@@ -375,16 +424,15 @@ function addComment() {
         time: 'hozirgina',
         likes: 0,
         liked: false,
-        replies: []
+        replies: [],
+        showReplies: false
     };
     
-    comments.unshift(newComment);
+    commentData.unshift(newComment);
     input.value = '';
-    input.style.height = 'auto';
     
     const commentSendBtn = document.getElementById('commentSendBtn');
     commentSendBtn.disabled = true;
-    commentSendBtn.classList.remove('active');
     
     renderComments();
     showNotification('Fikringiz qo\'shildi');
@@ -392,7 +440,7 @@ function addComment() {
 
 // Hisoblagichlarni yangilash
 function updateCounts() {
-    const totalComments = comments.reduce((total, comment) => {
+    const totalComments = commentData.reduce((total, comment) => {
         return total + 1 + (comment.replies ? comment.replies.length : 0);
     }, 0);
     
@@ -409,6 +457,13 @@ document.addEventListener('DOMContentLoaded', function() {
         this.classList.toggle('active');
         heartCount += isHearted ? 1 : -1;
         updateCounts();
+        
+        // Animation
+        this.classList.add('heart-animation');
+        setTimeout(() => {
+            this.classList.remove('heart-animation');
+        }, 300);
+        
         showNotification(isHearted ? 'Yoqdi ❤️' : 'Yoqmadi');
     });
     
@@ -481,16 +536,6 @@ document.addEventListener('DOMContentLoaded', function() {
     commentInput.addEventListener('input', () => {
         const hasText = commentInput.value.trim().length > 0;
         commentSendBtn.disabled = !hasText;
-        
-        if (hasText) {
-            commentSendBtn.classList.add('active');
-        } else {
-            commentSendBtn.classList.remove('active');
-        }
-        
-        // Auto resize textarea
-        commentInput.style.height = 'auto';
-        commentInput.style.height = Math.min(commentInput.scrollHeight, 120) + 'px';
     });
     
     commentSendBtn.addEventListener('click', addComment);
@@ -511,18 +556,4 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.recommended-video').forEach(video => {
         video.addEventListener('click', function() {
             const title = this.querySelector('.recommended-video-title').textContent;
-            showNotification(`"${title}" videosini ochish`);
-        });
-    });
-    
-    // Escape tugmasi bilan modalni yopish
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            const modal = document.getElementById('commentsModal');
-            if (modal.style.display === 'block') {
-                modal.classList.remove('show');
-                setTimeout(() => modal.style.display = 'none', 300);
-            }
-        }
-    });
-});
+         
