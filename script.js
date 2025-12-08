@@ -1,35 +1,56 @@
-// Ma'lumotlar
+// Ma'lumotlar - rasmda ko'rsatilgan fikrlar
 const comments = [
     {
         id: 1,
-        author: 'Sanjar',
+        author: 'aziz_mahmudov88',
         avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80',
-        text: 'Juda zo\'r video bo\'libdi 👍',
-        time: '2 soat avval',
-        likes: 3,
+        text: 'Azam aka vaqtni to\'g\'ri taqsimlaydilar.',
+        time: '1 hafta',
+        likes: 0,
+        liked: false,
+        replies: []
+    },
+    {
+        id: 2,
+        author: 'fozilov_asilbekk',
+        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80',
+        text: 'Hozir @aziz_mahmudov88 yozadi "Azam aka yomon narsa tavsiya qilmaydi" deb',
+        time: '2 hafta',
+        likes: 0,
         liked: false,
         replies: [
             {
-                id: 11,
-                author: 'Jasur',
+                id: 3,
+                author: 'fozilov_asilbekk',
                 avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80',
-                text: 'Ha, to\'g\'ri aytasiz',
-                time: '1 soat avval',
-                likes: 1,
+                text: '@fozilov_asilbekk ayttimku yozadi deb',
+                time: '1 hafta',
+                likes: 0,
                 liked: false,
-                replyTo: 'Sanjar'
+                replyTo: 'fozilov_asilbekk'
             }
         ]
     },
     {
-        id: 2,
-        author: 'Malika',
-        avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=80',
-        text: 'Konsert juda chiroyli tashkil qilingan!',
-        time: '5 soat avval',
-        likes: 7,
+        id: 4,
+        author: 'abdulvahhob.saytolg',
+        avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80',
+        text: 'Lekin ozom iPhone ishlataman, sizlar buni ishlatinglar',
+        time: '2 hafta',
+        likes: 0,
         liked: false,
-        replies: []
+        replies: [
+            {
+                id: 5,
+                author: 'javohirgroup_',
+                avatar: 'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?w=80',
+                text: 'Shapkezdan Pushtuqa o\'xshab qolibsiz',
+                time: '1 hafta',
+                likes: 0,
+                liked: false,
+                replyTo: 'abdulvahhob.saytolg'
+            }
+        ]
     }
 ];
 
@@ -86,9 +107,24 @@ function createCommentElement(comment, isReply = false) {
     const div = document.createElement('div');
     div.className = isReply ? 'comment reply-comment' : 'comment';
     
-    const mentionText = comment.replyTo 
-        ? `<span class="mention">@${comment.replyTo}</span> ${comment.text}` 
-        : comment.text;
+    // Mentionni alohida ajratish
+    let commentHTML = comment.text;
+    
+    // Agar fikrda @username bo'lsa, uni alohida ajratish
+    if (comment.text.includes('@')) {
+        const parts = comment.text.split(/(@\w+)/g);
+        commentHTML = parts.map(part => {
+            if (part.startsWith('@')) {
+                return `<span class="mention">${part}</span>`;
+            }
+            return part;
+        }).join('');
+    }
+    
+    // Agar replyTo bo'lsa
+    if (comment.replyTo) {
+        commentHTML = `<span class="mention">@${comment.replyTo}</span> ${commentHTML}`;
+    }
     
     div.innerHTML = `
         <img src="${comment.avatar}" alt="${comment.author}" class="comment-avatar">
@@ -97,7 +133,7 @@ function createCommentElement(comment, isReply = false) {
                 <div class="comment-author">${comment.author}</div>
                 <div class="comment-time">${comment.time}</div>
             </div>
-            <div class="comment-text">${mentionText}</div>
+            <div class="comment-text">${commentHTML}</div>
             <div class="comment-actions">
                 <div class="comment-action comment-like ${comment.liked ? 'active' : ''}" data-id="${comment.id}">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="${comment.liked ? '#ff0000' : 'none'}" stroke="currentColor" stroke-width="2">
@@ -217,7 +253,12 @@ function toggleReplyForm(commentId) {
             replyForm.classList.add('show');
             currentReplyId = commentId;
             setTimeout(() => {
-                document.getElementById(`reply-input-${commentId}`).focus();
+                const input = document.getElementById(`reply-input-${commentId}`);
+                if (input) {
+                    input.focus();
+                    input.value = '';
+                    input.dispatchEvent(new Event('input'));
+                }
             }, 100);
         }
     }
@@ -240,10 +281,20 @@ function addReply(commentId, text, replyToAuthor) {
             replyTo: replyToAuthor
         };
         
+        if (!comment.replies) {
+            comment.replies = [];
+        }
+        
         comment.replies.push(newReply);
         currentReplyId = null;
         renderComments();
         showNotification('Javobingiz qo\'shildi');
+        
+        // Reply formani yopish
+        const replyForm = document.getElementById(`reply-form-${commentId}`);
+        if (replyForm) {
+            replyForm.classList.remove('show');
+        }
     }
 }
 
