@@ -169,6 +169,13 @@ function updateReplyModeIndicator() {
                     </svg>
                     Fikringizni tahrirlash
                 </div>
+                <button class="reply-mode-cancel" onclick="cancelReplyMode()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                    Bekor qilish
+                </button>
             `;
         } else {
             indicator.innerHTML = `
@@ -178,6 +185,13 @@ function updateReplyModeIndicator() {
                     </svg>
                     <span>${replyMode.targetAuthor}</span><span class="reply-mode-author"> ga javob yozyapsiz</span>
                 </div>
+                <button class="reply-mode-cancel" onclick="cancelReplyMode()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                    Bekor qilish
+                </button>
             `;
         }
         
@@ -517,24 +531,15 @@ commentInput.addEventListener('input', () => {
     } else {
         commentSendBtn.classList.remove('active');
     }
-    
-    // Agar input bo'sh bo'lsa va reply mode active bo'lsa, uni bekor qilish
-    if (text === '' && replyMode.active) {
-        cancelReplyMode();
-    }
 });
 
 commentInput.addEventListener('keydown', (e) => {
+    // Faqat Enter tugmasi bilan yuborish
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         if (!commentSendBtn.disabled) {
             submitCommentOrReply();
         }
-    }
-    
-    // ESC tugmasi bilan reply mode ni bekor qilish
-    if (e.key === 'Escape' && replyMode.active) {
-        cancelReplyMode();
     }
 });
 
@@ -543,24 +548,16 @@ commentSendBtn.addEventListener('click', () => {
     submitCommentOrReply();
 });
 
+// Fikr bildiring bo'limiga bosilganda reply mode ni bekor qilish
+commentInput.addEventListener('click', () => {
+    if (replyMode.active && commentInput.value.trim() === '') {
+        cancelReplyMode();
+    }
+});
+
 // Modal ochilganda focusni inputga o'tkazish
 modal.addEventListener('transitionend', () => {
     if (modal.classList.contains('show')) {
         setTimeout(() => {
             if (!replyMode.active) {
-                commentInput.focus();
-            }
-        }, 100);
-    }
-});
-
-// Global functions for HTML onclick
-window.toggleCommentLike = toggleCommentLike;
-window.startReplyMode = startReplyMode;
-window.toggleMenu = toggleMenu;
-window.deleteComment = deleteComment;
-
-// Initialize
-document.addEventListener('DOMContentLoaded', () => {
-    loadFromStorage();
-});
+                commentI
