@@ -6,14 +6,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const subscribeBtn = document.getElementById('subscribe-btn');
     const modal = document.getElementById('commentsModal');
     const closeBtn = document.querySelector('.close-btn');
-    const commentInput = document.getElementById('comment-input-field');
-    const sendCommentBtn = document.getElementById('send-comment-btn');
+    const commentInput = document.querySelector('.comment-input');
+    const submitBtn = document.querySelector('.submit-btn');
+    const cancelBtn = document.querySelector('.cancel-btn');
     const commentsList = document.getElementById('commentsList');
     const noCommentsIndicator = document.getElementById('no-comments-indicator');
     const commentsMainCount = document.getElementById('comments-main-count');
     const commentsModalCount = document.getElementById('comments-modal-count');
     const heartCountDisplay = document.getElementById('heart-count');
-    const scrollToTopBtn = document.getElementById('scrollToTopBtn');
 
     // Boshlang'ich ma'lumotlar
     let heartCount = 12000;
@@ -187,10 +187,6 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             modal.style.display = 'none';
             document.body.style.overflow = 'auto';
-            // Input maydonini tozalash
-            commentInput.value = '';
-            sendCommentBtn.classList.remove('active');
-            adjustTextareaHeight();
         }, 300);
     });
 
@@ -201,10 +197,6 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 modal.style.display = 'none';
                 document.body.style.overflow = 'auto';
-                // Input maydonini tozalash
-                commentInput.value = '';
-                sendCommentBtn.classList.remove('active');
-                adjustTextareaHeight();
             }, 300);
         }
     });
@@ -219,18 +211,25 @@ document.addEventListener('DOMContentLoaded', () => {
     commentInput.addEventListener('input', () => {
         adjustTextareaHeight();
         if (commentInput.value.trim() !== '') {
-            sendCommentBtn.classList.add('active');
+            submitBtn.disabled = false;
         } else {
-            sendCommentBtn.classList.remove('active');
+            submitBtn.disabled = true;
         }
     });
 
     // Enter tugmasi bilan fikr qo'shish (shift+enter yangi qator uchun)
     commentInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey && sendCommentBtn.classList.contains('active')) {
+        if (e.key === 'Enter' && !e.shiftKey && !submitBtn.disabled) {
             e.preventDefault();
             addComment();
         }
+    });
+
+    // Bekor qilish tugmasi
+    cancelBtn.addEventListener('click', () => {
+        commentInput.value = '';
+        submitBtn.disabled = true;
+        adjustTextareaHeight();
     });
 
     // Fikr qo'shish funksiyasi
@@ -240,9 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const newComment = document.createElement('div');
             newComment.className = 'comment';
             newComment.innerHTML = `
-                <div class="comment-avatar">
-                    <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" alt="User Profile">
-                </div>
+                <div class="comment-avatar">S</div>
                 <div class="comment-content">
                     <div class="comment-header">
                         <div class="comment-author">Siz</div>
@@ -268,23 +265,16 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Input maydonini tozalash
             commentInput.value = '';
-            sendCommentBtn.classList.remove('active');
+            submitBtn.disabled = true;
             adjustTextareaHeight();
             
             // Fikr muvaffaqiyatli qo'shildi xabari
             showNotification("Fikringiz muvaffaqiyatli qo'shildi");
-            
-            // ↑ ikonkasiga animatsiya qo'shish
-            const sendIcon = sendCommentBtn.querySelector('.send-icon');
-            sendIcon.style.animation = 'pulse 0.5s ease';
-            setTimeout(() => {
-                sendIcon.style.animation = '';
-            }, 500);
         }
     }
 
-    // ↑ (yuqoriga) ikonkasi bilan fikr qo'shish
-    sendCommentBtn.addEventListener('click', addComment);
+    // Fikr qo'shish tugmasi
+    submitBtn.addEventListener('click', addComment);
 
     // Ulashish tugmasi logikasi
     document.getElementById('share-btn').addEventListener('click', () => {
@@ -304,34 +294,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Yuqoriga chiqish tugmasi logikasi
-    function scrollToTop() {
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-        });
-    }
-
-    // Scroll tugmasini ko'rsatish/yashirish
-    function toggleScrollTopButton() {
-        if (window.scrollY > 300) {
-            scrollToTopBtn.classList.add('visible');
-        } else {
-            scrollToTopBtn.classList.remove('visible');
-        }
-    }
-
-    // Scroll qilinganda tugmani ko'rsatish
-    window.addEventListener('scroll', toggleScrollTopButton);
-
-    // Yuqoriga chiqish tugmasiga bosilganda
-    scrollToTopBtn.addEventListener('click', scrollToTop);
-
     // Sahifa yuklanganda ma'lumotlarni yuklash
     loadFromStorage();
     updateCounts();
     adjustTextareaHeight();
-    toggleScrollTopButton(); // Dastlabki holatni tekshirish
     
     // Saqlash tugmasining holatini yuklash
     const savedVideos = JSON.parse(localStorage.getItem('savedVideos') || '{}');
