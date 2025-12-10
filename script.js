@@ -555,9 +555,26 @@ commentInput.addEventListener('click', () => {
     }
 });
 
+
 // Modal ochilganda focusni inputga o'tkazish
 modal.addEventListener('transitionend', () => {
     if (modal.classList.contains('show')) {
         setTimeout(() => {
             if (!replyMode.active) {
-                commentI
+                commentInput.focus();
+            }
+        }, 100);
+    }
+});
+
+// Global functions for HTML onclick
+window.toggleCommentLike = toggleCommentLike;
+window.startReplyMode = startReplyMode;
+window.cancelReplyMode = cancelReplyMode;
+window.toggleMenu = toggleMenu;
+window.deleteComment = deleteComment;
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    loadFromStorage();
+});
