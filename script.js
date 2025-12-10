@@ -20,6 +20,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let commentsCount = 0;
     let isHearted = false;
     let isSubscribed = false;
+    let currentReplyTo = null; // Javob berilayotgan fikr ID
+
+    // Fikrlar bazasi
+    let comments = [];
 
     // Ma'lumotlarni saqlash funksiyasi
     const saveToStorage = () => {
@@ -27,7 +31,8 @@ document.addEventListener('DOMContentLoaded', () => {
             heartCount,
             commentsCount,
             isHearted,
-            isSubscribed
+            isSubscribed,
+            comments: comments
         };
         localStorage.setItem('videoReactions', JSON.stringify(data));
     };
@@ -41,6 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
             commentsCount = data.commentsCount || commentsCount;
             isHearted = data.isHearted || false;
             isSubscribed = data.isSubscribed || false;
+            comments = data.comments || [];
             
             // Foydalanuvchi reaktsiyasini ko'rsatish
             if (isHearted) {
@@ -51,6 +57,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isSubscribed) {
                 subscribeBtn.textContent = "Obuna bo'lingan";
                 subscribeBtn.classList.add('subscribed');
+            }
+            
+            // Fikrlarni yuklash
+            if (comments.length > 0) {
+                renderComments();
             }
         }
     };
@@ -121,6 +132,329 @@ document.addEventListener('DOMContentLoaded', () => {
         }, duration);
     }
 
+    // Fikrni HTML ga aylantirish
+    function createCommentHTML(comment, isReply = false) {
+        const timeAgo = getTimeAgo(comment.timestamp);
+        
+        return `
+            <div class="comment ${isReply ? 'reply' : ''}" data-id="${comment.id}">
+                <div class="comment-avatar">${comment.author.charAt(0).toUpperCase()}</div>
+                <div class="comment-content">
+                    <div class="comment-header">
+                        <div class="comment-author">${comment.author}</div>
+                        <div class="comment-time">${timeAgo}</div>
+                    </div>
+                    <div class="comment-text">${comment.text}</div>
+                    <div class="comment-actions">
+                        <div class="comment-action ${comment.isLiked ? 'active' : ''}" data-action="like">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="${comment.isLiked ? '#ff0000' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                            </svg>
+                            <span class="like-count">${comment.likes}</span>
+                        </div>
+                        <div class="comment-reply" data-action="reply">Javob berish</div>
+                    </div>
+                    
+                    ${comment.replies && comment.replies.length > 0 ? `
+                        <div class="replies-container">
+                            ${comment.replies.map(reply => createCommentHTML(reply, true)).join('')}
+                        </div>
+                    ` : ''}
+                    
+                    ${currentReplyTo === comment.id ? `
+                        <div class="reply-input-container">
+                            <textarea class="reply-input" placeholder="Javobingizni yozing..."></textarea>
+                            <div class="reply-buttons">
+                                <button class="cancel-reply-btn comment-btn cancel-btn">Bekor qilish</button>
+                                <button class="submit-reply-btn comment-btn submit-btn has-text">
+                                    <div class="up-arrow-icon">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <line x1="12" y1="19" x2="12" y2="5"></line>
+                                            <polyline points="5 12 12 5 19 12"></polyline>
+                                        </svg>
+                                    </div>
+                                    Javob yuborish
+                                </button>
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }
+
+    // Vaqtni hisoblash (hozirgina, 5 daqiqa oldin, 1 kun oldin, ...)
+    function getTimeAgo(timestamp) {
+        const now = new Date();
+        const commentTime = new Date(timestamp);
+        const diffMs = now - commentTime;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+
+        if (diffMins < 1) return "hozirgina";
+        if (diffMins < 60) return `${diffMins} daqiqa oldin`;
+        if (diffHours < 24) return `${diffHours} soat oldin`;
+        if (diffDays < 7) return `${diffDays} kun oldin`;
+        return `${Math.floor(diffDays / 7)} hafta oldin`;
+    }
+
+    // Fikrlarni ekranga chiqarish
+    function renderComments() {
+        commentsList.innerHTML = '';
+        comments.forEach(comment => {
+            commentsList.innerHTML += createCommentHTML(comment);
+        });
+        
+        // Event listenerlarni qayta bog'lash
+        attachCommentListeners();
+    }
+
+    // Comment event listenerlarni biriktirish
+    function attachCommentListeners() {
+        // Like tugmalari
+        document.querySelectorAll('.comment-action[data-action="like"]').forEach(btn => {
+            btn.addEventListener('click', handleLike);
+        });
+        
+        // Reply tugmalari
+        document.querySelectorAll('.comment-reply[data-action="reply"]').forEach(btn => {
+            btn.addEventListener('click', handleReplyClick);
+        });
+        
+        // Cancel reply tugmalari
+        document.querySelectorAll('.cancel-reply-btn').forEach(btn => {
+            btn.addEventListener('click', cancelReply);
+        });
+        
+        // Submit reply tugmalari
+        document.querySelectorAll('.submit-reply-btn').forEach(btn => {
+            btn.addEventListener('click', submitReply);
+        });
+        
+        // Reply inputlar
+        document.querySelectorAll('.reply-input').forEach(input => {
+            input.addEventListener('input', adjustReplyHeight);
+            input.addEventListener('keydown', handleReplyKeydown);
+        });
+    }
+
+    // Like bosilganda
+    function handleLike(e) {
+        const likeBtn = e.currentTarget;
+        const commentElement = likeBtn.closest('.comment');
+        const commentId = commentElement.dataset.id;
+        const likeCountElement = likeBtn.querySelector('.like-count');
+        
+        // Fikrni topish
+        let comment = findCommentById(commentId, comments);
+        if (!comment) {
+            // Javob bo'lishi mumkin
+            comment = findReplyById(commentId, comments);
+        }
+        
+        if (comment) {
+            comment.isLiked = !comment.isLiked;
+            comment.likes += comment.isLiked ? 1 : -1;
+            
+            // UI ni yangilash
+            if (comment.isLiked) {
+                likeBtn.classList.add('active');
+                likeBtn.querySelector('svg').setAttribute('fill', '#ff0000');
+            } else {
+                likeBtn.classList.remove('active');
+                likeBtn.querySelector('svg').setAttribute('fill', 'none');
+            }
+            likeCountElement.textContent = comment.likes;
+            
+            // Saqlash
+            saveToStorage();
+            
+            // Notification
+            showNotification(comment.isLiked ? "Fikrga like qo'ydingiz ❤️" : "Like olib tashlandi");
+        }
+    }
+
+    // Reply bosilganda
+    function handleReplyClick(e) {
+        const replyBtn = e.currentTarget;
+        const commentElement = replyBtn.closest('.comment');
+        const commentId = commentElement.dataset.id;
+        
+        // Boshqa reply ni yopish
+        if (currentReplyTo && currentReplyTo !== commentId) {
+            const prevComment = document.querySelector(`.comment[data-id="${currentReplyTo}"]`);
+            if (prevComment) {
+                const prevReplyContainer = prevComment.querySelector('.reply-input-container');
+                if (prevReplyContainer) {
+                    prevReplyContainer.remove();
+                }
+            }
+        }
+        
+        // Agar reply allaqachon ochiq bo'lsa, yopish
+        if (currentReplyTo === commentId) {
+            cancelReply();
+            return;
+        }
+        
+        // Yangi reply container qo'shish
+        const existingContainer = commentElement.querySelector('.reply-input-container');
+        if (!existingContainer) {
+            const replyContainerHTML = `
+                <div class="reply-input-container">
+                    <textarea class="reply-input" placeholder="Javobingizni yozing..."></textarea>
+                    <div class="reply-buttons">
+                        <button class="cancel-reply-btn comment-btn cancel-btn">Bekor qilish</button>
+                        <button class="submit-reply-btn comment-btn submit-btn has-text">
+                            <div class="up-arrow-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="12" y1="19" x2="12" y2="5"></line>
+                                    <polyline points="5 12 12 5 19 12"></polyline>
+                                </svg>
+                            </div>
+                            Javob yuborish
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            const commentContent = commentElement.querySelector('.comment-content');
+            const repliesContainer = commentContent.querySelector('.replies-container');
+            if (repliesContainer) {
+                repliesContainer.insertAdjacentHTML('afterend', replyContainerHTML);
+            } else {
+                commentContent.querySelector('.comment-actions').insertAdjacentHTML('afterend', replyContainerHTML);
+            }
+            
+            currentReplyTo = commentId;
+            
+            // Focus input
+            setTimeout(() => {
+                const replyInput = commentElement.querySelector('.reply-input');
+                if (replyInput) {
+                    replyInput.focus();
+                    // Event listener qo'shish
+                    replyInput.addEventListener('input', adjustReplyHeight);
+                    replyInput.addEventListener('keydown', handleReplyKeydown);
+                    
+                    // Submit button event listener
+                    const submitBtn = commentElement.querySelector('.submit-reply-btn');
+                    if (submitBtn) {
+                        submitBtn.addEventListener('click', submitReply);
+                    }
+                    
+                    // Cancel button event listener
+                    const cancelBtn = commentElement.querySelector('.cancel-reply-btn');
+                    if (cancelBtn) {
+                        cancelBtn.addEventListener('click', cancelReply);
+                    }
+                }
+            }, 10);
+        }
+    }
+
+    // Reply input height
+    function adjustReplyHeight() {
+        this.style.height = 'auto';
+        this.style.height = `${this.scrollHeight}px`;
+    }
+
+    // Reply keydown
+    function handleReplyKeydown(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            const submitBtn = this.closest('.reply-input-container').querySelector('.submit-reply-btn');
+            if (submitBtn && !submitBtn.disabled) {
+                submitReply.call(submitBtn);
+            }
+        }
+    }
+
+    // Reply yuborish
+    function submitReply() {
+        const replyContainer = this.closest('.reply-input-container');
+        const replyInput = replyContainer.querySelector('.reply-input');
+        const text = replyInput.value.trim();
+        
+        if (text) {
+            const commentElement = replyContainer.closest('.comment');
+            const commentId = commentElement.dataset.id;
+            
+            // Fikrni topish
+            let comment = findCommentById(commentId, comments);
+            
+            if (comment) {
+                // Yangi javob
+                const newReply = {
+                    id: generateId(),
+                    author: "Siz",
+                    text: text,
+                    timestamp: new Date().toISOString(),
+                    likes: 0,
+                    isLiked: false,
+                    parentId: commentId
+                };
+                
+                // Javoblar ro'yxatini yaratish/yangilash
+                if (!comment.replies) {
+                    comment.replies = [];
+                }
+                comment.replies.push(newReply);
+                
+                // UI ni yangilash
+                renderComments();
+                
+                // Notification
+                showNotification("Javobingiz muvaffaqiyatli qo'shildi");
+                
+                // Reply ni yopish
+                currentReplyTo = null;
+                
+                // Inputni tozalash
+                replyInput.value = '';
+            }
+        }
+    }
+
+    // Reply ni bekor qilish
+    function cancelReply() {
+        const replyContainer = document.querySelector('.reply-input-container');
+        if (replyContainer) {
+            replyContainer.remove();
+            currentReplyTo = null;
+        }
+    }
+
+    // ID generator
+    function generateId() {
+        return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    }
+
+    // Comment topish
+    function findCommentById(id, commentsArray) {
+        for (let comment of commentsArray) {
+            if (comment.id === id) return comment;
+            if (comment.replies && comment.replies.length > 0) {
+                const found = findCommentById(id, comment.replies);
+                if (found) return found;
+            }
+        }
+        return null;
+    }
+
+    // Reply topish
+    function findReplyById(id, commentsArray) {
+        for (let comment of commentsArray) {
+            if (comment.replies && comment.replies.length > 0) {
+                for (let reply of comment.replies) {
+                    if (reply.id === id) return reply;
+                }
+            }
+        }
+        return null;
+    }
+
     // Yurak tugmasi logikasi
     heartBtn.addEventListener('click', () => {
         isHearted = !isHearted;
@@ -155,6 +489,7 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('savedVideos', JSON.stringify(savedVideos));
     });
 
+    
     // Obuna bo'lish tugmasi logikasi
     subscribeBtn.addEventListener('click', () => {
         isSubscribed = !isSubscribed;
@@ -235,32 +570,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // Fikr qo'shish funksiyasi
     function addComment() {
         if (commentInput.value.trim() !== '') {
-            // Yangi fikrni yaratish
-            const newComment = document.createElement('div');
-            newComment.className = 'comment';
-            newComment.innerHTML = `
-                <div class="comment-avatar">S</div>
-                <div class="comment-content">
-                    <div class="comment-header">
-                        <div class="comment-author">Siz</div>
-                        <div class="comment-time">hozirgina</div>
-                    </div>
-                    <div class="comment-text">${commentInput.value}</div>
-                    <div class="comment-actions">
-                        <div class="comment-action">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                            </svg>
-                            <span>0</span>
-                        </div>
-                        <div class="comment-reply">Javob berish</div>
-                    </div>
-                </div>
-            `;
+            // Yangi fikr
+            const newComment = {
+                id: generateId(),
+                author: "Siz",
+                text: commentInput.value,
+                timestamp: new Date().toISOString(),
+                likes: 0,
+                isLiked: false,
+                replies: []
+            };
             
-            // Yangi fikrni ro'yxatga qo'shish
-            commentsList.prepend(newComment);
+            // Fikrlar ro'yxatiga qo'shish
+            comments.unshift(newComment);
             commentsCount++;
+            
+            // UI ni yangilash
+            renderComments();
             updateCounts();
             
             // Input maydonini tozalash
