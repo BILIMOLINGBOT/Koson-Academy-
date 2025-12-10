@@ -1,70 +1,34 @@
-// Event listenerlar
-document.getElementById('close-modal').addEventListener('click', () => {
-    document.getElementById('edit-modal').style.display = 'none';
-    currentEditId = null;
-});
-
-document.getElementById('cancel-edit').addEventListener('click', () => {
-    document.getElementById('edit-modal').style.display = 'none';
-    currentEditId = null;
-});
-
-document.getElementById('save-edit').addEventListener('click', () => {
-    if (!currentEditId) return;
-    
-    const comment = findCommentRecursive(comments, currentEditId);
-    if (comment) {
-        comment.text = document.getElementById('edit-input').value.trim();
-        comment.time = comment.time.includes('tahrirlandi') 
-            ? comment.time 
-            : comment.time + ' (tahrirlandi)';
-        
-        renderComments();
-        document.getElementById('edit-modal').style.display = 'none';
-        currentEditId = null;
-        showNotification('Fikr tahrirlandi');
-    }
-});
-
-// Modal tashqarisiga bosganda yopish
-document.getElementById('edit-modal').addEventListener('click', (e) => {
-    if (e.target === document.getElementById('edit-modal')) {
-        document.getElementById('edit-modal').style.display = 'none';
-        currentEditId = null;
-    }
-});// Ma'lumotlar
-const currentUser = "Mening Profilim";
-let userActions = JSON.parse(localStorage.getItem('commentActions')) || {};
-
+// Ma'lumotlar
 const comments = [
     {
         id: 1,
-        author: 'nafisaning_dunyosi',
-        avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100',
-        text: 'Nechi dubl bo\'ldi😂 shapaloqqa',
-        time: '2 kun oldin',
-        likes: 1743,
-        dislikes: 5,
-        replies: []
+        author: 'Sanjar',
+        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80',
+        text: 'Juda zo\'r video bo\'libdi 👍',
+        time: '2 soat avval',
+        likes: 3,
+        liked: false,
+        replies: [
+            {
+                id: 11,
+                author: 'Jasur',
+                avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80',
+                text: 'Ha, to\'g\'ri aytasiz',
+                time: '1 soat avval',
+                likes: 1,
+                liked: false,
+                replyTo: 'Sanjar'
+            }
+        ]
     },
     {
         id: 2,
-        author: 'shoirabonu_essens',
-        avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100',
-        text: 'Yegan oshim burnimdan chiqdi degan joyi wu😂',
-        time: '22 soat oldin',
-        likes: 5,
-        dislikes: 1,
-        replies: []
-    },
-    {
-        id: 3,
-        author: currentUser,
-        avatar: null,
-        text: 'Bu mening fikrim, men uni o\'chirishim yoki tahrirlashim mumkin',
-        time: '5 daqiqa oldin',
-        likes: 0,
-        dislikes: 0,
+        author: 'Malika',
+        avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=80',
+        text: 'Konsert juda chiroyli tashkil qilingan!',
+        time: '5 soat avval',
+        likes: 7,
+        liked: false,
         replies: []
     }
 ];
@@ -74,7 +38,6 @@ let isHearted = false;
 let isSaved = false;
 let isSubscribed = false;
 let currentReplyId = null;
-let currentEditId = null;
 
 // Raqamlarni formatlash
 function formatNumber(num) {
@@ -156,6 +119,19 @@ function createCommentElement(comment, isReply = false) {
         const replyBtn = div.querySelector('.comment-reply');
         replyBtn.addEventListener('click', () => toggleReplyForm(comment.id));
         
+        // Javoblarni ko'rsatish
+        if (comment.replies && comment.replies.length > 0) {
+            const repliesContainer = document.createElement('div');
+            repliesContainer.className = 'replies-container';
+            
+            comment.replies.forEach(reply => {
+                const replyEl = createCommentElement(reply, true);
+                repliesContainer.appendChild(replyEl);
+            });
+            
+            div.appendChild(repliesContainer);
+        }
+        
         // Javob berish formasi
         const replyForm = document.createElement('div');
         replyForm.className = 'reply-form';
@@ -176,19 +152,6 @@ function createCommentElement(comment, isReply = false) {
         `;
         
         div.appendChild(replyForm);
-        
-        // Javoblarni ko'rsatish (forma ostida)
-        if (comment.replies && comment.replies.length > 0) {
-            const repliesContainer = document.createElement('div');
-            repliesContainer.className = 'replies-container';
-            
-            comment.replies.forEach(reply => {
-                const replyEl = createCommentElement(reply, true);
-                repliesContainer.appendChild(replyEl);
-            });
-            
-            div.appendChild(repliesContainer);
-        }
         
         // Javob input hodisalari
         setTimeout(() => {
@@ -222,170 +185,66 @@ function createCommentElement(comment, isReply = false) {
     return div;
 }
 
-// Like/Dislike funksiyalari
-function handleLike(commentId) {
-    const comment = findCommentRecursive(comments, commentId);
-    if (!comment) return;
-    
-    const currentAction = userActions[commentId];
-    
-    if (currentAction === 'like') {
-        comment.likes = Math.max(0, comment.likes - 1);
-        delete userActions[commentId];
-    } else if (currentAction === 'dislike') {
-        comment.likes += 1;
-        comment.dislikes = Math.max(0, comment.dislikes - 1);
-        userActions[commentId] = 'like';
+// Fikr like tugmasi
+function toggleCommentLike(commentId, isReply) {
+    if (isReply) {
+        comments.forEach(c => {
+            const reply = c.replies.find(r => r.id === commentId);
+            if (reply) {
+                reply.liked = !reply.liked;
+                reply.likes += reply.liked ? 1 : -1;
+            }
+        });
     } else {
-        comment.likes += 1;
-        userActions[commentId] = 'like';
+        const comment = comments.find(c => c.id === commentId);
+        if (comment) {
+            comment.liked = !comment.liked;
+            comment.likes += comment.liked ? 1 : -1;
+        }
     }
-    
-    localStorage.setItem('commentActions', JSON.stringify(userActions));
     renderComments();
 }
 
-function handleDislike(commentId) {
-    const comment = findCommentRecursive(comments, commentId);
-    if (!comment) return;
-    
-    const currentAction = userActions[commentId];
-    
-    if (currentAction === 'dislike') {
-        comment.dislikes = Math.max(0, comment.dislikes - 1);
-        delete userActions[commentId];
-    } else if (currentAction === 'like') {
-        comment.dislikes += 1;
-        comment.likes = Math.max(0, comment.likes - 1);
-        userActions[commentId] = 'dislike';
-    } else {
-        comment.dislikes += 1;
-        userActions[commentId] = 'dislike';
-    }
-    
-    localStorage.setItem('commentActions', JSON.stringify(userActions));
-    renderComments();
-}
-
-// Menyu
-function toggleMenu(commentId) {
-    document.querySelectorAll('.dropdown-menu').forEach(menu => {
-        menu.style.display = 'none';
-    });
-    
-    const menu = document.getElementById(`menu-${commentId}`);
-    if (menu) {
-        menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+// Javob berish formasini ochish/yopish
+function toggleReplyForm(commentId) {
+    const replyForm = document.getElementById(`reply-form-${commentId}`);
+    if (replyForm) {
+        if (currentReplyId === commentId) {
+            replyForm.classList.remove('show');
+            currentReplyId = null;
+        } else {
+            document.querySelectorAll('.reply-form').forEach(f => f.classList.remove('show'));
+            replyForm.classList.add('show');
+            currentReplyId = commentId;
+            setTimeout(() => {
+                document.getElementById(`reply-input-${commentId}`).focus();
+            }, 100);
+        }
     }
 }
 
-// Tahrirlash
-function editComment(commentId) {
-    const comment = findCommentRecursive(comments, commentId);
-    if (comment) {
-        currentEditId = commentId;
-        document.getElementById('edit-input').value = comment.text;
-        document.getElementById('edit-modal').style.display = 'flex';
-    }
-}
-
-// O'chirish
-function deleteComment(commentId) {
-    if (confirm("Bu fikrni o'chirishni istaysizmi?")) {
-        removeCommentRecursive(comments, commentId);
-        delete userActions[commentId];
-        localStorage.setItem('commentActions', JSON.stringify(userActions));
-        renderComments();
-    }
-}
-
-// Javob berish formasi
-function toggleReplyBox(id) {
-    const box = document.getElementById(`reply-box-${id}`);
-    if (box.innerHTML !== '') {
-        box.innerHTML = '';
-        return;
-    }
-    
-    document.querySelectorAll('[id^="reply-box-"]').forEach(el => el.innerHTML = '');
-
-    const target = findCommentRecursive(comments, id);
-    const mention = target ? `@${target.author} ` : '';
-
-    box.innerHTML = `
-        <div style="display:flex; gap:10px; margin-top:12px;">
-            <div class="user-avatar-small user-avatar-reply">M</div>
-            <div style="flex:1; position: relative;">
-                <input type="text" id="input-${id}" class="comment-input" value="${mention}" style="width:100%; background: transparent; border: none; border-bottom: 1px solid #3f3f3f; color: #fff; padding: 8px 0; outline: none;">
-                <div style="display:flex; gap:8px; margin-top:8px;">
-                    <button id="btn-reply-${id}" style="padding: 6px 12px; background: #0095f6; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px;" onclick="submitReply(${id})">Yuborish</button>
-                    <button style="padding: 6px 12px; background: transparent; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 12px;" onclick="toggleReplyBox(${id})">Bekor qilish</button>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    setTimeout(() => {
-        const inp = document.getElementById(`input-${id}`);
-        inp.focus();
-        inp.setSelectionRange(inp.value.length, inp.value.length);
-    }, 50);
-}
-
-// Javob yuborish
-function submitReply(parentId) {
-    const input = document.getElementById(`input-${parentId}`);
-    const btn = document.getElementById(`btn-reply-${parentId}`);
-    const text = input.value.trim();
-    
+// Javob qo'shish
+function addReply(commentId, text, replyToAuthor) {
     if (!text) return;
-
-    btn.disabled = true;
-    btn.innerHTML = `<div class="spinner"></div> Yuborilmoqda...`;
-
-    setTimeout(() => {
-        const target = findCommentRecursive(comments, parentId);
-        if (target) {
-            target.replies.push({
-                id: Date.now(),
-                author: currentUser,
-                avatar: null,
-                text: text,
-                time: 'hozirgina',
-                likes: 0,
-                dislikes: 0,
-                replies: [],
-                replyTo: target.author
-            });
-            renderComments();
-        }
-    }, 1000);
-}
-
-// Yordamchi funksiyalar
-function findCommentRecursive(list, id) {
-    for (let item of list) {
-        if (item.id === id) return item;
-        if (item.replies.length > 0) {
-            const found = findCommentRecursive(item.replies, id);
-            if (found) return found;
-        }
+    
+    const comment = comments.find(c => c.id === commentId);
+    if (comment) {
+        const newReply = {
+            id: Date.now(),
+            author: 'Siz',
+            avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80',
+            text: text,
+            time: 'hozirgina',
+            likes: 0,
+            liked: false,
+            replyTo: replyToAuthor
+        };
+        
+        comment.replies.push(newReply);
+        currentReplyId = null;
+        renderComments();
+        showNotification('Javobingiz qo\'shildi');
     }
-    return null;
-}
-
-function removeCommentRecursive(list, id) {
-    for (let i = 0; i < list.length; i++) {
-        if (list[i].id === id) {
-            list.splice(i, 1);
-            return true;
-        }
-        if (list[i].replies.length > 0) {
-            const removed = removeCommentRecursive(list[i].replies, id);
-            if (removed) return true;
-        }
-    }
-    return false;
 }
 
 // Yangi fikr qo'shish
@@ -395,29 +254,23 @@ function addComment() {
     
     if (!text) return;
     
-    const btn = document.getElementById('commentSendBtn');
-    btn.disabled = true;
-    btn.innerHTML = '<div class="spinner"></div> Yuborilmoqda...';
+    const newComment = {
+        id: Date.now(),
+        author: 'Siz',
+        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80',
+        text: text,
+        time: 'hozirgina',
+        likes: 0,
+        liked: false,
+        replies: []
+    };
     
-    setTimeout(() => {
-        const newComment = {
-            id: Date.now(),
-            author: currentUser,
-            avatar: null,
-            text: text,
-            time: 'hozirgina',
-            likes: 0,
-            dislikes: 0,
-            replies: []
-        };
-        
-        comments.unshift(newComment);
-        input.value = '';
-        btn.innerHTML = 'Yuborish';
-        btn.disabled = true;
-        renderComments();
-        showNotification('Fikringiz qo\'shildi');
-    }, 1000);
+    comments.unshift(newComment);
+    input.value = '';
+    document.getElementById('commentSendBtn').disabled = true;
+    document.getElementById('commentSendBtn').classList.remove('active');
+    renderComments();
+    showNotification('Fikringiz qo\'shildi');
 }
 
 // Hisoblagichlarni yangilash
@@ -485,6 +338,11 @@ const commentSendBtn = document.getElementById('commentSendBtn');
 
 commentInput.addEventListener('input', () => {
     commentSendBtn.disabled = !commentInput.value.trim();
+    if (commentInput.value.trim()) {
+        commentSendBtn.classList.add('active');
+    } else {
+        commentSendBtn.classList.remove('active');
+    }
 });
 
 commentSendBtn.addEventListener('click', addComment);
