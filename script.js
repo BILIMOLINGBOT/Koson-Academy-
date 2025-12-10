@@ -534,12 +534,16 @@ commentInput.addEventListener('input', () => {
 });
 
 commentInput.addEventListener('keydown', (e) => {
-    // Faqat Enter tugmasi bilan yuborish
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         if (!commentSendBtn.disabled) {
             submitCommentOrReply();
         }
+    }
+    
+    // ESC tugmasi bilan reply mode ni bekor qilish
+    if (e.key === 'Escape' && replyMode.active) {
+        cancelReplyMode();
     }
 });
 
@@ -555,26 +559,6 @@ commentInput.addEventListener('click', () => {
     }
 });
 
-
 // Modal ochilganda focusni inputga o'tkazish
 modal.addEventListener('transitionend', () => {
-    if (modal.classList.contains('show')) {
-        setTimeout(() => {
-            if (!replyMode.active) {
-                commentInput.focus();
-            }
-        }, 100);
-    }
-});
-
-// Global functions for HTML onclick
-window.toggleCommentLike = toggleCommentLike;
-window.startReplyMode = startReplyMode;
-window.cancelReplyMode = cancelReplyMode;
-window.toggleMenu = toggleMenu;
-window.deleteComment = deleteComment;
-
-// Initialize
-document.addEventListener('DOMContentLoaded', () => {
-    loadFromStorage();
-});
+    if (modal.classList.contains('
