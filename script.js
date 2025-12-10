@@ -52,6 +52,16 @@ let state = {
     ]
 };
 
+// REPLY MODE STATE
+let replyMode = {
+    active: false,
+    targetCommentId: null,
+    targetCommentIndex: null,
+    targetAuthor: null,
+    isEditMode: false,
+    originalText: ""
+};
+
 // ========== UTIL FUNCTIONS ==========
 
 function formatTime(date) {
@@ -137,6 +147,68 @@ function updateUI() {
     
     commentsMainCount.textContent = totalComments;
     commentsModalCount.textContent = totalComments;
+    
+    // Reply mode indicator ni yangilash
+    updateReplyModeIndicator();
+}
+
+function updateReplyModeIndicator() {
+    const existingIndicator = document.querySelector('.reply-mode-indicator');
+    if (existingIndicator) existingIndicator.remove();
+    
+    if (replyMode.active) {
+        const indicator = document.createElement('div');
+        indicator.className = 'reply-mode-indicator';
+        
+        if (replyMode.isEditMode) {
+            indicator.innerHTML = `
+                <div class="reply-mode-text">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                    Fikringizni tahrirlash
+                </div>
+                <button class="reply-mode-cancel" onclick="cancelReplyMode()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                    Bekor qilish
+                </button>
+            `;
+        } else {
+            indicator.innerHTML = `
+                <div class="reply-mode-text">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    <span>${replyMode.targetAuthor}</span><span class="reply-mode-author"> ga javob yozyapsiz</span>
+                </div>
+                <button class="reply-mode-cancel" onclick="cancelReplyMode()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                    Bekor qilish
+                </button>
+            `;
+        }
+        
+        // Add indicator to comments list
+        if (commentsList.firstChild) {
+            commentsList.insertBefore(indicator, commentsList.firstChild);
+        } else {
+            commentsList.appendChild(indicator);
+        }
+        
+        // Update input wrapper style
+        document.querySelector('.comment-input-wrapper').classList.add('reply-mode');
+    } else {
+        // Remove reply mode styles
+        const inputWrapper = document.querySelector('.comment-input-wrapper');
+        if (inputWrapper) inputWrapper.classList.remove('reply-mode');
+    }
 }
 
 function createCommentElement(comment, index) {
@@ -144,6 +216,10 @@ function createCommentElement(comment, index) {
     div.className = 'comment-wrapper';
     
     const isMyComment = comment.author === 'Siz';
+    
+    // Format comment text with mentions
+    let formattedText = comment.text;
+    formattedText = formattedText.replace(/@(\w+)/g, '<span class="mention">@$1</span>');
     
     let html = `
     <div class="comment" id="comment-${index}">
@@ -153,16 +229,7 @@ function createCommentElement(comment, index) {
                 <span class="comment-author">${comment.author}</span>
                 <span class="comment-time">${comment.time}</span>
             </div>
-            <div class="comment-text">${comment.text}</div>
-            
-            <!-- Edit Input -->
-            <textarea class="comment-edit-input" id="edit-input-${index}">${comment.text}</textarea>
-            
-            <!-- Edit Actions -->
-            <div class="comment-edit-actions">
-                <button class="btn-edit-cancel" onclick="cancelEdit(${index})">Bekor qilish</button>
-                <button class="btn-edit-save" onclick="saveEdit(${index})">Saqlash</button>
-            </div>
+            <div class="comment-text">${formattedText}</div>
             
             <div class="comment-actions">
                 <button class="comment-action-btn like-btn ${comment.isLiked ? 'active' : ''}" onclick="toggleCommentLike(${index})">
@@ -171,16 +238,8 @@ function createCommentElement(comment, index) {
                     </svg>
                     <span>${comment.likes || 0}</span>
                 </button>
-                <div class="reply-btn" onclick="toggleReplyForm(${index})">Javob berish</div>
-            </div>
-
-            <div class="reply-form-container" id="reply-form-${index}">
-                <div class="reply-input-wrapper">
-                    <textarea class="reply-textarea" id="reply-input-${index}" placeholder="Javob yozing..."></textarea>
-                    <div class="reply-actions">
-                        <button class="btn-cancel" onclick="toggleReplyForm(${index})">Bekor qilish</button>
-                        <button class="btn-reply-submit" onclick="submitReply(${index})">Javob berish</button>
-                    </div>
+                <div class="reply-btn" onclick="startReplyMode(${index}, false, '${comment.author.replace(/'/g, "\\'")}')">
+                    Javob berish
                 </div>
             </div>
         </div>
@@ -190,14 +249,22 @@ function createCommentElement(comment, index) {
             <div class="comment-options-dot"></div><div class="comment-options-dot"></div><div class="comment-options-dot"></div>
         </div>
         <div class="comment-menu" id="menu-${index}">
-            <div class="comment-menu-item comment-menu-edit" onclick="editComment(${index})">Tahrirlash</div>
-            <div class="comment-menu-item comment-menu-delete" onclick="deleteComment(${index})">O'chirish</div>
+            <div class="comment-menu-item comment-menu-edit" onclick="startReplyMode(${index}, true, '${comment.author.replace(/'/g, "\\'")}')">
+                Tahrirlash
+            </div>
+            <div class="comment-menu-item comment-menu-delete" onclick="deleteComment(${index})">
+                O'chirish
+            </div>
         </div>
         ` : ''}
     </div>
 
     <div class="replies-container">
-        ${comment.replies && comment.replies.length > 0 ? comment.replies.map(reply => `
+        ${comment.replies && comment.replies.length > 0 ? comment.replies.map((reply, replyIndex) => {
+            let replyFormattedText = reply.text;
+            replyFormattedText = replyFormattedText.replace(/@(\w+)/g, '<span class="mention">@$1</span>');
+            
+            return `
             <div class="reply-item">
                 <img src="${reply.avatar}" class="comment-avatar">
                 <div class="comment-content">
@@ -205,10 +272,10 @@ function createCommentElement(comment, index) {
                         <span class="comment-author">${reply.author}</span>
                         <span class="comment-time">${reply.time}</span>
                     </div>
-                    <div class="comment-text">${reply.text}</div>
+                    <div class="comment-text">${replyFormattedText}</div>
                 </div>
             </div>
-        `).join('') : ''}
+        `}).join('') : ''}
     </div>
     `;
 
@@ -226,6 +293,9 @@ function renderComments() {
             const el = createCommentElement(comment, index);
             commentsList.appendChild(el);
         });
+        
+        // Reply mode indicator ni qayta joylashtirish
+        updateReplyModeIndicator();
     }
 }
 
@@ -244,41 +314,137 @@ function toggleCommentLike(index) {
     updateUI();
 }
 
-function toggleReplyForm(index) {
-    const form = document.getElementById(`reply-form-${index}`);
-    const input = document.getElementById(`reply-input-${index}`);
+function startReplyMode(index, isEdit = false, author = null) {
+    const comment = state.comments[index];
     
-    if (form.classList.contains('show')) {
-        form.classList.remove('show');
+    // Reply mode ni sozlash
+    replyMode.active = true;
+    replyMode.targetCommentId = comment.id;
+    replyMode.targetCommentIndex = index;
+    replyMode.targetAuthor = author || comment.author;
+    replyMode.isEditMode = isEdit;
+    replyMode.originalText = isEdit ? comment.text : '';
+    
+    if (isEdit) {
+        // Edit mode
+        commentInput.value = comment.text;
+        commentInput.placeholder = "Fikringizni tahrirlang...";
     } else {
-        document.querySelectorAll('.reply-form-container').forEach(f => f.classList.remove('show'));
-        form.classList.add('show');
-        setTimeout(() => input.focus(), 100);
+        // Reply mode
+        commentInput.value = `@${comment.author} `;
+        commentInput.placeholder = `${comment.author} ga javob yozing...`;
     }
+    
+    // Tugmani faollashtiramiz
+    commentSendBtn.disabled = commentInput.value.trim() === '';
+    if (!commentSendBtn.disabled) commentSendBtn.classList.add('active');
+    
+    // Scroll to input
+    commentInput.focus();
+    commentInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    
+    // UI ni yangilash
+    updateReplyModeIndicator();
+    
+    // Menyuni yopish
+    const menu = document.getElementById(`menu-${index}`);
+    if (menu) menu.classList.remove('show');
 }
 
-function submitReply(index) {
-    const input = document.getElementById(`reply-input-${index}`);
-    const text = input.value.trim();
+function cancelReplyMode() {
+    replyMode.active = false;
+    replyMode.targetCommentId = null;
+    replyMode.targetCommentIndex = null;
+    replyMode.targetAuthor = null;
+    replyMode.isEditMode = false;
+    replyMode.originalText = "";
     
-    if (!text) return;
+    // Inputni tozalamiz
+    commentInput.value = '';
+    commentInput.placeholder = 'Fikr bildiring...';
+    commentSendBtn.disabled = true;
+    commentSendBtn.classList.remove('active');
+    
+    // UI ni yangilash
+    updateReplyModeIndicator();
+}
 
-    const reply = {
-        text: text,
-        author: 'Siz',
-        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=880&q=80',
-        time: 'hozirgina',
-        timestamp: Date.now()
-    };
-
-    if (!state.comments[index].replies) state.comments[index].replies = [];
-    state.comments[index].replies.push(reply);
-
-    saveToStorage();
-    input.value = '';
-    toggleReplyForm(index);
-    updateUI();
-    showNotification("Javobingiz qo'shildi");
+function submitCommentOrReply() {
+    const text = commentInput.value.trim();
+    
+    if (!text) {
+        showNotification("Iltimos, matn kiriting");
+        return;
+    }
+    
+    // Spinner effect
+    const originalHtml = commentSendBtn.innerHTML;
+    commentSendBtn.innerHTML = '<div class="loading-spinner"></div>';
+    commentSendBtn.disabled = true;
+    
+    setTimeout(() => {
+        if (replyMode.active) {
+            // Bu reply yoki edit
+            if (replyMode.isEditMode) {
+                // Edit existing comment
+                const comment = state.comments[replyMode.targetCommentIndex];
+                comment.text = text;
+                comment.time = "hozirgina (tahrirlangan)";
+                comment.timestamp = Date.now();
+                
+                saveToStorage();
+                updateUI();
+                showNotification("Fikr muvaffaqiyatli tahrirlandi");
+            } else {
+                // Reply to comment
+                const reply = {
+                    text: text,
+                    author: 'Siz',
+                    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=880&q=80',
+                    time: 'hozirgina',
+                    timestamp: Date.now()
+                };
+                
+                if (!state.comments[replyMode.targetCommentIndex].replies) {
+                    state.comments[replyMode.targetCommentIndex].replies = [];
+                }
+                
+                state.comments[replyMode.targetCommentIndex].replies.push(reply);
+                
+                saveToStorage();
+                updateUI();
+                showNotification("Javobingiz qo'shildi");
+            }
+        } else {
+            // This is a new main comment
+            const newComment = {
+                id: Date.now(),
+                text: text,
+                author: 'Siz',
+                avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=880&q=80',
+                time: 'hozirgina',
+                timestamp: Date.now(),
+                likes: 0,
+                isLiked: false,
+                replies: []
+            };
+            
+            state.comments.unshift(newComment);
+            saveToStorage();
+            updateUI();
+            showNotification("Fikr muvaffaqiyatli qo'shildi");
+        }
+        
+        // Reset after submission
+        cancelReplyMode();
+        
+        // Reset button
+        commentSendBtn.innerHTML = originalHtml;
+        commentInput.value = '';
+        commentInput.style.height = 'auto';
+        commentSendBtn.disabled = true;
+        commentSendBtn.classList.remove('active');
+    }, 600);
 }
 
 function toggleMenu(e, index) {
@@ -300,75 +466,6 @@ function deleteComment(index) {
         updateUI();
         showNotification("Fikr o'chirildi");
     }
-}
-
-function editComment(index) {
-    const comment = state.comments[index];
-    const commentEl = document.getElementById(`comment-${index}`);
-    
-    // Matnni o'zgartirish maydoniga aylantiramiz
-    const textEl = commentEl.querySelector('.comment-text');
-    const inputEl = commentEl.querySelector('.comment-edit-input');
-    const editActionsEl = commentEl.querySelector('.comment-edit-actions');
-    
-    textEl.classList.add('edit-mode');
-    inputEl.value = comment.text;
-    inputEl.classList.add('show');
-    editActionsEl.classList.add('show');
-    inputEl.focus();
-    
-    // Menyuni yopish
-    document.getElementById(`menu-${index}`).classList.remove('show');
-}
-
-function cancelEdit(index) {
-    const commentEl = document.getElementById(`comment-${index}`);
-    const textEl = commentEl.querySelector('.comment-text');
-    const inputEl = commentEl.querySelector('.comment-edit-input');
-    const editActionsEl = commentEl.querySelector('.comment-edit-actions');
-    
-    textEl.classList.remove('edit-mode');
-    inputEl.classList.remove('show');
-    editActionsEl.classList.remove('show');
-}
-
-function saveEdit(index) {
-    const commentEl = document.getElementById(`comment-${index}`);
-    const inputEl = commentEl.querySelector('.comment-edit-input');
-    const newText = inputEl.value.trim();
-    
-    if (!newText) {
-        showNotification("Matn bo'sh bo'lishi mumkin emas");
-        return;
-    }
-    
-    // Simulatsiya qilamiz
-    const saveBtn = commentEl.querySelector('.btn-edit-save');
-    const originalText = saveBtn.textContent;
-    saveBtn.textContent = "Saqlanmoqda...";
-    saveBtn.disabled = true;
-    
-    setTimeout(() => {
-        state.comments[index].text = newText;
-        state.comments[index].time = "hozirgina (tahrirlangan)";
-        state.comments[index].timestamp = Date.now();
-        
-        saveToStorage();
-        
-        // UI ni yangilash
-        const textEl = commentEl.querySelector('.comment-text');
-        const editActionsEl = commentEl.querySelector('.comment-edit-actions');
-        
-        textEl.textContent = newText;
-        textEl.classList.remove('edit-mode');
-        inputEl.classList.remove('show');
-        editActionsEl.classList.remove('show');
-        
-        saveBtn.textContent = originalText;
-        saveBtn.disabled = false;
-        
-        showNotification("Fikr muvaffaqiyatli tahrirlandi");
-    }, 600);
 }
 
 // ========== EVENT LISTENERS ==========
@@ -406,6 +503,8 @@ const closeModal = () => {
     setTimeout(() => {
         modal.style.display = 'none';
         document.body.style.overflow = 'auto';
+        // Reply mode ni reset qilish
+        cancelReplyMode();
     }, 300);
 };
 
@@ -418,57 +517,65 @@ window.addEventListener('click', (e) => {
     }
 });
 
-// Add Main Comment
+// Add Main Comment or Reply
 commentInput.addEventListener('input', () => {
     commentInput.style.height = 'auto';
     commentInput.style.height = commentInput.scrollHeight + 'px';
-    commentSendBtn.disabled = commentInput.value.trim() === '';
-    if(commentInput.value.trim() !== '') commentSendBtn.classList.add('active');
-    else commentSendBtn.classList.remove('active');
+    
+    // Validate input
+    const text = commentInput.value.trim();
+    commentSendBtn.disabled = text === '';
+    
+    if (!commentSendBtn.disabled) {
+        commentSendBtn.classList.add('active');
+    } else {
+        commentSendBtn.classList.remove('active');
+    }
+});
+
+commentInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        if (!commentSendBtn.disabled) {
+            submitCommentOrReply();
+        }
+    }
+    
+    // ESC tugmasi bilan reply mode ni bekor qilish
+    if (e.key === 'Escape' && replyMode.active) {
+        cancelReplyMode();
+    }
 });
 
 commentSendBtn.addEventListener('click', () => {
-    const text = commentInput.value.trim();
-    if (!text) return;
+    if (commentSendBtn.disabled) return;
+    submitCommentOrReply();
+});
 
-    commentSendBtn.innerHTML = `<span style="width: 16px; height: 16px; border: 2px solid #fff; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite; display:block;"></span>`;
-    
-    // Simulate network delay
-    setTimeout(() => {
-        const newComment = {
-            text: text,
-            author: 'Siz',
-            avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=880&q=80',
-            time: 'hozirgina',
-            timestamp: Date.now(),
-            likes: 0,
-            isLiked: false,
-            replies: []
-        };
-        
-        state.comments.unshift(newComment);
-        saveToStorage();
-        
-        commentInput.value = '';
-        commentInput.style.height = 'auto';
-        commentSendBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>`;
-        commentSendBtn.disabled = true;
-        commentSendBtn.classList.remove('active');
-        
-        updateUI();
-        showNotification("Fikr muvaffaqiyatli qo'shildi");
-    }, 600);
+// Fikr bildiring bo'limiga bosilganda reply mode ni bekor qilish
+commentInput.addEventListener('click', () => {
+    if (replyMode.active && commentInput.value.trim() === '') {
+        cancelReplyMode();
+    }
+});
+
+// Modal ochilganda focusni inputga o'tkazish
+modal.addEventListener('transitionend', () => {
+    if (modal.classList.contains('show')) {
+        setTimeout(() => {
+            if (!replyMode.active) {
+                commentInput.focus();
+            }
+        }, 100);
+    }
 });
 
 // Global functions for HTML onclick
 window.toggleCommentLike = toggleCommentLike;
-window.toggleReplyForm = toggleReplyForm;
-window.submitReply = submitReply;
+window.startReplyMode = startReplyMode;
+window.cancelReplyMode = cancelReplyMode;
 window.toggleMenu = toggleMenu;
 window.deleteComment = deleteComment;
-window.editComment = editComment;
-window.cancelEdit = cancelEdit;
-window.saveEdit = saveEdit;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
