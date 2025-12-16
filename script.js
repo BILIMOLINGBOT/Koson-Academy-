@@ -24,7 +24,7 @@ let replyMode = {
     originalText: ""
 };
 
-// State (Holat) - Yangi boshlang'ich ma'lumotlar
+// State (Holat)
 let state = {
     heartCount: 12000,
     isHearted: false,
@@ -41,7 +41,6 @@ let state = {
             isLiked: false,
             replies: [
                 {
-                    id: 11,
                     text: "Men ham rozi! Super kontsert bo'lgan.",
                     author: "Farrux S",
                     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=687&q=80",
@@ -107,154 +106,44 @@ function showNotification(message) {
 // ========== STORAGE FUNCTIONS ==========
 
 const saveToStorage = () => {
-    try {
-        // Faqat kerakli ma'lumotlarni saqlaymiz
-        const dataToSave = {
-            heartCount: state.heartCount,
-            isHearted: state.isHearted,
-            isSubscribed: state.isSubscribed,
-            comments: state.comments.map(comment => ({
-                id: comment.id,
-                text: comment.text,
-                author: comment.author,
-                avatar: comment.avatar,
-                time: comment.time,
-                timestamp: comment.timestamp,
-                likes: comment.likes || 0,
-                isLiked: comment.isLiked || false,
-                replies: comment.replies ? comment.replies.map(reply => ({
-                    id: reply.id || Date.now(),
-                    text: reply.text,
-                    author: reply.author,
-                    avatar: reply.avatar,
-                    time: reply.time,
-                    timestamp: reply.timestamp || Date.now(),
-                    likes: reply.likes || 0,
-                    isLiked: reply.isLiked || false
-                })) : []
-            }))
-        };
-        
-        localStorage.setItem('ytVideoReactions', JSON.stringify(dataToSave));
-        console.log('Data saved to localStorage:', dataToSave);
-    } catch (error) {
-        console.error('Error saving to localStorage:', error);
-    }
+    localStorage.setItem('ytVideoReactions', JSON.stringify(state));
 };
 
 const loadFromStorage = () => {
-    try {
-        const savedData = localStorage.getItem('ytVideoReactions');
-        console.log('Loading data from localStorage:', savedData);
+    const savedData = localStorage.getItem('ytVideoReactions');
+    if (savedData) {
+        const parsed = JSON.parse(savedData);
+        state = { ...state, ...parsed };
         
-        if (savedData) {
-            const parsed = JSON.parse(savedData);
+        // Vaqtni formatlash
+        state.comments = state.comments.map(c => {
+            if (c.timestamp) c.time = formatTime(new Date(c.timestamp));
+            if (c.likes === undefined) c.likes = 0;
+            if (c.isLiked === undefined) c.isLiked = false;
+            if (c.replies === undefined) c.replies = [];
             
-            // Asosiy statelarni yangilash
-            state.heartCount = parsed.heartCount !== undefined ? parsed.heartCount : state.heartCount;
-            state.isHearted = parsed.isHearted !== undefined ? parsed.isHearted : state.isHearted;
-            state.isSubscribed = parsed.isSubscribed !== undefined ? parsed.isSubscribed : state.isSubscribed;
-            
-            // Commentlarni yangilash
-            if (parsed.comments && Array.isArray(parsed.comments)) {
-                state.comments = parsed.comments.map(c => {
-                    // Vaqtni formatlash
-                    let time = c.time;
-                    if (c.timestamp) {
-                        time = formatTime(new Date(c.timestamp));
-                    }
-                    
-                    // Replies ni formatlash
-                    let replies = [];
-                    if (c.replies && Array.isArray(c.replies)) {
-                        replies = c.replies.map(r => {
-                            let replyTime = r.time;
-                            if (r.timestamp) {
-                                replyTime = formatTime(new Date(r.timestamp));
-                            }
-                            
-                            return {
-                                id: r.id || Date.now() + Math.random(),
-                                text: r.text,
-                                author: r.author,
-                                avatar: r.avatar,
-                                time: replyTime,
-                                timestamp: r.timestamp || Date.now(),
-                                likes: r.likes || 0,
-                                isLiked: r.isLiked || false
-                            };
-                        });
-                    }
-                    
-                    return {
-                        id: c.id || Date.now() + Math.random(),
-                        text: c.text,
-                        author: c.author,
-                        avatar: c.avatar,
-                        time: time,
-                        timestamp: c.timestamp || Date.now(),
-                        likes: c.likes || 0,
-                        isLiked: c.isLiked || false,
-                        replies: replies
-                    };
+            // Replies uchun ham formatlash
+            if (c.replies) {
+                c.replies = c.replies.map(r => {
+                    if (r.timestamp) r.time = formatTime(new Date(r.timestamp));
+                    if (r.likes === undefined) r.likes = 0;
+                    if (r.isLiked === undefined) r.isLiked = false;
+                    return r;
                 });
             }
-        }
-        
-        console.log('State after loading:', state);
-        updateUI();
-    } catch (error) {
-        console.error('Error loading from localStorage:', error);
-        updateUI(); // Hato bo'lsa ham UI ni yangilash
+            return c;
+        });
     }
+    updateUI();
 };
-
-// ========== COUNT FUNCTIONS ==========
-
-function countAllComments() {
-    let total = state.comments.length; // Asosiy commentlar
-    
-    // Har bir commentdagi replylar sonini qo'shamiz
-    state.comments.forEach(comment => {
-        if (comment.replies && Array.isArray(comment.replies)) {
-            total += comment.replies.length;
-        }
-    });
-    
-    console.log('Total comments count:', total);
-    return total;
-}
-
-function countAllLikes() {
-    let totalLikes = state.heartCount; // Video likes
-    
-    // Commentlar va replylardagi likelarni qo'shamiz
-    state.comments.forEach(comment => {
-        totalLikes += comment.likes || 0;
-        
-        if (comment.replies && Array.isArray(comment.replies)) {
-            comment.replies.forEach(reply => {
-                totalLikes += reply.likes || 0;
-            });
-        }
-    });
-    
-    console.log('Total likes count:', totalLikes);
-    return totalLikes;
-}
 
 // ========== UI RENDER FUNCTIONS ==========
 
 function updateUI() {
-    // Heart count ni yangilash
     heartCountDisplay.textContent = formatNumber(state.heartCount);
-    if (state.isHearted) {
-        heartBtn.classList.add('active');
-    } else {
-        heartBtn.classList.remove('active');
-    }
+    if (state.isHearted) heartBtn.classList.add('active');
+    else heartBtn.classList.remove('active');
 
-    // Subscribe tugmasini yangilash
     if (state.isSubscribed) {
         subscribeBtn.textContent = "Obuna bo'lingan";
         subscribeBtn.classList.add('subscribed');
@@ -263,20 +152,17 @@ function updateUI() {
         subscribeBtn.classList.remove('subscribed');
     }
 
-    // Commentlarni render qilish
     renderComments();
     
     // Jami commentlar sonini hisoblash
-    const totalComments = countAllComments();
+    let totalComments = state.comments.length;
+    state.comments.forEach(c => totalComments += (c.replies ? c.replies.length : 0));
     
-    // Comment sonlarini yangilash
     commentsMainCount.textContent = totalComments;
     commentsModalCount.textContent = totalComments;
     
     // Reply mode indicator ni yangilash
     updateReplyModeIndicator();
-    
-    console.log('UI updated. Total comments:', totalComments);
 }
 
 function updateReplyModeIndicator() {
@@ -480,19 +366,13 @@ function renderComments() {
 
 function toggleCommentLike(index) {
     const comment = state.comments[index];
-    if (!comment.likes) comment.likes = 0;
-    if (comment.isLiked === undefined) comment.isLiked = false;
-    
     if (comment.isLiked) {
         comment.likes--;
         comment.isLiked = false;
-        showNotification("Like olib tashlandi");
     } else {
         comment.likes++;
         comment.isLiked = true;
-        showNotification("Like bosildi");
     }
-    
     saveToStorage();
     updateUI();
 }
@@ -500,18 +380,15 @@ function toggleCommentLike(index) {
 function toggleReplyLike(commentIndex, replyIndex) {
     const reply = state.comments[commentIndex].replies[replyIndex];
     if (!reply.likes) reply.likes = 0;
-    if (reply.isLiked === undefined) reply.isLiked = false;
+    if (!reply.isLiked) reply.isLiked = false;
     
     if (reply.isLiked) {
         reply.likes--;
         reply.isLiked = false;
-        showNotification("Like olib tashlandi");
     } else {
         reply.likes++;
         reply.isLiked = true;
-        showNotification("Like bosildi");
     }
-    
     saveToStorage();
     updateUI();
 }
@@ -599,6 +476,7 @@ function editReply(commentIndex, replyIndex) {
     commentInput.value = reply.text;
     commentInput.placeholder = "Javobingizni tahrirlang...";
     
+    
     // Tugmani faollashtiramiz
     commentSendBtn.disabled = commentInput.value.trim() === '';
     if (!commentSendBtn.disabled) commentSendBtn.classList.add('active');
@@ -670,9 +548,8 @@ function submitCommentOrReply() {
                 }
             } else {
                 if (replyMode.replyToReplyIndex !== undefined) {
-                    // Reply to reply (nested reply)
+                    // Reply to reply (nested reply - hozircha faqat bir darajali reply qilamiz)
                     const reply = {
-                        id: Date.now(),
                         text: text,
                         author: 'Siz',
                         avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=880&q=80',
@@ -694,7 +571,6 @@ function submitCommentOrReply() {
                 } else {
                     // Reply to comment
                     const reply = {
-                        id: Date.now(),
                         text: text,
                         author: 'Siz',
                         avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=880&q=80',
