@@ -13,6 +13,17 @@ const commentsMainCount = document.getElementById('comments-main-count');
 const commentsModalCount = document.getElementById('comments-modal-count');
 const heartCountDisplay = document.getElementById('heart-count');
 
+// REPLY MODE STATE
+let replyMode = {
+    active: false,
+    targetCommentId: null,
+    targetCommentIndex: null,
+    targetAuthor: null,
+    isEditMode: false,
+    replyToReplyIndex: undefined,
+    originalText: ""
+};
+
 // State (Holat)
 let state = {
     heartCount: 12000,
@@ -28,7 +39,17 @@ let state = {
             timestamp: Date.now() - 172800000,
             likes: 24,
             isLiked: false,
-            replies: []
+            replies: [
+                {
+                    text: "Men ham rozi! Super kontsert bo'lgan.",
+                    author: "Farrux S",
+                    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=687&q=80",
+                    time: "3 kun avval",
+                    timestamp: Date.now() - 259200000,
+                    likes: 5,
+                    isLiked: false
+                }
+            ]
         },
         {
             id: 2,
@@ -39,27 +60,9 @@ let state = {
             timestamp: Date.now() - 345600000,
             likes: 18,
             isLiked: false,
-            replies: [
-                {
-                    text: "Men ham rozi! Super kontsert bo'lgan.",
-                    author: "Farrux S",
-                    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=687&q=80",
-                    time: "3 kun avval",
-                    timestamp: Date.now() - 259200000
-                }
-            ]
+            replies: []
         }
     ]
-};
-
-// REPLY MODE STATE
-let replyMode = {
-    active: false,
-    targetCommentId: null,
-    targetCommentIndex: null,
-    targetAuthor: null,
-    isEditMode: false,
-    originalText: ""
 };
 
 // ========== UTIL FUNCTIONS ==========
@@ -118,6 +121,16 @@ const loadFromStorage = () => {
             if (c.likes === undefined) c.likes = 0;
             if (c.isLiked === undefined) c.isLiked = false;
             if (c.replies === undefined) c.replies = [];
+            
+            // Replies uchun ham formatlash
+            if (c.replies) {
+                c.replies = c.replies.map(r => {
+                    if (r.timestamp) r.time = formatTime(new Date(r.timestamp));
+                    if (r.likes === undefined) r.likes = 0;
+                    if (r.isLiked === undefined) r.isLiked = false;
+                    return r;
+                });
+            }
             return c;
         });
     }
@@ -161,23 +174,45 @@ function updateReplyModeIndicator() {
         indicator.className = 'reply-mode-indicator';
         
         if (replyMode.isEditMode) {
-            indicator.innerHTML = `
-                <div class="reply-mode-text">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                    </svg>
-                    Fikringizni tahrirlash
-                </div>
-                <button class="reply-mode-cancel" onclick="cancelReplyMode()">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                    Bekor qilish
-                </button>
-            `;
+            if (replyMode.replyToReplyIndex !== undefined) {
+                // Edit reply mode
+                indicator.innerHTML = `
+                    <div class="reply-mode-text">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                        Javobingizni tahrirlash
+                    </div>
+                    <button class="reply-mode-cancel" onclick="cancelReplyMode()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                        Bekor qilish
+                    </button>
+                `;
+            } else {
+                // Edit comment mode
+                indicator.innerHTML = `
+                    <div class="reply-mode-text">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                        Fikringizni tahrirlash
+                    </div>
+                    <button class="reply-mode-cancel" onclick="cancelReplyMode()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                        Bekor qilish
+                    </button>
+                `;
+            }
         } else {
+            // Reply mode
             indicator.innerHTML = `
                 <div class="reply-mode-text">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -264,8 +299,10 @@ function createCommentElement(comment, index) {
             let replyFormattedText = reply.text;
             replyFormattedText = replyFormattedText.replace(/@(\w+)/g, '<span class="mention">@$1</span>');
             
+            const isMyReply = reply.author === 'Siz';
+            
             return `
-            <div class="reply-item">
+            <div class="reply-item" id="reply-${index}-${replyIndex}">
                 <img src="${reply.avatar}" class="comment-avatar">
                 <div class="comment-content">
                     <div class="comment-header">
@@ -273,7 +310,33 @@ function createCommentElement(comment, index) {
                         <span class="comment-time">${reply.time}</span>
                     </div>
                     <div class="comment-text">${replyFormattedText}</div>
+                    
+                    <div class="comment-actions">
+                        <button class="comment-action-btn like-btn ${reply.isLiked ? 'active' : ''}" onclick="toggleReplyLike(${index}, ${replyIndex})">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+                            </svg>
+                            <span>${reply.likes || 0}</span>
+                        </button>
+                        <div class="reply-btn" onclick="startReplyToReply(${index}, ${replyIndex}, '${reply.author.replace(/'/g, "\\'")}')">
+                            Javob berish
+                        </div>
+                    </div>
                 </div>
+                
+                ${isMyReply ? `
+                <div class="comment-options" onclick="toggleReplyMenu(event, ${index}, ${replyIndex})">
+                    <div class="comment-options-dot"></div><div class="comment-options-dot"></div><div class="comment-options-dot"></div>
+                </div>
+                <div class="comment-menu" id="reply-menu-${index}-${replyIndex}">
+                    <div class="comment-menu-item comment-menu-edit" onclick="editReply(${index}, ${replyIndex})">
+                        Tahrirlash
+                    </div>
+                    <div class="comment-menu-item comment-menu-delete" onclick="deleteReply(${index}, ${replyIndex})">
+                        O'chirish
+                    </div>
+                </div>
+                ` : ''}
             </div>
         `}).join('') : ''}
     </div>
@@ -314,6 +377,22 @@ function toggleCommentLike(index) {
     updateUI();
 }
 
+function toggleReplyLike(commentIndex, replyIndex) {
+    const reply = state.comments[commentIndex].replies[replyIndex];
+    if (!reply.likes) reply.likes = 0;
+    if (!reply.isLiked) reply.isLiked = false;
+    
+    if (reply.isLiked) {
+        reply.likes--;
+        reply.isLiked = false;
+    } else {
+        reply.likes++;
+        reply.isLiked = true;
+    }
+    saveToStorage();
+    updateUI();
+}
+
 function startReplyMode(index, isEdit = false, author = null) {
     const comment = state.comments[index];
     
@@ -323,6 +402,7 @@ function startReplyMode(index, isEdit = false, author = null) {
     replyMode.targetCommentIndex = index;
     replyMode.targetAuthor = author || comment.author;
     replyMode.isEditMode = isEdit;
+    replyMode.replyToReplyIndex = undefined;
     replyMode.originalText = isEdit ? comment.text : '';
     
     if (isEdit) {
@@ -351,12 +431,71 @@ function startReplyMode(index, isEdit = false, author = null) {
     if (menu) menu.classList.remove('show');
 }
 
+function startReplyToReply(commentIndex, replyIndex, author) {
+    const comment = state.comments[commentIndex];
+    const reply = comment.replies[replyIndex];
+    
+    // Reply mode ni sozlash
+    replyMode.active = true;
+    replyMode.targetCommentId = comment.id;
+    replyMode.targetCommentIndex = commentIndex;
+    replyMode.targetAuthor = author || reply.author;
+    replyMode.isEditMode = false;
+    replyMode.replyToReplyIndex = replyIndex;
+    replyMode.originalText = '';
+    
+    // Inputni sozlash
+    commentInput.value = `@${reply.author} `;
+    commentInput.placeholder = `${reply.author} ga javob yozing...`;
+    
+    // Tugmani faollashtiramiz
+    commentSendBtn.disabled = commentInput.value.trim() === '';
+    if (!commentSendBtn.disabled) commentSendBtn.classList.add('active');
+    
+    // Scroll to input
+    commentInput.focus();
+    commentInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    
+    // UI ni yangilash
+    updateReplyModeIndicator();
+}
+
+function editReply(commentIndex, replyIndex) {
+    const reply = state.comments[commentIndex].replies[replyIndex];
+    
+    // Reply mode ni sozlash
+    replyMode.active = true;
+    replyMode.targetCommentId = state.comments[commentIndex].id;
+    replyMode.targetCommentIndex = commentIndex;
+    replyMode.targetAuthor = reply.author;
+    replyMode.isEditMode = true;
+    replyMode.replyToReplyIndex = replyIndex;
+    replyMode.originalText = reply.text;
+    
+    
+    // Inputni sozlash
+    commentInput.value = reply.text;
+    commentInput.placeholder = "Javobingizni tahrirlang...";
+    
+    // Tugmani faollashtiramiz
+    commentSendBtn.disabled = commentInput.value.trim() === '';
+    if (!commentSendBtn.disabled) commentSendBtn.classList.add('active');
+    
+    // Scroll to input
+    commentInput.focus();
+    commentInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    
+    // UI ni yangilash
+    updateReplyModeIndicator();
+}
+
 function cancelReplyMode() {
     replyMode.active = false;
     replyMode.targetCommentId = null;
     replyMode.targetCommentIndex = null;
     replyMode.targetAuthor = null;
     replyMode.isEditMode = false;
+    replyMode.replyToReplyIndex = undefined;
     replyMode.originalText = "";
     
     // Inputni tozalamiz
@@ -386,34 +525,71 @@ function submitCommentOrReply() {
         if (replyMode.active) {
             // Bu reply yoki edit
             if (replyMode.isEditMode) {
-                // Edit existing comment
-                const comment = state.comments[replyMode.targetCommentIndex];
-                comment.text = text;
-                comment.time = "hozirgina (tahrirlangan)";
-                comment.timestamp = Date.now();
-                
-                saveToStorage();
-                updateUI();
-                showNotification("Fikr muvaffaqiyatli tahrirlandi");
-            } else {
-                // Reply to comment
-                const reply = {
-                    text: text,
-                    author: 'Siz',
-                    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=880&q=80',
-                    time: 'hozirgina',
-                    timestamp: Date.now()
-                };
-                
-                if (!state.comments[replyMode.targetCommentIndex].replies) {
-                    state.comments[replyMode.targetCommentIndex].replies = [];
+                if (replyMode.replyToReplyIndex !== undefined) {
+                    // Edit reply
+                    const reply = state.comments[replyMode.targetCommentIndex].replies[replyMode.replyToReplyIndex];
+                    reply.text = text;
+                    reply.time = "hozirgina (tahrirlangan)";
+                    reply.timestamp = Date.now();
+                    
+                    saveToStorage();
+                    updateUI();
+                    showNotification("Javob muvaffaqiyatli tahrirlandi");
+                } else {
+                    // Edit existing comment
+                    const comment = state.comments[replyMode.targetCommentIndex];
+                    comment.text = text;
+                    comment.time = "hozirgina (tahrirlangan)";
+                    comment.timestamp = Date.now();
+                    
+                    saveToStorage();
+                    updateUI();
+                    showNotification("Fikr muvaffaqiyatli tahrirlandi");
                 }
-                
-                state.comments[replyMode.targetCommentIndex].replies.push(reply);
-                
-                saveToStorage();
-                updateUI();
-                showNotification("Javobingiz qo'shildi");
+            } else {
+                if (replyMode.replyToReplyIndex !== undefined) {
+                    // Reply to reply (nested reply - hozircha faqat bir darajali reply qilamiz)
+                    const reply = {
+                        text: text,
+                        author: 'Siz',
+                        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=880&q=80',
+                        time: 'hozirgina',
+                        timestamp: Date.now(),
+                        likes: 0,
+                        isLiked: false
+                    };
+                    
+                    if (!state.comments[replyMode.targetCommentIndex].replies) {
+                        state.comments[replyMode.targetCommentIndex].replies = [];
+                    }
+                    
+                    state.comments[replyMode.targetCommentIndex].replies.push(reply);
+                    
+                    saveToStorage();
+                    updateUI();
+                    showNotification("Javobingiz qo'shildi");
+                } else {
+                    // Reply to comment
+                    const reply = {
+                        text: text,
+                        author: 'Siz',
+                        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=880&q=80',
+                        time: 'hozirgina',
+                        timestamp: Date.now(),
+                        likes: 0,
+                        isLiked: false
+                    };
+                    
+                    if (!state.comments[replyMode.targetCommentIndex].replies) {
+                        state.comments[replyMode.targetCommentIndex].replies = [];
+                    }
+                    
+                    state.comments[replyMode.targetCommentIndex].replies.push(reply);
+                    
+                    saveToStorage();
+                    updateUI();
+                    showNotification("Javobingiz qo'shildi");
+                }
             }
         } else {
             // This is a new main comment
@@ -459,12 +635,33 @@ function toggleMenu(e, index) {
     menu.classList.toggle('show');
 }
 
+function toggleReplyMenu(e, commentIndex, replyIndex) {
+    e.stopPropagation();
+    const menu = document.getElementById(`reply-menu-${commentIndex}-${replyIndex}`);
+    
+    // Boshqa menyularni yopish
+    document.querySelectorAll('.comment-menu').forEach(m => {
+        if (m !== menu) m.classList.remove('show');
+    });
+    
+    menu.classList.toggle('show');
+}
+
 function deleteComment(index) {
     if(confirm("Fikrni o'chirmoqchimisiz?")) {
         state.comments.splice(index, 1);
         saveToStorage();
         updateUI();
         showNotification("Fikr o'chirildi");
+    }
+}
+
+function deleteReply(commentIndex, replyIndex) {
+    if(confirm("Javobingizni o'chirmoqchimisiz?")) {
+        state.comments[commentIndex].replies.splice(replyIndex, 1);
+        saveToStorage();
+        updateUI();
+        showNotification("Javob o'chirildi");
     }
 }
 
@@ -559,7 +756,6 @@ commentInput.addEventListener('click', () => {
     }
 });
 
-
 // Modal ochilganda focusni inputga o'tkazish
 modal.addEventListener('transitionend', () => {
     if (modal.classList.contains('show')) {
@@ -573,10 +769,15 @@ modal.addEventListener('transitionend', () => {
 
 // Global functions for HTML onclick
 window.toggleCommentLike = toggleCommentLike;
+window.toggleReplyLike = toggleReplyLike;
 window.startReplyMode = startReplyMode;
+window.startReplyToReply = startReplyToReply;
+window.editReply = editReply;
 window.cancelReplyMode = cancelReplyMode;
 window.toggleMenu = toggleMenu;
+window.toggleReplyMenu = toggleReplyMenu;
 window.deleteComment = deleteComment;
+window.deleteReply = deleteReply;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
