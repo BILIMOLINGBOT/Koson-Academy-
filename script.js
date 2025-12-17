@@ -477,6 +477,8 @@ function editReply(commentIndex, replyIndex) {
     commentInput.placeholder = "Javobingizni tahrirlang...";
     
     
+    
+    
     // Tugmani faollashtiramiz
     commentSendBtn.disabled = commentInput.value.trim() === '';
     if (!commentSendBtn.disabled) commentSendBtn.classList.add('active');
@@ -783,4 +785,3 @@ window.deleteReply = deleteReply;
 document.addEventListener('DOMContentLoaded', () => {
     loadFromStorage();
 });
-    
