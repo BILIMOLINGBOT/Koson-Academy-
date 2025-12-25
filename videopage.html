@@ -6,32 +6,1562 @@
     <title>Video Ko'rish - YouTube</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* CSS kodi avvalgidek o'zgarishsiz qoladi, faqat qo'shimcha JavaScript qo'shaman */
+        /* ASOSIY STYLELAR */
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+        }
+
+        body { 
+            font-family: 'Roboto', Arial, sans-serif; 
+            background-color: #0f0f0f; 
+            color: #fff; 
+            line-height: 1.5; 
+        }
+
+        .container { 
+            max-width: 1400px; 
+            margin: 0 auto; 
+            padding: 0 16px; 
+        }
+
+        .main-content { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 20px; 
+            padding-top: 20px; 
+        }
+
+        @media (min-width: 1024px) { 
+            .main-content { 
+                flex-direction: row; 
+            } 
+        }
+
+        .video-section { 
+            flex: 1; 
+        }
+
+        .recommended-section { 
+            flex: 0 0 400px; 
+        }
+
+        /* VIDEO PLAYER */
+        .video-player { 
+            position: relative; 
+            width: 100%; 
+            height: 0; 
+            padding-bottom: 56.25%; 
+            background-color: #000; 
+            border-radius: 12px; 
+            overflow: hidden; 
+            margin-bottom: 16px; 
+        }
+
+        .video-thumbnail { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+        }
+
+        .video-overlay { 
+            position: absolute; 
+            top: 50%; 
+            left: 50%; 
+            transform: translate(-50%, -50%); 
+            text-align: center; 
+        }
+
+        .video-title-overlay { 
+            font-size: 48px; 
+            font-weight: 900; 
+            color: #ff0000; 
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7); 
+            margin-bottom: 8px; 
+        }
+
+        .video-year { 
+            font-size: 24px; 
+            color: white; 
+            font-weight: 500; 
+        }
+
+        /* VIDEO INFO */
+        .video-info { 
+            padding: 0 8px; 
+        }
+
+        .video-title { 
+            font-size: 20px; 
+            font-weight: 600; 
+            margin-bottom: 12px; 
+            line-height: 1.4; 
+        }
+
+        /* VIDEO STATS STYLES */
+        .video-stats { 
+            font-size: 14px; 
+            color: #aaa; 
+            margin-bottom: 16px; 
+            display: flex; 
+            align-items: center; 
+            gap: 16px; 
+        }
+
+        .views-count, .upload-time { 
+            display: flex; 
+            align-items: center; 
+            gap: 6px; 
+        }
+
+        .video-stats i { 
+            font-size: 12px; 
+            opacity: 0.7; 
+        }
+
+        /* CHANNEL INFO */
+        .channel-info { 
+            display: flex; 
+            align-items: center; 
+            margin: 16px 0; 
+            padding-bottom: 16px; 
+            border-bottom: 1px solid #272727; 
+        }
+
+        .channel-avatar { 
+            width: 48px; 
+            height: 48px; 
+            border-radius: 50%; 
+            overflow: hidden; 
+            margin-right: 12px; 
+        }
+
+        .channel-avatar img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+        }
+
+        .channel-details { 
+            flex: 1; 
+        }
+
+        .channel-name { 
+            font-weight: 600; 
+            margin-bottom: 4px; 
+        }
+
+        .subscriber-count { 
+            font-size: 14px; 
+            color: #aaa; 
+        }
+
+        .subscribe-btn { 
+            background-color: #cc0000; 
+            color: #fff; 
+            border: none; 
+            padding: 10px 16px; 
+            border-radius: 20px; 
+            cursor: pointer; 
+            font-weight: 500; 
+            font-size: 14px; 
+            transition: background-color 0.2s; 
+        }
+
+        .subscribe-btn:hover { 
+            background-color: #ff0000; 
+        }
+
+        .subscribe-btn.subscribed { 
+            background-color: #606060; 
+            color: #aaa; 
+        }
+
+        /* ACTIONS - LIKE VA COMMENTS RAQAMLARI YONIDA */
+        .actions { 
+            display: flex; 
+            align-items: center; 
+            justify-content: flex-start; 
+            padding: 12px 0; 
+            border-bottom: 1px solid #272727; 
+            flex-wrap: wrap; 
+            gap: 8px; 
+        }
+
+        .action-item { 
+            display: flex; 
+            align-items: center; 
+            cursor: pointer; 
+            padding: 8px 12px; 
+            border-radius: 20px; 
+            transition: background-color 0.2s; 
+            flex-shrink: 0; 
+            gap: 8px; 
+            height: 40px; 
+        }
+
+        .action-item:hover { 
+            background-color: #272727; 
+        }
+
+        .action-icon { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 20px; 
+            width: 24px; 
+            height: 24px; 
+        }
+
+        /* Comments ikonkasi rangi - OQ */
+        #comments-btn .action-icon i { 
+            color: #fff !important; 
+            font-size: 20px; 
+        }
+
+        /* Like ikonkasi rangi - default oq */
+        #heart-btn .action-icon svg { 
+            stroke: #fff; 
+            fill: none; 
+        }
+
+        .action-icon svg { 
+            width: 20px; 
+            height: 20px; 
+        }
+
+        .action-text { 
+            font-size: 14px; 
+            color: #fff; 
+            white-space: nowrap; 
+            font-weight: 500; 
+            display: inline-block !important; 
+        }
+
+        /* Like va Comments raqamlari har doim ko'rinishi kerak */
+        #heart-btn .action-text, 
+        #comments-btn .action-text { 
+            display: inline-block !important; 
+        }
+
+        /* Save va Share tugmalari uchun text ko'rsatish/yo'qotish */
+        #save-btn .action-text, 
+        #share-btn .action-text { 
+            display: inline; 
+        }
+
+        /* Like tugmasi active holati */
+        #heart-btn.active .action-icon svg { 
+            fill: #ff0000 !important; 
+            stroke: #ff0000 !important; 
+        }
+
+        #heart-btn.active .action-text { 
+            color: #ff0000; 
+        }
+
+        /* Comments tugmasi active holati */
+        #comments-btn.active .action-icon i { 
+            color: #3ea6ff !important; 
+        }
+
+        #comments-btn.active .action-text { 
+            color: #3ea6ff; 
+        }
+
+        /* Save tugmasi active holati */
+        #save-btn.active .action-icon svg { 
+            fill: #3ea6ff !important; 
+            stroke: #3ea6ff !important; 
+        }
+
+        /* Desktop uchun */
+        @media (min-width: 769px) { 
+            .action-item { 
+                gap: 8px; 
+                padding: 8px 16px; 
+            } 
+            
+            #save-btn .action-text, 
+            #share-btn .action-text { 
+                display: inline !important; 
+            } 
+        }
+
+        /* Mobile uchun */
+        @media (max-width: 768px) { 
+            .actions { 
+                justify-content: space-between; 
+                padding: 8px 0; 
+            } 
+            
+            .action-item { 
+                flex-direction: row; 
+                align-items: center; 
+                padding: 6px 12px; 
+                min-width: auto; 
+                gap: 6px; 
+            } 
+            
+            .action-text { 
+                font-size: 12px; 
+                font-weight: 500; 
+                display: inline-block !important; 
+                margin: 0; 
+            } 
+            
+            #heart-btn .action-text, 
+            #comments-btn .action-text { 
+                display: inline-block !important; 
+            } 
+            
+            .action-icon { 
+                margin: 0; 
+            } 
+            
+            #save-btn .action-text, 
+            #share-btn .action-text { 
+                display: none !important; 
+            } 
+            
+            /* Mobile'da Save va Share uchun faqat icon ko'rsatish */
+            #save-btn, #share-btn {
+                min-width: 40px;
+                justify-content: center;
+                padding: 8px;
+            }
+        }
+
+        /* RECOMMENDED VIDEOS */
+        .recommended-title { 
+            font-size: 18px; 
+            font-weight: 600; 
+            margin-bottom: 16px; 
+            padding: 0 8px; 
+        }
+
+        .recommended-video { 
+            display: flex; 
+            margin-bottom: 16px; 
+            padding: 8px; 
+            border-radius: 8px; 
+            transition: background-color 0.2s; 
+            cursor: pointer; 
+            flex-direction: column; 
+            align-items: flex-start; 
+        }
+
+        .recommended-video:hover { 
+            background-color: #272727; 
+        }
+
+        .recommended-thumbnail { 
+            width: 100%; 
+            margin-bottom: 12px; 
+            border-radius: 8px; 
+            overflow: hidden; 
+            position: relative; 
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            height: 0; 
+        }
+
+        .recommended-thumbnail img { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+            border-radius: 8px; 
+        }
+
+        .recommended-info { 
+            width: 100%; 
+        }
+
+        .recommended-video-title { 
+            font-size: 14px; 
+            font-weight: 500; 
+            margin-bottom: 8px; 
+            line-height: 1.4; 
+            display: -webkit-box; 
+            -webkit-line-clamp: 2; 
+            -webkit-box-orient: vertical; 
+            overflow: hidden; 
+            color: #fff; 
+        }
+
+        .recommended-meta { 
+            font-size: 13px; 
+            color: #aaa; 
+        }
+
+        .recommended-channel { 
+            display: flex; 
+            align-items: center; 
+            margin-bottom: 4px; 
+            gap: 8px; 
+        }
+
+        .recommended-channel-avatar { 
+            width: 24px; 
+            height: 24px; 
+            border-radius: 50%; 
+            object-fit: cover; 
+        }
+
+        .recommended-stats { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 12px; 
+            margin-top: 4px; 
+        }
+
+        .recommended-stats .views, 
+        .recommended-stats .time { 
+            display: flex; 
+            align-items: center; 
+            gap: 4px; 
+            font-size: 12px; 
+        }
+
+        .recommended-stats i { 
+            font-size: 10px; 
+            opacity: 0.7; 
+        }
+
+        /* Desktop uchun recommended video layout */
+        @media (min-width: 769px) { 
+            .recommended-video { 
+                flex-direction: row; 
+                align-items: flex-start; 
+            } 
+            
+            .recommended-thumbnail { 
+                flex: 0 0 168px; 
+                margin-right: 12px; 
+                margin-bottom: 0; 
+                padding-bottom: 94px; /* 168px * (9/16) = 94.5px ≈ 94px */
+                height: 0; 
+                width: auto; 
+            } 
+            
+            .recommended-info { 
+                flex: 1; 
+            } 
+        }
+
+        /* MODAL STYLES */
+        .modal { 
+            display: none; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background-color: rgba(0, 0, 0, 0.9); 
+            z-index: 1000; 
+            overflow-y: auto; 
+            opacity: 0; 
+            transition: opacity 0.3s ease; 
+        }
+
+        .modal.show { 
+            opacity: 1; 
+        }
+
+        .modal-content { 
+            background-color: #0f0f0f; 
+            margin: 0 auto; 
+            max-width: 1000px; 
+            width: 100%; 
+            min-height: 100%; 
+            position: relative; 
+        }
+
+        .modal-video-section { 
+            padding: 20px; 
+            border-bottom: 1px solid #272727; 
+        }
+
+        .modal-video-player { 
+            position: relative; 
+            width: 100%; 
+            height: 0; 
+            padding-bottom: 56.25%; 
+            background-color: #000; 
+            margin-bottom: 16px; 
+            border-radius: 12px; 
+            overflow: hidden; 
+        }
+
+        /* COMMENTS SECTION */
+        .comments-section { 
+            padding: 20px; 
+            padding-bottom: 60px; 
+        }
+
+        .comments-header { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            margin-bottom: 24px; 
+            padding-right: 10px; 
+        }
+
+        .comments-count { 
+            font-weight: 600; 
+            font-size: 18px; 
+        }
+
+        .close-comments-btn { 
+            cursor: pointer; 
+            padding: 8px; 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            transition: background-color 0.2s; 
+            color: #aaa; 
+        }
+
+        .close-comments-btn:hover { 
+            background-color: #272727; 
+            color: #fff; 
+        }
+
+        /* COMMENT STYLES */
+        .comment { 
+            display: flex; 
+            margin-bottom: 16px; 
+            position: relative; 
+        }
+
+        .comment-avatar { 
+            width: 40px; 
+            height: 40px; 
+            border-radius: 50%; 
+            margin-right: 16px; 
+            flex-shrink: 0; 
+            object-fit: cover; 
+        }
+
+        .comment-content { 
+            flex: 1; 
+        }
+
+        .comment-header { 
+            display: flex; 
+            align-items: center; 
+            margin-bottom: 4px; 
+        }
+
+        .comment-author { 
+            font-weight: 500; 
+            margin-right: 10px; 
+            font-size: 13px; 
+        }
+
+        .comment-time { 
+            color: #aaa; 
+            font-size: 12px; 
+        }
+
+        .comment-text { 
+            margin-bottom: 8px; 
+            line-height: 1.4; 
+            white-space: pre-wrap; 
+            font-size: 14px; 
+        }
+
+        /* Comment Actions */
+        .comment-actions { 
+            display: flex; 
+            align-items: center; 
+            gap: 16px; 
+        }
+
+        .comment-action-btn { 
+            display: flex; 
+            align-items: center; 
+            color: #fff; 
+            font-size: 12px; 
+            cursor: pointer; 
+            background: none; 
+            border: none; 
+            padding: 4px 0; 
+            opacity: 0.8; 
+            transition: opacity 0.2s; 
+        }
+
+        .comment-action-btn:hover { 
+            opacity: 1; 
+        }
+
+        .comment-action-btn svg { 
+            margin-right: 6px; 
+            width: 16px; 
+            height: 16px; 
+        }
+
+        .comment-action-btn.active svg { 
+            fill: #fff; 
+        }
+
+        .comment-action-btn.active { 
+            opacity: 1; 
+        }
+
+        .reply-btn { 
+            font-weight: 500; 
+            font-size: 12px; 
+            cursor: pointer; 
+            padding: 6px 12px; 
+            border-radius: 18px; 
+            color: #aaa; 
+            transition: background-color 0.2s; 
+        }
+
+        .reply-btn:hover { 
+            background-color: #272727; 
+            color: #fff; 
+        }
+
+        /* REPLY STYLES */
+        .replies-container { 
+            margin-left: 56px; 
+            margin-top: 8px; 
+            margin-bottom: 16px; 
+        }
+
+        .reply-item { 
+            display: flex; 
+            margin-top: 12px; 
+            position: relative; 
+            padding: 8px; 
+            border-radius: 8px; 
+            transition: background-color 0.2s; 
+        }
+
+        .reply-item:hover { 
+            background-color: rgba(255, 255, 255, 0.05); 
+        }
+
+        .reply-item .comment-avatar { 
+            width: 24px; 
+            height: 24px; 
+            margin-right: 12px; 
+            flex-shrink: 0; 
+        }
+
+        .reply-item .comment-author { 
+            font-size: 12px; 
+            font-weight: 500; 
+        }
+
+        .reply-item .comment-text { 
+            font-size: 13px; 
+            line-height: 1.4; 
+            margin-bottom: 6px; 
+        }
+
+        .reply-item .comment-actions { 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+        }
+
+        .reply-item .comment-action-btn { 
+            font-size: 11px !important; 
+            padding: 2px 6px !important; 
+        }
+
+        .reply-item .comment-action-btn svg { 
+            width: 14px !important; 
+            height: 14px !important; 
+        }
+
+        .reply-item .reply-btn { 
+            font-size: 11px !important; 
+            padding: 4px 8px !important; 
+        }
+
+        .reply-item .comment-options { 
+            position: absolute; 
+            right: 8px; 
+            top: 8px; 
+            width: 24px !important; 
+            height: 24px !important; 
+        }
+
+        .reply-item .comment-options-dot { 
+            width: 3px !important; 
+            height: 3px !important; 
+        }
+
+        /* EDIT MODE STYLES */
+        .comment-text.edit-mode { 
+            display: none; 
+        }
+
+        .comment-edit-input { 
+            width: 100%; 
+            background: transparent; 
+            border: 1px solid #3ea6ff; 
+            border-radius: 4px; 
+            color: #fff; 
+            padding: 8px 12px; 
+            font-size: 14px; 
+            font-family: inherit; 
+            margin-bottom: 8px; 
+            display: none; 
+        }
+
+        .comment-edit-input.show { 
+            display: block; 
+        }
+
+        .comment-edit-actions { 
+            display: flex; 
+            gap: 8px; 
+            margin-top: 8px; 
+            display: none; 
+        }
+
+        .comment-edit-actions.show { 
+            display: flex; 
+        }
+
+        .btn-edit-cancel, 
+        .btn-edit-save { 
+            padding: 6px 12px; 
+            border-radius: 18px; 
+            font-size: 12px; 
+            font-weight: 500; 
+            cursor: pointer; 
+            border: none; 
+        }
+
+        .btn-edit-cancel { 
+            background: transparent; 
+            color: #fff; 
+        }
+
+        .btn-edit-cancel:hover { 
+            background-color: #272727; 
+        }
+
+        .btn-edit-save { 
+            background-color: #3ea6ff; 
+            color: #0f0f0f; 
+        }
+
+        .btn-edit-save:hover { 
+            background-color: #65b8ff; 
+        }
+
+        .btn-edit-save:disabled { 
+            background-color: #303030; 
+            color: #666; 
+            cursor: not-allowed; 
+        }
+
+        
+        /* CONTEXT MENU */
+        .comment-options { 
+            position: absolute; 
+            right: 0; 
+            top: 0; 
+            cursor: pointer; 
+            padding: 4px; 
+            border-radius: 50%; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            width: 32px; 
+            height: 32px; 
+        }
+
+        .comment-options:hover { 
+            background-color: #272727; 
+        }
+
+        .comment-options-dot { 
+            width: 4px; 
+            height: 4px; 
+            background-color: #aaa; 
+            border-radius: 50%; 
+            margin: 1px 0; 
+        }
+
+        .comment-menu { 
+            position: absolute; 
+            top: 30px; 
+            right: 0; 
+            background-color: #303030; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); 
+            z-index: 10; 
+            min-width: 150px; 
+            display: none; 
+        }
+
+        .comment-menu.show { 
+            display: block; 
+        }
+
+        .comment-menu-item { 
+            padding: 12px 16px; 
+            cursor: pointer; 
+            color: #fff; 
+            font-size: 14px; 
+            display: flex; 
+            align-items: center; 
+        }
+
+        .comment-menu-item:hover { 
+            background-color: #444; 
+        }
+
+        .comment-menu-edit { 
+            color: #3ea6ff; 
+        }
+
+        .comment-menu-delete { 
+            color: #ff4d4d; 
+        }
+
+        /* ADD COMMENT */
+        .add-comment { 
+            display: flex; 
+            margin-top: 30px; 
+        }
+
+        .add-comment-avatar { 
+            width: 40px; 
+            height: 40px; 
+            border-radius: 50%; 
+            margin-right: 16px; 
+            flex-shrink: 0; 
+            object-fit: cover; 
+        }
+
+        .comment-input-container { 
+            flex: 1; 
+            position: relative; 
+        }
+
+        .comment-input-wrapper { 
+            display: flex; 
+            align-items: flex-start; 
+            background-color: #272727; 
+            border-radius: 24px; 
+            padding: 12px 16px; 
+            border: 1px solid #272727; 
+            transition: border-color 0.2s; 
+            min-height: 48px; 
+        }
+
+        .comment-input-wrapper:focus-within { 
+            border-color: #3ea6ff; 
+            background-color: #303030; 
+        }
+
+        .comment-input-wrapper.reply-mode { 
+            border-color: #3ea6ff; 
+            background-color: rgba(62, 166, 255, 0.1); 
+        }
+
+        .comment-input { 
+            flex: 1; 
+            width: 100%; 
+            background: transparent; 
+            border: none; 
+            color: #fff; 
+            font-size: 14px; 
+            resize: none; 
+            overflow-y: auto; 
+            min-height: 24px; 
+            max-height: 120px; 
+            line-height: 1.4; 
+            font-family: 'Roboto', Arial, sans-serif; 
+            padding-right: 50px; 
+            padding-left: 8px; 
+        }
+
+        .comment-input:focus { 
+            outline: none; 
+        }
+
+        .comment-send-btn { 
+            position: absolute; 
+            right: 12px; 
+            bottom: 12px; 
+            background: #065fd4; 
+            border: none; 
+            color: #fff; 
+            padding: 0; 
+            border-radius: 50%; 
+            cursor: pointer; 
+            font-weight: 500; 
+            transition: all 0.2s; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            width: 36px; 
+            height: 36px; 
+            opacity: 0.8; 
+        }
+
+        .comment-send-btn:hover:not(:disabled) { 
+            background: #0548a5; 
+            opacity: 1; 
+            transform: scale(1.05); 
+        }
+
+        .comment-send-btn:disabled { 
+            background: #303030; 
+            color: #666; 
+            cursor: not-allowed; 
+            opacity: 0.5; 
+        }
+
+        .comment-send-btn.active { 
+            opacity: 1; 
+            background: #065fd4; 
+        }
+
+        /* REPLY MODE INDICATOR */
+        .reply-mode-indicator {
+            background-color: rgba(62, 166, 255, 0.1);
+            border: 1px solid #3ea6ff;
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: fadeIn 0.3s;
+        }
+
+        .reply-mode-text {
+            font-size: 14px;
+            color: #3ea6ff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .reply-mode-author {
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .reply-mode-cancel {
+            background: transparent;
+            border: none;
+            color: #aaa;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .reply-mode-cancel:hover {
+            color: #fff;
+            background-color: #272727;
+        }
+
+        /* MENTION TAG */
+        .comment-text .mention {
+            color: #3ea6ff;
+            font-weight: 500;
+            background-color: rgba(62, 166, 255, 0.1);
+            padding: 0 4px;
+            border-radius: 4px;
+        }
+
+        /* NOTIFICATION */
+        .notification { 
+            position: fixed; 
+            bottom: 20px; 
+            right: 20px; 
+            background-color: #303030; 
+            color: white; 
+            padding: 12px 20px; 
+            border-radius: 8px; 
+            z-index: 10000; 
+            font-size: 14px; 
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); 
+            transition: all 0.3s ease; 
+            max-width: 300px; 
+        }
+
+        /* UTILITIES */
+        .no-comments { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            padding: 50px 0; 
+            text-align: center; 
+        }
+
+        .no-comments-icon { 
+            font-size: 64px; 
+            margin-bottom: 16px; 
+            opacity: 0.7; 
+        }
+
+        .no-comments-text { 
+            font-size: 16px; 
+            margin-bottom: 8px; 
+        }
+
+        .no-comments-subtext { 
+            color: #aaa; 
+            font-size: 14px; 
+        }
+
+        /* ANIMATIONS */
+        @keyframes fadeIn { 
+            from { 
+                opacity: 0; 
+                transform: translateY(-5px); 
+            } 
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            } 
+        }
+
+        @keyframes spin { 
+            0% { 
+                transform: rotate(0deg); 
+            } 
+            100% { 
+                transform: rotate(360deg); 
+            } 
+        }
+
+        .loading-spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #fff;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: block;
+        }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #272727;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #606060;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #707070;
+        }
+
+        /* MOBILE RESPONSIVE */
+        @media (max-width: 768px) {
+            .modal-content {
+                min-height: 100vh;
+            }
+            
+            .comments-section {
+                padding: 16px;
+                padding-bottom: 80px;
+            }
+            
+            .comment {
+                align-items: flex-start;
+            }
+            
+            .comment-avatar {
+                width: 32px;
+                height: 32px;
+                margin-right: 12px;
+            }
+            
+            .comment-author {
+                font-size: 12px;
+            }
+            
+            .comment-time {
+                font-size: 11px;
+            }
+            
+            .comment-text {
+                font-size: 13px;
+            }
+            
+            .replies-container {
+                margin-left: 44px;
+            }
+            
+            .reply-item .comment-avatar {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .video-stats {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+            }
+            
+            .recommended-thumbnail {
+                padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            }
+        }
+
+        /* Profilga qaytish tugmasi */
+        .back-to-profile {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+            font-size: 20px;
+            transition: background-color 0.2s;
+        }
+
+        .back-to-profile:hover {
+            background-color: rgba(0, 0, 0, 0.9);
+        }
     </style>
 </head>
 <body>
-    <!-- HTML strukturasi avvalgidek qoladi -->
+    <!-- Profilga qaytish tugmasi -->
+    <button class="back-to-profile" id="backToProfile">
+        <i class="fas fa-arrow-left"></i>
+    </button>
+
+    <div class="container">
+        <div class="main-content">
+            <div class="video-section">
+                <div class="video-player">
+                    <img src="" alt="Video Thumbnail" class="video-thumbnail" id="videoThumbnail">
+                    <div class="video-overlay">
+                        <div class="video-title-overlay">VIDEO</div>
+                        <div class="video-year" id="videoYear"></div>
+                    </div>
+                </div>
+                <div class="video-info">
+                    <div class="video-title" id="videoTitleText">Yuklanmoqda...</div>
+                    <div class="video-stats">
+                        <span class="views-count"><i class="fas fa-eye"></i> <span id="viewsCount">0</span> namoyish</span>
+                        <span class="upload-time"><i class="far fa-clock"></i> <span id="uploadTime">hozirgina</span></span>
+                    </div>
+                    
+                    <div class="channel-info">
+                        <div class="channel-avatar">
+                            <img src="https://source.unsplash.com/200x200/?portrait" alt="Channel Avatar">
+                        </div>
+                        <div class="channel-details">
+                            <div class="channel-name" id="channelName">Rashidov Javlonbek</div>
+                            <div class="subscriber-count">72,148 obuna</div>
+                        </div>
+                        <button class="subscribe-btn" id="subscribeBtn">Obuna bo'lish</button>
+                    </div>
+                    
+                    <div class="actions">
+                        <!-- Like button -->
+                        <div class="action-item" id="heart-btn">
+                            <div class="action-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                                </svg>
+                            </div>
+                            <span class="action-text">
+                                <span id="heart-count">0</span>
+                            </span>
+                        </div>
+                        
+                        <!-- Comments button -->
+                        <div class="action-item" id="comments-btn">
+                            <div class="action-icon">
+                                <i class="far fa-comment-alt"></i>
+                            </div>
+                            <span class="action-text">
+                                <span id="comments-main-count">0</span>
+                            </span>
+                        </div>
+                        
+                        <!-- Save button -->
+                        <div class="action-item" id="save-btn">
+                            <div class="action-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path>
+                                </svg>
+                            </div>
+                            <span class="action-text">Saqlash</span>
+                        </div>
+                        
+                        <!-- Share button -->
+                        <div class="action-item" id="share-btn">
+                            <div class="action-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="18" cy="5" r="3"></circle>
+                                    <circle cx="6" cy="12" r="3"></circle>
+                                    <circle cx="18" cy="19" r="3"></circle>
+                                    <line x1="8.59" x2="15.42" y1="13.51" y2="17.49"></line>
+                                    <line x1="15.41" x2="8.59" y1="6.51" y2="10.49"></line>
+                                </svg>
+                            </div>
+                            <span class="action-text">Ulashish</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="recommended-section">
+                <div class="recommended">
+                    <div class="recommended-title">Tavsiya etilgan videolar</div>
+                    
+                    <!-- Recommended videolar JavaScript bilan to'ldiriladi -->
+                    <div id="recommendedVideos"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comments Modal -->
+    <div id="commentsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-video-section">
+                <div class="modal-video-player">
+                    <img src="" alt="Video Thumbnail" class="video-thumbnail" id="modalVideoThumbnail">
+                    <div class="video-overlay">
+                        <div class="video-title-overlay">VIDEO</div>
+                        <div class="video-year" id="modalVideoYear"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="comments-section">
+                <div class="comments-header">
+                    <div class="comments-count"><span id="comments-modal-count">0</span> Fikr</div>
+                    <div class="close-comments-btn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </div>
+                </div>
+                
+                <div class="add-comment">
+                    <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=880&q=80" alt="User Avatar" class="add-comment-avatar">
+                    <div class="comment-input-container">
+                        <div class="comment-input-wrapper">
+                            <textarea class="comment-input" placeholder="Fikr bildiring..." id="commentInput"></textarea>
+                            <button class="comment-send-btn" id="commentSendBtn" disabled>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="commentsList" style="margin-top: 20px;">
+                </div>
+
+                <div class="no-comments" id="no-comments-indicator">
+                    <div class="no-comments-icon">💬</div>
+                    <div class="no-comments-text">Hozircha fikrlar yo'q</div>
+                    <div class="no-comments-subtext">Fikringizni bildirish orqali birinchi bo'ling</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     
     <script>
+        // Elementlarni tanlab olish
+        const backToProfile = document.getElementById('backToProfile');
+        const videoThumbnail = document.getElementById('videoThumbnail');
+        const videoYear = document.getElementById('videoYear');
+        const videoTitleText = document.getElementById('videoTitleText');
+        const viewsCount = document.getElementById('viewsCount');
+        const uploadTime = document.getElementById('uploadTime');
+        const channelName = document.getElementById('channelName');
+        const subscribeBtn = document.getElementById('subscribeBtn');
+        const heartBtn = document.getElementById('heart-btn');
+        const commentsBtn = document.getElementById('comments-btn');
+        const saveBtn = document.getElementById('save-btn');
+        const shareBtn = document.getElementById('share-btn');
+        const heartCount = document.getElementById('heart-count');
+        const commentsMainCount = document.getElementById('comments-main-count');
+        const recommendedVideos = document.getElementById('recommendedVideos');
+        
+        // Modal elementlari
+        const commentsModal = document.getElementById('commentsModal');
+        const closeCommentsBtn = document.querySelector('.close-comments-btn');
+        const commentInput = document.getElementById('commentInput');
+        const commentSendBtn = document.getElementById('commentSendBtn');
+        const commentsList = document.getElementById('commentsList');
+        const noCommentsIndicator = document.getElementById('no-comments-indicator');
+        const commentsModalCount = document.getElementById('comments-modal-count');
+
         // Video ID ni URL dan olish
         const urlParams = new URLSearchParams(window.location.search);
         const videoId = urlParams.get('id');
         
-        // Agar video ID bo'lsa, uni localStorage'dan olish
-        if (videoId) {
-            const videos = JSON.parse(localStorage.getItem('videos')) || [];
-            const video = videos.find(v => v.id == videoId);
+        // Joriy video ma'lumotlari
+        let currentVideo = null;
+        let allVideos = [];
+
+        // Profilga qaytish
+        backToProfile.addEventListener('click', () => {
+            window.location.href = 'profil.html';
+        });
+
+        // Sahifa yuklanganida video ma'lumotlarini yuklash
+        document.addEventListener('DOMContentLoaded', () => {
+            loadVideoData();
+            loadRecommendedVideos();
+        });
+
+        // Video ma'lumotlarini yuklash
+        function loadVideoData() {
+            if (!videoId) {
+                alert('Video topilmadi!');
+                window.location.href = 'profil.html';
+                return;
+            }
             
-            if (video) {
-                // Video ma'lumotlarini sahifaga joylashtirish
-                document.querySelector('.video-title').textContent = video.title;
-                document.querySelector('.video-stats .views-count span').textContent = "0 namoyish";
-                document.querySelector('.upload-time span').textContent = video.date;
+            // LocalStorage'dan videolarni olish
+            allVideos = JSON.parse(localStorage.getItem('videos')) || [];
+            currentVideo = allVideos.find(v => v.id == videoId);
+            
+            if (!currentVideo) {
+                alert('Video topilmadi!');
+                window.location.href = 'profil.html';
+                return;
+            }
+            
+            // Sahifani video ma'lumotlari bilan to'ldirish
+            updateVideoPage();
+        }
+
+        // Sahifani yangilash
+        function updateVideoPage() {
+            videoThumbnail.src = currentVideo.thumbnail || 'https://images.unsplash.com/photo-1571330735066-03aaa9429d89?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80';
+            videoTitleText.textContent = currentVideo.title;
+            viewsCount.textContent = currentVideo.views || 0;
+            uploadTime.textContent = currentVideo.date || "hozirgina";
+            heartCount.textContent = currentVideo.likes || 0;
+            commentsMainCount.textContent = currentVideo.comments ? currentVideo.comments.length : 0;
+            
+            // Sahifa sarlavhasini yangilash
+            document.title = currentVideo.title + " - YouTube";
+            
+            // Comments modal uchun ham to'ldirish
+            document.getElementById('modalVideoThumbnail').src = currentVideo.thumbnail || 'https://images.unsplash.com/photo-1571330735066-03aaa9429d89?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80';
+            document.getElementById('modalVideoYear').textContent = new Date().getFullYear();
+        }
+
+        // Recommended videolarni yuklash
+        function loadRecommendedVideos() {
+            recommendedVideos.innerHTML = '';
+            
+            // Joriy videoni chiqarib tashlab, boshqa videolarni olish
+            const recommended = allVideos
+                .filter(v => v.id != videoId && v.status === 'uploaded')
+                .slice(0, 3); // Faqat 3 ta video
+            
+            if (recommended.length === 0) {
+                recommendedVideos.innerHTML = '<p style="color: #aaa; text-align: center; padding: 20px;">Boshqa videolar yo\'q</p>';
+                return;
+            }
+            
+            recommended.forEach(video => {
+                const videoDiv = document.createElement('div');
+                videoDiv.className = 'recommended-video';
+                videoDiv.addEventListener('click', () => {
+                    window.location.href = `videopage.html?id=${video.id}`;
+                });
                 
-                // Video sarlavhasi
-                document.title = video.title + " - YouTube";
+                videoDiv.innerHTML = `
+                    <div class="recommended-thumbnail">
+                        <img src="${video.thumbnail || 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80'}" alt="Video Thumbnail">
+                    </div>
+                    <div class="recommended-info">
+                        <h3 class="recommended-video-title">${video.title}</h3>
+                        <div class="recommended-meta">
+                            <div class="recommended-channel">
+                                <img src="https://source.unsplash.com/200x200/?portrait" alt="Channel Avatar" class="recommended-channel-avatar">
+                                <span>Rashidov Javlonbek</span>
+                            </div>
+                            <div class="recommended-stats">
+                                <span class="views"><i class="fas fa-eye"></i> ${video.views || 0} namoyish</span>
+                                <span class="time"><i class="far fa-clock"></i> ${video.date || "hozirgina"}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                recommendedVideos.appendChild(videoDiv);
+            });
+        }
+
+        // Like tugmasi
+        heartBtn.addEventListener('click', () => {
+            if (!currentVideo) return;
+            
+            currentVideo.likes = (currentVideo.likes || 0) + 1;
+            heartCount.textContent = currentVideo.likes;
+            
+            // LocalStorage'ni yangilash
+            updateVideoInStorage();
+            
+            // Like tugmasini faollashtirish
+            heartBtn.classList.add('active');
+        });
+
+        // Comments tugmasi
+        commentsBtn.addEventListener('click', () => {
+            commentsModal.style.display = 'block';
+            setTimeout(() => commentsModal.classList.add('show'), 10);
+            document.body.style.overflow = 'hidden';
+            
+            // Comments modal ma'lumotlarini yangilash
+            commentsModalCount.textContent = currentVideo.comments ? currentVideo.comments.length : 0;
+        });
+
+        // Modalni yopish
+        closeCommentsBtn.addEventListener('click', closeModal);
+        
+        function closeModal() {
+            commentsModal.classList.remove('show');
+            setTimeout(() => {
+                commentsModal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }, 300);
+        }
+
+        // Sahifani yangilash
+        window.addEventListener('click', (e) => {
+            if (e.target === commentsModal) closeModal();
+        });
+
+        // Comment qo'shish
+        commentSendBtn.addEventListener('click', addComment);
+        
+        commentInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey && !commentSendBtn.disabled) {
+                e.preventDefault();
+                addComment();
+            }
+        });
+
+        function addComment() {
+            const text = commentInput.value.trim();
+            if (!text || !currentVideo) return;
+            
+            // Yangi comment yaratish
+            const newComment = {
+                id: Date.now(),
+                text: text,
+                author: 'Siz',
+                avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=880&q=80',
+                time: 'hozirgina',
+                timestamp: Date.now(),
+                likes: 0,
+                isLiked: false
+            };
+            
+            // Commentni videoga qo'shish
+            if (!currentVideo.comments) currentVideo.comments = [];
+            currentVideo.comments.push(newComment);
+            
+            // LocalStorage'ni yangilash
+            updateVideoInStorage();
+            
+            // Commentlar sonini yangilash
+            commentsMainCount.textContent = currentVideo.comments.length;
+            commentsModalCount.textContent = currentVideo.comments.length;
+            
+            // Inputni tozalash
+            commentInput.value = '';
+            commentSendBtn.disabled = true;
+            
+            // Commentlar ro'yxatini yangilash
+            alert('Fikr muvaffaqiyatli qo\'shildi!');
+        }
+
+        // LocalStorage'dagi videoni yangilash
+        function updateVideoInStorage() {
+            if (!currentVideo) return;
+            
+            const videoIndex = allVideos.findIndex(v => v.id == currentVideo.id);
+            if (videoIndex !== -1) {
+                allVideos[videoIndex] = currentVideo;
+                localStorage.setItem('videos', JSON.stringify(allVideos));
             }
         }
+
+        // Comment input validatsiyasi
+        commentInput.addEventListener('input', () => {
+            commentSendBtn.disabled = commentInput.value.trim() === '';
+        });
+
+        // Obuna bo'lish tugmasi
+        subscribeBtn.addEventListener('click', () => {
+            subscribeBtn.classList.toggle('subscribed');
+            if (subscribeBtn.classList.contains('subscribed')) {
+                subscribeBtn.textContent = "Obuna bo'lingan";
+                alert("Obuna bo'ldingiz!");
+            } else {
+                subscribeBtn.textContent = "Obuna bo'lish";
+                alert("Obuna bekor qilindi!");
+            }
+        });
+
+        // Saqlash tugmasi
+        saveBtn.addEventListener('click', () => {
+            saveBtn.classList.toggle('active');
+            alert(saveBtn.classList.contains('active') ? "Video saqlandi!" : "Saqlash bekor qilindi!");
+        });
+
+        // Ulashish tugmasi
+        shareBtn.addEventListener('click', () => {
+            const shareUrl = window.location.href;
+            if (navigator.share) {
+                navigator.share({
+                    title: currentVideo.title,
+                    text: currentVideo.title,
+                    url: shareUrl
+                });
+            } else {
+                navigator.clipboard.writeText(shareUrl).then(() => {
+                    alert("Video havolasi nusxalandi!");
+                });
+            }
+        });
     </script>
 </body>
 </html>
