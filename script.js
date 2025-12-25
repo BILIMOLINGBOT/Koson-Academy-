@@ -41,6 +41,7 @@ let state = {
             isLiked: false,
             replies: [
                 {
+                    id: 101,
                     text: "Men ham rozi! Super kontsert bo'lgan.",
                     author: "Farrux S",
                     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=687&q=80",
@@ -140,10 +141,17 @@ const loadFromStorage = () => {
 // ========== UI RENDER FUNCTIONS ==========
 
 function updateUI() {
+    // Like sonini yangilash
     heartCountDisplay.textContent = formatNumber(state.heartCount);
-    if (state.isHearted) heartBtn.classList.add('active');
-    else heartBtn.classList.remove('active');
+    
+    // Like tugmasi holatini yangilash
+    if (state.isHearted) {
+        heartBtn.classList.add('active');
+    } else {
+        heartBtn.classList.remove('active');
+    }
 
+    // Obuna tugmasi holatini yangilash
     if (state.isSubscribed) {
         subscribeBtn.textContent = "Obuna bo'lingan";
         subscribeBtn.classList.add('subscribed');
@@ -152,17 +160,33 @@ function updateUI() {
         subscribeBtn.classList.remove('subscribed');
     }
 
+    // Commentlarni yangilash
     renderComments();
     
-    // Jami commentlar sonini hisoblash
-    let totalComments = state.comments.length;
-    state.comments.forEach(c => totalComments += (c.replies ? c.replies.length : 0));
-    
-    commentsMainCount.textContent = totalComments;
-    commentsModalCount.textContent = totalComments;
+    // Jami commentlar sonini hisoblash va yangilash
+    updateCommentsCount();
     
     // Reply mode indicator ni yangilash
     updateReplyModeIndicator();
+}
+
+// Commentlar sonini yangilash funksiyasi
+function updateCommentsCount() {
+    let totalComments = 0;
+    
+    // Asosiy commentlar
+    totalComments += state.comments.length;
+    
+    // Reply commentlar
+    state.comments.forEach(c => {
+        if (c.replies && c.replies.length > 0) {
+            totalComments += c.replies.length;
+        }
+    });
+    
+    // HTML elementlariga sonlarni joylashtirish
+    commentsMainCount.textContent = formatNumber(totalComments);
+    commentsModalCount.textContent = formatNumber(totalComments);
 }
 
 function updateReplyModeIndicator() {
@@ -271,7 +295,7 @@ function createCommentElement(comment, index) {
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
                     </svg>
-                    <span>${comment.likes || 0}</span>
+                    <span>${formatNumber(comment.likes || 0)}</span>
                 </button>
                 <div class="reply-btn" onclick="startReplyMode(${index}, false, '${comment.author.replace(/'/g, "\\'")}')">
                     Javob berish
@@ -316,7 +340,7 @@ function createCommentElement(comment, index) {
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
                             </svg>
-                            <span>${reply.likes || 0}</span>
+                            <span>${formatNumber(reply.likes || 0)}</span>
                         </button>
                         <div class="reply-btn" onclick="startReplyToReply(${index}, ${replyIndex}, '${reply.author.replace(/'/g, "\\'")}')">
                             Javob berish
@@ -370,9 +394,11 @@ function toggleCommentLike(index) {
     if (comment.isLiked) {
         comment.likes--;
         comment.isLiked = false;
+        showNotification("Like olib tashlandi");
     } else {
         comment.likes++;
         comment.isLiked = true;
+        showNotification("Like bosildi");
     }
     saveToStorage();
     updateUI();
@@ -386,9 +412,11 @@ function toggleReplyLike(commentIndex, replyIndex) {
     if (reply.isLiked) {
         reply.likes--;
         reply.isLiked = false;
+        showNotification("Like olib tashlandi");
     } else {
         reply.likes++;
         reply.isLiked = true;
+        showNotification("Like bosildi");
     }
     saveToStorage();
     updateUI();
@@ -550,6 +578,7 @@ function submitCommentOrReply() {
                 if (replyMode.replyToReplyIndex !== undefined) {
                     // Reply to reply (nested reply - hozircha faqat bir darajali reply qilamiz)
                     const reply = {
+                        id: Date.now(),
                         text: text,
                         author: 'Siz',
                         avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=880&q=80',
@@ -571,6 +600,7 @@ function submitCommentOrReply() {
                 } else {
                     // Reply to comment
                     const reply = {
+                        id: Date.now(),
                         text: text,
                         author: 'Siz',
                         avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=880&q=80',
@@ -667,7 +697,7 @@ function deleteReply(commentIndex, replyIndex) {
 
 // ========== EVENT LISTENERS ==========
 
-// Video Actions
+// Video Like Actions
 heartBtn.addEventListener('click', () => {
     state.isHearted = !state.isHearted;
     state.heartCount += state.isHearted ? 1 : -1;
