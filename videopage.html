@@ -59,13 +59,95 @@
             margin-bottom: 16px; 
         }
 
-        .video-thumbnail { 
-            position: absolute; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
-            object-fit: cover; 
+        .video-player video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background-color: #000;
+        }
+
+        .video-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .video-player:hover .video-controls {
+            opacity: 1;
+        }
+
+        .control-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+            margin: 0 10px;
+            padding: 5px;
+        }
+
+        .control-btn:hover {
+            color: #ff0000;
+        }
+
+        .play-pause-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .time-display {
+            font-size: 14px;
+            color: #fff;
+            margin: 0 10px;
+        }
+
+        .volume-control {
+            display: flex;
+            align-items: center;
+            margin: 0 10px;
+        }
+
+        .volume-slider {
+            width: 80px;
+            margin-left: 10px;
+        }
+
+        .fullscreen-btn {
+            margin-left: auto;
+        }
+
+        /* Progress bar */
+        .progress-container {
+            position: absolute;
+            bottom: 70px;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: #ff0000;
+            width: 0%;
+            transition: width 0.1s;
         }
 
         .video-overlay { 
@@ -74,6 +156,7 @@
             left: 50%; 
             transform: translate(-50%, -50%); 
             text-align: center; 
+            z-index: 2;
         }
 
         .video-title-overlay { 
@@ -333,6 +416,24 @@
                 min-width: 40px;
                 justify-content: center;
                 padding: 8px;
+            }
+
+            .video-controls {
+                padding: 10px;
+            }
+
+            .control-btn {
+                font-size: 18px;
+                margin: 0 5px;
+            }
+
+            .play-pause-btn {
+                width: 40px;
+                height: 40px;
+            }
+
+            .volume-slider {
+                width: 60px;
             }
         }
 
@@ -703,6 +804,7 @@
             height: 3px !important; 
         }
 
+        
         /* EDIT MODE STYLES */
         .comment-text.edit-mode { 
             display: none; 
@@ -770,7 +872,6 @@
             cursor: not-allowed; 
         }
 
-        
         /* CONTEXT MENU */
         .comment-options { 
             position: absolute; 
@@ -1156,6 +1257,40 @@
         .back-to-profile:hover {
             background-color: rgba(0, 0, 0, 0.9);
         }
+
+        /* Video yuklanayotganida loading spinner */
+        .video-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            font-size: 24px;
+            text-align: center;
+        }
+
+        .loading-spinner-large {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #ff0000;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        /* Demo video yozuvi */
+        .demo-notice {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            z-index: 5;
+        }
     </style>
 </head>
 <body>
@@ -1167,12 +1302,37 @@
     <div class="container">
         <div class="main-content">
             <div class="video-section">
-                <div class="video-player">
-                    <img src="" alt="Video Thumbnail" class="video-thumbnail" id="videoThumbnail">
+                <div class="video-player" id="videoPlayer">
+                    <!-- Video bu yerga JavaScript orqali qo'shiladi -->
+                    <div class="video-loading" id="videoLoading">
+                        <div class="loading-spinner-large"></div>
+                        Video yuklanmoqda...
+                    </div>
                     <div class="video-overlay">
                         <div class="video-title-overlay">VIDEO</div>
                         <div class="video-year" id="videoYear"></div>
                     </div>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="progressBar"></div>
+                    </div>
+                    <div class="video-controls">
+                        <button class="control-btn play-pause-btn" id="playPauseBtn">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <span class="time-display" id="currentTime">0:00</span>
+                        <span class="time-display">/</span>
+                        <span class="time-display" id="duration">0:00</span>
+                        <div class="volume-control">
+                            <button class="control-btn" id="volumeBtn">
+                                <i class="fas fa-volume-up"></i>
+                            </button>
+                            <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="100">
+                        </div>
+                        <button class="control-btn fullscreen-btn" id="fullscreenBtn">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                    </div>
+                    <div class="demo-notice" id="demoNotice">Demo video</div>
                 </div>
                 <div class="video-info">
                     <div class="video-title" id="videoTitleText">Yuklanmoqda...</div>
@@ -1253,15 +1413,16 @@
         </div>
     </div>
 
+    
     <!-- Comments Modal -->
     <div id="commentsModal" class="modal">
         <div class="modal-content">
             <div class="modal-video-section">
                 <div class="modal-video-player">
-                    <img src="" alt="Video Thumbnail" class="video-thumbnail" id="modalVideoThumbnail">
-                    <div class="video-overlay">
-                        <div class="video-title-overlay">VIDEO</div>
-                        <div class="video-year" id="modalVideoYear"></div>
+                    <div class="video-player">
+                        <video id="modalVideo" controls>
+                            <!-- Modal uchun video -->
+                        </video>
                     </div>
                 </div>
             </div>
@@ -1302,7 +1463,7 @@
     <script>
         // Elementlarni tanlab olish
         const backToProfile = document.getElementById('backToProfile');
-        const videoThumbnail = document.getElementById('videoThumbnail');
+        const videoPlayer = document.getElementById('videoPlayer');
         const videoYear = document.getElementById('videoYear');
         const videoTitleText = document.getElementById('videoTitleText');
         const viewsCount = document.getElementById('viewsCount');
@@ -1317,6 +1478,18 @@
         const commentsMainCount = document.getElementById('comments-main-count');
         const recommendedVideos = document.getElementById('recommendedVideos');
         
+        // Video control elementlari
+        const videoLoading = document.getElementById('videoLoading');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const currentTime = document.getElementById('currentTime');
+        const duration = document.getElementById('duration');
+        const volumeBtn = document.getElementById('volumeBtn');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const progressBar = document.getElementById('progressBar');
+        const progressContainer = document.querySelector('.progress-container');
+        const demoNotice = document.getElementById('demoNotice');
+        
         // Modal elementlari
         const commentsModal = document.getElementById('commentsModal');
         const closeCommentsBtn = document.querySelector('.close-comments-btn');
@@ -1325,6 +1498,7 @@
         const commentsList = document.getElementById('commentsList');
         const noCommentsIndicator = document.getElementById('no-comments-indicator');
         const commentsModalCount = document.getElementById('comments-modal-count');
+        const modalVideo = document.getElementById('modalVideo');
 
         // Video ID ni URL dan olish
         const urlParams = new URLSearchParams(window.location.search);
@@ -1333,6 +1507,7 @@
         // Joriy video ma'lumotlari
         let currentVideo = null;
         let allVideos = [];
+        let mainVideo = null;
 
         // Profilga qaytish
         backToProfile.addEventListener('click', () => {
@@ -1342,7 +1517,6 @@
         // Sahifa yuklanganida video ma'lumotlarini yuklash
         document.addEventListener('DOMContentLoaded', () => {
             loadVideoData();
-            loadRecommendedVideos();
         });
 
         // Video ma'lumotlarini yuklash
@@ -1365,11 +1539,101 @@
             
             // Sahifani video ma'lumotlari bilan to'ldirish
             updateVideoPage();
+            
+            // Video elementini yaratish
+            createVideoElement();
+            
+            // Recommended videolarni yuklash
+            loadRecommendedVideos();
+        }
+
+        // Video elementini yaratish
+        function createVideoElement() {
+            // Eski video elementini olib tashlash
+            const existingVideo = videoPlayer.querySelector('video');
+            if (existingVideo) {
+                existingVideo.remove();
+            }
+            
+            // Yangi video elementini yaratish
+            mainVideo = document.createElement('video');
+            mainVideo.id = 'mainVideo';
+            mainVideo.preload = 'metadata';
+            mainVideo.playsInline = true;
+            
+            // Agar video URL mavjud bo'lsa, o'sha videoni ko'rsatish
+            if (currentVideo.videoUrl) {
+                mainVideo.src = currentVideo.videoUrl;
+                demoNotice.style.display = 'none';
+            } else {
+                // Demo video URL (agar asl video URL yo'q bo'lsa)
+                mainVideo.src = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
+                demoNotice.style.display = 'block';
+            }
+            
+            // Video event listener'larini qo'shish
+            setupVideoEvents();
+            
+            // Video elementini sahifaga qo'shish
+            videoPlayer.insertBefore(mainVideo, videoLoading);
+            videoLoading.style.display = 'none';
+        }
+
+        // Video event listener'larini sozlash
+        function setupVideoEvents() {
+            if (!mainVideo) return;
+            
+            mainVideo.addEventListener('loadedmetadata', () => {
+                duration.textContent = formatTime(mainVideo.duration);
+            });
+            
+            mainVideo.addEventListener('timeupdate', () => {
+                currentTime.textContent = formatTime(mainVideo.currentTime);
+                const progress = (mainVideo.currentTime / mainVideo.duration) * 100;
+                progressBar.style.width = `${progress}%`;
+            });
+            
+            mainVideo.addEventListener('play', () => {
+                playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                // Video boshlanganda views sonini oshirish
+                if (currentVideo) {
+                    currentVideo.views = (currentVideo.views || 0) + 1;
+                    viewsCount.textContent = currentVideo.views;
+                    updateVideoInStorage();
+                }
+            });
+            
+            mainVideo.addEventListener('pause', () => {
+                playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+            });
+            
+            mainVideo.addEventListener('ended', () => {
+                playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+            });
+            
+            mainVideo.addEventListener('volumechange', () => {
+                const volume = mainVideo.volume * 100;
+                volumeSlider.value = volume;
+                
+                if (volume === 0) {
+                    volumeBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+                } else if (volume < 50) {
+                    volumeBtn.innerHTML = '<i class="fas fa-volume-down"></i>';
+                } else {
+                    volumeBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+                }
+            });
+        }
+
+        // Vaqtni formatlash (mm:ss)
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
         }
 
         // Sahifani yangilash
         function updateVideoPage() {
-            videoThumbnail.src = currentVideo.thumbnail || 'https://images.unsplash.com/photo-1571330735066-03aaa9429d89?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80';
             videoTitleText.textContent = currentVideo.title;
             viewsCount.textContent = currentVideo.views || 0;
             uploadTime.textContent = currentVideo.date || "hozirgina";
@@ -1379,10 +1643,72 @@
             // Sahifa sarlavhasini yangilash
             document.title = currentVideo.title + " - YouTube";
             
-            // Comments modal uchun ham to'ldirish
-            document.getElementById('modalVideoThumbnail').src = currentVideo.thumbnail || 'https://images.unsplash.com/photo-1571330735066-03aaa9429d89?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80';
-            document.getElementById('modalVideoYear').textContent = new Date().getFullYear();
+            // Modal video uchun ham manbaani o'rnatish
+            if (modalVideo) {
+                if (currentVideo.videoUrl) {
+                    modalVideo.src = currentVideo.videoUrl;
+                } else {
+                    modalVideo.src = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
+                }
+            }
         }
+
+        // Video control funksiyalari
+        playPauseBtn.addEventListener('click', () => {
+            if (!mainVideo) return;
+            
+            if (mainVideo.paused) {
+                mainVideo.play();
+            } else {
+                mainVideo.pause();
+            }
+        });
+
+        volumeSlider.addEventListener('input', () => {
+            if (!mainVideo) return;
+            mainVideo.volume = volumeSlider.value / 100;
+        });
+
+        volumeBtn.addEventListener('click', () => {
+            if (!mainVideo) return;
+            
+            if (mainVideo.volume > 0) {
+                mainVideo.volume = 0;
+                volumeSlider.value = 0;
+                volumeBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+            } else {
+                mainVideo.volume = 1;
+                volumeSlider.value = 100;
+                volumeBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+            }
+        });
+
+        progressContainer.addEventListener('click', (e) => {
+            if (!mainVideo) return;
+            
+            const rect = progressContainer.getBoundingClientRect();
+            const pos = (e.clientX - rect.left) / rect.width;
+            mainVideo.currentTime = pos * mainVideo.duration;
+        });
+
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                videoPlayer.requestFullscreen().catch(err => {
+                    console.log(`Fullscreen error: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        });
+
+        // Fullscreen o'zgarishini kuzatish
+        document.addEventListener('fullscreenchange', () => {
+            if (document.fullscreenElement) {
+                fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
+            } else {
+                fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
+            }
+        });
 
         // Recommended videolarni yuklash
         function loadRecommendedVideos() {
@@ -1562,6 +1888,21 @@
                 });
             }
         });
+
+        // Video yuklanayotganda loading spinner ko'rsatish
+        if (mainVideo) {
+            mainVideo.addEventListener('waiting', () => {
+                videoLoading.style.display = 'block';
+            });
+            
+            mainVideo.addEventListener('playing', () => {
+                videoLoading.style.display = 'none';
+            });
+            
+            mainVideo.addEventListener('canplay', () => {
+                videoLoading.style.display = 'none';
+            });
+        }
     </script>
 </body>
 </html>
