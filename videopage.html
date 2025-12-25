@@ -1,37 +1,300 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Ko'rish - YouTube</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        /* CSS kodi avvalgidek o'zgarishsiz qoladi, faqat qo'shimcha JavaScript qo'shaman */
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yangi Video Yuklash</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background-color: #000;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      align-items: flex-start;
+      padding: 20px 0;
+    }
+
+    .video-modal-content {
+      background-color: #000;
+      width: 600px;
+      border-radius: 16px;
+      border: 1px solid #2f3336;
+      overflow: hidden;
+    }
+
+    .video-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 15px;
+      border-bottom: 1px solid #2f3336;
+    }
+
+    .video-cancel-btn, .video-post-btn {
+      background: none;
+      border: none;
+      color: #1da1f2;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .video-post-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .video-modal-title {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .video-form-container {
+      padding: 15px;
+    }
+
+    .video-preview {
+      width: 100%;
+      height: 0;
+      padding-bottom: 56.25%; /* 16:9 nisbat */
+      background-color: #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .video-preview video {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .video-preview-placeholder {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #8b98a5;
+    }
+
+    .video-preview-placeholder svg {
+      margin-bottom: 10px;
+      opacity: 0.7;
+    }
+
+    .video-form-group {
+      margin-bottom: 20px;
+    }
+
+    .video-form-group label {
+      display: block;
+      margin-bottom: 5px;
+      color: #8b98a5;
+      font-size: 14px;
+    }
+
+    .video-form-group input,
+    .video-form-group textarea {
+      width: 100%;
+      background-color: transparent;
+      border: 1px solid #333;
+      border-radius: 4px;
+      padding: 10px;
+      color: #fff;
+      font-size: 16px;
+    }
+
+    .video-form-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .video-form-group input:focus,
+    .video-form-group textarea:focus {
+      border-color: #1da1f2;
+      outline: none;
+    }
+
+    .upload-video-btn {
+      background-color: #1da1f2;
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .upload-video-btn:hover {
+      background-color: #0c84d1;
+    }
+
+    .video-info {
+      color: #8b98a5;
+      font-size: 12px;
+      margin-top: 5px;
+    }
+
+    @media (max-width: 640px) {
+      .video-modal-content {
+        width: 95%;
+      }
+      
+      body {
+        padding: 10px 0;
+      }
+    }
+  </style>
 </head>
 <body>
-    <!-- HTML strukturasi avvalgidek qoladi -->
-    
-    <script>
-        // Video ID ni URL dan olish
-        const urlParams = new URLSearchParams(window.location.search);
-        const videoId = urlParams.get('id');
+
+  <div class="video-modal-content">
+    <div class="video-modal-header">
+      <button class="video-cancel-btn" id="videoCancelBtn">Bekor qilish</button>
+      <div class="video-modal-title">Yangi video yuklash</div>
+      <button class="video-post-btn" id="videoPostBtn" disabled>Saqlash</button>
+    </div>
+    <div class="video-form-container">
+      <div class="video-form-group">
+        <label>Video (16:9 formatda bo'lishi kerak)</label>
+        <div class="video-preview" id="videoPreview">
+          <div class="video-preview-placeholder">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M14 2H6C4.9 2 4.01 2.9 4.01 4L4 20C4 21.1 4.89 22 5.99 22H18C19.1 22 20 21.1 20 20V8L14 2ZM6 20V4H13V9H18V20H6Z" fill="currentColor"/>
+              <path d="M8 12H16V14H8V12ZM8 16H16V18H8V16Z" fill="currentColor"/>
+            </svg>
+            Video yuklang
+            <button class="upload-video-btn" id="uploadVideoBtn" style="margin-top: 15px;">Video yuklash</button>
+          </div>
+        </div>
+        <div class="video-info">Iltimos, 16:9 formatdagi videolarni yuklang (masalan: 1920x1080, 1280x720)</div>
+      </div>
+      <div class="video-form-group">
+        <label for="videoTitle">Sarlavha yozing</label>
+        <input type="text" id="videoTitle" placeholder="Video sarlavhasi...">
+      </div>
+      <div class="video-form-group">
+        <label for="videoKeywords">Kalit soʻzlar</label>
+        <input type="text" id="videoKeywords" placeholder="Kalit so'zlar, vergul bilan ajratilgan...">
+      </div>
+    </div>
+  </div>
+
+  <input type="file" id="videoInput" accept="video/*" style="display: none;">
+
+  <script>
+    const videoCancelBtn = document.getElementById('videoCancelBtn');
+    const videoPostBtn = document.getElementById('videoPostBtn');
+    const uploadVideoBtn = document.getElementById('uploadVideoBtn');
+    const videoInput = document.getElementById('videoInput');
+    const videoPreview = document.getElementById('videoPreview');
+    const videoTitle = document.getElementById('videoTitle');
+    const videoKeywords = document.getElementById('videoKeywords');
+
+    // Yuklash tugmasi
+    uploadVideoBtn.addEventListener('click', () => videoInput.click());
+
+    videoInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        // Video formatini tekshirish
+        const video = document.createElement('video');
+        video.preload = 'metadata';
         
-        // Agar video ID bo'lsa, uni localStorage'dan olish
-        if (videoId) {
-            const videos = JSON.parse(localStorage.getItem('videos')) || [];
-            const video = videos.find(v => v.id == videoId);
-            
-            if (video) {
-                // Video ma'lumotlarini sahifaga joylashtirish
-                document.querySelector('.video-title').textContent = video.title;
-                document.querySelector('.video-stats .views-count span').textContent = "0 namoyish";
-                document.querySelector('.upload-time span').textContent = video.date;
-                
-                // Video sarlavhasi
-                document.title = video.title + " - YouTube";
+        video.onloadedmetadata = function() {
+          window.URL.revokeObjectURL(video.src);
+          const videoRatio = video.videoWidth / video.videoHeight;
+          const targetRatio = 16/9;
+          const ratioDiff = Math.abs(videoRatio - targetRatio);
+          
+          // Agar video 16:9 formatda bo'lmasa, ogohlantirish
+          if (ratioDiff > 0.1) {
+            const confirmUpload = confirm(`Sizning videoning o'lchami ${video.videoWidth}x${video.videoHeight} (${videoRatio.toFixed(2)}:1).\nBu 16:9 (1.78:1) formatda emas. Davom etasizmi?`);
+            if (!confirmUpload) {
+              return;
             }
-        }
-    </script>
+          }
+          
+          // Video yuklash
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            const videoElement = document.createElement('video');
+            videoElement.src = ev.target.result;
+            videoElement.controls = true;
+            videoPreview.innerHTML = '';
+            videoPreview.appendChild(videoElement);
+            videoPostBtn.disabled = false;
+          };
+          reader.readAsDataURL(file);
+        };
+        
+        video.src = URL.createObjectURL(file);
+      }
+    });
+
+    // Bekor qilish - profilga qaytish
+    videoCancelBtn.addEventListener('click', () => {
+      window.location.href = 'profil.html';
+    });
+
+    // Saqlash - video profilda ko'rsatilishi
+    videoPostBtn.addEventListener('click', () => {
+      const file = videoInput.files[0];
+      const title = videoTitle.value.trim() || file?.name || "Noma'lum video";
+      const keywords = videoKeywords.value.trim();
+      
+      if (!file) {
+        alert('Iltimos, video faylni tanlang!');
+        return;
+      }
+      
+      // Progressni boshlash uchun video ma'lumotlarini localStorage'ga saqlash
+      const videoData = {
+        id: Date.now(),
+        title: title,
+        description: keywords,
+        status: 'uploading',
+        startTime: Date.now(),
+        totalTime: 30000, // 30 soniya (simulyatsiya)
+        fileName: file.name,
+        size: file.size,
+        date: new Date().toLocaleDateString('uz-UZ')
+      };
+      
+      // Mavjud videolarni olish yoki yangi ro'yxat yaratish
+      let videos = JSON.parse(localStorage.getItem('videos')) || [];
+      videos.push(videoData);
+      localStorage.setItem('videos', JSON.stringify(videos));
+      
+      console.log('Video yuklandi:', videoData);
+      
+      // Profilga o'tish
+      alert('Video yuklandi! Profilga yo'naltirilmoqda...');
+      window.location.href = 'profil.html';
+    });
+  </script>
+
 </body>
 </html>
