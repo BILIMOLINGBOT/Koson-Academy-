@@ -157,21 +157,6 @@
       margin-top: 5px;
     }
 
-    .char-counter {
-      text-align: right;
-      font-size: 12px;
-      color: #8b98a5;
-      margin-top: 5px;
-    }
-
-    .char-counter.warning {
-      color: #ffad1f;
-    }
-
-    .char-counter.error {
-      color: #e0245e;
-    }
-
     @media (max-width: 640px) {
       .video-modal-content {
         width: 95%;
@@ -208,18 +193,11 @@
       </div>
       <div class="video-form-group">
         <label for="videoTitle">Sarlavha yozing</label>
-        <input type="text" id="videoTitle" placeholder="Video sarlavhasi..." maxlength="100">
-        <div class="char-counter" id="titleCounter">0/100</div>
-      </div>
-      <div class="video-form-group">
-        <label for="videoDescription">Tavsif</label>
-        <textarea id="videoDescription" placeholder="Video tavsifini yozing..." maxlength="500"></textarea>
-        <div class="char-counter" id="descriptionCounter">0/500</div>
+        <input type="text" id="videoTitle" placeholder="Video sarlavhasi...">
       </div>
       <div class="video-form-group">
         <label for="videoKeywords">Kalit soʻzlar</label>
-        <input type="text" id="videoKeywords" placeholder="Kalit so'zlar, vergul bilan ajratilgan..." maxlength="200">
-        <div class="char-counter" id="keywordsCounter">0/200</div>
+        <input type="text" id="videoKeywords" placeholder="Kalit so'zlar, vergul bilan ajratilgan...">
       </div>
     </div>
   </div>
@@ -233,42 +211,7 @@
     const videoInput = document.getElementById('videoInput');
     const videoPreview = document.getElementById('videoPreview');
     const videoTitle = document.getElementById('videoTitle');
-    const videoDescription = document.getElementById('videoDescription');
     const videoKeywords = document.getElementById('videoKeywords');
-    const titleCounter = document.getElementById('titleCounter');
-    const descriptionCounter = document.getElementById('descriptionCounter');
-    const keywordsCounter = document.getElementById('keywordsCounter');
-
-    // Belgilar sonini hisoblash
-    function updateCharCounter(element, counter, maxLength) {
-      const length = element.value.length;
-      counter.textContent = `${length}/${maxLength}`;
-      
-      // Rangni o'zgartirish
-      if (length > maxLength * 0.9) {
-        counter.className = 'char-counter error';
-      } else if (length > maxLength * 0.75) {
-        counter.className = 'char-counter warning';
-      } else {
-        counter.className = 'char-counter';
-      }
-    }
-
-    // Input maydonlarini kuzatish
-    videoTitle.addEventListener('input', () => {
-      updateCharCounter(videoTitle, titleCounter, 100);
-      checkFormValidity();
-    });
-
-    videoDescription.addEventListener('input', () => {
-      updateCharCounter(videoDescription, descriptionCounter, 500);
-      checkFormValidity();
-    });
-
-    videoKeywords.addEventListener('input', () => {
-      updateCharCounter(videoKeywords, keywordsCounter, 200);
-      checkFormValidity();
-    });
 
     // Yuklash tugmasi
     uploadVideoBtn.addEventListener('click', () => videoInput.click());
@@ -302,7 +245,7 @@
             videoElement.controls = true;
             videoPreview.innerHTML = '';
             videoPreview.appendChild(videoElement);
-            checkFormValidity();
+            videoPostBtn.disabled = false;
           };
           reader.readAsDataURL(file);
         };
@@ -311,56 +254,46 @@
       }
     });
 
-    // Form holatini tekshirish (Saqlash tugmasini faollashtirish)
-    function checkFormValidity() {
-      const hasVideo = videoPreview.querySelector('video') !== null;
-      const hasTitle = videoTitle.value.trim() !== '';
-      videoPostBtn.disabled = !(hasVideo && hasTitle);
-    }
-
-    // Bekor qilish
+    // Bekor qilish - profilga qaytish
     videoCancelBtn.addEventListener('click', () => {
-      if (confirm('Yuklashni bekor qilmoqchimisiz? Barcha ma\'lumotlar yo\'qoladi.')) {
-        window.location.href = 'profil.html';
-      }
-    });
-
-    // Saqlash (yuklash simulyatsiyasi)
-    videoPostBtn.addEventListener('click', () => {
-      // Ma'lumotlarni tekshirish
-      if (!videoTitle.value.trim()) {
-        alert('Iltimos, video sarlavhasini kiriting');
-        videoTitle.focus();
-        return;
-      }
-
-      // Video ma'lumotlarini olish
-      const videoElement = videoPreview.querySelector('video');
-      const videoData = videoElement ? videoElement.src : null;
-
-      // localStorage ga saqlash
-      const newVideo = {
-        title: videoTitle.value,
-        description: videoDescription.value,
-        keywords: videoKeywords.value,
-        videoData: videoData, // Video ma'lumotlarini saqlash
-        status: 'uploading',
-        startTime: Date.now(),
-        totalTime: 120000 // 2 daqiqa (120 soniya * 1000 ms) simulyatsiya vaqti
-      };
-
-      let videos = JSON.parse(localStorage.getItem('videos')) || [];
-      videos.push(newVideo);
-      localStorage.setItem('videos', JSON.stringify(videos));
-
-      alert('Video yuklanish jarayoni boshlandi!');
       window.location.href = 'profil.html';
     });
 
-    // Dastlabki belgilar sonini yangilash
-    updateCharCounter(videoTitle, titleCounter, 100);
-    updateCharCounter(videoDescription, descriptionCounter, 500);
-    updateCharCounter(videoKeywords, keywordsCounter, 200);
+    // Saqlash - video profilda ko'rsatilishi
+    videoPostBtn.addEventListener('click', () => {
+      const file = videoInput.files[0];
+      const title = videoTitle.value.trim() || file?.name || "Noma'lum video";
+      const keywords = videoKeywords.value.trim();
+      
+      if (!file) {
+        alert('Iltimos, video faylni tanlang!');
+        return;
+      }
+      
+      // Progressni boshlash uchun video ma'lumotlarini localStorage'ga saqlash
+      const videoData = {
+        id: Date.now(),
+        title: title,
+        description: keywords,
+        status: 'uploading',
+        startTime: Date.now(),
+        totalTime: 30000, // 30 soniya (simulyatsiya)
+        fileName: file.name,
+        size: file.size,
+        date: new Date().toLocaleDateString('uz-UZ')
+      };
+      
+      // Mavjud videolarni olish yoki yangi ro'yxat yaratish
+      let videos = JSON.parse(localStorage.getItem('videos')) || [];
+      videos.push(videoData);
+      localStorage.setItem('videos', JSON.stringify(videos));
+      
+      console.log('Video yuklandi:', videoData);
+      
+      // Profilga o'tish
+      alert('Video yuklandi! Profilga yo'naltirilmoqda...');
+      window.location.href = 'profil.html';
+    });
   </script>
 
 </body>
