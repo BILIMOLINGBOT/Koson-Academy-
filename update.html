@@ -38,7 +38,7 @@
       border-bottom: 1px solid #2f3336;
     }
 
-    .video-cancel-btn, .video-post-btn {
+    .video-cancel-btn {
       background: none;
       border: none;
       color: #1da1f2;
@@ -47,14 +47,10 @@
       cursor: pointer;
     }
 
-    .video-post-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
     .video-modal-title {
       font-size: 18px;
       font-weight: 700;
+      visibility: hidden; /* Matnni yashirish */
     }
 
     .video-form-container {
@@ -145,10 +141,41 @@
       font-weight: 700;
       cursor: pointer;
       transition: background-color 0.2s;
+      margin-top: 10px;
     }
 
     .upload-video-btn:hover {
       background-color: #0c84d1;
+    }
+
+    .upload-video-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      background-color: #1da1f2;
+    }
+
+    .upload-action-btn {
+      background-color: #1da1f2;
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      padding: 12px 30px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    .upload-action-btn:hover {
+      background-color: #0c84d1;
+    }
+
+    .upload-action-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      background-color: #1da1f2;
     }
 
     .video-info {
@@ -172,13 +199,12 @@
 
   <div class="video-modal-content">
     <div class="video-modal-header">
-      <button class="video-cancel-btn" id="videoCancelBtn">Bekor qilish</button>
-      <div class="video-modal-title">Yangi video yuklash</div>
-      <button class="video-post-btn" id="videoPostBtn" disabled>Saqlash</button>
+      <button class="video-cancel-btn" id="videoCancelBtn"></button> <!-- Matn olib tashlandi -->
+      <div class="video-modal-title"></div> <!-- Matn olib tashlandi -->
+      <div style="width: 60px;"></div> <!-- Bo'sh joy -->
     </div>
     <div class="video-form-container">
       <div class="video-form-group">
-        <label>Video (16:9 formatda bo'lishi kerak)</label>
         <div class="video-preview" id="videoPreview">
           <div class="video-preview-placeholder">
             <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -186,19 +212,22 @@
               <path d="M8 12H16V14H8V12ZM8 16H16V18H8V16Z" fill="currentColor"/>
             </svg>
             Video yuklang
-            <button class="upload-video-btn" id="uploadVideoBtn" style="margin-top: 15px;">Video yuklash</button>
+            <button class="upload-video-btn" id="uploadVideoBtn">Video yuklash</button>
           </div>
         </div>
         <div class="video-info">Iltimos, 16:9 formatdagi videolarni yuklang (masalan: 1920x1080, 1280x720)</div>
       </div>
+      
       <div class="video-form-group">
-        <label for="videoTitle">Sarlavha yozing</label>
         <input type="text" id="videoTitle" placeholder="Video sarlavhasi...">
       </div>
+      
       <div class="video-form-group">
-        <label for="videoKeywords">Kalit soʻzlar</label>
         <input type="text" id="videoKeywords" placeholder="Kalit so'zlar, vergul bilan ajratilgan...">
       </div>
+      
+      <!-- Yuklash tugmasi (faqat video tanlangandan keyin ko'rinadi) -->
+      <button class="upload-action-btn" id="finalUploadBtn" disabled>Yuklash</button>
     </div>
   </div>
 
@@ -206,12 +235,12 @@
 
   <script>
     const videoCancelBtn = document.getElementById('videoCancelBtn');
-    const videoPostBtn = document.getElementById('videoPostBtn');
     const uploadVideoBtn = document.getElementById('uploadVideoBtn');
     const videoInput = document.getElementById('videoInput');
     const videoPreview = document.getElementById('videoPreview');
     const videoTitle = document.getElementById('videoTitle');
     const videoKeywords = document.getElementById('videoKeywords');
+    const finalUploadBtn = document.getElementById('finalUploadBtn');
 
     // Yuklash tugmasi
     uploadVideoBtn.addEventListener('click', () => videoInput.click());
@@ -233,6 +262,7 @@
           if (ratioDiff > 0.1) {
             const confirmUpload = confirm(`Sizning videoning o'lchami ${video.videoWidth}x${video.videoHeight} (${videoRatio.toFixed(2)}:1).\nBu 16:9 (1.78:1) formatda emas. Davom etasizmi?`);
             if (!confirmUpload) {
+              videoInput.value = '';
               return;
             }
           }
@@ -245,7 +275,9 @@
             videoElement.controls = true;
             videoPreview.innerHTML = '';
             videoPreview.appendChild(videoElement);
-            videoPostBtn.disabled = false;
+            
+            // Yuklash tugmasini aktivlashtirish
+            finalUploadBtn.disabled = false;
           };
           reader.readAsDataURL(file);
         };
@@ -254,47 +286,39 @@
       }
     });
 
-    // Bekor qilish - profilga qaytish
+    // Bekor qilish
     videoCancelBtn.addEventListener('click', () => {
       window.location.href = 'profil.html';
     });
 
-    // Saqlash - video profilda ko'rsatilishi
-    videoPostBtn.addEventListener('click', () => {
-      const file = videoInput.files[0];
-      const title = videoTitle.value.trim() || file?.name || "Noma'lum video";
+    // Yuklash tugmasi
+    finalUploadBtn.addEventListener('click', () => {
+      // Ma'lumotlarni tekshirish
+      const title = videoTitle.value.trim();
       const keywords = videoKeywords.value.trim();
       
-      if (!file) {
-        alert('Iltimos, video faylni tanlang!');
+      if (!title) {
+        alert('Iltimos, video sarlavhasini kiriting!');
+        videoTitle.focus();
         return;
       }
       
-      // Video ma'lumotlarini yaratish
-      const videoData = {
-        id: Date.now(),
+      // Demo uchun console'ga chiqarish
+      console.log('Video yuklandi:', {
+        file: videoInput.files[0],
         title: title,
-        description: keywords,
-        status: 'uploading',
-        startTime: Date.now(),
-        totalTime: 30000, // 30 soniya (simulyatsiya)
-        fileName: file.name,
-        size: file.size,
-        date: new Date().toLocaleDateString('uz-UZ'),
-        thumbnail: 'https://images.unsplash.com/photo-1571330735066-03aaa9429d89?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80',
-        views: 0,
-        likes: 0,
-        comments: []
-      };
+        keywords: keywords
+      });
       
-      // Mavjud videolarni olish yoki yangi ro'yxat yaratish
-      let videos = JSON.parse(localStorage.getItem('videos')) || [];
-      videos.push(videoData);
-      localStorage.setItem('videos', JSON.stringify(videos));
+      // Yuklash jarayoni (demo)
+      finalUploadBtn.textContent = 'Yuklanmoqda...';
+      finalUploadBtn.disabled = true;
       
-      // Profilga o'tish
-      alert('Video yuklandi! Profilga yo\'naltirilmoqda...');
-      window.location.href = 'profil.html';
+      // Simulyatsiya: 2 soniya kutib, keyin o'tish
+      setTimeout(() => {
+        alert('Video muvaffaqiyatli yuklandi!');
+        window.location.href = 'account.html';
+      }, 2000);
     });
   </script>
 
