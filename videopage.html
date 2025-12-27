@@ -3,442 +3,1137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube - Asosiy sahifa</title>
+    <title>Video Ko'rish - YouTube Clone</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        /* Additional styles for videopage */
+        .video-player {
+            position: relative;
+            width: 100%;
+            height: 0;
+            padding-bottom: 56.25%;
+            background-color: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 16px;
+            cursor: pointer;
         }
 
-        body {
-            background-color: #0f0f0f;
-            color: #fff;
-        }
-
-        .navbar {
-            position: fixed;
+        .video-player video {
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
-            background-color: #0f0f0f;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 1000;
-            border-bottom: 1px solid #2f3336;
-        }
-
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-            color: #ff0000;
-            text-decoration: none;
-        }
-
-        .search-container {
-            flex: 1;
-            max-width: 600px;
-            margin: 0 20px;
-        }
-
-        .search-box {
-            width: 100%;
-            background-color: #121212;
-            border: 1px solid #2f3336;
-            border-radius: 20px;
-            padding: 10px 15px;
-            color: #fff;
-        }
-
-        .nav-user {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .user-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: url('https://source.unsplash.com/200x200/?portrait') no-repeat center/cover;
-            cursor: pointer;
-        }
-
-        .upload-btn {
-            background-color: #ff0000;
-            color: white;
-            border: none;
-            border-radius: 20px;
-            padding: 8px 16px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .main-container {
-            padding-top: 70px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .categories {
-            display: flex;
-            gap: 10px;
-            padding: 15px 20px;
-            overflow-x: auto;
-            border-bottom: 1px solid #2f3336;
-        }
-
-        .category {
-            background-color: #272727;
-            color: #fff;
-            border: none;
-            border-radius: 20px;
-            padding: 8px 16px;
-            font-size: 14px;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-
-        .category.active {
-            background-color: #fff;
-            color: #000;
-        }
-
-        .category:hover {
-            background-color: #3d3d3d;
-        }
-
-        .videos-container {
-            padding: 20px;
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-        }
-
-        .video-card {
-            background-color: #1a1a1a;
-            border-radius: 12px;
-            overflow: hidden;
-            transition: transform 0.2s;
-            cursor: pointer;
-        }
-
-        .video-card:hover {
-            transform: translateY(-5px);
+            height: 100%;
+            object-fit: contain;
         }
 
         .video-thumbnail {
-            width: 100%;
-            height: 180px;
-            position: relative;
-            background-color: #272727;
-            overflow: hidden;
-        }
-
-        .video-thumbnail img {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
 
-        .video-duration {
+        .video-overlay {
             position: absolute;
-            bottom: 8px;
-            right: 8px;
-            background-color: rgba(0, 0, 0, 0.8);
-            color: #fff;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 12px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 2;
+        }
+
+        .video-play-btn {
+            background-color: rgba(255, 0, 0, 0.8);
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .video-play-btn:hover {
+            background-color: rgba(255, 0, 0, 1);
+            transform: scale(1.1);
+        }
+
+        .video-play-btn i {
+            font-size: 32px;
+            color: white;
+            margin-left: 5px;
         }
 
         .video-info {
-            padding: 12px;
-        }
-
-        .video-channel {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 8px;
-        }
-
-        .channel-avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background-color: #333;
+            padding: 0 8px;
         }
 
         .video-title {
-            font-size: 16px;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .video-stats {
+            font-size: 14px;
+            color: #aaa;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .video-actions {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #272727;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .action-item {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 20px;
+            transition: background-color 0.2s;
+            flex-shrink: 0;
+            gap: 8px;
+            background-color: #272727;
+        }
+
+        .action-item:hover {
+            background-color: #3d3d3d;
+        }
+
+        .action-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .action-text {
+            font-size: 14px;
+            color: #fff;
             font-weight: 500;
-            margin-bottom: 5px;
+        }
+
+        .video-description {
+            background-color: #272727;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+
+        .video-description h3 {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+
+        .description-text {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #aaa;
+            white-space: pre-line;
+        }
+
+        .description-meta {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #3d3d3d;
+            font-size: 13px;
+            color: #888;
+        }
+
+        .keywords {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .keyword-tag {
+            background-color: #3d3d3d;
+            color: #aaa;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+
+        /* Recommended videos */
+        .recommended-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            padding: 0 8px;
+        }
+
+        .recommended-video {
+            display: flex;
+            margin-bottom: 16px;
+            padding: 8px;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+            cursor: pointer;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .recommended-video:hover {
+            background-color: #272727;
+        }
+
+        .recommended-thumbnail {
+            width: 100%;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+        }
+
+        .recommended-thumbnail img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .recommended-info {
+            width: 100%;
+        }
+
+        .recommended-video-title {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            line-height: 1.4;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
+            color: #fff;
         }
 
-        .channel-name {
-            font-size: 14px;
+        .recommended-meta {
+            font-size: 13px;
             color: #aaa;
         }
 
-        .video-stats {
-            color: #aaa;
-            font-size: 14px;
-        }
-
-        .no-videos {
-            text-align: center;
-            padding: 60px 20px;
-            color: #aaa;
-            grid-column: 1 / -1;
-        }
-
-        .profile-dropdown {
-            position: absolute;
-            top: 60px;
-            right: 20px;
-            background-color: #000;
-            border: 1px solid #2f3336;
-            border-radius: 8px;
-            min-width: 200px;
-            display: none;
-            z-index: 1001;
-        }
-
-        .profile-dropdown.show {
-            display: block;
-        }
-
-        .dropdown-item {
-            padding: 12px 16px;
-            cursor: pointer;
+        .recommended-channel {
             display: flex;
             align-items: center;
-            gap: 10px;
+            margin-bottom: 4px;
+            gap: 8px;
+        }
+
+        .recommended-channel-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .recommended-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 4px;
+        }
+
+        .recommended-stats span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+        }
+
+        /* Loading state */
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #aaa;
+        }
+
+        .loading i {
+            font-size: 48px;
+            margin-bottom: 20px;
+            opacity: 0.7;
+        }
+
+        /* Error state */
+        .error-state {
+            text-align: center;
+            padding: 50px;
+            color: #ff4444;
+        }
+
+        .error-state i {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        /* Back button */
+        .back-button {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #fff;
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+            margin-bottom: 20px;
+        }
+
+        .back-button:hover {
+            background-color: #272727;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .video-title {
+                font-size: 18px;
+            }
+            
+            .video-stats {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            
+            .video-actions {
+                justify-content: space-between;
+            }
+            
+            .action-item {
+                padding: 8px 12px;
+            }
+            
+            .recommended-video {
+                flex-direction: column;
+            }
+            
+            .recommended-thumbnail {
+                width: 100%;
+                margin-right: 0;
+                margin-bottom: 12px;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .recommended-video {
+                flex-direction: row;
+                align-items: flex-start;
+            }
+            
+            .recommended-thumbnail {
+                flex: 0 0 168px;
+                margin-right: 12px;
+                margin-bottom: 0;
+            }
+            
+            .recommended-info {
+                flex: 1;
+            }
+        }
+
+        /* Comments modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            overflow-y: auto;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.show {
+            opacity: 1;
+        }
+
+        .modal-content {
+            background-color: #0f0f0f;
+            margin: 0 auto;
+            max-width: 1000px;
+            width: 100%;
+            min-height: 100%;
+            position: relative;
+        }
+
+        .comments-section {
+            padding: 20px;
+            padding-bottom: 60px;
+        }
+
+        .comments-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            padding-right: 10px;
+        }
+
+        .comments-count {
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .close-comments-btn {
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
+            color: #aaa;
+        }
+
+        .close-comments-btn:hover {
+            background-color: #272727;
+            color: #fff;
+        }
+
+        .add-comment {
+            display: flex;
+            margin-top: 30px;
+        }
+
+        .add-comment-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 16px;
+            flex-shrink: 0;
+            object-fit: cover;
+        }
+
+        .comment-input-container {
+            flex: 1;
+            position: relative;
+        }
+
+        .comment-input-wrapper {
+            display: flex;
+            align-items: flex-start;
+            background-color: #272727;
+            border-radius: 24px;
+            padding: 12px 16px;
+            border: 1px solid #272727;
+            transition: border-color 0.2s;
+            min-height: 48px;
+        }
+
+        .comment-input-wrapper:focus-within {
+            border-color: #3ea6ff;
+            background-color: #303030;
+        }
+
+        .comment-input {
+            flex: 1;
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 14px;
+            resize: none;
+            overflow-y: auto;
+            min-height: 24px;
+            max-height: 120px;
+            line-height: 1.4;
+            font-family: inherit;
+            padding-right: 50px;
+            padding-left: 8px;
+        }
+
+        .comment-input:focus {
+            outline: none;
+        }
+
+        .comment-send-btn {
+            position: absolute;
+            right: 12px;
+            bottom: 12px;
+            background: #065fd4;
+            border: none;
+            color: #fff;
+            padding: 0;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            opacity: 0.8;
+        }
+
+        .comment-send-btn:hover:not(:disabled) {
+            background: #0548a5;
+            opacity: 1;
+            transform: scale(1.05);
+        }
+
+        .comment-send-btn:disabled {
+            background: #303030;
+            color: #666;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .comment-send-btn.active {
+            opacity: 1;
+            background: #065fd4;
+        }
+
+        .comment {
+            display: flex;
+            margin-bottom: 16px;
+            position: relative;
+        }
+
+        .comment-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 16px;
+            flex-shrink: 0;
+            object-fit: cover;
+        }
+
+        .comment-content {
+            flex: 1;
+        }
+
+        .comment-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .comment-author {
+            font-weight: 500;
+            margin-right: 10px;
+            font-size: 13px;
+        }
+
+        .comment-time {
+            color: #aaa;
+            font-size: 12px;
+        }
+
+        .comment-text {
+            margin-bottom: 8px;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            font-size: 14px;
+        }
+
+        .comment-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .comment-action-btn {
+            display: flex;
+            align-items: center;
+            color: #fff;
+            font-size: 12px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 4px 0;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        .comment-action-btn:hover {
+            opacity: 1;
+        }
+
+        .comment-action-btn svg {
+            margin-right: 6px;
+            width: 16px;
+            height: 16px;
+        }
+
+        .comment-action-btn.active svg {
+            fill: #fff;
+        }
+
+        .reply-btn {
+            font-weight: 500;
+            font-size: 12px;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 18px;
+            color: #aaa;
             transition: background-color 0.2s;
         }
 
-        .dropdown-item:hover {
-            background-color: #1a1a1a;
+        .reply-btn:hover {
+            background-color: #272727;
+            color: #fff;
         }
 
-        @media (max-width: 768px) {
-            .search-container {
-                display: none;
+        .replies-container {
+            margin-left: 56px;
+            margin-top: 8px;
+            margin-bottom: 16px;
+        }
+
+        .reply-item {
+            display: flex;
+            margin-top: 12px;
+            position: relative;
+            padding: 8px;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+        }
+
+        .reply-item:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .no-comments {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 50px 0;
+            text-align: center;
+        }
+
+        .no-comments-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.7;
+        }
+
+        .no-comments-text {
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .no-comments-subtext {
+            color: #aaa;
+            font-size: 14px;
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #ff0000;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            z-index: 10000;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
             }
-            
-            .categories {
-                padding: 10px;
-            }
-            
-            .videos-container {
-                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-                padding: 10px;
+            to {
+                transform: translateX(0);
+                opacity: 1;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Navigation Bar -->
-    <nav class="navbar">
-        <a href="#" class="logo">YouTube</a>
-        <div class="search-container">
-            <input type="text" class="search-box" placeholder="Qidirish...">
-        </div>
-        <div class="nav-user">
-            <button class="upload-btn" onclick="location.href='update.html'">Video yuklash</button>
-            <div class="user-avatar" id="userAvatar"></div>
-        </div>
-        
-        <!-- Profile dropdown -->
-        <div class="profile-dropdown" id="profileDropdown">
-            <div class="dropdown-item" onclick="location.href='profil.html'">
-                <span>👤</span> Mening profilm
-            </div>
-            <div class="dropdown-item" onclick="location.href='#'">
-                <span>🎬</span> Mening videolarim
-            </div>
-            <div class="dropdown-item" onclick="location.href='#'">
-                <span>⚙️</span> Sozlamalar
-            </div>
-            <div class="dropdown-item" onclick="location.href='#'">
-                <span>❓</span> Yordam
-            </div>
-            <div class="dropdown-item" onclick="logout()">
-                <span>🚪</span> Chiqish
-            </div>
-        </div>
-    </nav>
+    <div class="container">
+        <!-- Back button -->
+        <button class="back-button" onclick="goBack()">
+            <i class="fas fa-arrow-left"></i>
+            Orqaga
+        </button>
 
-    <div class="main-container">
-        <div class="categories" id="categories">
-            <!-- Categories loaded by JS -->
-        </div>
-
-        <div class="videos-container" id="videosContainer">
-            <!-- Videos loaded by JS -->
-        </div>
-    </div>
-
-    <script>
-        // DOM elementlari
-        const userAvatar = document.getElementById('userAvatar');
-        const profileDropdown = document.getElementById('profileDropdown');
-        const categoriesDiv = document.getElementById('categories');
-        const videosContainer = document.getElementById('videosContainer');
-
-        // Kategoriyalar
-        const categories = [
-            "Barchasi", "Trend", "Musiqa", "O'yin", "Sport", "Ta'lim", 
-            "Texnologiya", "Komediya", "Film", "Kulinariya"
-        ];
-
-        // Mock video ma'lumotlari
-        const mockVideos = [
-            {
-                id: 1,
-                title: "Ozoda - Eng yaxshi qo'shiqlar to'plami 2024",
-                channel: "Asia Films HD",
-                views: "45.2K",
-                time: "2 oy avval",
-                duration: "1:23:45",
-                thumbnail: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=500&q=60",
-                category: "Musiqa"
-            },
-            {
-                id: 2,
-                title: "Yangi O'zbekiston qo'shiqlari 2025",
-                channel: "Music Uzbekistan",
-                views: "102.7K",
-                time: "1 hafta avval",
-                duration: "45:12",
-                thumbnail: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=500&q=80",
-                category: "Musiqa"
-            },
-            {
-                id: 3,
-                title: "Dasturlashni qanday o'rganish kerak?",
-                channel: "Tech Academy",
-                views: "15.3K",
-                time: "3 kun avval",
-                duration: "25:18",
-                thumbnail: "https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?auto=format&fit=crop&w=500&q=60",
-                category: "Ta'lim"
-            },
-            {
-                id: 4,
-                title: "Eng yangi mobil o'yinlar 2024",
-                channel: "Gaming World",
-                views: "89.4K",
-                time: "1 oy avval",
-                duration: "18:34",
-                thumbnail: "https://images.unsplash.com/photo-1552820728-8b83bb6b773f?auto=format&fit=crop&w=500&q=60",
-                category: "O'yin"
-            }
-        ];
-
-        // User avatar bosilganda
-        userAvatar.addEventListener('click', () => {
-            profileDropdown.classList.toggle('show');
-        });
-
-        // Sahifaning boshqa joyiga bosilganda dropdown yopilishi
-        document.addEventListener('click', (e) => {
-            if (!userAvatar.contains(e.target) && !profileDropdown.contains(e.target)) {
-                profileDropdown.classList.remove('show');
-            }
-        });
-
-        // Kategoriyalarni yuklash
-        function loadCategories() {
-            categoriesDiv.innerHTML = categories.map(cat => 
-                `<button class="category" data-category="${cat}">${cat}</button>`
-            ).join('');
-            
-            // Birinchi kategoriyani aktiv qilish
-            const firstCategory = categoriesDiv.querySelector('.category');
-            if (firstCategory) {
-                firstCategory.classList.add('active');
-            }
-            
-            // Kategoriya bosilganda
-            const categoryButtons = categoriesDiv.querySelectorAll('.category');
-            categoryButtons.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    categoryButtons.forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    loadVideos(btn.dataset.category);
-                });
-            });
-        }
-
-        // Videolarni yuklash
-        function loadVideos(category = "Barchasi") {
-            let filteredVideos = mockVideos;
-            
-            if (category !== "Barchasi") {
-                filteredVideos = mockVideos.filter(video => video.category === category);
-            }
-            
-            if (filteredVideos.length === 0) {
-                videosContainer.innerHTML = `
-                    <div class="no-videos">
-                        <h3>Bu kategoriyada videolar topilmadi</h3>
-                        <p>Boshqa kategoriyani tanlang yoki video yuklang</p>
+        <div class="main-content">
+            <div class="video-section">
+                <!-- Video Player -->
+                <div class="video-player" id="videoPlayer">
+                    <!-- Video will be loaded here -->
+                </div>
+                
+                <!-- Video Info -->
+                <div class="video-info">
+                    <h1 class="video-title" id="videoTitle">Yuklanmoqda...</h1>
+                    
+                    <div class="video-stats" id="videoStats">
+                        <span id="videoViews">0 ko'rish</span>
+                        <span id="videoUploadDate">hozirgina</span>
                     </div>
-                `;
-                return;
-            }
-            
-            videosContainer.innerHTML = filteredVideos.map(video => `
-                <div class="video-card" onclick="watchVideo(${video.id})">
-                    <div class="video-thumbnail">
-                        <img src="${video.thumbnail}" alt="${video.title}">
-                        <span class="video-duration">${video.duration}</span>
+                    
+                    <!-- Channel Info -->
+                    <div class="channel-info">
+                        <div class="channel-avatar" id="channelAvatar"></div>
+                        <div class="channel-details">
+                            <div class="channel-name" id="channelName">Kanal nomi</div>
+                            <div class="subscriber-count" id="subscriberCount">0 obuna</div>
+                        </div>
+                        <button class="subscribe-btn" id="subscribeBtn">Obuna bo'lish</button>
                     </div>
-                    <div class="video-info">
-                        <h3 class="video-title">${video.title}</h3>
-                        <div class="video-channel">
-                            <div class="channel-avatar"></div>
-                            <div>
-                                <div class="channel-name">${video.channel}</div>
-                                <div class="video-stats">${video.views} ko'rish • ${video.time}</div>
+                    
+                    <!-- Video Actions -->
+                    <div class="video-actions">
+                        <div class="action-item" id="likeBtn">
+                            <div class="action-icon">
+                                <i class="far fa-thumbs-up"></i>
+                            </div>
+                            <span class="action-text" id="likeCount">0</span>
+                        </div>
+                        
+                        <div class="action-item" id="dislikeBtn">
+                            <div class="action-icon">
+                                <i class="far fa-thumbs-down"></i>
+                            </div>
+                            <span class="action-text" id="dislikeCount">0</span>
+                        </div>
+                        
+                        <div class="action-item" id="commentsBtn">
+                            <div class="action-icon">
+                                <i class="far fa-comment-alt"></i>
+                            </div>
+                            <span class="action-text" id="commentsCount">0</span>
+                        </div>
+                        
+                        <div class="action-item" id="saveBtn">
+                            <div class="action-icon">
+                                <i class="far fa-bookmark"></i>
+                            </div>
+                            <span class="action-text">Saqlash</span>
+                        </div>
+                        
+                        <div class="action-item" id="shareBtn">
+                            <div class="action-icon">
+                                <i class="fas fa-share"></i>
+                            </div>
+                            <span class="action-text">Ulashish</span>
+                        </div>
+                    </div>
+                    
+                    
+                    <!-- Video Description -->
+                    <div class="video-description" id="videoDescription">
+                        <h3>Tavsif</h3>
+                        <div class="description-text" id="descriptionText">
+                            Video tavsifi yuklanmoqda...
+                        </div>
+                        <div class="description-meta">
+                            <div class="keywords" id="keywordsContainer">
+                                <!-- Keywords will be loaded here -->
                             </div>
                         </div>
                     </div>
                 </div>
-            `).join('');
+            </div>
+            
+            <!-- Recommended Videos -->
+            <div class="recommended-section">
+                <div class="recommended">
+                    <h2 class="recommended-title">Tavsiya etilgan videolar</h2>
+                    <div id="recommendedVideos">
+                        <div class="loading">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>Videolar yuklanmoqda...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comments Modal -->
+    <div id="commentsModal" class="modal">
+        <div class="modal-content">
+            <div class="comments-section">
+                <div class="comments-header">
+                    <div class="comments-count"><span id="commentsModalCount">0</span> Fikr</div>
+                    <div class="close-comments-btn" id="closeCommentsBtn">
+                        <i class="fas fa-times"></i>
+                    </div>
+                </div>
+                
+                <!-- Add Comment Form -->
+                <div class="add-comment">
+                    <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=880&q=80" 
+                         alt="User Avatar" class="add-comment-avatar">
+                    <div class="comment-input-container">
+                        <div class="comment-input-wrapper">
+                            <textarea class="comment-input" placeholder="Fikr bildiring..." id="commentInput"></textarea>
+                            <button class="comment-send-btn" id="commentSendBtn" disabled>
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Comments List -->
+                <div id="commentsList" style="margin-top: 20px;">
+                    <!-- Comments will be loaded here -->
+                </div>
+
+                <!-- No Comments Indicator -->
+                <div class="no-comments" id="noCommentsIndicator" style="display: none;">
+                    <div class="no-comments-icon">💬</div>
+                    <div class="no-comments-text">Hozircha fikrlar yo'q</div>
+                    <div class="no-comments-subtext">Fikringizni bildirish orqali birinchi bo'ling</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get video ID from URL
+        function getVideoIdFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('id');
         }
 
-        // Video ko'rish
-        function watchVideo(videoId) {
-            // Real loyihada bu videoni ko'rish sahifasiga o'tadi
-            alert(`Video ${videoId} ko'rish sahifasiga o'tish`);
-            // window.location.href = `video.html?id=${videoId}`;
+        // Format number (1K, 1.5M)
+        function formatNumber(num) {
+            if (num >= 1000000) {
+                return (num / 1000000).toFixed(1).replace('.0', '') + 'M';
+            }
+            if (num >= 1000) {
+                return (num / 1000).toFixed(1).replace('.0', '') + 'K';
+            }
+            return num.toString();
         }
 
-        // Chiqish
-        function logout() {
-            if (confirm("Haqiqatan ham akkauntingizdan chiqmoqchimisiz?")) {
-                alert("Chiqildi");
-                // Real loyihada login sahifasiga o'tadi
-                // window.location.href = 'login.html';
+        // Format date
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            
+            if (diffDays === 0) return "bugun";
+            if (diffDays === 1) return "kecha";
+            if (diffDays < 7) return `${diffDays} kun avval`;
+            if (diffDays < 30) return `${Math.floor(diffDays / 7)} hafta avval`;
+            if (diffDays < 365) return `${Math.floor(diffDays / 30)} oy avval`;
+            return `${Math.floor(diffDays / 365)} yil avval`;
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            // Remove existing notifications
+            const existingNotifications = document.querySelectorAll('.notification');
+            existingNotifications.forEach(notif => notif.remove());
+            
+            // Create new notification
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Load video data
+        async function loadVideoData(videoId) {
+            try {
+                // Get user videos from localStorage
+                const userVideos = JSON.parse(localStorage.getItem('userVideos')) || [];
+                const profileData = JSON.parse(localStorage.getItem('profileData')) || {
+                    name: "Foydalanuvchi",
+                    username: "@user",
+                    avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=880&q=80",
+                    subscribers: 0
+                };
+                
+                let videoData;
+                
+                // If demo video
+                if (videoId === 'demo') {
+                    videoData = {
+                        id: 'demo',
+                        title: "Ozoda - YANGI SHOU 2025 konsert dasturi | Eng yangi qo'shiqlar",
+                        description: "Ozodaning eng yangi konsert dasturi. 2025 yilda bo'lib o'tgan super kontsert. Yangi qo'shiqlar, ajoyib ijrolar va tomoshabinlarning isshiq muhitini tomosha qiling.\n\nKonsertda 20 dan ortiq yangi qo'shiqlar ijro etildi. Har bir qo'shiq o'ziga xos ohang va mazmun bilan tomoshabinlarni hayratda qoldirdi. Konsert davomida maxsus effektlar va yorug'lik shoulari ham namoyish etildi.",
+                        views: 63578,
+                        likes: 12000,
+                        dislikes: 120,
+                        comments: 24,
+                        uploadDate: "2024-03-15",
+                        thumbnail: "https://images.unsplash.com/photo-1571330735066-03aaa9429d89?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80",
+                        duration: "1:23:45",
+                        keywords: ["ozoda", "konsert", "2025", "yangi shou", "o'zbek musiqasi", "pop", "estrada"],
+                        isLiked: false,
+                        isDisliked: false,
+                        isSaved: false,
+                        channel: {
+                            name: "Asia Films HD",
+                            subscribers: 72148,
+                            avatar: "https://images.unsplash.com/photo-1614680376573-df3480f0c6ff?ixlib=rb-4.0.3&auto=format&fit=crop&w=687&q=80"
+                        }
+                    };
+                } else {
+                    // Find video in user videos
+                    videoData = userVideos.find(v => v.id === videoId);
+                    
+                    if (!videoData) {
+                        // Video not found
+                        showError("Video topilmadi");
+                        return null;
+                    }
+                    
+                    // Add channel info
+                    videoData.channel = {
+                        name: profileData.name,
+                        subscribers: profileData.subscribers || 0,
+                        avatar: profileData.avatar
+                    };
+                    
+                    // Add default values if missing
+                    videoData.views = videoData.views || 0;
+                    videoData.likes = videoData.likes || 0;
+                    videoData.dislikes = videoData.dislikes || 0;
+                    videoData.comments = videoData.comments || 0;
+                    videoData.uploadDate = videoData.uploadDate || new Date().toISOString();
+                    videoData.keywords = videoData.keywords || [];
+                    videoData.isLiked = videoData.isLiked || false;
+                    videoData.isDisliked = videoData.isDisliked || false;
+                    videoData.isSaved = videoData.isSaved || false;
+                }
+                
+                return videoData;
+                
+            } catch (error) {
+                console.error("Video yuklashda xato:", error);
+                showError("Video yuklashda xato yuz berdi");
+                return null;
             }
         }
 
-        // Sahifa yuklanganda
-        document.addEventListener('DOMContentLoaded', () => {
-            loadCategories();
-            loadVideos();
-        });
-    </script>
-</body>
-</html>
+        // Show error
+        function showError(message) {
+            const videoSection = document.querySelector('.video-section');
+            videoSection.innerHTML = `
+                <div class="error-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h2>${message}</h2>
+                    <p>Iltimos, orqaga qayting yoki boshqa videoni tanlang.</p>
+                    <button class="subscribe-btn" onclick="goBack()" style="margin-top: 20px;">
+                        Orqaga qaytish
+                    </button>
+                </div>
+            `;
+        }
+
+        // Display video data
+        function displayVideoData(videoData) {
+            if (!videoData) return;
+            
+            // Update video player
+            const videoPlayer = document.getElementById('videoPlayer');
+            videoPlayer.innerHTML = `
+                <img src="${videoData.thumbnail}" alt="${videoData.title}" class="video-thumbnail">
+                <div class="video-overlay">
+                    <div class="video-play-btn" onclick="playVideo('${videoData.id}')">
+                        <i class="fas fa-play"></i>
+                    </div>
+                </div>
+            `;
+            
+            // Update video info
+            document.getElementById('videoTitle').textContent = videoData.title;
+            document.getElementById('videoViews').textContent = `${formatNumber(videoData.views)} ko'rish`;
+            document.getElementById('videoUploadDate').textContent = formatDate(videoData.uploadDate);
+            
+            // Update channel info
+            document.getElementById('channelName').textContent = videoData.channel.name;
+            document.getElementById('subscriberCount').textContent = `${formatNumber(videoData.channel.subscribers)} obuna`;
+            document.getElementById('channelAvatar').style.backgroundImage = `url('${videoData.channel.avatar}')`;
+            document.getElementById('channelAvatar').style.backgroundSize = 'cover';
+            document.getElementById('channelAvatar').style.backgroundPosition = 'center';
+            
+            // Update actions
+            document.getElementById('likeCount').textContent = formatNumber(videoData.likes);
+            document.getElementById('dislikeCount').textContent = formatNumber(videoData.dislikes);
+            document.getElementById('commentsCount').textContent = formatNumber(videoData.comments);
+            
+            // Update like/dislike buttons
+            const likeBtn = document.getElementById('likeBtn');
+            const dislikeBtn = document.getElementById('dislikeBtn');
+            const saveBtn = document.getElementById('saveBtn');
+            
+            if (videoData.isLiked) {
+                likeBtn.querySelector('i').className = 'fas fa-thumbs-up';
+                likeBtn.style.backgroundColor = '#3ea6ff';
+            }
+            
+            if (videoData.isDisliked) {
+                dislikeBtn.querySelector('i').className = 'fas fa-thumbs-down';
+                dislikeBtn.style.backgroundColor = '#3ea6ff';
+            }
+            
+            if (videoData.isSaved) {
+                saveBtn.querySelector('i').className = 'fas fa-bookmark';
+                saveBtn.style.backgroundColor = '#3ea6ff';
+            }
+            
+            // Update description
+            document.getElementById('descriptionText').textContent = videoData.description;
+            
+            // Update keywords
+            const keywordsContainer = document.getElementById('keywordsContainer');
+            if (videoData.keywords && videoData.keywords.length > 0) {
+                keywordsContainer.innerHTML = videoData.keywords.map(keyword => 
+                    `<span class="keyword-tag">${keyword}</span>`
+                ).join('');
+            } else {
+                keywordsContainer.innerHTML = '<span class="keyword-tag">kalit so\'zlar yo\'q</span>';
+            }
+            
+            // Store current video data
+            window.currentVideoData = videoData;
+            
+            // Increment views
+            incrementViews(videoData.id);
+        }
+
+        // Increment video views
+        function incrementViews(videoId) {
+            if (videoId !== 'demo') {
+                const userVideos = JSON.parse(localStorage.getItem('userVideos')) || [];
+                const updatedVideos = userVideos.map(video => {
+                    if (video.id === videoId) {
+                        return {
+                            ...video,
+                            views: (video.views || 0) + 1
+                        };
+                    }
+                    return video;
+                });
+                localStorage.setItem('userVideos', JSON.stringify(updatedVideos));
+            }
+        }
+
+        // Load recommended videos
+        async function loadRecommendedVideos(currentVideoId) {
+            try {
+                const userVideos = JSON.parse(localStorage.getItem('userVideos')) || [];
+                const profileData = JSON.parse(localStorage.getItem('profileData')) || {
+                    name: "Foydalanuvchi",
+                    avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=880&q=80"
+                };
+                
+                // Demo recommended videos
+                const demoVideos = [
+                    {
+                        id: 'demo1',
+                        title: "Ozoda - Eng yaxshi qo'shiqlar to'plami 2024",
+                        channel: "Asia Films HD",
+                        views: 45200,
+                        uploadDate: "2024-01-15",
+                        duration: "45:12",
+                        thumbnail: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=500&q=60"
+                    },
+                    {
+                        id: 'demo2',
+                        title: "Yangi O'zbekiston qo'shiqlari 2025",
+                        channel: "Music Uzbekistan",
+                        views: 102700,
+                        uploadDate: "2024-02-20",
+                        duration: "38:45",
+                        thumbnail: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=500&q=80"
+                    },
+                    {
+                        id: 'demo3',
+                        title: "Dasturlashni qanday o'rganish kerak?",
+                        channel: "Tech Academy",
+                        views: 15300,
+                        uploadDate: "2024-03-10",
+                        duration: "25:18",
+                        thumbnail: "https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?auto=format&fit=crop&w=500&q=60"
+                    },
+                    {
+                        id: 'demo4',
+                        title: "O'zbek oshxonasi - Milliy taomlar",
+                        channel: "Oshpaz TV",
+                        views: 89200,
+                        uploadDate: "2024-02-05",
+                        duration: "32:45",
+                        thumbnail: "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?auto=format&fit=crop&w=500&q=60"
+                    }
+                ];
+                
+                // Combine user videos and demo videos
+                let allVideos = [...userVideos.slice(0, 3), ...demoVideos];
+                
+                // Remove current video
+                allVideos = allVideos.filter(video => video.id !== currentVideoId);
+                
+                // Get unique videos (max 4)
+                const uniqueVideos = [];
+                const seenIds = new Set();
+                
+                for (const video of allVideos) {
+                    if (!seenIds.has(video.id) && uniqueVideos.length < 4) {
+                        seenIds.add(video.id);
+                        uniqueVideos.push(video);
+                    }
+                }
+                
+                
+                // Display recommended videos
+                const container = document.getElementById('recommendedVideos');
+                
+                if (uniqueVideos.length === 0) {
+                    container.innerHTML = `
+                        <div class="no-comments">
+                            <div class="no-comments-icon">📺</div>
+                            <div class="no-comments-text">Tavsiya etilgan videolar yo'q</div>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = uniqueVideos.map(video => `
+                    <div class="recommended-video" onclick="watchVideo('${video.id}')">
+                        <div class="recommended-thumbnail">
+                            <img src="${video.thumbnail}" alt="${video.title}">
+                        </div>
+                        <div class="recommended-info">
+                            <h3
