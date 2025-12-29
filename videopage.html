@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Player - YouTube Style</title>
+    <title>Video Pleer</title>
     <style>
-    /* ASOSIY STYLELAR */
     * { 
         margin: 0; 
         padding: 0; 
@@ -13,7 +12,7 @@
     }
 
     body { 
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif; 
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
         background-color: #0f0f0f; 
         color: #fff; 
         line-height: 1.5; 
@@ -21,2480 +20,965 @@
     }
 
     .container { 
-        max-width: 1400px; 
+        max-width: 1200px; 
         margin: 0 auto; 
-        padding: 0 16px; 
-    }
-
-    .main-content { 
-        display: flex; 
-        flex-direction: column; 
-        gap: 24px; 
-        padding-top: 24px; 
-    }
-
-    @media (min-width: 1024px) { 
-        .main-content { 
-            flex-direction: row; 
-        } 
-    }
-
-    .video-section { 
-        flex: 1; 
-        min-width: 0;
-    }
-
-    .recommended-section { 
-        flex: 0 0 400px; 
+        padding: 20px; 
     }
 
     /* BACK BUTTON */
     .back-button {
-        position: fixed;
-        top: 20px;
-        left: 20px;
-        background: rgba(29, 161, 242, 0.9);
+        background: #272727;
         color: white;
         border: none;
         padding: 10px 20px;
-        border-radius: 25px;
+        border-radius: 20px;
         cursor: pointer;
         font-weight: 500;
-        z-index: 1000;
         display: flex;
         align-items: center;
         gap: 8px;
-        transition: all 0.3s ease;
-        backdrop-filter: blur(10px);
-        box-shadow: 0 4px 15px rgba(29, 161, 242, 0.3);
+        transition: background 0.3s;
+        margin-bottom: 20px;
     }
 
     .back-button:hover {
-        background: rgba(29, 161, 242, 1);
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(29, 161, 242, 0.4);
+        background: #333;
     }
 
     /* VIDEO PLAYER */
-    .video-player { 
-        position: relative; 
-        width: 100%; 
-        height: 0; 
-        padding-bottom: 56.25%; 
-        background-color: #000; 
-        border-radius: 12px; 
-        overflow: hidden; 
-        margin-bottom: 20px; 
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-    }
-
-    .video-thumbnail { 
-        position: absolute; 
-        top: 0; 
-        left: 0; 
-        width: 100%; 
-        height: 100%; 
-        object-fit: cover; 
-    }
-
-    .video-overlay { 
-        position: absolute; 
-        top: 50%; 
-        left: 50%; 
-        transform: translate(-50%, -50%); 
-        text-align: center; 
-    }
-
-    .video-title-overlay { 
-        font-size: 48px; 
-        font-weight: 900; 
-        color: #ff0000; 
-        text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7); 
-        margin-bottom: 8px; 
-    }
-
-    .video-year { 
-        font-size: 24px; 
-        color: white; 
-        font-weight: 500; 
-    }
-
-    /* VIDEO INFO */
-    .video-info { 
-        padding: 0 8px; 
-    }
-
-    .video-title { 
-        font-size: 20px; 
-        font-weight: 600; 
-        margin-bottom: 12px; 
-        line-height: 1.4; 
-    }
-
-    /* VIDEO STATS STYLES */
-    .video-stats { 
-        font-size: 14px; 
-        color: #aaa; 
-        margin-bottom: 20px; 
-        display: flex; 
-        align-items: center; 
-        gap: 16px; 
-        flex-wrap: wrap;
-    }
-
-    .views-count, .upload-time { 
-        display: flex; 
-        align-items: center; 
-        gap: 6px; 
-    }
-
-    .video-stats i { 
-        font-size: 12px; 
-        opacity: 0.7; 
-    }
-
-    /* VIDEO DESCRIPTION */
-    .video-description {
-        background-color: #272727;
-        padding: 20px;
-        border-radius: 12px;
-        margin: 20px 0;
-        font-size: 14px;
-        line-height: 1.6;
-        color: #fff;
-        border-left: 4px solid #ff0000;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .description-toggle {
-        color: #1da1f2;
-        cursor: pointer;
-        margin-top: 12px;
-        font-size: 14px;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        font-weight: 500;
-        transition: color 0.2s;
-    }
-
-    .description-toggle:hover {
-        color: #0c84d1;
-        text-decoration: underline;
-    }
-
-    /* CHANNEL INFO */
-    .channel-info { 
-        display: flex; 
-        align-items: center; 
-        margin: 20px 0; 
-        padding-bottom: 20px; 
-        border-bottom: 1px solid #272727; 
-        gap: 16px;
-    }
-
-    .channel-icon { 
-        width: 56px;
-        height: 56px;
-        border-radius: 50%;
-        background: linear-gradient(45deg, #1da1f2, #0c84d1);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        font-size: 24px;
-        color: white;
-        flex-shrink: 0;
-        box-shadow: 0 4px 12px rgba(29, 161, 242, 0.3);
-    }
-
-    .channel-details { 
-        flex: 1; 
-    }
-
-    .channel-name { 
-        font-weight: 600; 
-        margin-bottom: 6px; 
-        font-size: 16px;
-    }
-
-    .subscribe-btn { 
-        background-color: #cc0000; 
-        color: #fff; 
-        border: none; 
-        padding: 10px 24px; 
-        border-radius: 20px; 
-        cursor: pointer; 
-        font-weight: 600; 
-        font-size: 14px; 
-        transition: all 0.2s; 
-        flex-shrink: 0;
-        white-space: nowrap;
-    }
-
-    .subscribe-btn:hover { 
-        background-color: #ff0000; 
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(255, 0, 0, 0.3);
-    }
-
-    .subscribe-btn.subscribed { 
-        background-color: #606060; 
-        color: #aaa; 
-    }
-
-    /* ACTIONS - LIKE VA COMMENTS RAQAMLARI YONIDA */
-    .actions { 
-        display: flex; 
-        align-items: center; 
-        justify-content: flex-start; 
-        padding: 16px 0; 
-        border-bottom: 1px solid #272727; 
-        flex-wrap: wrap; 
-        gap: 12px; 
-    }
-
-    .action-item { 
-        display: flex; 
-        align-items: center; 
-        cursor: pointer; 
-        padding: 10px 16px; 
-        border-radius: 20px; 
-        transition: all 0.2s; 
-        flex-shrink: 0; 
-        gap: 8px; 
-        height: 44px; 
-        background-color: #272727;
-        border: 1px solid transparent;
-    }
-
-    .action-item:hover { 
-        background-color: #3a3a3a; 
-        border-color: #4a4a4a;
-    }
-
-    .action-icon { 
-        display: flex; 
-        align-items: center; 
-        justify-content: center; 
-        font-size: 20px; 
-        width: 24px; 
-        height: 24px; 
-    }
-
-    .action-icon i { 
-        font-size: 20px; 
-    }
-
-    .action-icon svg { 
-        width: 20px; 
-        height: 20px; 
-    }
-
-    .action-text { 
-        font-size: 14px; 
-        color: #fff; 
-        white-space: nowrap; 
-        font-weight: 500; 
-        display: inline-block !important; 
-    }
-
-    /* Like va Comments raqamlari har doim ko'rinishi kerak */
-    #heart-btn .action-text, 
-    #comments-btn .action-text { 
-        display: inline-block !important; 
-    }
-
-    /* Save va Share tugmalari uchun text ko'rsatish/yo'qotish */
-    #save-btn .action-text, 
-    #share-btn .action-text { 
-        display: inline; 
-    }
-
-    #heart-btn.active .action-icon svg, 
-    #heart-btn.active .action-icon i { 
-        fill: #ff0000; 
-        stroke: #ff0000; 
-        color: #ff0000;
-    }
-
-    #heart-btn.active .action-text { 
-        color: #ff0000; 
-    }
-
-    #heart-btn.active { 
-        background-color: rgba(255, 0, 0, 0.1); 
-        border-color: #ff0000;
-    }
-
-    #comments-btn.active .action-icon svg, 
-    #comments-btn.active .action-icon i { 
-        fill: #1da1f2; 
-        stroke: #1da1f2; 
-        color: #1da1f2;
-    }
-
-    #comments-btn.active .action-text { 
-        color: #1da1f2; 
-    }
-
-    #comments-btn.active { 
-        background-color: rgba(29, 161, 242, 0.1); 
-        border-color: #1da1f2;
-    }
-
-    #save-btn.active .action-icon svg, 
-    #save-btn.active .action-icon i { 
-        fill: #1da1f2; 
-        stroke: #1da1f2; 
-        color: #1da1f2;
-    }
-
-    #save-btn.active { 
-        background-color: rgba(29, 161, 242, 0.1); 
-        border-color: #1da1f2;
-    }
-
-    /* Desktop uchun */
-    @media (min-width: 769px) { 
-        .action-item { 
-            gap: 10px; 
-            padding: 10px 20px; 
-        } 
-        
-        #save-btn .action-text, 
-        #share-btn .action-text { 
-            display: inline !important; 
-        } 
-    }
-
-    /* Mobile uchun */
-    @media (max-width: 768px) { 
-        .actions { 
-            justify-content: space-between; 
-            padding: 12px 0; 
-            gap: 8px;
-        } 
-        
-        .action-item { 
-            flex-direction: row; 
-            align-items: center; 
-            padding: 8px 16px; 
-            min-width: auto; 
-            gap: 6px; 
-            flex: 1;
-            justify-content: center;
-        } 
-        
-        .action-text { 
-            font-size: 12px; 
-            font-weight: 500; 
-            display: inline-block !important; 
-            margin: 0; 
-        } 
-        
-        #heart-btn .action-text, 
-        #comments-btn .action-text { 
-            display: inline-block !important; 
-        } 
-        
-        .action-icon { 
-            margin: 0; 
-        } 
-        
-        #save-btn .action-text, 
-        #share-btn .action-text { 
-            display: none !important; 
-        } 
-        
-        /* Mobile'da Save va Share uchun faqat icon ko'rsatish */
-        #save-btn, #share-btn {
-            min-width: 44px;
-            justify-content: center;
-            padding: 8px;
-        }
-        
-        .back-button {
-            top: 10px;
-            left: 10px;
-            padding: 8px 16px;
-            font-size: 14px;
-        }
-    }
-
-    /* RECOMMENDED VIDEOS */
-    .recommended-title { 
-        font-size: 18px; 
-        font-weight: 600; 
-        margin-bottom: 20px; 
-        padding: 0 8px; 
-        color: #fff;
-    }
-
-    .recommended-video { 
-        display: flex; 
-        margin-bottom: 16px; 
-        padding: 12px; 
-        border-radius: 12px; 
-        transition: all 0.3s ease; 
-        cursor: pointer; 
-        flex-direction: column; 
-        align-items: flex-start; 
-        background-color: transparent;
-        border: 1px solid transparent;
-    }
-
-    .recommended-video:hover { 
-        background-color: #272727; 
-        border-color: #3a3a3a;
-        transform: translateY(-2px);
-    }
-
-    .recommended-thumbnail { 
-        width: 100%; 
-        margin-bottom: 12px; 
-        border-radius: 8px; 
-        overflow: hidden; 
-        position: relative; 
-        padding-bottom: 56.25%; /* 16:9 aspect ratio */
-        height: 0; 
-        background-color: #333;
-    }
-
-    .recommended-thumbnail img { 
-        position: absolute; 
-        top: 0; 
-        left: 0; 
-        width: 100%; 
-        height: 100%; 
-        object-fit: cover; 
-        border-radius: 8px; 
-        transition: transform 0.3s ease;
-    }
-
-    .recommended-video:hover .recommended-thumbnail img {
-        transform: scale(1.05);
-    }
-
-    .recommended-info { 
-        width: 100%; 
-    }
-
-    .recommended-video-title { 
-        font-size: 14px; 
-        font-weight: 500; 
-        margin-bottom: 8px; 
-        line-height: 1.4; 
-        display: -webkit-box; 
-        -webkit-line-clamp: 2; 
-        -webkit-box-orient: vertical; 
-        overflow: hidden; 
-        color: #fff; 
-    }
-
-    .recommended-channel { 
-        font-size: 12px; 
-        color: #aaa; 
-        margin-bottom: 4px; 
-    }
-
-    .recommended-stats { 
-        font-size: 12px; 
-        color: #aaa; 
-        display: flex; 
-        align-items: center; 
-        gap: 8px;
-    }
-
-    /* Desktop uchun recommended video layout */
-    @media (min-width: 769px) { 
-        .recommended-video { 
-            flex-direction: row; 
-            align-items: flex-start; 
-            padding: 8px;
-        } 
-        
-        .recommended-thumbnail { 
-            flex: 0 0 168px; 
-            margin-right: 12px; 
-            margin-bottom: 0; 
-            padding-bottom: 94px; /* 168px * (9/16) = 94.5px ≈ 94px */
-            height: 0; 
-            width: auto; 
-        } 
-        
-        .recommended-info { 
-            flex: 1; 
-        } 
-    }
-
-    /* MODAL STYLES */
-    .modal { 
-        display: none; 
-        position: fixed; 
-        top: 0; 
-        left: 0; 
-        width: 100%; 
-        height: 100%; 
-        background-color: rgba(0, 0, 0, 0.95); 
-        z-index: 2000; 
-        overflow-y: auto; 
-        opacity: 0; 
-        transition: opacity 0.3s ease; 
-    }
-
-    .modal.show { 
-        opacity: 1; 
-    }
-
-    .modal-content { 
-        background-color: #0f0f0f; 
-        margin: 0 auto; 
-        max-width: 1000px; 
-        width: 100%; 
-        min-height: 100%; 
-        position: relative; 
-        animation: modalSlideIn 0.3s ease;
-    }
-
-    @keyframes modalSlideIn {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .modal-video-section { 
-        padding: 20px; 
-        border-bottom: 1px solid #272727; 
-    }
-
-    .modal-video-player { 
-        position: relative; 
-        width: 100%; 
-        height: 0; 
-        padding-bottom: 56.25%; 
-        background-color: #000; 
-        margin-bottom: 16px; 
-        border-radius: 12px; 
-        overflow: hidden; 
-    }
-
-    /* COMMENTS SECTION */
-    .comments-section { 
-        padding: 20px; 
-        padding-bottom: 80px; 
-    }
-
-    .comments-header { 
-        display: flex; 
-        align-items: center; 
-        justify-content: space-between; 
-        margin-bottom: 24px; 
-        padding-right: 10px; 
-    }
-
-    .comments-count { 
-        font-weight: 600; 
-        font-size: 18px; 
-        color: #fff;
-    }
-
-    .close-comments-btn { 
-        cursor: pointer; 
-        padding: 8px; 
-        border-radius: 50%; 
-        display: flex; 
-        align-items: center; 
-        justify-content: center; 
-        transition: all 0.2s; 
-        color: #aaa; 
-        background-color: transparent;
-        border: none;
-    }
-
-    .close-comments-btn:hover { 
-        background-color: #272727; 
-        color: #fff; 
-        transform: rotate(90deg);
-    }
-
-    /* COMMENT STYLES */
-    .comment { 
-        display: flex; 
-        margin-bottom: 20px; 
-        position: relative; 
-        padding: 12px;
-        border-radius: 12px;
-        transition: background-color 0.2s;
-    }
-
-    .comment:hover {
-        background-color: #1a1a1a;
-    }
-
-    .comment-avatar { 
-        width: 40px; 
-        height: 40px; 
-        border-radius: 50%; 
-        margin-right: 16px; 
-        flex-shrink: 0; 
-        object-fit: cover; 
-        border: 2px solid #333;
-    }
-
-    .comment-content { 
-        flex: 1; 
-    }
-
-    .comment-header { 
-        display: flex; 
-        align-items: center; 
-        margin-bottom: 8px; 
-        flex-wrap: wrap;
-        gap: 8px;
-    }
-
-    .comment-author { 
-        font-weight: 600; 
-        margin-right: 10px; 
-        font-size: 14px; 
-        color: #fff;
-    }
-
-    .comment-time { 
-        color: #aaa; 
-        font-size: 12px; 
-    }
-
-    .comment-text { 
-        margin-bottom: 12px; 
-        line-height: 1.5; 
-        white-space: pre-wrap; 
-        font-size: 14px; 
-        color: #fff;
-    }
-
-    /* Comment Actions */
-    .comment-actions { 
-        display: flex; 
-        align-items: center; 
-        gap: 16px; 
-    }
-
-    .comment-action-btn { 
-        display: flex; 
-        align-items: center; 
-        color: #fff; 
-        font-size: 12px; 
-        cursor: pointer; 
-        background: none; 
-        border: none; 
-        padding: 4px 0; 
-        opacity: 0.8; 
-        transition: all 0.2s; 
-    }
-
-    .comment-action-btn:hover { 
-        opacity: 1; 
-        color: #1da1f2;
-    }
-
-    .comment-action-btn svg { 
-        margin-right: 6px; 
-        width: 16px; 
-        height: 16px; 
-    }
-
-    .comment-action-btn.active svg { 
-        fill: #fff; 
-    }
-
-    .comment-action-btn.active { 
-        opacity: 1; 
-        color: #1da1f2;
-    }
-
-    .reply-btn { 
-        font-weight: 500; 
-        font-size: 12px; 
-        cursor: pointer; 
-        padding: 6px 12px; 
-        border-radius: 18px; 
-        color: #aaa; 
-        transition: all 0.2s; 
-        background: none;
-        border: 1px solid #333;
-    }
-
-    .reply-btn:hover { 
-        background-color: #272727; 
-        color: #fff; 
-        border-color: #444;
-    }
-
-    /* REPLY STYLES */
-    .replies-container { 
-        margin-left: 56px; 
-        margin-top: 12px; 
-        margin-bottom: 16px; 
-        padding-left: 16px;
-        border-left: 2px solid #333;
-    }
-
-    .reply-item { 
-        display: flex; 
-        margin-top: 12px; 
-        position: relative; 
-        padding: 10px;
-        border-radius: 8px; 
-        transition: background-color 0.2s; 
-    }
-
-    .reply-item:hover { 
-        background-color: rgba(255, 255, 255, 0.05); 
-    }
-
-    .reply-item .comment-avatar { 
-        width: 32px; 
-        height: 32px; 
-        margin-right: 12px; 
-        flex-shrink: 0; 
-    }
-
-    .reply-item .comment-author { 
-        font-size: 13px; 
-        font-weight: 500; 
-    }
-
-    .reply-item .comment-text { 
-        font-size: 13px; 
-        line-height: 1.4; 
-        margin-bottom: 8px; 
-    }
-
-    .reply-item .comment-actions { 
-        display: flex; 
-        align-items: center; 
-        gap: 12px; 
-    }
-
-    .reply-item .comment-action-btn { 
-        font-size: 11px !important; 
-        padding: 2px 6px !important; 
-    }
-
-    .reply-item .comment-action-btn svg { 
-        width: 14px !important; 
-        height: 14px !important; 
-    }
-
-    .reply-item .reply-btn { 
-        font-size: 11px !important; 
-        padding: 4px 8px !important; 
-    }
-
-    .reply-item .comment-options { 
-        position: absolute; 
-        right: 8px; 
-        top: 8px; 
-        width: 24px !important; 
-        height: 24px !important; 
-    }
-
-    .reply-item .comment-options-dot { 
-        width: 3px !important; 
-        height: 3px !important; 
-    }
-
-    /* EDIT MODE STYLES */
-    .comment-text.edit-mode { 
-        display: none; 
-    }
-
-    .comment-edit-input { 
-        width: 100%; 
-        background: #1a1a1a; 
-        border: 2px solid #1da1f2; 
-        border-radius: 8px; 
-        color: #fff; 
-        padding: 12px; 
-        font-size: 14px; 
-        font-family: inherit; 
-        margin-bottom: 8px; 
-        display: none; 
-        resize: vertical;
-        min-height: 60px;
-    }
-
-    .comment-edit-input.show { 
-        display: block; 
-    }
-
-    .comment-edit-actions { 
-        display: flex; 
-        gap: 8px; 
-        margin-top: 8px; 
-        display: none; 
-    }
-
-    .comment-edit-actions.show { 
-        display: flex; 
-    }
-
-    .btn-edit-cancel, 
-    .btn-edit-save { 
-        padding: 8px 16px; 
-        border-radius: 18px; 
-        font-size: 12px; 
-        font-weight: 500; 
-        cursor: pointer; 
-        border: none; 
-        transition: all 0.2s;
-    }
-
-    .btn-edit-cancel { 
-        background: transparent; 
-        color: #fff; 
-        border: 1px solid #333;
-    }
-
-    .btn-edit-cancel:hover { 
-        background-color: #272727; 
-        border-color: #444;
-    }
-
-    .btn-edit-save { 
-        background-color: #1da1f2; 
-        color: #0f0f0f; 
-    }
-
-    .btn-edit-save:hover { 
-        background-color: #0c84d1; 
-    }
-
-    .btn-edit-save:disabled { 
-        background-color: #303030; 
-        color: #666; 
-        cursor: not-allowed; 
-    }
-
-    
-    /* CONTEXT MENU */
-    .comment-options { 
-        position: absolute; 
-        right: 0; 
-        top: 0; 
-        cursor: pointer; 
-        padding: 8px; 
-        border-radius: 50%; 
-        display: flex; 
-        flex-direction: column; 
-        align-items: center; 
-        justify-content: center; 
-        width: 32px; 
-        height: 32px; 
-        transition: background-color 0.2s;
-    }
-
-    .comment-options:hover { 
-        background-color: #272727; 
-    }
-
-    .comment-options-dot { 
-        width: 4px; 
-        height: 4px; 
-        background-color: #aaa; 
-        border-radius: 50%; 
-        margin: 2px 0; 
-    }
-
-    .comment-menu { 
-        position: absolute; 
-        top: 30px; 
-        right: 0; 
-        background-color: #1a1a1a; 
-        border-radius: 8px; 
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); 
-        z-index: 10; 
-        min-width: 150px; 
-        display: none; 
-        border: 1px solid #333;
-        overflow: hidden;
-    }
-
-    .comment-menu.show { 
-        display: block; 
-    }
-
-    .comment-menu-item { 
-        padding: 12px 16px; 
-        cursor: pointer; 
-        color: #fff; 
-        font-size: 14px; 
-        display: flex; 
-        align-items: center; 
-        gap: 8px;
-        transition: background-color 0.2s;
-    }
-
-    .comment-menu-item:hover { 
-        background-color: #272727; 
-    }
-
-    .comment-menu-edit { 
-        color: #1da1f2; 
-    }
-
-    .comment-menu-delete { 
-        color: #ff4d4d; 
-    }
-
-    /* ADD COMMENT */
-    .add-comment { 
-        display: flex; 
-        margin-top: 30px; 
+    .video-player-container {
+        width: 100%;
         margin-bottom: 30px;
     }
 
-    .add-comment-avatar { 
-        width: 40px; 
-        height: 40px; 
-        border-radius: 50%; 
-        margin-right: 16px; 
-        flex-shrink: 0; 
-        object-fit: cover; 
-        border: 2px solid #333;
-    }
-
-    .comment-input-container { 
-        flex: 1; 
-        position: relative; 
-    }
-
-    .comment-input-wrapper { 
-        display: flex; 
-        align-items: flex-start; 
-        background-color: #1a1a1a; 
-        border-radius: 24px; 
-        padding: 12px 16px; 
-        border: 1px solid #333; 
-        transition: all 0.3s; 
-        min-height: 48px; 
-    }
-
-    .comment-input-wrapper:focus-within { 
-        border-color: #1da1f2; 
-        background-color: #222; 
-        box-shadow: 0 0 0 2px rgba(29, 161, 242, 0.2);
-    }
-
-    .comment-input-wrapper.reply-mode { 
-        border-color: #1da1f2; 
-        background-color: rgba(29, 161, 242, 0.1); 
-    }
-
-    .comment-input { 
-        flex: 1; 
-        width: 100%; 
-        background: transparent; 
-        border: none; 
-        color: #fff; 
-        font-size: 14px; 
-        resize: none; 
-        overflow-y: auto; 
-        min-height: 24px; 
-        max-height: 120px; 
-        line-height: 1.4; 
-        font-family: inherit; 
-        padding-right: 50px; 
-        padding-left: 8px; 
-    }
-
-    .comment-input:focus { 
-        outline: none; 
-    }
-
-    .comment-send-btn { 
-        position: absolute; 
-        right: 12px; 
-        bottom: 12px; 
-        background: #1da1f2; 
-        border: none; 
-        color: #fff; 
-        padding: 0; 
-        border-radius: 50%; 
-        cursor: pointer; 
-        font-weight: 500; 
-        transition: all 0.2s; 
-        display: flex; 
-        align-items: center; 
-        justify-content: center; 
-        width: 36px; 
-        height: 36px; 
-        opacity: 0.8; 
-    }
-
-    .comment-send-btn:hover:not(:disabled) { 
-        background: #0c84d1; 
-        opacity: 1; 
-        transform: scale(1.05); 
-    }
-
-    .comment-send-btn:disabled { 
-        background: #303030; 
-        color: #666; 
-        cursor: not-allowed; 
-        opacity: 0.5; 
-    }
-
-    .comment-send-btn.active { 
-        opacity: 1; 
-        background: #1da1f2; 
-    }
-
-    /* REPLY MODE INDICATOR */
-    .reply-mode-indicator {
-        background-color: rgba(29, 161, 242, 0.1);
-        border: 1px solid #1da1f2;
+    .video-player {
+        width: 100%;
+        height: 500px;
+        background-color: #000;
         border-radius: 12px;
-        padding: 12px 16px;
-        margin-bottom: 16px;
+        overflow: hidden;
+    }
+
+    .video-player video {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        background-color: #000;
+    }
+
+    /* VIDEO CONTROLS */
+    .video-controls {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        animation: fadeIn 0.3s;
+        margin-top: 15px;
+        padding: 0 10px;
     }
 
-    .reply-mode-text {
-        font-size: 14px;
-        color: #1da1f2;
+    .play-controls {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 15px;
     }
 
-    .reply-mode-author {
-        font-weight: 600;
-        color: #fff;
-    }
-
-    .reply-mode-cancel {
-        background: transparent;
+    .control-btn {
+        background: none;
         border: none;
-        color: #aaa;
+        color: white;
         cursor: pointer;
-        padding: 4px 8px;
-        border-radius: 4px;
+        padding: 8px;
+        border-radius: 50%;
+        transition: background 0.3s;
+    }
+
+    .control-btn:hover {
+        background: #333;
+    }
+
+    .time-display {
         font-size: 14px;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        transition: all 0.2s;
+        color: #aaa;
     }
 
-    .reply-mode-cancel:hover {
-        color: #fff;
-        background-color: #272727;
-    }
-
-    /* MENTION TAG */
-    .comment-text .mention {
-        color: #1da1f2;
-        font-weight: 500;
-        background-color: rgba(29, 161, 242, 0.1);
-        padding: 0 4px;
-        border-radius: 4px;
-        text-decoration: none;
-    }
-
-    .comment-text .mention:hover {
-        text-decoration: underline;
-    }
-
-    /* NOTIFICATION */
-    .notification { 
-        position: fixed; 
-        bottom: 20px; 
-        right: 20px; 
-        background-color: #1a1a1a; 
-        color: white; 
-        padding: 14px 20px; 
-        border-radius: 12px; 
-        z-index: 3000; 
-        font-size: 14px; 
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); 
-        transition: all 0.3s ease; 
-        max-width: 300px; 
-        border: 1px solid #333;
+    .volume-controls {
         display: flex;
         align-items: center;
         gap: 10px;
-        animation: slideInRight 0.3s ease;
     }
 
-    @keyframes slideInRight {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
+    .volume-slider {
+        width: 100px;
+        height: 4px;
+        background: #333;
+        border-radius: 2px;
+        outline: none;
+        -webkit-appearance: none;
     }
 
-    /* UTILITIES */
-    .no-comments { 
-        display: flex; 
-        flex-direction: column; 
-        align-items: center; 
-        padding: 60px 0; 
-        text-align: center; 
-    }
-
-    .no-comments-icon { 
-        font-size: 64px; 
-        margin-bottom: 20px; 
-        opacity: 0.5; 
-    }
-
-    .no-comments-text { 
-        font-size: 16px; 
-        margin-bottom: 8px; 
-        color: #fff;
-    }
-
-    .no-comments-subtext { 
-        color: #aaa; 
-        font-size: 14px; 
-    }
-
-    /* ANIMATIONS */
-    @keyframes fadeIn { 
-        from { 
-            opacity: 0; 
-            transform: translateY(-10px); 
-        } 
-        to { 
-            opacity: 1; 
-            transform: translateY(0); 
-        } 
-    }
-
-    @keyframes spin { 
-        0% { 
-            transform: rotate(0deg); 
-        } 
-        100% { 
-            transform: rotate(360deg); 
-        } 
-    }
-
-    .loading-spinner {
-        width: 20px;
-        height: 20px;
-        border: 2px solid #fff;
-        border-top: 2px solid transparent;
+    .volume-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 12px;
+        height: 12px;
+        background: #fff;
         border-radius: 50%;
-        animation: spin 1s linear infinite;
-        display: block;
+        cursor: pointer;
     }
 
-    /* SCROLLBAR */
-    ::-webkit-scrollbar {
-        width: 8px;
+    /* VIDEO INFO */
+    .video-info {
+        margin-bottom: 30px;
     }
 
-    ::-webkit-scrollbar-track {
+    .video-title {
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 15px;
+        line-height: 1.4;
+    }
+
+    .video-stats {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        color: #aaa;
+        font-size: 14px;
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #272727;
+    }
+
+    .actions {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .action-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #272727;
+        border: none;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    }
+
+    .action-btn:hover {
+        background: #333;
+    }
+
+    .action-btn.active {
+        background: #ff0000;
+    }
+
+    .action-btn.active svg {
+        fill: white;
+    }
+
+    /* DESCRIPTION */
+    .description {
         background: #1a1a1a;
-        border-radius: 4px;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 30px;
     }
 
-    ::-webkit-scrollbar-thumb {
-        background: #444;
-        border-radius: 4px;
+    .description h3 {
+        margin-bottom: 10px;
+        font-size: 16px;
     }
 
-    ::-webkit-scrollbar-thumb:hover {
-        background: #555;
+    .description p {
+        color: #ddd;
+        line-height: 1.6;
+        white-space: pre-wrap;
     }
 
-    /* MOBILE RESPONSIVE */
+    /* COMMENTS */
+    .comments-section {
+        margin-top: 40px;
+    }
+
+    .comments-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #272727;
+    }
+
+    .comments-title {
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    .add-comment {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+
+    .comment-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #333;
+        flex-shrink: 0;
+    }
+
+    .comment-input {
+        flex: 1;
+        background: #272727;
+        border: 1px solid #333;
+        border-radius: 20px;
+        padding: 12px 20px;
+        color: white;
+        font-family: inherit;
+        font-size: 14px;
+        resize: none;
+        min-height: 40px;
+        max-height: 100px;
+    }
+
+    .comment-input:focus {
+        outline: none;
+        border-color: #ff0000;
+    }
+
+    .comment-submit {
+        background: #ff0000;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-weight: 500;
+        margin-left: 10px;
+    }
+
+    .comment-submit:hover {
+        background: #cc0000;
+    }
+
+    .comment-submit:disabled {
+        background: #333;
+        cursor: not-allowed;
+    }
+
+    .comments-list {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .comment {
+        display: flex;
+        gap: 15px;
+    }
+
+    .comment-content {
+        flex: 1;
+    }
+
+    .comment-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 5px;
+    }
+
+    .comment-author {
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .comment-time {
+        color: #aaa;
+        font-size: 12px;
+    }
+
+    .comment-text {
+        color: #ddd;
+        font-size: 14px;
+        line-height: 1.5;
+        margin-bottom: 10px;
+    }
+
+    .comment-actions {
+        display: flex;
+        gap: 15px;
+    }
+
+    .comment-action {
+        background: none;
+        border: none;
+        color: #aaa;
+        font-size: 12px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 5px;
+    }
+
+    .comment-action:hover {
+        color: white;
+    }
+
+    .no-comments {
+        text-align: center;
+        padding: 40px 20px;
+        color: #aaa;
+    }
+
+    /* RESPONSIVE */
     @media (max-width: 768px) {
-        .modal-content {
-            min-height: 100vh;
+        .video-player {
+            height: 300px;
         }
         
-        .comments-section {
-            padding: 16px;
-            padding-bottom: 100px;
+        .video-title {
+            font-size: 20px;
         }
         
-        .comment {
-            align-items: flex-start;
-            padding: 10px;
+        .actions {
+            justify-content: center;
         }
         
-        .comment-avatar {
-            width: 32px;
-            height: 32px;
-            margin-right: 12px;
-        }
-        
-        .comment-author {
+        .action-btn {
+            padding: 8px 15px;
             font-size: 13px;
-        }
-        
-        .comment-time {
-            font-size: 11px;
-        }
-        
-        .comment-text {
-            font-size: 13px;
-        }
-        
-        .replies-container {
-            margin-left: 44px;
-            padding-left: 12px;
-        }
-        
-        .reply-item .comment-avatar {
-            width: 24px;
-            height: 24px;
-        }
-        
-        .video-stats {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 4px;
-        }
-        
-        .recommended-thumbnail {
-            padding-bottom: 56.25%;
         }
         
         .back-button {
-            top: 10px;
-            left: 10px;
             padding: 8px 16px;
             font-size: 14px;
         }
         
-        .channel-info {
-            flex-wrap: wrap;
-        }
-        
-        .subscribe-btn {
-            width: 100%;
-            margin-top: 10px;
+        .container {
+            padding: 15px;
         }
     }
 
     @media (max-width: 480px) {
-        .video-title {
-            font-size: 18px;
+        .video-player {
+            height: 200px;
         }
         
-        .actions {
-            gap: 4px;
-        }
-        
-        .action-item {
-            padding: 8px 12px;
-        }
-        
-        .recommended-section {
-            flex: 0 0 100%;
-        }
-        
-        .main-content {
+        .video-controls {
             flex-direction: column;
+            gap: 10px;
+        }
+        
+        .volume-controls {
+            width: 100%;
+        }
+        
+        .volume-slider {
+            flex: 1;
+        }
+        
+        .add-comment {
+            flex-direction: column;
+        }
+        
+        .comment-submit {
+            margin-left: 0;
+            width: 100%;
         }
     }
     </style>
 </head>
 <body>
+  <div class="container">
     <!-- Orqaga qaytish tugmasi -->
-    <button class="back-button" id="backToProfile">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M19 12H5M12 19l-7-7 7-7"/>
-        </svg>
-        Profilga qaytish
+    <button class="back-button" id="backBtn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>
+      Videolar ro'yxatiga qaytish
     </button>
 
-    <div class="container">
-        <div class="main-content">
-            <div class="video-section">
-                <div class="video-player">
-                    <img src="https://images.unsplash.com/photo-1571330735066-03aaa9429d89?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80" alt="Video Thumbnail" class="video-thumbnail" id="mainVideoThumbnail">
-                    <div class="video-overlay">
-                        <div class="video-title-overlay">KONSERT</div>
-                        <div class="video-year" id="videoYear">2025</div>
-                    </div>
-                </div>
-                <div class="video-info">
-                    <div class="video-title" id="mainVideoTitle">Ozoda - YANGI SHOU 2025 konsert dasturi | Eng yangi qo'shiqlar</div>
-                    <div class="video-stats">
-                        <span class="views-count" id="videoViews">63,578 namoyish</span>
-                        <span class="upload-time" id="videoTime">3 hafta avval</span>
-                    </div>
-                    
-                    <!-- Video tavsifi -->
-                    <div class="video-description" id="videoDescription">
-                        <div id="descriptionShort"></div>
-                        <div id="descriptionFull" style="display: none;"></div>
-                        <div class="description-toggle" id="descriptionToggle">
-                            <span>Batafsil</span>
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M6 9l6 6 6-6"/>
-                            </svg>
-                        </div>
-                    </div>
-                    
-                    <div class="channel-info">
-                        <div class="channel-icon">J</div>
-                        <div class="channel-details">
-                            <div class="channel-name" id="channelName">Javlonbek Rashidov</div>
-                            <div class="video-stats" id="channelSubscribers">72,148 obuna</div>
-                        </div>
-                        <button class="subscribe-btn" id="subscribe-btn">Obuna bo'lish</button>
-                    </div>
-                    
-                    <div class="actions">
-                        <div class="action-item" id="heart-btn">
-                            <div class="action-icon">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-                            </div>
-                            <div class="action-text"><span id="heart-count">12K</span></div>
-                        </div>
-                        <div class="action-item" id="comments-btn">
-                            <div class="action-icon">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099 .092 10 10 0 1 0-4.777-4.719"/></svg>
-                            </div>
-                            <div class="action-text"><span id="comments-main-count">0</span></div>
-                        </div>
-                        <div class="action-item" id="save-btn">
-                            <div class="action-icon">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
-                            </div>
-                            <div class="action-text">Saqlash</div>
-                        </div>
-                        <div class="action-item" id="share-btn">
-                            <div class="action-icon">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/></svg>
-                            </div>
-                            <div class="action-text">Ulashish</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="recommended-section">
-                <div class="recommended">
-                    <div class="recommended-title">Tavsiya etilgan videolar</div>
-                    <div class="recommended-video" id="recommended1">
-                        <div class="recommended-thumbnail">
-                            <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=1470&q=80" alt="Video Thumbnail">
-                        </div>
-                        <div class="recommended-info">
-                            <div class="recommended-video-title">Ozoda - Eng yaxshi qo'shiqlar to'plami 2024</div>
-                            <div class="recommended-channel">Asia Films HD</div>
-                            <div class="recommended-stats">45,2 ming namoyish · 2 oy avval</div>
-                        </div>
-                    </div>
-                     <div class="recommended-video" id="recommended2">
-                        <div class="recommended-thumbnail">
-                            <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=1470&q=80" alt="Video Thumbnail">
-                        </div>
-                        <div class="recommended-info">
-                            <div class="recommended-video-title">Yangi O'zbekiston qo'shiqlari 2025</div>
-                            <div class="recommended-channel">Music Uzbekistan</div>
-                            <div class="recommended-stats">102,7 ming namoyish · 1 hafta avval</div>
-                        </div>
-                    </div>
-                    <div class="recommended-video" id="recommended3">
-                        <div class="recommended-thumbnail">
-                            <img src="https://images.unsplash.com/photo-1513326738677-b964603b136d?auto=format&fit=crop&w=1470&q=80" alt="Video Thumbnail">
-                        </div>
-                        <div class="recommended-info">
-                            <div class="recommended-video-title">O'zbekiston manzaralari 4K</div>
-                            <div class="recommended-channel">Travel Uzbekistan</div>
-                            <div class="recommended-stats">89,3 ming namoyish · 3 kun avval</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <!-- Video pleer -->
+    <div class="video-player-container">
+      <div class="video-player" id="videoPlayer">
+        <!-- Video element bu yerga yuklanadi -->
+      </div>
+      
+      <!-- Video controls -->
+      <div class="video-controls">
+        <div class="play-controls">
+          <button class="control-btn" id="playBtn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+          </button>
+          <div class="time-display" id="timeDisplay">0:00 / 0:00</div>
         </div>
+        
+        <div class="volume-controls">
+          <button class="control-btn" id="muteBtn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            </svg>
+          </button>
+          <input type="range" class="volume-slider" id="volumeSlider" min="0" max="1" step="0.1" value="1">
+        </div>
+      </div>
     </div>
 
-    <div id="commentsModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-video-section">
-                <div class="modal-video-player">
-                    <img src="https://images.unsplash.com/photo-1571330735066-03aaa9429d89?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80" alt="Video Thumbnail" class="video-thumbnail" id="modalVideoThumbnail">
-                    <div class="video-overlay">
-                        <div class="video-title-overlay">KONSERT</div>
-                        <div class="video-year" id="modalVideoYear">2025</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="comments-section">
-                <div class="comments-header">
-                    <div class="comments-count"><span id="comments-modal-count">0</span> Fikr</div>
-                    <div class="close-comments-btn">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                    </div>
-                </div>
-                
-                <div class="add-comment">
-                    <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=880&q=80" alt="User Avatar" class="add-comment-avatar">
-                    <div class="comment-input-container">
-                        <div class="comment-input-wrapper">
-                            <textarea class="comment-input" placeholder="Fikr bildiring..." id="commentInput"></textarea>
-                            <button class="comment-send-btn" id="commentSendBtn" disabled>
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="commentsList" style="margin-top: 20px;">
-                </div>
-
-                <div class="no-comments" id="no-comments-indicator">
-                    <div class="no-comments-icon">💬</div>
-                    <div class="no-comments-text">Hozircha fikrlar yo'q</div>
-                    <div class="no-comments-subtext">Fikringizni bildirish orqali birinchi bo'ling</div>
-                </div>
-            </div>
-        </div>
+    <!-- Video ma'lumotlari -->
+    <div class="video-info">
+      <h1 class="video-title" id="videoTitle"></h1>
+      
+      <div class="video-stats">
+        <span id="videoViews">0 ko'rish</span>
+        <span id="videoDate">hozirgina</span>
+      </div>
+      
+      <div class="actions">
+        <button class="action-btn" id="likeBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+          </svg>
+          <span id="likeCount">0</span>
+        </button>
+        
+        <button class="action-btn" id="dislikeBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path>
+          </svg>
+        </button>
+        
+        <button class="action-btn" id="shareBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="18" cy="5" r="3"></circle>
+            <circle cx="6" cy="12" r="3"></circle>
+            <circle cx="18" cy="19" r="3"></circle>
+            <line x1="8.59" x2="15.42" y1="13.51" y2="17.49"></line>
+            <line x1="15.41" x2="8.59" y1="6.51" y2="10.49"></line>
+          </svg>
+          Ulashish
+        </button>
+        
+        <button class="action-btn" id="saveBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path>
+          </svg>
+          Saqlash
+        </button>
+      </div>
     </div>
 
+    <!-- Video tavsifi -->
+    <div class="description" id="descriptionContainer">
+      <h3>Video tavsifi</h3>
+      <p id="videoDescription"></p>
+    </div>
 
-            
+    <!-- Sharhlar -->
+    <div class="comments-section">
+      <div class="comments-header">
+        <h2 class="comments-title" id="commentsCount">Sharhlar (0)</h2>
+      </div>
+      
+      <!-- Yangi sharh qo'shish -->
+      <div class="add-comment">
+        <div class="comment-avatar"></div>
+        <textarea class="comment-input" id="commentInput" placeholder="Sharhingizni yozing..." rows="1"></textarea>
+        <button class="comment-submit" id="commentSubmit" disabled>Yuborish</button>
+      </div>
+      
+      <!-- Sharhlar ro'yxati -->
+      <div class="comments-list" id="commentsList">
+        <!-- Sharhlar bu yerga yuklanadi -->
+      </div>
+      
+      <div class="no-comments" id="noComments" style="display: none;">
+        Hozircha sharhlar yo'q. Birinchi bo'lib sharh qoldiring!
+      </div>
+    </div>
+  </div>
 
-    <script>
+  <script>
     // ========== INITIALIZATION ==========
     document.addEventListener('DOMContentLoaded', function() {
-        initializeVideoPage();
+      initializeVideoPage();
     });
 
     // ========== GLOBAL VARIABLES ==========
-    let replyMode = {
-        active: false,
-        targetCommentId: null,
-        targetCommentIndex: null,
-        targetAuthor: null,
-        isEditMode: false,
-        replyToReplyIndex: undefined,
-        originalText: ""
-    };
-
-    let state = {
-        heartCount: 12000,
-        isHearted: false,
-        isSubscribed: false,
-        comments: [
-            {
-                id: 1,
-                text: "Ajoyib konsert! Ozodaning yangi qo'shiqlari juda yoqdi.",
-                author: "Sanjar Uz",
-                avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&auto=format&fit=crop&w=687&q=80",
-                time: "2 kun avval",
-                timestamp: Date.now() - 172800000,
-                likes: 24,
-                isLiked: false,
-                replies: [
-                    {
-                        text: "Men ham rozi! Super kontsert bo'lgan.",
-                        author: "Farrux S",
-                        avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=687&q=80",
-                        time: "3 kun avval",
-                        timestamp: Date.now() - 259200000,
-                        likes: 5,
-                        isLiked: false
-                    }
-                ]
-            },
-            {
-                id: 2,
-                text: "Bunday konsertlarni ko'proq o'tkazish kerak. O'zbek musiqasi rivojlanmoqda!",
-                author: "Dilnoza M",
-                avatar: "https://images.unsplash.com/photo-1494790108755-2616b786d4d9?ixlib=rb-4.0.3&auto=format&fit=crop&w=687&q=80",
-                time: "4 kun avval",
-                timestamp: Date.now() - 345600000,
-                likes: 18,
-                isLiked: false,
-                replies: []
-            }
-        ]
-    };
+    let currentVideo = null;
+    let videoPlayer = null;
+    let isPlaying = false;
+    let currentTime = 0;
+    let videoDuration = 0;
+    let comments = [];
 
     // ========== MAIN INITIALIZATION FUNCTION ==========
     function initializeVideoPage() {
-        // Elementlarni tanlab olish
-        initializeElements();
-        
-        // Event listenerlarni o'rnatish
-        setupEventListeners();
-        
-        // Videoni yuklash
-        loadVideoData();
-        
-        // State ni yuklash
-        loadFromStorage();
-        
-        // UI ni yangilash
-        updateUI();
+      // Elementlarni tanlab olish
+      const backBtn = document.getElementById('backBtn');
+      const playBtn = document.getElementById('playBtn');
+      const muteBtn = document.getElementById('muteBtn');
+      const volumeSlider = document.getElementById('volumeSlider');
+      const likeBtn = document.getElementById('likeBtn');
+      const dislikeBtn = document.getElementById('dislikeBtn');
+      const shareBtn = document.getElementById('shareBtn');
+      const saveBtn = document.getElementById('saveBtn');
+      const commentInput = document.getElementById('commentInput');
+      const commentSubmit = document.getElementById('commentSubmit');
+      
+      // Orqaga qaytish
+      backBtn.addEventListener('click', function() {
+        window.location.href = 'profil.html';
+      });
+      
+      // Video yuklash
+      loadVideo();
+      
+      // Video pleerni yaratish
+      initializeVideoPlayer();
+      
+      // Kontrollarni sozlash
+      setupControls();
+      
+      // Sharhlar tizimi
+      setupComments();
     }
 
-    // ========== ELEMENT INITIALIZATION ==========
-    function initializeElements() {
-        // Global elementlar
-        window.heartBtn = document.getElementById('heart-btn');
-        window.saveBtn = document.getElementById('save-btn');
-        window.commentsBtn = document.getElementById('comments-btn');
-        window.subscribeBtn = document.getElementById('subscribe-btn');
-        window.modal = document.getElementById('commentsModal');
-        window.closeCommentsBtn = document.querySelector('.close-comments-btn');
-        window.commentInput = document.getElementById('commentInput');
-        window.commentSendBtn = document.getElementById('commentSendBtn');
-        window.commentsList = document.getElementById('commentsList');
-        window.noCommentsIndicator = document.getElementById('no-comments-indicator');
-        window.commentsMainCount = document.getElementById('comments-main-count');
-        window.commentsModalCount = document.getElementById('comments-modal-count');
-        window.heartCountDisplay = document.getElementById('heart-count');
-        window.backToProfileBtn = document.getElementById('backToProfile');
-        window.descriptionToggle = document.getElementById('descriptionToggle');
-        window.descriptionShort = document.getElementById('descriptionShort');
-        window.descriptionFull = document.getElementById('descriptionFull');
-
-        // Video ma'lumotlari elementlari
-        window.mainVideoTitle = document.getElementById('mainVideoTitle');
-        window.mainVideoThumbnail = document.getElementById('mainVideoThumbnail');
-        window.modalVideoThumbnail = document.getElementById('modalVideoThumbnail');
-        window.videoYear = document.getElementById('videoYear');
-        window.modalVideoYear = document.getElementById('modalVideoYear');
-        window.videoViews = document.getElementById('videoViews');
-        window.videoTime = document.getElementById('videoTime');
-        window.videoDescription = document.getElementById('videoDescription');
-        window.channelName = document.getElementById('channelName');
-        window.channelSubscribers = document.getElementById('channelSubscribers');
-    }
-
-    // ========== EVENT LISTENERS SETUP ==========
-    function setupEventListeners() {
-        // Back to profile button
-        backToProfileBtn.addEventListener('click', goBackToProfile);
-
-        // Video Actions
-        heartBtn.addEventListener('click', toggleHeart);
-        subscribeBtn.addEventListener('click', toggleSubscribe);
-        saveBtn.addEventListener('click', toggleSave);
-        commentsBtn.addEventListener('click', openCommentsModal);
-
-        // Modal Controls
-        closeCommentsBtn.addEventListener('click', closeModal);
-        window.addEventListener('click', handleWindowClick);
-        
-        // Comment Input
-        commentInput.addEventListener('input', handleCommentInput);
-        commentInput.addEventListener('keydown', handleCommentKeydown);
-        commentInput.addEventListener('click', handleCommentClick);
-        commentSendBtn.addEventListener('click', submitCommentOrReply);
-        
-        // Description toggle
-        descriptionToggle.addEventListener('click', toggleDescription);
-        
-        // Recommended videos
-        setupRecommendedVideos();
-        
-        // Modal transition
-        modal.addEventListener('transitionend', handleModalTransition);
-        
-        // Escape key
-        document.addEventListener('keydown', handleEscapeKey);
-    }
-
-    // ========== UTILITY FUNCTIONS ==========
-    function formatTime(date) {
-        const now = new Date();
-        const diffMs = now - date;
-        const diffSec = Math.floor(diffMs / 1000);
-        const diffMin = Math.floor(diffSec / 60);
-        const diffHour = Math.floor(diffMin / 60);
-        const diffDay = Math.floor(diffHour / 24);
-        
-        if (diffDay > 7) return date.toLocaleDateString('uz-UZ');
-        if (diffDay > 0) return `${diffDay} kun avval`;
-        if (diffHour > 0) return `${diffHour} soat avval`;
-        if (diffMin > 0) return `${diffMin} daqiqa avval`;
-        return 'hozirgina';
+    // ========== VIDEO LOADING ==========
+    function loadVideo() {
+      currentVideo = JSON.parse(localStorage.getItem('currentVideo'));
+      
+      if (!currentVideo) {
+        // Agar video topilmasa, profilga qaytish
+        window.location.href = 'profil.html';
+        return;
+      }
+      
+      // Video ma'lumotlarini ko'rsatish
+      document.getElementById('videoTitle').textContent = currentVideo.title || 'Nomsiz video';
+      document.getElementById('videoViews').textContent = formatNumber(currentVideo.views || 0) + ' ko\'rish';
+      document.getElementById('videoDate').textContent = formatDate(currentVideo.date);
+      document.getElementById('likeCount').textContent = formatNumber(currentVideo.likes || 0);
+      
+      // Video tavsifi
+      const description = document.getElementById('videoDescription');
+      if (currentVideo.description) {
+        description.textContent = currentVideo.description;
+      } else {
+        document.getElementById('descriptionContainer').style.display = 'none';
+      }
+      
+      // Ko'rishlar sonini oshirish
+      increaseViewCount();
     }
 
     function formatNumber(num) {
-        if (num >= 1000000) return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
-        if (num >= 1000) return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
-        return num.toString();
+      if (num >= 1000000) {
+        return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+      }
+      if (num >= 1000) {
+        return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+      }
+      return num;
     }
 
-    function showNotification(message) {
-        const old = document.querySelector('.notification');
-        if (old) old.remove();
-        
-        const notification = document.createElement('div');
-        notification.className = 'notification';
-        notification.innerHTML = `
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                <polyline points="22 4 12 14.01 9 11.01"></polyline>
-            </svg>
-            <span>${message}</span>
-        `;
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.style.opacity = '0';
-            notification.style.transform = 'translateX(100%)';
-            setTimeout(() => notification.remove(), 300);
-        }, 3000);
+    function formatDate(dateString) {
+      if (!dateString) return 'hozirgina';
+      
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffMs = now - date;
+      const diffSec = Math.floor(diffMs / 1000);
+      const diffMin = Math.floor(diffSec / 60);
+      const diffHour = Math.floor(diffMin / 60);
+      const diffDay = Math.floor(diffHour / 24);
+      
+      if (diffDay > 7) {
+        return date.toLocaleDateString('uz-UZ');
+      } else if (diffDay > 0) {
+        return `${diffDay} kun avval`;
+      } else if (diffHour > 0) {
+        return `${diffHour} soat avval`;
+      } else if (diffMin > 0) {
+        return `${diffMin} daqiqa avval`;
+      } else {
+        return 'hozirgina';
+      }
     }
 
-    // ========== VIDEO DATA LOADING ==========
-    function loadVideoData() {
-        const videoData = JSON.parse(localStorage.getItem('currentVideo'));
-        
-        if (videoData) {
-            // Video sarlavhasi
-            if (videoData.title) {
-                mainVideoTitle.textContent = videoData.title;
-            }
-            
-            // Video tasviri
-            if (videoData.thumbnail) {
-                mainVideoThumbnail.src = videoData.thumbnail;
-                modalVideoThumbnail.src = videoData.thumbnail;
-            }
-            
-            // Video yili
-            if (videoData.createdAt) {
-                const year = new Date(videoData.createdAt).getFullYear();
-                videoYear.textContent = year;
-                modalVideoYear.textContent = year;
-            }
-            
-            // Video ko'rishlar soni
-            if (videoData.views) {
-                videoViews.textContent = videoData.views + ' namoyish';
-            }
-            
-            // Video vaqti
-            if (videoData.timeAgo) {
-                videoTime.textContent = videoData.timeAgo;
-            }
-            
-            // Video tavsifi
-            if (videoData.description) {
-                const fullText = videoData.description;
-                const shortText = fullText.length > 150 ? fullText.substring(0, 150) + '...' : fullText;
-                
-                descriptionShort.textContent = shortText;
-                descriptionFull.textContent = fullText;
-                
-                if (fullText.length > 150) {
-                    descriptionToggle.style.display = 'inline-flex';
-                } else {
-                    descriptionToggle.style.display = 'none';
-                }
-            }
-            
-            // Like soni
-            if (videoData.likes) {
-                state.heartCount = videoData.likes;
-            }
-            
-            // Comment soni
-            if (videoData.comments) {
-                // Commentlar sonini formatlash
-                const formattedComments = formatNumber(videoData.comments);
-                commentsMainCount.textContent = formattedComments;
-                commentsModalCount.textContent = videoData.comments;
-            }
-        }
-    }
-
-    // ========== DESCRIPTION TOGGLE ==========
-    function toggleDescription() {
-        const isExpanded = descriptionFull.style.display === 'block';
-        
-        if (isExpanded) {
-            descriptionFull.style.display = 'none';
-            descriptionToggle.innerHTML = `
-                <span>Batafsil</span>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M6 9l6 6 6-6"/>
-                </svg>
-            `;
-        } else {
-            descriptionFull.style.display = 'block';
-            descriptionToggle.innerHTML = `
-                <span>Qisqartirish</span>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M18 15l-6-6-6 6"/>
-                </svg>
-            `;
-        }
-    }
-
-    // ========== STORAGE FUNCTIONS ==========
-    function saveToStorage() {
-        localStorage.setItem('ytVideoReactions', JSON.stringify(state));
-    }
-
-    function loadFromStorage() {
-        const savedData = localStorage.getItem('ytVideoReactions');
-        if (savedData) {
-            const parsed = JSON.parse(savedData);
-            state = { ...state, ...parsed };
-            
-            // Vaqtni formatlash
-            state.comments = state.comments.map(c => {
-                if (c.timestamp) c.time = formatTime(new Date(c.timestamp));
-                if (c.likes === undefined) c.likes = 0;
-                if (c.isLiked === undefined) c.isLiked = false;
-                if (c.replies === undefined) c.replies = [];
-                
-                // Replies uchun ham formatlash
-                if (c.replies) {
-                    c.replies = c.replies.map(r => {
-                        if (r.timestamp) r.time = formatTime(new Date(r.timestamp));
-                        if (r.likes === undefined) r.likes = 0;
-                        if (r.isLiked === undefined) r.isLiked = false;
-                        return r;
-                    });
-                }
-                return c;
-            });
-        }
+    function increaseViewCount() {
+      if (!currentVideo) return;
+      
+      currentVideo.views = (currentVideo.views || 0) + 1;
+      
+      // LocalStorage da yangilash
+      let videos = JSON.parse(localStorage.getItem('userVideos')) || [];
+      const videoIndex = videos.findIndex(v => v.id === currentVideo.id);
+      
+      if (videoIndex !== -1) {
+        videos[videoIndex].views = currentVideo.views;
+        localStorage.setItem('userVideos', JSON.stringify(videos));
+      }
+      
+      // UI da yangilash
+      document.getElementById('videoViews').textContent = formatNumber(currentVideo.views) + ' ko\'rish';
     }
 
     
-    // ========== UI RENDER FUNCTIONS ==========
-    function updateUI() {
-        // Like sonini ko'rsatish
-        const formattedHeartCount = formatNumber(state.heartCount);
-        heartCountDisplay.textContent = formattedHeartCount;
-        
-        // Like tugmasini holatini yangilash
-        if (state.isHearted) {
-            heartBtn.classList.add('active');
-        } else {
-            heartBtn.classList.remove('active');
-        }
-
-        // Obuna holatini yangilash
-        if (state.isSubscribed) {
-            subscribeBtn.textContent = "Obuna bo'lingan";
-            subscribeBtn.classList.add('subscribed');
-        } else {
-            subscribeBtn.textContent = "Obuna bo'lish";
-            subscribeBtn.classList.remove('subscribed');
-        }
-
-        // Commentlar ro'yxatini yangilash
-        renderComments();
-        
-        // Jami commentlar sonini hisoblash (asosiy + javoblar)
-        let totalComments = state.comments.length;
-        state.comments.forEach(c => totalComments += (c.replies ? c.replies.length : 0));
-        
-        // Comment sonini formatlash
-        const formattedComments = totalComments >= 1000 
-            ? (totalComments / 1000).toFixed(1).replace(/\.0$/, '') + 'K'
-            : totalComments.toString();
-        
-        // Comment sonlarini yangilash
-        commentsMainCount.textContent = formattedComments;
-        commentsModalCount.textContent = totalComments;
-        
-        // Comment tugmasini faollashtirish
-        if (totalComments > 0) {
-            commentsBtn.classList.add('active');
-        } else {
-            commentsBtn.classList.remove('active');
-        }
-        
-        // Reply mode indicator ni yangilash
-        updateReplyModeIndicator();
+    // ========== VIDEO PLAYER ==========
+    function initializeVideoPlayer() {
+      const videoContainer = document.getElementById('videoPlayer');
+      
+      if (!currentVideo || !currentVideo.videoUrl) {
+        videoContainer.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #aaa;">Video topilmadi</div>';
+        return;
+      }
+      
+      // Video elementini yaratish
+      videoPlayer = document.createElement('video');
+      videoPlayer.src = currentVideo.videoUrl;
+      videoPlayer.controls = false;
+      videoPlayer.style.width = '100%';
+      videoPlayer.style.height = '100%';
+      videoPlayer.style.objectFit = 'contain';
+      
+      // Video yuklanganda
+      videoPlayer.addEventListener('loadedmetadata', function() {
+        videoDuration = videoPlayer.duration;
+        updateTimeDisplay();
+      });
+      
+      // Vaqt yangilanganda
+      videoPlayer.addEventListener('timeupdate', function() {
+        currentTime = videoPlayer.currentTime;
+        updateTimeDisplay();
+      });
+      
+      // Video tugaganda
+      videoPlayer.addEventListener('ended', function() {
+        isPlaying = false;
+        updatePlayButton();
+      });
+      
+      videoContainer.appendChild(videoPlayer);
     }
 
-    function updateReplyModeIndicator() {
-        const existingIndicator = document.querySelector('.reply-mode-indicator');
-        if (existingIndicator) existingIndicator.remove();
+    function updateTimeDisplay() {
+      const timeDisplay = document.getElementById('timeDisplay');
+      const currentTimeFormatted = formatTime(currentTime);
+      const durationFormatted = formatTime(videoDuration);
+      timeDisplay.textContent = `${currentTimeFormatted} / ${durationFormatted}`;
+    }
+
+    function formatTime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    // ========== CONTROLS SETUP ==========
+    function setupControls() {
+      const playBtn = document.getElementById('playBtn');
+      const muteBtn = document.getElementById('muteBtn');
+      const volumeSlider = document.getElementById('volumeSlider');
+      const likeBtn = document.getElementById('likeBtn');
+      const dislikeBtn = document.getElementById('dislikeBtn');
+      const shareBtn = document.getElementById('shareBtn');
+      const saveBtn = document.getElementById('saveBtn');
+      
+      // Play/Pause
+      playBtn.addEventListener('click', function() {
+        if (!videoPlayer) return;
         
-        if (replyMode.active) {
-            const indicator = document.createElement('div');
-            indicator.className = 'reply-mode-indicator';
-            
-            if (replyMode.isEditMode) {
-                if (replyMode.replyToReplyIndex !== undefined) {
-                    // Edit reply mode
-                    indicator.innerHTML = `
-                        <div class="reply-mode-text">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                            </svg>
-                            Javobingizni tahrirlash
-                        </div>
-                        <button class="reply-mode-cancel" onclick="cancelReplyMode()">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <line x1="18" y1="6" x2="6" y2="18"></line>
-                                <line x1="6" y1="6" x2="18" y2="18"></line>
-                            </svg>
-                            Bekor qilish
-                        </button>
-                    `;
-                } else {
-                    // Edit comment mode
-                    indicator.innerHTML = `
-                        <div class="reply-mode-text">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                            </svg>
-                            Fikringizni tahrirlash
-                        </div>
-                        <button class="reply-mode-cancel" onclick="cancelReplyMode()">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <line x1="18" y1="6" x2="6" y2="18"></line>
-                                <line x1="6" y1="6" x2="18" y2="18"></line>
-                            </svg>
-                            Bekor qilish
-                        </button>
-                    `;
-                }
-            } else {
-                // Reply mode
-                indicator.innerHTML = `
-                    <div class="reply-mode-text">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                        </svg>
-                        <span>${replyMode.targetAuthor}</span><span class="reply-mode-author"> ga javob yozyapsiz</span>
-                    </div>
-                    <button class="reply-mode-cancel" onclick="cancelReplyMode()">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
-                        Bekor qilish
-                    </button>
-                `;
-            }
-            
-            // Add indicator to comments list
-            if (commentsList.firstChild) {
-                commentsList.insertBefore(indicator, commentsList.firstChild);
-            } else {
-                commentsList.appendChild(indicator);
-            }
-            
-            // Update input wrapper style
-            document.querySelector('.comment-input-wrapper').classList.add('reply-mode');
+        if (isPlaying) {
+          videoPlayer.pause();
         } else {
-            // Remove reply mode styles
-            const inputWrapper = document.querySelector('.comment-input-wrapper');
-            if (inputWrapper) inputWrapper.classList.remove('reply-mode');
+          videoPlayer.play();
         }
+        
+        isPlaying = !isPlaying;
+        updatePlayButton();
+      });
+      
+      // Mute/Unmute
+      muteBtn.addEventListener('click', function() {
+        if (!videoPlayer) return;
+        
+        videoPlayer.muted = !videoPlayer.muted;
+        updateMuteButton();
+      });
+      
+      // Volume
+      volumeSlider.addEventListener('input', function() {
+        if (!videoPlayer) return;
+        
+        videoPlayer.volume = volumeSlider.value;
+        updateMuteButton();
+      });
+      
+      // Like
+      likeBtn.addEventListener('click', function() {
+        if (!currentVideo) return;
+        
+        currentVideo.likes = (currentVideo.likes || 0) + 1;
+        updateLikeButton();
+        
+        // LocalStorage da yangilash
+        updateVideoInStorage();
+      });
+      
+      // Dislike
+      dislikeBtn.addEventListener('click', function() {
+        likeBtn.classList.remove('active');
+        dislikeBtn.classList.add('active');
+      });
+      
+      // Share
+      shareBtn.addEventListener('click', function() {
+        if (navigator.share) {
+          navigator.share({
+            title: currentVideo.title,
+            text: currentVideo.description,
+            url: window.location.href
+          });
+        } else {
+          navigator.clipboard.writeText(window.location.href);
+          alert('Havola nusxalandi!');
+        }
+      });
+      
+      // Save
+      saveBtn.addEventListener('click', function() {
+        saveBtn.classList.toggle('active');
+        alert(saveBtn.classList.contains('active') ? 'Video saqlandi' : 'Saqlash bekor qilindi');
+      });
+    }
+
+    function updatePlayButton() {
+      const playBtn = document.getElementById('playBtn');
+      
+      if (isPlaying) {
+        playBtn.innerHTML = `
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="6" y="4" width="4" height="16"></rect>
+            <rect x="14" y="4" width="4" height="16"></rect>
+          </svg>
+        `;
+      } else {
+        playBtn.innerHTML = `
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+        `;
+      }
+    }
+
+    function updateMuteButton() {
+      const muteBtn = document.getElementById('muteBtn');
+      const volumeSlider = document.getElementById('volumeSlider');
+      
+      if (videoPlayer.muted || videoPlayer.volume === 0) {
+        muteBtn.innerHTML = `
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <line x1="23" y1="9" x2="17" y2="15"></line>
+            <line x1="17" y1="9" x2="23" y2="15"></line>
+          </svg>
+        `;
+      } else {
+        muteBtn.innerHTML = `
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+          </svg>
+        `;
+      }
+      
+      volumeSlider.value = videoPlayer.volume;
+    }
+
+    function updateLikeButton() {
+      const likeBtn = document.getElementById('likeBtn');
+      const likeCount = document.getElementById('likeCount');
+      
+      likeBtn.classList.add('active');
+      likeCount.textContent = formatNumber(currentVideo.likes || 0);
+    }
+
+    function updateVideoInStorage() {
+      let videos = JSON.parse(localStorage.getItem('userVideos')) || [];
+      const videoIndex = videos.findIndex(v => v.id === currentVideo.id);
+      
+      if (videoIndex !== -1) {
+        videos[videoIndex] = currentVideo;
+        localStorage.setItem('userVideos', JSON.stringify(videos));
+      }
+    }
+
+    // ========== COMMENTS SYSTEM ==========
+    function setupComments() {
+      const commentInput = document.getElementById('commentInput');
+      const commentSubmit = document.getElementById('commentSubmit');
+      
+      // Comment input validation
+      commentInput.addEventListener('input', function() {
+        const text = commentInput.value.trim();
+        commentSubmit.disabled = text.length === 0;
+        
+        // Auto-resize textarea
+        commentInput.style.height = 'auto';
+        commentInput.style.height = commentInput.scrollHeight + 'px';
+      });
+      
+      // Enter key to submit
+      commentInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          if (!commentSubmit.disabled) {
+            submitComment();
+          }
+        }
+      });
+      
+      // Submit button
+      commentSubmit.addEventListener('click', submitComment);
+      
+      // Load comments
+      loadComments();
+    }
+
+    function loadComments() {
+      comments = JSON.parse(localStorage.getItem(`videoComments_${currentVideo.id}`)) || [];
+      
+      const commentsList = document.getElementById('commentsList');
+      const noComments = document.getElementById('noComments');
+      const commentsCount = document.getElementById('commentsCount');
+      
+      commentsCount.textContent = `Sharhlar (${comments.length})`;
+      
+      if (comments.length === 0) {
+        commentsList.style.display = 'none';
+        noComments.style.display = 'block';
+        return;
+      }
+      
+      commentsList.style.display = 'flex';
+      noComments.style.display = 'none';
+      commentsList.innerHTML = '';
+      
+      // Sharhlarni chiqarish
+      comments.forEach((comment, index) => {
+        const commentElement = createCommentElement(comment, index);
+        commentsList.appendChild(commentElement);
+      });
     }
 
     function createCommentElement(comment, index) {
-        const div = document.createElement('div');
-        div.className = 'comment-wrapper';
-        
-        const isMyComment = comment.author === 'Siz';
-        
-        // Format comment text with mentions
-        let formattedText = comment.text;
-        formattedText = formattedText.replace(/@(\w+)/g, '<span class="mention">@$1</span>');
-        
-        let html = `
-        <div class="comment" id="comment-${index}">
-            <img src="${comment.avatar}" alt="Avatar" class="comment-avatar" loading="lazy">
-            <div class="comment-content">
-                <div class="comment-header">
-                    <span class="comment-author">${comment.author}</span>
-                    <span class="comment-time">${comment.time}</span>
-                </div>
-                <div class="comment-text">${formattedText}</div>
-                
-                <div class="comment-actions">
-                    <button class="comment-action-btn like-btn ${comment.isLiked ? 'active' : ''}" onclick="toggleCommentLike(${index})">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
-                        </svg>
-                        <span>${comment.likes || 0}</span>
-                    </button>
-                    <div class="reply-btn" onclick="startReplyMode(${index}, false, '${comment.author.replace(/'/g, "\\'")}')">
-                        Javob berish
-                    </div>
-                </div>
-            </div>
-            
-            ${isMyComment ? `
-            <div class="comment-options" onclick="toggleMenu(event, ${index})">
-                <div class="comment-options-dot"></div><div class="comment-options-dot"></div><div class="comment-options-dot"></div>
-            </div>
-            <div class="comment-menu" id="menu-${index}">
-                <div class="comment-menu-item comment-menu-edit" onclick="startReplyMode(${index}, true, '${comment.author.replace(/'/g, "\\'")}')">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                    Tahrirlash
-                </div>
-                <div class="comment-menu-item comment-menu-delete" onclick="deleteComment(${index})">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                    O'chirish
-                </div>
-            </div>
-            ` : ''}
-        </div>
-
-        <div class="replies-container">
-            ${comment.replies && comment.replies.length > 0 ? comment.replies.map((reply, replyIndex) => {
-                let replyFormattedText = reply.text;
-                replyFormattedText = replyFormattedText.replace(/@(\w+)/g, '<span class="mention">@$1</span>');
-                
-                const isMyReply = reply.author === 'Siz';
-                
-                return `
-                <div class="reply-item" id="reply-${index}-${replyIndex}">
-                    <img src="${reply.avatar}" class="comment-avatar" loading="lazy">
-                    <div class="comment-content">
-                        <div class="comment-header">
-                            <span class="comment-author">${reply.author}</span>
-                            <span class="comment-time">${reply.time}</span>
-                        </div>
-                        <div class="comment-text">${replyFormattedText}</div>
-                        
-                        <div class="comment-actions">
-                            <button class="comment-action-btn like-btn ${reply.isLiked ? 'active' : ''}" onclick="toggleReplyLike(${index}, ${replyIndex})">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
-                                </svg>
-                                <span>${reply.likes || 0}</span>
-                            </button>
-                            <div class="reply-btn" onclick="startReplyToReply(${index}, ${replyIndex}, '${reply.author.replace(/'/g, "\\'")}')">
-                                Javob berish
-                            </div>
-                        </div>
-                    </div>
-                    
-                    ${isMyReply ? `
-                    <div class="comment-options" onclick="toggleReplyMenu(event, ${index}, ${replyIndex})">
-                        <div class="comment-options-dot"></div><div class="comment-options-dot"></div><div class="comment-options-dot"></div>
-                    </div>
-                    <div class="comment-menu" id="reply-menu-${index}-${replyIndex}">
-                        <div class="comment-menu-item comment-menu-edit" onclick="editReply(${index}, ${replyIndex})">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                            Tahrirlash
-                        </div>
-                        <div class="comment-menu-item comment-menu-delete" onclick="deleteReply(${index}, ${replyIndex})">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                            O'chirish
-                        </div>
-                    </div>
-                    ` : ''}
-                </div>
-            `}).join('') : ''}
-        </div>
+      const div = document.createElement('div');
+      div.className = 'comment';
+      
+      const avatar = document.createElement('div');
+      avatar.className = 'comment-avatar';
+      
+      const content = document.createElement('div');
+      content.className = 'comment-content';
+      
+      const header = document.createElement('div');
+      header.className = 'comment-header';
+      
+      const author = document.createElement('div');
+      author.className = 'comment-author';
+      author.textContent = comment.author || 'Foydalanuvchi';
+      
+      const time = document.createElement('div');
+      time.className = 'comment-time';
+      time.textContent = formatDate(comment.timestamp);
+      
+      const text = document.createElement('div');
+      text.className = 'comment-text';
+      text.textContent = comment.text;
+      
+      const actions = document.createElement('div');
+      actions.className = 'comment-actions';
+      
+      const likeBtn = document.createElement('button');
+      likeBtn.className = 'comment-action';
+      likeBtn.innerHTML = `
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+        </svg>
+        ${comment.likes || 0}
+      `;
+      
+      likeBtn.addEventListener('click', function() {
+        comment.likes = (comment.likes || 0) + 1;
+        likeBtn.innerHTML = `
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ff0000" stroke-width="2">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+          </svg>
+          ${comment.likes}
         `;
-
-        div.innerHTML = html;
-        return div;
+        saveComments();
+      });
+      
+      const replyBtn = document.createElement('button');
+      replyBtn.className = 'comment-action';
+      replyBtn.textContent = 'Javob berish';
+      
+      header.appendChild(author);
+      header.appendChild(time);
+      
+      actions.appendChild(likeBtn);
+      actions.appendChild(replyBtn);
+      
+      content.appendChild(header);
+      content.appendChild(text);
+      content.appendChild(actions);
+      
+      div.appendChild(avatar);
+      div.appendChild(content);
+      
+      return div;
     }
 
-    function renderComments() {
-        commentsList.innerHTML = '';
-        if (state.comments.length === 0) {
-            noCommentsIndicator.style.display = 'flex';
-        } else {
-            noCommentsIndicator.style.display = 'none';
-            state.comments.forEach((comment, index) => {
-                const el = createCommentElement(comment, index);
-                commentsList.appendChild(el);
-            });
-            
-            // Reply mode indicator ni qayta joylashtirish
-            updateReplyModeIndicator();
-        }
+    function submitComment() {
+      const commentInput = document.getElementById('commentInput');
+      const text = commentInput.value.trim();
+      
+      if (!text) return;
+      
+      const newComment = {
+        id: Date.now(),
+        text: text,
+        author: 'Siz',
+        timestamp: new Date().toISOString(),
+        likes: 0
+      };
+      
+      comments.unshift(newComment);
+      saveComments();
+      
+      // Inputni tozalash
+      commentInput.value = '';
+      commentInput.style.height = 'auto';
+      document.getElementById('commentSubmit').disabled = true;
+      
+      // UI ni yangilash
+      loadComments();
     }
 
-    
-    // ========== COMMENT FUNCTIONS ==========
-    window.toggleCommentLike = function(index) {
-        const comment = state.comments[index];
-        if (comment.isLiked) {
-            comment.likes--;
-            comment.isLiked = false;
-        } else {
-            comment.likes++;
-            comment.isLiked = true;
-        }
-        saveToStorage();
-        updateUI();
-        showNotification(comment.isLiked ? "Fikrga like bosildi" : "Like olib tashlandi");
-    };
-
-    window.toggleReplyLike = function(commentIndex, replyIndex) {
-        const reply = state.comments[commentIndex].replies[replyIndex];
-        if (!reply.likes) reply.likes = 0;
-        if (!reply.isLiked) reply.isLiked = false;
-        
-        if (reply.isLiked) {
-            reply.likes--;
-            reply.isLiked = false;
-        } else {
-            reply.likes++;
-            reply.isLiked = true;
-        }
-        saveToStorage();
-        updateUI();
-        showNotification(reply.isLiked ? "Javobga like bosildi" : "Like olib tashlandi");
-    };
-
-    window.startReplyMode = function(index, isEdit = false, author = null) {
-        const comment = state.comments[index];
-        
-        // Reply mode ni sozlash
-        replyMode.active = true;
-        replyMode.targetCommentId = comment.id;
-        replyMode.targetCommentIndex = index;
-        replyMode.targetAuthor = author || comment.author;
-        replyMode.isEditMode = isEdit;
-        replyMode.replyToReplyIndex = undefined;
-        replyMode.originalText = isEdit ? comment.text : '';
-        
-        if (isEdit) {
-            // Edit mode
-            commentInput.value = comment.text;
-            commentInput.placeholder = "Fikringizni tahrirlang...";
-        } else {
-            // Reply mode
-            commentInput.value = `@${comment.author} `;
-            commentInput.placeholder = `${comment.author} ga javob yozing...`;
-        }
-        
-        // Tugmani faollashtiramiz
-        commentSendBtn.disabled = commentInput.value.trim() === '';
-        if (!commentSendBtn.disabled) commentSendBtn.classList.add('active');
-        
-        // Scroll to input
-        commentInput.focus();
-        commentInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        
-        // UI ni yangilash
-        updateReplyModeIndicator();
-        
-        // Menyuni yopish
-        const menu = document.getElementById(`menu-${index}`);
-        if (menu) menu.classList.remove('show');
-    };
-
-    window.startReplyToReply = function(commentIndex, replyIndex, author) {
-        const comment = state.comments[commentIndex];
-        const reply = comment.replies[replyIndex];
-        
-        // Reply mode ni sozlash
-        replyMode.active = true;
-        replyMode.targetCommentId = comment.id;
-        replyMode.targetCommentIndex = commentIndex;
-        replyMode.targetAuthor = author || reply.author;
-        replyMode.isEditMode = false;
-        replyMode.replyToReplyIndex = replyIndex;
-        replyMode.originalText = '';
-        
-        // Inputni sozlash
-        commentInput.value = `@${reply.author} `;
-        commentInput.placeholder = `${reply.author} ga javob yozing...`;
-        
-        // Tugmani faollashtiramiz
-        commentSendBtn.disabled = commentInput.value.trim() === '';
-        if (!commentSendBtn.disabled) commentSendBtn.classList.add('active');
-        
-        // Scroll to input
-        commentInput.focus();
-        commentInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        
-        // UI ni yangilash
-        updateReplyModeIndicator();
-    };
-
-    window.editReply = function(commentIndex, replyIndex) {
-        const reply = state.comments[commentIndex].replies[replyIndex];
-        
-        // Reply mode ni sozlash
-        replyMode.active = true;
-        replyMode.targetCommentId = state.comments[commentIndex].id;
-        replyMode.targetCommentIndex = commentIndex;
-        replyMode.targetAuthor = reply.author;
-        replyMode.isEditMode = true;
-        replyMode.replyToReplyIndex = replyIndex;
-        replyMode.originalText = reply.text;
-        
-        // Inputni sozlash
-        commentInput.value = reply.text;
-        commentInput.placeholder = "Javobingizni tahrirlang...";
-        
-        // Tugmani faollashtiramiz
-        commentSendBtn.disabled = commentInput.value.trim() === '';
-        if (!commentSendBtn.disabled) commentSendBtn.classList.add('active');
-        
-        // Scroll to input
-        commentInput.focus();
-        commentInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        
-        // UI ni yangilash
-        updateReplyModeIndicator();
-    };
-
-    window.cancelReplyMode = function() {
-        replyMode.active = false;
-        replyMode.targetCommentId = null;
-        replyMode.targetCommentIndex = null;
-        replyMode.targetAuthor = null;
-        replyMode.isEditMode = false;
-        replyMode.replyToReplyIndex = undefined;
-        replyMode.originalText = "";
-        
-        // Inputni tozalamiz
-        commentInput.value = '';
-        commentInput.placeholder = 'Fikr bildiring...';
-        commentSendBtn.disabled = true;
-        commentSendBtn.classList.remove('active');
-        
-        // UI ni yangilash
-        updateReplyModeIndicator();
-    };
-
-    function submitCommentOrReply() {
-        const text = commentInput.value.trim();
-        
-        if (!text) {
-            showNotification("Iltimos, matn kiriting");
-            return;
-        }
-        
-        // Spinner effect
-        const originalHtml = commentSendBtn.innerHTML;
-        commentSendBtn.innerHTML = '<div class="loading-spinner"></div>';
-        commentSendBtn.disabled = true;
-        
-        setTimeout(() => {
-            if (replyMode.active) {
-                // Bu reply yoki edit
-                if (replyMode.isEditMode) {
-                    if (replyMode.replyToReplyIndex !== undefined) {
-                        // Edit reply
-                        const reply = state.comments[replyMode.targetCommentIndex].replies[replyMode.replyToReplyIndex];
-                        reply.text = text;
-                        reply.time = "hozirgina (tahrirlangan)";
-                        reply.timestamp = Date.now();
-                        
-                        saveToStorage();
-                        updateUI();
-                        showNotification("Javob muvaffaqiyatli tahrirlandi");
-                    } else {
-                        // Edit existing comment
-                        const comment = state.comments[replyMode.targetCommentIndex];
-                        comment.text = text;
-                        comment.time = "hozirgina (tahrirlangan)";
-                        comment.timestamp = Date.now();
-                        
-                        saveToStorage();
-                        updateUI();
-                        showNotification("Fikr muvaffaqiyatli tahrirlandi");
-                    }
-                } else {
-                    if (replyMode.replyToReplyIndex !== undefined) {
-                        // Reply to reply (nested reply)
-                        const reply = {
-                            text: text,
-                            author: 'Siz',
-                            avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=880&q=80',
-                            time: 'hozirgina',
-                            timestamp: Date.now(),
-                            likes: 0,
-                            isLiked: false
-                        };
-                        
-                        if (!state.comments[replyMode.targetCommentIndex].replies) {
-                            state.comments[replyMode.targetCommentIndex].replies = [];
-                        }
-                        
-                        state.comments[replyMode.targetCommentIndex].replies.push(reply);
-                        
-                        saveToStorage();
-                        updateUI();
-                        showNotification("Javobingiz qo'shildi");
-                    } else {
-                        // Reply to comment
-                        const reply = {
-                            text: text,
-                            author: 'Siz',
-                            avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=880&q=80',
-                            time: 'hozirgina',
-                            timestamp: Date.now(),
-                            likes: 0,
-                            isLiked: false
-                        };
-                        
-                        if (!state.comments[replyMode.targetCommentIndex].replies) {
-                            state.comments[replyMode.targetCommentIndex].replies = [];
-                        }
-                        
-                        state.comments[replyMode.targetCommentIndex].replies.push(reply);
-                        
-                        saveToStorage();
-                        updateUI();
-                        showNotification("Javobingiz qo'shildi");
-                    }
-                }
-            } else {
-                // This is a new main comment
-                const newComment = {
-                    id: Date.now(),
-                    text: text,
-                    author: 'Siz',
-                    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=880&q=80',
-                    time: 'hozirgina',
-                    timestamp: Date.now(),
-                    likes: 0,
-                    isLiked: false,
-                    replies: []
-                };
-                
-                state.comments.unshift(newComment);
-                saveToStorage();
-                updateUI();
-                showNotification("Fikr muvaffaqiyatli qo'shildi");
-            }
-            
-            // Reset after submission
-            cancelReplyMode();
-            
-            // Reset button
-            commentSendBtn.innerHTML = originalHtml;
-            commentInput.value = '';
-            commentInput.style.height = 'auto';
-            commentSendBtn.disabled = true;
-            commentSendBtn.classList.remove('active');
-        }, 600);
+    function saveComments() {
+      localStorage.setItem(`videoComments_${currentVideo.id}`, JSON.stringify(comments));
     }
-
-    window.toggleMenu = function(e, index) {
-        e.stopPropagation();
-        const menu = document.getElementById(`menu-${index}`);
-        
-        // Boshqa menyularni yopish
-        document.querySelectorAll('.comment-menu').forEach(m => {
-            if (m !== menu) m.classList.remove('show');
-        });
-        
-        menu.classList.toggle('show');
-    };
-
-    window.toggleReplyMenu = function(e, commentIndex, replyIndex) {
-        e.stopPropagation();
-        const menu = document.getElementById(`reply-menu-${commentIndex}-${replyIndex}`);
-        
-        // Boshqa menyularni yopish
-        document.querySelectorAll('.comment-menu').forEach(m => {
-            if (m !== menu) m.classList.remove('show');
-        });
-        
-        menu.classList.toggle('show');
-    };
-
-    window.deleteComment = function(index) {
-        if(confirm("Fikrni o'chirmoqchimisiz?")) {
-            state.comments.splice(index, 1);
-            saveToStorage();
-            updateUI();
-            showNotification("Fikr o'chirildi");
-        }
-    };
-
-    window.deleteReply = function(commentIndex, replyIndex) {
-        if(confirm("Javobingizni o'chirmoqchimisiz?")) {
-            state.comments[commentIndex].replies.splice(replyIndex, 1);
-            saveToStorage();
-            updateUI();
-            showNotification("Javob o'chirildi");
-        }
-    };
-
-    // ========== EVENT HANDLERS ==========
-    function goBackToProfile() {
-        window.location.href = 'profil.html';
-    }
-
-    function toggleHeart() {
-        state.isHearted = !state.isHearted;
-        state.heartCount += state.isHearted ? 1 : -1;
-        showNotification(state.isHearted ? "Videoga like bosildi" : "Like olib tashlandi");
-        saveToStorage();
-        updateUI();
-    }
-
-    function toggleSubscribe() {
-        state.isSubscribed = !state.isSubscribed;
-        showNotification(state.isSubscribed ? "Obuna bo'ldingiz" : "Obuna bekor qilindi");
-        saveToStorage();
-        updateUI();
-    }
-
-    function toggleSave() {
-        saveBtn.classList.toggle('active');
-        showNotification(saveBtn.classList.contains('active') ? "Video saqlandi" : "Saqlash bekor qilindi");
-    }
-
-    function openCommentsModal() {
-        modal.style.display = 'block';
-        setTimeout(() => modal.classList.add('show'), 10);
-        document.body.style.overflow = 'hidden';
-    }
-
-    function closeModal() {
-        modal.classList.remove('show');
-        setTimeout(() => {
-            modal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-            // Reply mode ni reset qilish
-            cancelReplyMode();
-        }, 300);
-    }
-
-    function handleWindowClick(e) {
-        if (e.target === modal) closeModal();
-        // Close menus inside modal
-        if (!e.target.closest('.comment-options')) {
-            document.querySelectorAll('.comment-menu.show').forEach(m => m.classList.remove('show'));
-        }
-    }
-
-    function handleCommentInput() {
-        commentInput.style.height = 'auto';
-        commentInput.style.height = commentInput.scrollHeight + 'px';
-        
-        // Validate input
-        const text = commentInput.value.trim();
-        commentSendBtn.disabled = text === '';
-        
-        if (!commentSendBtn.disabled) {
-            commentSendBtn.classList.add('active');
-        } else {
-            commentSendBtn.classList.remove('active');
-        }
-    }
-
-    function handleCommentKeydown(e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            if (!commentSendBtn.disabled) {
-                submitCommentOrReply();
-            }
-        }
-        
-        // ESC tugmasi bilan reply mode ni bekor qilish
-        if (e.key === 'Escape' && replyMode.active) {
-            cancelReplyMode();
-        }
-    }
-
-    function handleCommentClick() {
-        if (replyMode.active && commentInput.value.trim() === '') {
-            cancelReplyMode();
-        }
-    }
-
-    function handleModalTransition() {
-        if (modal.classList.contains('show')) {
-            setTimeout(() => {
-                if (!replyMode.active) {
-                    commentInput.focus();
-                }
-            }, 100);
-        }
-    }
-
-    function handleEscapeKey(e) {
-        if (e.key === 'Escape') {
-            if (modal.style.display === 'block') {
-                closeModal();
-            }
-        }
-    }
-
-    // ========== RECOMMENDED VIDEOS ==========
-    function setupRecommendedVideos() {
-        // Recommended 1
-        document.getElementById('recommended1').addEventListener('click', function() {
-            const videoData = {
-                id: Date.now() + 100,
-                title: "Ozoda - Eng yaxshi qo'shiqlar to'plami 2024",
-                description: "Ozodaning eng mashhur qo'shiqlari to'plami. 2024 yildagi eng yaxshi kontsertlardan. Bu video sizni Ozodaning eng yaxshi qo'shiqlari bilan tanishtiradi.",
-                thumbnail: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=1470&q=80",
-                views: "45,2 ming",
-                timeAgo: "2 oy avval",
-                likes: 2341,
-                comments: 189,
-                createdAt: "2024-11-15T10:30:00Z"
-            };
-            localStorage.setItem('currentVideo', JSON.stringify(videoData));
-            location.reload();
-        });
-
-        // Recommended 2
-        document.getElementById('recommended2').addEventListener('click', function() {
-            const videoData = {
-                id: Date.now() + 101,
-                title: "Yangi O'zbekiston qo'shiqlari 2025",
-                description: "2025 yilgi eng yangi o'zbek qo'shiqlari to'plami. Zamonaviy musiqa va an'anaviy ohanglar uyg'unligi. Yangi yilga bag'ishlangan maxsus kontsert.",
-                thumbnail: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=1470&q=80",
-                views: "102,7 ming",
-                timeAgo: "1 hafta avval",
-                likes: 5423,
-                comments: 423,
-                createdAt: "2025-01-08T14:20:00Z"
-            };
-            localStorage.setItem('currentVideo', JSON.stringify(videoData));
-            location.reload();
-        });
-
-        // Recommended 3
-        document.getElementById('recommended3').addEventListener('click', function() {
-            const videoData = {
-                id: Date.now() + 102,
-                title: "O'zbekiston manzaralari 4K",
-                description: "O'zbekistonning ajoyib manzaralari. Toshkent, Samarqand, Buxoro shaharlarining go'zalliklarini 4K sifatida tomosha qiling. Tabiatning ajoyib go'zalligi.",
-                thumbnail: "https://images.unsplash.com/photo-1513326738677-b964603b136d?auto=format&fit=crop&w=1470&q=80",
-                views: "89,3 ming",
-                timeAgo: "3 kun avval",
-                likes: 3214,
-                comments: 156,
-                createdAt: "2025-01-12T09:15:00Z"
-            };
-            localStorage.setItem('currentVideo', JSON.stringify(videoData));
-            location.reload();
-        });
-    }
-    </script>
+  </script>
 </body>
 </html>
