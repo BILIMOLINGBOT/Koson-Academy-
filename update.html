@@ -1,949 +1,998 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yangi Video Yuklash</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yangi Video Yuklash</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
 
-        body {
-            background-color: #000;
-            color: #fff;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
+    body {
+      background-color: #0f0f0f;
+      color: #fff;
+      min-height: 100vh;
+      padding: 20px;
+    }
 
-        .upload-container {
-            width: 100%;
-            max-width: 800px;
-            background: #1a1a1a;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-            border: 1px solid #333;
-        }
+    .upload-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: #1a1a1a;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+    }
 
-        /* HEADER */
-        .upload-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 25px 30px;
-            position: relative;
-            overflow: hidden;
-        }
+    .upload-header {
+      padding: 20px 30px;
+      border-bottom: 1px solid #272727;
+      background: linear-gradient(135deg, #1a1a1a 0%, #222 100%);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
 
-        .upload-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.4));
-        }
+    .back-btn {
+      background: none;
+      border: none;
+      color: #1da1f2;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
 
-        .header-content {
-            position: relative;
-            z-index: 1;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
+    .back-btn:hover {
+      background-color: rgba(29, 161, 242, 0.1);
+    }
 
-        .back-btn {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.3);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 25px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 15px;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
+    .upload-title {
+      font-size: 22px;
+      font-weight: 700;
+      margin: 0;
+      color: #fff;
+    }
 
-        .back-btn:hover {
-            background: rgba(255,255,255,0.2);
-            transform: translateX(-3px);
-        }
+    .upload-content {
+      padding: 30px;
+    }
 
-        .header-title {
-            font-size: 24px;
-            font-weight: bold;
-            text-align: center;
-            flex-grow: 1;
-        }
+    .upload-area {
+      width: 100%;
+      height: 300px;
+      border: 3px dashed #2f3336;
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 30px;
+      cursor: pointer;
+      transition: all 0.3s;
+      background-color: #222;
+      position: relative;
+      overflow: hidden;
+    }
 
-        /* MAIN CONTENT */
-        .upload-content {
-            padding: 40px;
-        }
+    .upload-area:hover {
+      border-color: #1da1f2;
+      background-color: rgba(29, 161, 242, 0.05);
+    }
 
-        /* UPLOAD AREA */
-        .upload-area {
-            border: 3px dashed #667eea;
-            border-radius: 15px;
-            padding: 50px 30px;
-            text-align: center;
-            margin-bottom: 40px;
-            background: rgba(102, 126, 234, 0.05);
-            transition: all 0.3s ease;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-        }
+    .upload-area.drag-over {
+      border-color: #1da1f2;
+      background-color: rgba(29, 161, 242, 0.1);
+    }
 
-        .upload-area:hover {
-            background: rgba(102, 126, 234, 0.1);
-            border-color: #764ba2;
-            transform: translateY(-2px);
-        }
+    .upload-icon {
+      margin-bottom: 20px;
+      transition: transform 0.3s;
+    }
 
-        .upload-area.drag-over {
-            background: rgba(102, 126, 234, 0.2);
-            border-color: #4caf50;
-            border-style: solid;
-        }
+    .upload-area:hover .upload-icon {
+      transform: scale(1.1);
+    }
 
-        .upload-icon {
-            font-size: 60px;
-            margin-bottom: 20px;
-            color: #667eea;
-        }
+    .upload-text {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: #fff;
+    }
 
-        .upload-text {
-            font-size: 18px;
-            margin-bottom: 15px;
-            color: #fff;
-        }
+    .upload-subtext {
+      color: #8b98a5;
+      font-size: 14px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
 
-        .upload-subtext {
-            color: #888;
-            font-size: 14px;
-            margin-bottom: 25px;
-        }
+    .select-file-btn {
+      background: linear-gradient(45deg, #1da1f2, #0c84d1);
+      color: #fff;
+      border: none;
+      border-radius: 24px;
+      padding: 12px 28px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
 
-        .select-video-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            border-radius: 30px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-        }
+    .select-file-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(29, 161, 242, 0.3);
+    }
 
-        .select-video-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-        }
+    .video-preview {
+      width: 100%;
+      height: 300px;
+      background-color: #000;
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 20px;
+      display: none;
+      position: relative;
+    }
 
-        /* VIDEO PREVIEW */
-        .video-preview {
-            display: none;
-            margin-bottom: 30px;
-            border-radius: 15px;
-            overflow: hidden;
-            position: relative;
-        }
+    .video-preview video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
 
-        .video-preview video {
-            width: 100%;
-            border-radius: 15px;
-            display: block;
-        }
+    .video-info {
+      background-color: #222;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-left: 4px solid #1da1f2;
+    }
 
-        .video-info {
-            background: rgba(0,0,0,0.8);
-            padding: 15px;
-            border-radius: 0 0 15px 15px;
-            margin-top: -4px;
-        }
+    .video-info h4 {
+      color: #fff;
+      margin-bottom: 15px;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-        .video-filename {
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
+    .video-details {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
 
-        .video-details {
-            color: #888;
-            font-size: 14px;
-            display: flex;
-            gap: 15px;
-        }
+    .detail-item {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
 
-        .remove-video {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: rgba(255,0,0,0.8);
-            color: white;
-            border: none;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
+    .detail-label {
+      color: #8b98a5;
+      font-size: 13px;
+    }
 
-        .remove-video:hover {
-            background: rgba(255,0,0,1);
-            transform: scale(1.1);
-        }
+    .detail-value {
+      color: #fff;
+      font-size: 14px;
+      font-weight: 500;
+    }
 
-        /* FORM FIELDS */
-        .form-group {
-            margin-bottom: 25px;
-        }
+    .form-group {
+      margin-bottom: 25px;
+    }
 
-        .form-group label {
-            display: block;
-            margin-bottom: 10px;
-            font-weight: 600;
-            color: #fff;
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+    .form-group label {
+      display: block;
+      margin-bottom: 10px;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-        .form-group input,
-        .form-group textarea {
-            width: 100%;
-            background: #222;
-            border: 2px solid #333;
-            border-radius: 10px;
-            padding: 15px;
-            color: #fff;
-            font-size: 16px;
-            transition: all 0.3s ease;
-        }
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      background-color: #222;
+      border: 2px solid #2f3336;
+      border-radius: 12px;
+      padding: 15px 20px;
+      color: #fff;
+      font-size: 16px;
+      transition: all 0.3s;
+    }
 
-        .form-group textarea {
-            min-height: 120px;
-            resize: vertical;
-            font-family: inherit;
-        }
+    .form-group textarea {
+      resize: vertical;
+      min-height: 120px;
+      font-family: inherit;
+      line-height: 1.5;
+    }
 
-        .form-group input:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
-            background: #2a2a2a;
-        }
+    .form-group input:focus,
+    .form-group textarea:focus {
+      border-color: #1da1f2;
+      outline: none;
+      background-color: #272727;
+      box-shadow: 0 0 0 3px rgba(29, 161, 242, 0.1);
+    }
 
-        /* PROGRESS BAR */
-        .upload-progress {
-            display: none;
-            background: #222;
-            border-radius: 15px;
-            padding: 25px;
-            margin: 30px 0;
-            border: 1px solid #333;
-        }
+    .upload-progress {
+      background-color: #222;
+      border-radius: 12px;
+      padding: 25px;
+      margin-bottom: 20px;
+      display: none;
+    }
 
-        .progress-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
+    .progress-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
 
-        .progress-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #fff;
-        }
+    .progress-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
-        .progress-percent {
-            font-size: 24px;
-            font-weight: bold;
-            color: #667eea;
-        }
+    .progress-percent {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1da1f2;
+    }
 
-        .progress-bar-container {
-            height: 8px;
-            background: #333;
-            border-radius: 4px;
-            overflow: hidden;
-            margin-bottom: 15px;
-        }
+    .progress-bar {
+      height: 10px;
+      background-color: #2f3336;
+      border-radius: 5px;
+      overflow: hidden;
+      margin-bottom: 15px;
+      position: relative;
+    }
 
-        .progress-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #667eea, #764ba2);
-            border-radius: 4px;
-            transition: width 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #1da1f2, #0c84d1);
+      transition: width 0.3s ease;
+      border-radius: 5px;
+      position: relative;
+      overflow: hidden;
+    }
 
-        .progress-bar-fill::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(90deg, 
-                transparent 0%, 
-                rgba(255,255,255,0.3) 50%, 
-                transparent 100%);
-            animation: shimmer 2s infinite;
-        }
+    .progress-fill::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0.3) 50%, 
+        transparent 100%);
+      animation: shimmer 2s infinite;
+    }
 
-        .progress-info {
-            display: flex;
-            justify-content: space-between;
-            color: #888;
-            font-size: 14px;
-        }
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
 
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      color: #8b98a5;
+    }
 
-        /* SUCCESS MESSAGE */
-        .success-message {
-            display: none;
-            background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(76, 175, 80, 0.05) 100%);
-            border: 2px solid #4caf50;
-            border-radius: 15px;
-            padding: 40px;
-            text-align: center;
-            margin: 30px 0;
-        }
+    .upload-btn {
+      width: 100%;
+      background: linear-gradient(45deg, #1da1f2, #0c84d1);
+      color: #fff;
+      border: none;
+      border-radius: 30px;
+      padding: 18px 30px;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 10px;
+      box-shadow: 0 4px 20px rgba(29, 161, 242, 0.3);
+    }
 
-        .success-icon {
-            font-size: 60px;
-            color: #4caf50;
-            margin-bottom: 20px;
-            animation: bounce 1s ease infinite;
-        }
+    .upload-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 25px rgba(29, 161, 242, 0.4);
+    }
 
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
+    .upload-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      background: #2f3336;
+      box-shadow: none;
+    }
 
-        .success-title {
-            font-size: 24px;
-            font-weight: bold;
-            color: #4caf50;
-            margin-bottom: 15px;
-        }
+    .success-message {
+      background: linear-gradient(45deg, rgba(29, 161, 242, 0.1), rgba(12, 132, 209, 0.1));
+      border: 2px solid #1da1f2;
+      border-radius: 16px;
+      padding: 40px;
+      text-align: center;
+      display: none;
+    }
 
-        .success-text {
-            color: #888;
-            margin-bottom: 25px;
-            line-height: 1.6;
-        }
+    .success-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+      color: #1da1f2;
+    }
 
-        .success-actions {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-        }
+    .success-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1da1f2;
+      margin-bottom: 15px;
+    }
 
-        .success-btn {
-            padding: 12px 30px;
-            border-radius: 25px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: none;
-            font-size: 15px;
-        }
+    .success-text {
+      color: #8b98a5;
+      font-size: 16px;
+      margin-bottom: 30px;
+      line-height: 1.5;
+    }
 
-        .view-video-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
+    .success-btn {
+      background: linear-gradient(45deg, #1da1f2, #0c84d1);
+      color: #fff;
+      border: none;
+      border-radius: 24px;
+      padding: 15px 40px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
 
-        .back-profile-btn {
-            background: #333;
-            color: white;
-        }
+    .success-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(29, 161, 242, 0.4);
+    }
 
-        .success-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+      
+      .upload-header {
+        padding: 15px 20px;
+      }
+      
+      .upload-content {
+        padding: 20px;
+      }
+      
+      .upload-area {
+        height: 250px;
+      }
+      
+      .video-preview {
+        height: 250px;
+      }
+      
+      .form-group input,
+      .form-group textarea {
+        padding: 12px 16px;
+      }
+      
+      .upload-btn {
+        padding: 15px 20px;
+        font-size: 16px;
+      }
+    }
 
-        /* UPLOAD BUTTON */
-        .upload-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 18px 50px;
-            border-radius: 30px;
-            font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: block;
-            width: 100%;
-            margin-top: 20px;
-        }
-
-        .upload-btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-        }
-
-        .upload-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none !important;
-            box-shadow: none !important;
-        }
-
-        /* FILE INPUT */
-        #videoFileInput {
-            display: none;
-        }
-
-        /* LOADING SPINNER */
-        .loading-spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* RESPONSIVE DESIGN */
-        @media (max-width: 768px) {
-            .upload-content {
-                padding: 25px;
-            }
-            
-            .upload-header {
-                padding: 20px;
-            }
-            
-            .header-title {
-                font-size: 20px;
-            }
-            
-            .upload-area {
-                padding: 30px 20px;
-            }
-            
-            .success-actions {
-                flex-direction: column;
-            }
-            
-            .success-btn {
-                width: 100%;
-            }
-        }
-
-        @media (max-width: 480px) {
-            body {
-                padding: 10px;
-            }
-            
-            .upload-content {
-                padding: 20px;
-            }
-            
-            .upload-area {
-                padding: 25px 15px;
-            }
-            
-            .upload-icon {
-                font-size: 50px;
-            }
-            
-            .upload-text {
-                font-size: 16px;
-            }
-            
-            .select-video-btn {
-                padding: 12px 30px;
-                font-size: 15px;
-            }
-            
-            .form-group input,
-            .form-group textarea {
-                padding: 12px;
-                font-size: 15px;
-            }
-            
-            .upload-btn {
-                padding: 15px 30px;
-                font-size: 16px;
-            }
-        }
-
-        /* DRAG OVERLAY */
-        .drag-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(102, 126, 234, 0.9);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 24px;
-            font-weight: bold;
-            border-radius: 12px;
-            z-index: 10;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            pointer-events: none;
-        }
-
-        .upload-area.drag-over .drag-overlay {
-            opacity: 1;
-        }
-    </style>
+    @media (max-width: 480px) {
+      .upload-title {
+        font-size: 20px;
+      }
+      
+      .upload-text {
+        font-size: 16px;
+      }
+      
+      .video-details {
+        grid-template-columns: 1fr;
+      }
+      
+      .success-message {
+        padding: 30px 20px;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="upload-container">
-        <!-- HEADER -->
-        <div class="upload-header">
-            <div class="header-content">
-                <button class="back-btn" id="backBtn">
-                    <span>←</span> Orqaga
-                </button>
-                <div class="header-title">Yangi Video Yuklash</div>
-                <div style="width: 90px;"></div> <!-- Spacer -->
-            </div>
-        </div>
-
-        <!-- MAIN CONTENT -->
-        <div class="upload-content">
-            <!-- UPLOAD AREA -->
-            <div class="upload-area" id="uploadArea">
-                <div class="drag-overlay">Videoni bu yerga tashlang</div>
-                <div class="upload-icon">📹</div>
-                <div class="upload-text">Video faylni tanlang yoki bu yerga sudrab tashlang</div>
-                <div class="upload-subtext">MP4, AVI, MOV formatlari, maksimal hajmi 500MB</div>
-                <button class="select-video-btn" id="selectVideoBtn">
-                    <span>📂</span> Video Tanlash
-                </button>
-            </div>
-
-            <!-- VIDEO PREVIEW -->
-            <div class="video-preview" id="videoPreview">
-                <video id="videoPlayer" controls></video>
-                <button class="remove-video" id="removeVideoBtn">×</button>
-                <div class="video-info">
-                    <div class="video-filename" id="videoFilename"></div>
-                    <div class="video-details">
-                        <span id="videoSize"></span>
-                        <span id="videoDuration"></span>
-                        <span id="videoResolution"></span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- FORM FIELDS -->
-            <div class="form-group">
-                <label for="videoTitle">📝 Video sarlavhasi</label>
-                <input type="text" id="videoTitle" placeholder="Video sarlavhasini kiriting..." maxlength="100">
-            </div>
-
-            <div class="form-group">
-                <label for="videoDescription">📄 Video tavsifi</label>
-                <textarea id="videoDescription" placeholder="Video haqida batafsil ma'lumot bering..."></textarea>
-            </div>
-
-            <div class="form-group">
-                <label for="videoTags">🏷️ Kalit so'zlar</label>
-                <input type="text" id="videoTags" placeholder="musiqa, kontsert, 2025, o'zbekiston (vergul bilan ajratilgan)">
-            </div>
-
-            <!-- UPLOAD PROGRESS -->
-            <div class="upload-progress" id="uploadProgress">
-                <div class="progress-header">
-                    <div class="progress-title">Video yuklanmoqda...</div>
-                    <div class="progress-percent" id="progressPercent">0%</div>
-                </div>
-                <div class="progress-bar-container">
-                    <div class="progress-bar-fill" id="progressBarFill" style="width: 0%"></div>
-                </div>
-                <div class="progress-info">
-                    <span id="uploadedSize">0 MB</span>
-                    <span id="remainingTime">Taxminiy vaqt: 30s</span>
-                </div>
-            </div>
-
-            <!-- SUCCESS MESSAGE -->
-            <div class="success-message" id="successMessage">
-                <div class="success-icon">✅</div>
-                <div class="success-title">Video muvaffaqiyatli yuklandi!</div>
-                <div class="success-text">
-                    Sizning video profilingizga qo'shildi va endi tomosha qilish mumkin.
-                </div>
-                <div class="success-actions">
-                    <button class="success-btn view-video-btn" id="viewVideoBtn">Videoni ko'rish</button>
-                    <button class="success-btn back-profile-btn" id="backToProfileBtn">Profilga qaytish</button>
-                </div>
-            </div>
-
-            <!-- UPLOAD BUTTON -->
-            <button class="upload-btn" id="uploadBtn" disabled>
-                <span id="uploadBtnText">📤 Videoni Yuklash</span>
-            </button>
-        </div>
+  <div class="upload-container">
+    <div class="upload-header">
+      <button class="back-btn" id="backBtn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Orqaga
+      </button>
+      <h1 class="upload-title">Yangi Video Yuklash</h1>
+      <div style="width: 80px;"></div>
     </div>
+    
+    <div class="upload-content">
+      <!-- Upload Area -->
+      <div class="upload-area" id="uploadArea">
+        <div class="upload-icon">
+          <svg width="80" height="80" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="#1da1f2" stroke-width="2"/>
+            <polyline points="7 10 12 15 17 10" stroke="#1da1f2" stroke-width="2"/>
+            <line x1="12" y1="15" x2="12" y2="3" stroke="#1da1f2" stroke-width="2"/>
+          </svg>
+        </div>
+        <div class="upload-text">Video faylni tashlang yoki tanlang</div>
+        <div class="upload-subtext">MP4, AVI, MOV formatlari qo'llab-quvvatlanadi<br>Maksimal hajmi: 500MB</div>
+        <button class="select-file-btn" id="selectFileBtn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Video Tanlash
+        </button>
+      </div>
+      
+      <!-- Video Preview -->
+      <div class="video-preview" id="videoPreview">
+        <video id="previewVideo" controls></video>
+      </div>
+      
+      <!-- Video Information -->
+      <div class="video-info" id="videoInfo" style="display: none;">
+        <h4>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="16" x2="12" y2="12"/>
+            <line x1="12" y1="8" x2="12.01" y2="8"/>
+          </svg>
+          Video Ma'lumotlari
+        </h4>
+        <div class="video-details" id="videoDetails">
+          <!-- Dynamic content -->
+        </div>
+      </div>
+      
+      <input type="file" id="fileInput" accept="video/*" style="display: none;">
+      
+      <!-- Video Details Form -->
+      <div class="form-group">
+        <label for="videoTitle">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/>
+          </svg>
+          Video Sarlavhasi
+        </label>
+        <input type="text" id="videoTitle" placeholder="Video sarlavhasini kiriting..." required>
+      </div>
+      
+      <div class="form-group">
+        <label for="videoDescription">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+          Video Tavsifi
+        </label>
+        <textarea id="videoDescription" placeholder="Video haqida batafsil ma'lumot bering..." required></textarea>
+      </div>
+      
+      <!-- Upload Progress -->
+      <div class="upload-progress" id="uploadProgress">
+        <div class="progress-header">
+          <div class="progress-title">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Video Yuklanmoqda...
+          </div>
+          <div class="progress-percent" id="progressPercent">0%</div>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+        <div class="progress-info">
+          <span id="fileSize">0 MB / 0 MB</span>
+          <span id="timeRemaining">Taxminiy vaqt: 30 soniya</span>
+        </div>
+      </div>
+      
+      <!-- Success Message -->
+      <div class="success-message" id="successMessage">
+        <div class="success-icon">✅</div>
+        <h2 class="success-title">Video Muvaffaqiyatli Yuklandi!</h2>
+        <p class="success-text">Sizning video profilingizga qo'shildi va hozir tomosha qilish mumkin.</p>
+        <button class="success-btn" id="viewVideoBtn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="23 7 16 12 23 17 23 7"></polygon>
+            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+          </svg>
+          Videoni Ko'rish
+        </button>
+      </div>
+      
+      <!-- Upload Button -->
+      <button class="upload-btn" id="uploadBtn" disabled>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Videoni Yuklash
+      </button>
+    </div>
+  </div>
 
-    <!-- HIDDEN FILE INPUT -->
-    <input type="file" id="videoFileInput" accept="video/*">
+  <script>
+    // ========== GLOBAL VARIABLES ==========
+    let selectedFile = null;
+    let videoElement = null;
+    let fileSize = 0;
+    let uploadInProgress = false;
+
+    // ========== ELEMENTS ==========
+    const elements = {
+      uploadArea: document.getElementById('uploadArea'),
+      selectFileBtn: document.getElementById('selectFileBtn'),
+      fileInput: document.getElementById('fileInput'),
+      videoPreview: document.getElementById('videoPreview'),
+      previewVideo: document.getElementById('previewVideo'),
+      videoInfo: document.getElementById('videoInfo'),
+      videoDetails: document.getElementById('videoDetails'),
+      videoTitle: document.getElementById('videoTitle'),
+      videoDescription: document.getElementById('videoDescription'),
+      uploadBtn: document.getElementById('uploadBtn'),
+      uploadProgress: document.getElementById('uploadProgress'),
+      progressFill: document.getElementById('progressFill'),
+      progressPercent: document.getElementById('progressPercent'),
+      fileSize: document.getElementById('fileSize'),
+      timeRemaining: document.getElementById('timeRemaining'),
+      successMessage: document.getElementById('successMessage'),
+      viewVideoBtn: document.getElementById('viewVideoBtn'),
+      backBtn: document.getElementById('backBtn')
+    };
+
+    // ========== EVENT LISTENERS ==========
+    function setupEventListeners() {
+      // File selection
+      elements.selectFileBtn.addEventListener('click', () => elements.fileInput.click());
+      elements.uploadArea.addEventListener('click', () => elements.fileInput.click());
+      elements.fileInput.addEventListener('change', handleFileSelect);
+      
+      // Drag and drop
+      setupDragAndDrop();
+      
+      // Upload button
+      elements.uploadBtn.addEventListener('click', handleUpload);
+      
+      // Back button
+      elements.backBtn.addEventListener('click', () => {
+        if (uploadInProgress) {
+          if (confirm("Yuklash jarayoni davom etmoqda. Chiqish istaysizmi?")) {
+            window.location.href = 'profil.html';
+          }
+        } else {
+          window.location.href = 'profil.html';
+        }
+      });
+      
+      // View video button
+      elements.viewVideoBtn.addEventListener('click', () => {
+        window.location.href = 'videopage.html';
+      });
+      
+      // Form validation
+      elements.videoTitle.addEventListener('input', validateForm);
+      elements.videoDescription.addEventListener('input', validateForm);
+      
+      // Escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          elements.backBtn.click();
+        }
+      });
+    }
+
+    // ========== DRAG AND DROP ==========
+    function setupDragAndDrop() {
+      elements.uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        elements.uploadArea.classList.add('drag-over');
+      });
+      
+      elements.uploadArea.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        elements.uploadArea.classList.remove('drag-over');
+      });
+      
+      elements.uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        elements.uploadArea.classList.remove('drag-over');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+          const file = files[0];
+          if (file.type.startsWith('video/')) {
+            handleFile(file);
+          } else {
+            alert('Iltimos, faqat video fayllarni tashlang!');
+          }
+        }
+      });
+    }
 
     
-    <script>
-        // DOM elementlari
-        const uploadArea = document.getElementById('uploadArea');
-        const selectVideoBtn = document.getElementById('selectVideoBtn');
-        const videoFileInput = document.getElementById('videoFileInput');
-        const videoPreview = document.getElementById('videoPreview');
-        const videoPlayer = document.getElementById('videoPlayer');
-        const removeVideoBtn = document.getElementById('removeVideoBtn');
-        const videoFilename = document.getElementById('videoFilename');
-        const videoSize = document.getElementById('videoSize');
-        const videoDuration = document.getElementById('videoDuration');
-        const videoResolution = document.getElementById('videoResolution');
-        const videoTitle = document.getElementById('videoTitle');
-        const videoDescription = document.getElementById('videoDescription');
-        const videoTags = document.getElementById('videoTags');
-        const uploadBtn = document.getElementById('uploadBtn');
-        const uploadBtnText = document.getElementById('uploadBtnText');
-        const uploadProgress = document.getElementById('uploadProgress');
-        const progressPercent = document.getElementById('progressPercent');
-        const progressBarFill = document.getElementById('progressBarFill');
-        const uploadedSize = document.getElementById('uploadedSize');
-        const remainingTime = document.getElementById('remainingTime');
-        const successMessage = document.getElementById('successMessage');
-        const viewVideoBtn = document.getElementById('viewVideoBtn');
-        const backToProfileBtn = document.getElementById('backToProfileBtn');
-        const backBtn = document.getElementById('backBtn');
+    // ========== FILE HANDLING ==========
+    function handleFileSelect(e) {
+      const file = e.target.files[0];
+      if (file) {
+        handleFile(file);
+      }
+    }
 
-        // O'zgaruvchilar
-        let selectedFile = null;
-        let isUploading = false;
+    function handleFile(file) {
+      // Validate file type
+      if (!file.type.startsWith('video/')) {
+        alert('Iltimos, faqat video fayllarni tanlang!');
+        return;
+      }
+      
+      // Validate file size (500MB max)
+      const maxSize = 500 * 1024 * 1024;
+      if (file.size > maxSize) {
+        alert('Fayl hajmi 500MB dan oshmasligi kerak!');
+        return;
+      }
+      
+      selectedFile = file;
+      fileSize = file.size;
+      
+      // Create video element for preview
+      videoElement = document.createElement('video');
+      videoElement.preload = 'metadata';
+      
+      videoElement.onloadedmetadata = function() {
+        window.URL.revokeObjectURL(videoElement.src);
+        showVideoPreview();
+        showVideoDetails(file, videoElement);
+        validateForm();
+      };
+      
+      videoElement.onerror = function() {
+        alert('Video faylni yuklab boʻlmadi. Boshqa video tanlang.');
+        resetSelection();
+      };
+      
+      videoElement.src = URL.createObjectURL(file);
+    }
 
-        // Dastlabki yuklash
-        document.addEventListener('DOMContentLoaded', function() {
-            setupEventListeners();
-            setupDragAndDrop();
-        });
+    function showVideoPreview() {
+      elements.uploadArea.style.display = 'none';
+      elements.videoPreview.style.display = 'block';
+      elements.previewVideo.src = videoElement.src;
+    }
 
-        // Event listenerlarni sozlash
-        function setupEventListeners() {
-            // Video tanlash
-            selectVideoBtn.addEventListener('click', () => videoFileInput.click());
-            videoFileInput.addEventListener('change', handleFileSelect);
+    function showVideoDetails(file, videoEl) {
+      elements.videoInfo.style.display = 'block';
+      
+      const duration = Math.floor(videoEl.duration);
+      const minutes = Math.floor(duration / 60);
+      const seconds = duration % 60;
+      const formattedSize = formatFileSize(file.size);
+      const resolution = `${videoEl.videoWidth}x${videoEl.videoHeight}`;
+      const format = file.type.split('/')[1].toUpperCase();
+      
+      elements.videoDetails.innerHTML = `
+        <div class="detail-item">
+          <span class="detail-label">Fayl nomi:</span>
+          <span class="detail-value">${file.name}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Hajmi:</span>
+          <span class="detail-value">${formattedSize}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">O'lchami:</span>
+          <span class="detail-value">${resolution}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Davomiyligi:</span>
+          <span class="detail-value">${minutes}:${seconds.toString().padStart(2, '0')}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Format:</span>
+          <span class="detail-value">${format}</span>
+        </div>
+      `;
+      
+      // Update file size display
+      elements.fileSize.textContent = `0 MB / ${formattedSize}`;
+    }
 
-            // Video olib tashlash
-            removeVideoBtn.addEventListener('click', resetFileSelection);
+    function formatFileSize(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+      else return (bytes / 1048576).toFixed(1) + ' MB';
+    }
 
-            // Form inputlari
-            videoTitle.addEventListener('input', validateForm);
-            videoDescription.addEventListener('input', validateForm);
+    function resetSelection() {
+      selectedFile = null;
+      videoElement = null;
+      fileSize = 0;
+      
+      elements.uploadArea.style.display = 'flex';
+      elements.videoPreview.style.display = 'none';
+      elements.videoInfo.style.display = 'none';
+      elements.previewVideo.src = '';
+      elements.fileInput.value = '';
+      
+      validateForm();
+    }
 
-            // Yuklash tugmasi
-            uploadBtn.addEventListener('click', startUpload);
+    // ========== FORM VALIDATION ==========
+    function validateForm() {
+      const title = elements.videoTitle.value.trim();
+      const description = elements.videoDescription.value.trim();
+      
+      const isTitleValid = title.length >= 3;
+      const isDescriptionValid = description.length >= 10;
+      const isFileSelected = selectedFile !== null;
+      
+      elements.uploadBtn.disabled = !(isTitleValid && isDescriptionValid && isFileSelected);
+      
+      // Validation styling
+      updateValidationStyle(elements.videoTitle, isTitleValid);
+      updateValidationStyle(elements.videoDescription, isDescriptionValid);
+    }
 
-            // Orqaga tugmalari
-            backBtn.addEventListener('click', () => window.location.href = 'profil.html');
-            backToProfileBtn.addEventListener('click', () => window.location.href = 'profil.html');
-            viewVideoBtn.addEventListener('click', () => window.location.href = 'videopage.html');
+    function updateValidationStyle(element, isValid) {
+      if (element.value.trim() === '') {
+        element.style.borderColor = '#2f3336';
+      } else if (isValid) {
+        element.style.borderColor = '#1da1f2';
+      } else {
+        element.style.borderColor = '#ff4d4d';
+      }
+    }
 
-            // Escape tugmasi
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && !isUploading) {
-                    window.location.href = 'profil.html';
-                }
-            });
-        }
+    // ========== UPLOAD PROCESS ==========
+    async function handleUpload() {
+      if (!selectedFile) return;
+      
+      const title = elements.videoTitle.value.trim();
+      const description = elements.videoDescription.value.trim();
+      
+      // Disable form
+      elements.videoTitle.disabled = true;
+      elements.videoDescription.disabled = true;
+      elements.uploadBtn.disabled = true;
+      elements.uploadBtn.innerHTML = '<div class="loading-spinner"></div> Yuklanmoqda...';
+      
+      // Show progress
+      elements.uploadProgress.style.display = 'block';
+      uploadInProgress = true;
+      
+      try {
+        // Convert file to Base64
+        const fileData = await fileToBase64(selectedFile);
+        
+        // Get video metadata
+        const duration = Math.floor(videoElement.duration);
+        const resolution = `${videoElement.videoWidth}x${videoElement.videoHeight}`;
+        
+        // Create video object
+        const videoData = {
+          id: Date.now(),
+          title: title,
+          description: description,
+          keywords: [],
+          fileData: fileData, // Base64 video data
+          fileName: selectedFile.name,
+          fileSize: formatFileSize(selectedFile.size),
+          duration: duration,
+          resolution: resolution,
+          uploadDate: new Date().toISOString(),
+          views: 0,
+          likes: 0,
+          comments: []
+        };
+        
+        // Simulate upload progress
+        await simulateUpload(videoData);
+        
+        // Save video to localStorage
+        saveVideo(videoData);
+        
+        // Show success message
+        showSuccess();
+        
+      } catch (error) {
+        console.error('Upload error:', error);
+        alert('Yuklashda xatolik yuz berdi. Iltimos, qayta urinib ko\'ring.');
+        resetUpload();
+      }
+    }
 
-        // Drag and drop ni sozlash
-        function setupDragAndDrop() {
-            uploadArea.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                uploadArea.classList.add('drag-over');
-            });
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+      });
+    }
 
-            uploadArea.addEventListener('dragleave', (e) => {
-                e.preventDefault();
-                uploadArea.classList.remove('drag-over');
-            });
+    async function simulateUpload(videoData) {
+      return new Promise((resolve) => {
+        let progress = 0;
+        const totalTime = 5000; // 5 seconds
+        const interval = 50;
+        const increment = (interval / totalTime) * 100;
+        
+        const uploadInterval = setInterval(() => {
+          progress += increment;
+          
+          if (progress >= 100) {
+            progress = 100;
+            clearInterval(uploadInterval);
+            resolve();
+          }
+          
+          // Update progress bar
+          elements.progressFill.style.width = progress + '%';
+          elements.progressPercent.textContent = Math.floor(progress) + '%';
+          
+          // Update file size
+          const uploadedSize = Math.floor((progress / 100) * fileSize);
+          elements.fileSize.textContent = `${formatFileSize(uploadedSize)} / ${formatFileSize(fileSize)}`;
+          
+          // Update time remaining
+          const remainingTime = Math.floor((totalTime * (100 - progress)) / 100 / 1000);
+          elements.timeRemaining.textContent = `Taxminiy vaqt: ${remainingTime} soniya`;
+          
+        }, interval);
+      });
+    }
 
-            uploadArea.addEventListener('drop', (e) => {
-                e.preventDefault();
-                uploadArea.classList.remove('drag-over');
-                
-                const files = e.dataTransfer.files;
-                if (files.length > 0) {
-                    handleFile(files[0]);
-                }
-            });
-        }
+    function saveVideo(videoData) {
+      // Get existing videos
+      const existingVideos = JSON.parse(localStorage.getItem('userVideos') || '[]');
+      
+      // Add new video
+      existingVideos.unshift(videoData);
+      
+      // Save back to localStorage
+      localStorage.setItem('userVideos', JSON.stringify(existingVideos));
+      
+      // Also set as current video for immediate viewing
+      localStorage.setItem('currentVideo', JSON.stringify(videoData));
+    }
 
-        // Fayl tanlash
-        function handleFileSelect(e) {
-            const file = e.target.files[0];
-            if (file) {
-                handleFile(file);
-            }
-        }
+    function showSuccess() {
+      elements.uploadProgress.style.display = 'none';
+      elements.successMessage.style.display = 'block';
+      elements.uploadBtn.style.display = 'none';
+      
+      // Play success sound
+      playSuccessSound();
+    }
 
-        // Faylni qayta ishlash
-        function handleFile(file) {
-            // Fayl turini tekshirish
-            if (!file.type.startsWith('video/')) {
-                alert('Iltimos, faqat video fayllarni tanlang!');
-                return;
-            }
+    function resetUpload() {
+      elements.videoTitle.disabled = false;
+      elements.videoDescription.disabled = false;
+      elements.uploadBtn.disabled = false;
+      elements.uploadBtn.innerHTML = `
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Videoni Yuklash
+      `;
+      elements.uploadProgress.style.display = 'none';
+      uploadInProgress = false;
+    }
 
-            // Fayl hajmini tekshirish (500MB)
-            if (file.size > 500 * 1024 * 1024) {
-                alert('Fayl hajmi 500MB dan oshmasligi kerak!');
-                return;
-            }
+    function playSuccessSound() {
+      try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime);
+        oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1);
+        oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.2);
+        
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.3);
+      } catch (e) {
+        // Audio context not supported
+      }
+    }
 
-            selectedFile = file;
-            
-            // Fayl ma'lumotlarini ko'rsatish
-            videoFilename.textContent = file.name;
-            videoSize.textContent = formatFileSize(file.size);
-            
-            // Video preview ni ko'rsatish
-            const url = URL.createObjectURL(file);
-            videoPlayer.src = url;
-            videoPreview.style.display = 'block';
-            
-            // Video ma'lumotlarini olish
-            videoPlayer.onloadedmetadata = () => {
-                videoDuration.textContent = formatDuration(videoPlayer.duration);
-                videoResolution.textContent = `${videoPlayer.videoWidth}x${videoPlayer.videoHeight}`;
-                
-                // 16:9 formatini tekshirish
-                const ratio = videoPlayer.videoWidth / videoPlayer.videoHeight;
-                const targetRatio = 16/9;
-                
-                if (Math.abs(ratio - targetRatio) > 0.1) {
-                    const confirmUpload = confirm(
-                        `Video formati 16:9 emas (${videoPlayer.videoWidth}x${videoPlayer.videoHeight}).\n` +
-                        `Davom etishni istaysizmi?`
-                    );
-                    
-                    if (!confirmUpload) {
-                        resetFileSelection();
-                        return;
-                    }
-                }
-            };
+    // ========== INITIALIZATION ==========
+    document.addEventListener('DOMContentLoaded', () => {
+      setupEventListeners();
+      
+      // Focus on title input
+      setTimeout(() => {
+        elements.videoTitle.focus();
+      }, 100);
+    });
+  </script>
 
-            // Formani tekshirish
-            validateForm();
-        }
+  <style>
+    .loading-spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #fff;
+      border-top: 2px solid transparent;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+    }
 
-        // Fayl hajmini formatlash
-        function formatFileSize(bytes) {
-            if (bytes < 1024) return bytes + ' B';
-            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-        }
-
-        // Davomiylikni formatlash
-        function formatDuration(seconds) {
-            const mins = Math.floor(seconds / 60);
-            const secs = Math.floor(seconds % 60);
-            return `${mins}:${secs.toString().padStart(2, '0')}`;
-        }
-
-        // Fayl tanlashni bekor qilish
-        function resetFileSelection() {
-            selectedFile = null;
-            videoFileInput.value = '';
-            videoPreview.style.display = 'none';
-            videoPlayer.src = '';
-            validateForm();
-        }
-
-        // Formani tekshirish
-        function validateForm() {
-            const titleValid = videoTitle.value.trim().length >= 5;
-            const descriptionValid = videoDescription.value.trim().length >= 10;
-            const fileValid = selectedFile !== null;
-            
-            uploadBtn.disabled = !(titleValid && descriptionValid && fileValid);
-        }
-
-        // Yuklashni boshlash
-        function startUpload() {
-            if (isUploading) return;
-            
-            const title = videoTitle.value.trim();
-            const description = videoDescription.value.trim();
-            const tags = videoTags.value.split(',').map(tag => tag.trim()).filter(tag => tag);
-            
-            // Video ma'lumotlarini yaratish
-            const videoData = {
-                id: Date.now(),
-                title: title,
-                description: description,
-                tags: tags,
-                thumbnail: getRandomThumbnail(),
-                views: "0",
-                likes: "0",
-                duration: videoDuration.textContent,
-                timeAgo: "hozirgina",
-                uploadedAt: new Date().toISOString(),
-                fileName: selectedFile.name,
-                fileSize: formatFileSize(selectedFile.size),
-                status: 'uploading',
-                startTime: Date.now(),
-                totalTime: 30000, // 30 soniya
-                progress: 0
-            };
-            
-            // Yuklashni boshlash
-            isUploading = true;
-            uploadBtn.disabled = true;
-            uploadBtnText.innerHTML = '<div class="loading-spinner"></div> Yuklanmoqda...';
-            uploadProgress.style.display = 'block';
-            
-            // Progress simulyatsiyasi
-            simulateUpload(videoData);
-        }
-
-        // Tasodifiy thumbnail olish
-        function getRandomThumbnail() {
-            const thumbnails = [
-                'https://images.unsplash.com/photo-1571330735066-03aaa9429d89?auto=format&fit=crop&w=500&q=80',
-                'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=500&q=80',
-                'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=500&q=80',
-                'https://images.unsplash.com/photo-1513326738677-b964603b136d?auto=format&fit=crop&w=500&q=80'
-            ];
-            return thumbnails[Math.floor(Math.random() * thumbnails.length)];
-        }
-
-        // Yuklashni simulyatsiya qilish
-        function simulateUpload(videoData) {
-            let progress = 0;
-            const totalTime = videoData.totalTime;
-            const interval = 100; // 100ms
-            const increment = (interval / totalTime) * 100;
-            
-            const uploadInterval = setInterval(() => {
-                progress += increment;
-                
-                if (progress >= 100) {
-                    progress = 100;
-                    clearInterval(uploadInterval);
-                    completeUpload(videoData);
-                }
-                
-                // Progressni yangilash
-                progressPercent.textContent = Math.floor(progress) + '%';
-                progressBarFill.style.width = progress + '%';
-                
-                // O'lcham va vaqtni hisoblash
-                const uploadedBytes = (selectedFile.size * progress) / 100;
-                uploadedSize.textContent = formatFileSize(uploadedBytes);
-                
-                const remainingSeconds = Math.max(0, (totalTime * (100 - progress)) / 100 / 1000);
-                remainingTime.textContent = `Taxminiy vaqt: ${Math.ceil(remainingSeconds)}s`;
-                
-                // Video ma'lumotlarini yangilash
-                videoData.progress = Math.floor(progress);
-                
-            }, interval);
-        }
-
-        // Yuklashni tugatish
-        function completeUpload(videoData) {
-            // Video statusini yangilash
-            videoData.status = 'uploaded';
-            videoData.completed = true;
-            delete videoData.startTime;
-            delete videoData.totalTime;
-            delete videoData.progress;
-            
-            // localStorage dan mavjud videolarni olish
-            let videos = JSON.parse(localStorage.getItem('videos')) || [];
-            
-            // Yangi videoni qo'shish
-            videos.push(videoData);
-            
-            // localStorage ga saqlash
-            localStorage.setItem('videos', JSON.stringify(videos));
-            localStorage.setItem('currentVideo', JSON.stringify(videoData));
-            
-            // Yuklash tugmasi holatini yangilash
-            isUploading = false;
-            uploadBtnText.textContent = '📤 Videoni Yuklash';
-            
-            // Progressni yashirish
-            uploadProgress.style.display = 'none';
-            
-            // Muvaffaqiyat xabarini ko'rsatish
-            successMessage.style.display = 'block';
-            
-            // Ovoz chiqarish
-            playSuccessSound();
-        }
-
-        // Muvaffaqiyat ovozini chiqarish
-        function playSuccessSound() {
-            try {
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-                
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-                
-                oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime);
-                oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1);
-                oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.2);
-                
-                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-                
-                oscillator.start(audioContext.currentTime);
-                oscillator.stop(audioContext.currentTime + 0.3);
-            } catch (e) {
-                console.log("Audio context not supported");
-            }
-        }
-    </script>
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
 </body>
 </html>
