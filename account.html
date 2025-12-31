@@ -230,14 +230,14 @@
       position: relative;
     }
 
-    .video-thumb img {
+    .video-thumb video {
       width: 100%;
       height: 100%;
       object-fit: cover;
       transition: transform 0.3s ease;
     }
 
-    .video-item:hover .video-thumb img {
+    .video-item:hover .video-thumb video {
       transform: scale(1.05);
     }
 
@@ -536,15 +536,34 @@
           videoDiv.className = 'video-item';
           videoDiv.dataset.videoId = video.id;
           
-          // Video tasviri
+          // Video tasviri - HAQIQIY VIDEO
           const thumbDiv = document.createElement('div');
           thumbDiv.className = 'video-thumb';
           
-          const thumbImg = document.createElement('img');
-          thumbImg.src = video.thumbnail || 'https://images.unsplash.com/photo-1571330735066-03aaa9429d89?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80';
-          thumbImg.alt = video.title;
-          thumbImg.loading = 'lazy';
-          thumbDiv.appendChild(thumbImg);
+          // Video elementini yaratish
+          const videoElement = document.createElement('video');
+          videoElement.muted = true;
+          videoElement.preload = 'metadata';
+          videoElement.playsInline = true;
+          
+          // Video manbasini o'rnatish (Base64 dan)
+          if (video.videoData) {
+            videoElement.src = video.videoData;
+          } else if (video.thumbnail) {
+            videoElement.poster = video.thumbnail;
+          }
+          
+          // Video hover effekti
+          videoElement.addEventListener('mouseenter', () => {
+            videoElement.play().catch(e => console.log('Autoplay prevented:', e));
+          });
+          
+          videoElement.addEventListener('mouseleave', () => {
+            videoElement.pause();
+            videoElement.currentTime = 0;
+          });
+          
+          thumbDiv.appendChild(videoElement);
           
           // Play overlay
           const overlayDiv = document.createElement('div');
@@ -592,6 +611,26 @@
           metaDiv.appendChild(likesSpan);
           videoDiv.appendChild(metaDiv);
           
+          // Video ma'lumotlari (davomiylik, hajm)
+          const infoDiv = document.createElement('div');
+          infoDiv.className = 'video-meta';
+          infoDiv.style.marginTop = '5px';
+          infoDiv.style.fontSize = '11px';
+          
+          if (video.duration) {
+            const durationSpan = document.createElement('span');
+            durationSpan.innerHTML = `⏱️ ${video.duration}`;
+            infoDiv.appendChild(durationSpan);
+          }
+          
+          if (video.fileSize) {
+            const sizeSpan = document.createElement('span');
+            sizeSpan.innerHTML = `📦 ${video.fileSize}`;
+            infoDiv.appendChild(sizeSpan);
+          }
+          
+          videoDiv.appendChild(infoDiv);
+          
           // Yuklanayotgan video uchun progress bar
           if (video.status === 'uploading') {
             const progressDiv = document.createElement('div');
@@ -612,7 +651,7 @@
           
           // Video bosilganda videopage ga o'tish
           videoDiv.addEventListener('click', function(e) {
-            if (!e.target.closest('.progress')) {
+            if (!e.target.closest('.progress') && !e.target.closest('video')) {
               // Video ma'lumotlarini localStorage ga saqlash
               localStorage.setItem('currentVideo', JSON.stringify(video));
               
@@ -638,6 +677,7 @@
         const remainingSeconds = Math.max(0, (total - elapsed) / 1000);
         const remainingMinutes = Math.floor(remainingSeconds / 60);
         const remainingSecs = Math.floor(remainingSeconds % 60);
+        
         
         // Progress text ni yangilash
         const progressText = progressElement.querySelector('.progress-text') || document.createElement('span');
@@ -732,7 +772,9 @@
             views: "45,2 ming",
             timeAgo: "2 oy avval",
             likes: 1245,
-            comments: 89
+            comments: 89,
+            duration: "4:32",
+            fileSize: "45.3 MB"
           },
           {
             id: Date.now() + 2,
@@ -746,23 +788,9 @@
             views: "102,7 ming",
             timeAgo: "1 hafta avval",
             likes: 2345,
-            comments: 156
-          },
-          {
-            id: Date.now() + 3,
-            title: "Samarqand - Tarixiy me'moriy yodgorliklar",
-            description: "Samarqand shahrining noyob me'moriy yodgorliklari. Registon maydoni",
-            keywords: ["samarqand", "history", "architecture", "registan"],
-            status: "uploading",
-            thumbnail: "https://images.unsplash.com/photo-1588666309990-d68f08e3d4c6?auto=format&fit=crop&w=1470&q=80",
-            createdAt: new Date().toISOString(),
-            completed: false,
-            startTime: Date.now() - 15000, // 15 soniya oldin boshlangan
-            totalTime: 60000, // 60 soniya
-            views: "0",
-            timeAgo: "hozirgina",
-            likes: 0,
-            comments: 0
+            comments: 156,
+            duration: "3:15",
+            fileSize: "32.1 MB"
           }
         ];
         
