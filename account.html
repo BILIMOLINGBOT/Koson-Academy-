@@ -220,51 +220,52 @@
       margin-bottom: 10px;
     }
 
-    .video-container {
+    .video-thumb {
       width: 100%;
-      height: 200px;
+      height: 180px;
       border-radius: 8px;
       overflow: hidden;
       margin-bottom: 12px;
-      background-color: #000;
+      background-color: #333;
       position: relative;
     }
 
-    .video-container video {
+    .video-thumb video {
       width: 100%;
       height: 100%;
       object-fit: cover;
+      border-radius: 8px;
       transition: transform 0.3s ease;
     }
 
-    .video-item:hover .video-container video {
+    .video-item:hover .video-thumb video {
       transform: scale(1.05);
     }
 
     .video-overlay {
       position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(0, 0, 0, 0.7);
-      padding: 8px 16px;
-      border-radius: 20px;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.4);
       display: flex;
       align-items: center;
-      gap: 6px;
-      font-size: 14px;
-      z-index: 1;
-      opacity: 0;
+      justify-content: center;
+      opacity: 1;
       transition: opacity 0.3s ease;
+      border-radius: 8px;
     }
 
     .video-item:hover .video-overlay {
-      opacity: 1;
+      opacity: 0;
     }
 
     .video-overlay svg {
-      width: 18px;
-      height: 18px;
+      width: 48px;
+      height: 48px;
+      fill: #fff;
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
     }
 
     .video-meta {
@@ -347,7 +348,6 @@
       transform: translateY(-2px);
     }
 
-    /* Yangi post yaratish tugmasi (o'ng pastda) */
     .compose-btn {
       position: fixed;
       bottom: 30px;
@@ -396,7 +396,7 @@
         padding: 12px;
       }
       
-      .video-container {
+      .video-thumb {
         height: 160px;
       }
       
@@ -425,7 +425,7 @@
         gap: 8px;
       }
       
-      .video-container {
+      .video-thumb {
         height: 140px;
       }
     }
@@ -463,7 +463,6 @@
     </div>
   </div>
 
-  <!-- Yangi post tugmasi (o'ng pastda +) -->
   <button class="compose-btn" id="composeBtn" aria-label="Yangi video yuklash">
     +
   </button>
@@ -475,27 +474,26 @@
     });
 
     function initializeApp() {
-      // Demo videolarni yaratish (agar hali mavjud bo'lmasa)
+      // Demo videolarni yaratish
       initializeDemoVideos();
       
-      // UI elementlarni olish
       const editBtn = document.getElementById('editBtn');
       const composeBtn = document.getElementById('composeBtn');
       const tabs = document.querySelectorAll('.tab');
       const contentDiv = document.getElementById('content');
       const videoCountSpan = document.getElementById('videoCount');
       
-      // Profil tahrirlash tugmasi
+      // Profil tahrirlash
       editBtn.addEventListener('click', function() {
         alert("Profil tahrirlash sahifasi ishlab chiqilmoqda. Tez orada!");
       });
 
-      // Yangi post tugmasi
+      // Yangi video yuklash
       composeBtn.addEventListener('click', function() {
         window.location.href = 'update.html';
       });
 
-      // Tablar faol holati va kontentni yuklash
+      // Tablar
       function loadContent(tabName) {
         contentDiv.innerHTML = '';
         
@@ -516,7 +514,6 @@
       function loadVideos() {
         let videos = JSON.parse(localStorage.getItem('videos')) || [];
         
-        // Video sonini yangilash
         videoCountSpan.textContent = videos.length;
         
         if (videos.length === 0) {
@@ -536,37 +533,37 @@
           return;
         }
         
-        // Videolarni teskarisi tartibda ko'rsatish (yangisi birinchi)
+        // Videolarni teskarisi tartibda ko'rsatish
         videos.reverse().forEach((video, index) => {
           const videoDiv = document.createElement('div');
           videoDiv.className = 'video-item';
           videoDiv.dataset.videoId = video.id;
           
-          // Video kontaineri
+          // Video container
           const videoContainer = document.createElement('div');
-          videoContainer.className = 'video-container';
+          videoContainer.className = 'video-thumb';
           
-          // Video elementini yaratish
+          // Video element yaratish
           const videoElement = document.createElement('video');
-          videoElement.poster = video.thumbnail || 'https://images.unsplash.com/photo-1571330735066-03aaa9429d89?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80';
-          videoElement.muted = true;
-          videoElement.loop = true;
-          videoElement.style.width = '100%';
-          videoElement.style.height = '100%';
-          videoElement.style.objectFit = 'cover';
           
-          // Video URL ni o'rnatish
+          // Video manbaani o'rnatish
           if (video.videoUrl) {
             videoElement.src = video.videoUrl;
           } else if (video.videoData) {
-            // Agar videoData mavjud bo'lsa
+            // Agar base64 formatda saqlangan bo'lsa
             videoElement.src = video.videoData;
           } else {
             // Demo video
-            videoElement.src = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4';
+            videoElement.src = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
           }
           
-          // Hover qilganda video o'ynasin
+          videoElement.poster = video.thumbnail || 'https://images.unsplash.com/photo-1571330735066-03aaa9429d89?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80';
+          videoElement.controls = false;
+          videoElement.muted = true;
+          videoElement.loop = true;
+          videoElement.preload = 'metadata';
+          
+          // Hover effekti
           videoDiv.addEventListener('mouseenter', function() {
             videoElement.play().catch(e => console.log("Video play error:", e));
           });
@@ -582,10 +579,9 @@
           const overlayDiv = document.createElement('div');
           overlayDiv.className = 'video-overlay';
           overlayDiv.innerHTML = `
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff">
-              <path d="M8 5v14l11-7z"/>
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8 5v14l11-7z" fill="#fff"/>
             </svg>
-            <span>Ko'rish</span>
           `;
           videoContainer.appendChild(overlayDiv);
           
@@ -629,6 +625,10 @@
             const progressDiv = document.createElement('div');
             progressDiv.className = 'progress';
             
+            const progressText = document.createElement('span');
+            progressText.className = 'progress-text';
+            progressText.textContent = '0% • 0 daqiqa 30 soniya qoldi';
+            
             const progressBar = document.createElement('div');
             progressBar.className = 'progress-bar';
             
@@ -636,10 +636,11 @@
             progressFill.className = 'progress-fill';
             progressBar.appendChild(progressFill);
             
+            progressDiv.appendChild(progressText);
             progressDiv.appendChild(progressBar);
             videoDiv.appendChild(progressDiv);
             
-            updateProgress(video, progressDiv, progressFill, videos.length - 1 - index);
+            updateProgress(video, progressText, progressFill, videos.length - 1 - index);
           }
           
           // Video bosilganda videopage ga o'tish
@@ -657,26 +658,18 @@
         });
       }
 
-      // Progressni yangilash funksiyasi
-      function updateProgress(video, progressElement, progressFill, originalIndex) {
+      // Progressni yangilash
+      function updateProgress(video, progressText, progressFill, originalIndex) {
         const now = Date.now();
         const elapsed = now - (video.startTime || now);
         const total = video.totalTime || 30000;
         const progress = Math.min(100, (elapsed / total) * 100);
         
-        // Progress fill ni yangilash
         progressFill.style.width = `${progress}%`;
         
         const remainingSeconds = Math.max(0, (total - elapsed) / 1000);
         const remainingMinutes = Math.floor(remainingSeconds / 60);
         const remainingSecs = Math.floor(remainingSeconds % 60);
-        
-        // Progress text ni yangilash
-        const progressText = progressElement.querySelector('.progress-text') || document.createElement('span');
-        if (!progressText.className.includes('progress-text')) {
-          progressText.className = 'progress-text';
-          progressElement.appendChild(progressText);
-        }
         
         progressText.textContent = `${Math.floor(progress)}% • ${remainingMinutes} daqiqa ${remainingSecs} soniya qoldi`;
         
@@ -695,7 +688,7 @@
           // UI ni yangilash
           setTimeout(() => loadContent('video'), 1000);
         } else {
-          setTimeout(() => updateProgress(video, progressElement, progressFill, originalIndex), 1000);
+          setTimeout(() => updateProgress(video, progressText, progressFill, originalIndex), 1000);
         }
       }
 
@@ -731,7 +724,7 @@
           </div>
         `;
       }
-
+      
       // Dastlabki yuklanishda aktiv tabni yuklash
       const activeTab = document.querySelector('.tab.active').dataset.tab;
       loadContent(activeTab);
@@ -746,7 +739,7 @@
       });
     }
 
-    // Demo videolarni yaratish (agar hali mavjud bo'lmasa)
+    // Demo videolarni yaratish
     function initializeDemoVideos() {
       let videos = JSON.parse(localStorage.getItem('videos')) || [];
       
@@ -759,7 +752,7 @@
             keywords: ["o'zbekiston", "manzara", "tabiat", "4k", "travel"],
             status: "uploaded",
             thumbnail: "https://images.unsplash.com/photo-1513326738677-b964603b136d?auto=format&fit=crop&w=1470&q=80",
-            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
+            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
             createdAt: "2025-01-15T10:30:00Z",
             completed: true,
             views: "45,2 ming",
@@ -774,7 +767,7 @@
             keywords: ["toshkent", "city", "night", "uzbekistan"],
             status: "uploaded",
             thumbnail: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=1470&q=80",
-            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4",
+            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
             createdAt: "2025-01-10T14:20:00Z",
             completed: true,
             views: "102,7 ming",
@@ -789,11 +782,11 @@
             keywords: ["samarqand", "history", "architecture", "registan"],
             status: "uploading",
             thumbnail: "https://images.unsplash.com/photo-1588666309990-d68f08e3d4c6?auto=format&fit=crop&w=1470&q=80",
-            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
             createdAt: new Date().toISOString(),
             completed: false,
-            startTime: Date.now() - 15000, // 15 soniya oldin boshlangan
-            totalTime: 60000, // 60 soniya
+            startTime: Date.now() - 15000,
+            totalTime: 60000,
             views: "0",
             timeAgo: "hozirgina",
             likes: 0,
@@ -805,20 +798,19 @@
       }
     }
 
-    // Playlist yaratish funksiyasi
-    function createPlaylist() {
+    // Playlist yaratish
+    window.createPlaylist = function() {
       const playlistName = prompt("Pleyli nomini kiriting:");
       if (playlistName) {
         alert(`"${playlistName}" pleyli yaratildi!`);
       }
-    }
+    };
 
     // Profil rasmini yuklash
     window.addEventListener('load', function() {
       const cover = document.getElementById('cover');
       const avatar = document.getElementById('avatar');
       
-      // Demo rasmlar
       cover.style.backgroundImage = "linear-gradient(45deg, #1da1f2, #0c84d1)";
       avatar.style.backgroundImage = "url('https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=880&q=80')";
     });
