@@ -708,4 +708,418 @@
         <div class="modal-content">
             <div class="modal-header">
                 <div class="modal-title">Fikrlar</div>
-                <button class="close-btn" id="cl
+                <button class="close-btn" id="closeCommentsBtn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="comments-section">
+                <div class="add-comment">
+                    <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=880&q=80" alt="User Avatar" class="add-comment-avatar">
+                    <div class="comment-input-container">
+                        <div class="comment-input-wrapper">
+                            <textarea class="comment-input" placeholder="Fikr bildiring..." id="commentInput"></textarea>
+                            <button class="comment-send-btn" id="commentSendBtn" disabled>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="12" y1="19" x2="12" y2="5"></line>
+                                    <polyline points="5 12 12 5 19 12"></polyline>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="comments-list" id="commentsList">
+                    <!-- Comments will be loaded here -->
+                </div>
+
+                <div class="no-comments" id="no-comments-indicator">
+                    <div class="no-comments-icon">💬</div>
+                    <div class="no-comments-text">Hozircha fikrlar yo'q</div>
+                    <div class="no-comments-subtext">Fikringizni bildirish orqali birinchi bo'ling</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== VIDEO PLAYER FUNCTIONS ==========
+
+        function loadVideoPlayer() {
+            const videoPlayer = document.getElementById('videoPlayer');
+            
+            // LocalStoragedan video ma'lumotlarini olish
+            const currentVideo = JSON.parse(localStorage.getItem('currentVideo')) || {
+                title: "Seshanba",
+                description: "Seshanba 6 kuni, 2026 yil",
+                views: "0",
+                timeAgo: "hozirgina",
+                videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
+            };
+            
+            // Asosiy video player
+            videoPlayer.innerHTML = '';
+            const mainVideo = document.createElement('video');
+            mainVideo.controls = true;
+            mainVideo.autoplay = true;
+            mainVideo.style.width = '100%';
+            mainVideo.style.height = '100%';
+            mainVideo.style.objectFit = 'contain';
+            mainVideo.style.backgroundColor = '#000';
+            
+            if (currentVideo.videoUrl) {
+                mainVideo.src = currentVideo.videoUrl;
+            } else {
+                mainVideo.src = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
+            }
+            
+            videoPlayer.appendChild(mainVideo);
+            
+            // Video ma'lumotlarini yangilash
+            if (currentVideo.title) {
+                document.getElementById('videoTitle').textContent = currentVideo.title;
+            }
+            
+            if (currentVideo.views) {
+                document.getElementById('viewsCount').textContent = currentVideo.views;
+            }
+            
+            if (currentVideo.timeAgo) {
+                document.getElementById('uploadTime').textContent = currentVideo.timeAgo;
+            }
+            
+            // Tavsif qo'shish
+            if (currentVideo.description) {
+                const descriptionDiv = document.createElement('div');
+                descriptionDiv.className = 'video-description';
+                descriptionDiv.style.marginTop = '16px';
+                descriptionDiv.style.color = '#fff';
+                descriptionDiv.style.fontSize = '15px';
+                descriptionDiv.style.lineHeight = '1.5';
+                descriptionDiv.style.whiteSpace = 'pre-wrap';
+                descriptionDiv.textContent = currentVideo.description;
+                
+                const videoInfo = document.querySelector('.video-info');
+                const channelInfo = document.querySelector('.channel-info');
+                videoInfo.insertBefore(descriptionDiv, channelInfo);
+            }
+        }
+
+        // ========== STATE ==========
+
+        let state = {
+            heartCount: 12000,
+            isHearted: false,
+            isSubscribed: false,
+            isSaved: false,
+            comments: [
+                {
+                    id: 1,
+                    text: "Ajoyib video! Yangi kontent uchun rahmat.",
+                    author: "Sanjar Uz",
+                    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&auto=format&fit=crop&w=687&q=80",
+                    time: "5 daqiqa avval",
+                    timestamp: Date.now() - 300000,
+                    likes: 12,
+                    isLiked: false
+                },
+                {
+                    id: 2,
+                    text: "Seshanba kuni haqida qiziqarli video. Davom eting!",
+                    author: "Dilnoza M",
+                    avatar: "https://images.unsplash.com/photo-1494790108755-2616b786d4d9?ixlib=rb-4.0.3&auto=format&fit=crop&w=687&q=80",
+                    time: "12 daqiqa avval",
+                    timestamp: Date.now() - 720000,
+                    likes: 8,
+                    isLiked: false
+                }
+            ]
+        };
+
+        // ========== UTIL FUNCTIONS ==========
+
+        function showNotification(message) {
+            const old = document.querySelector('.notification');
+            if (old) old.remove();
+            
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // ========== UI RENDER FUNCTIONS ==========
+
+        function updateUI() {
+            // Like sonini ko'rsatish
+            const heartCount = document.getElementById('heart-count');
+            heartCount.textContent = state.heartCount >= 1000 
+                ? (state.heartCount / 1000).toFixed(1).replace(/\.0$/, '') + 'K'
+                : state.heartCount;
+            
+            // Like tugmasini holatini yangilash
+            const heartBtn = document.getElementById('heart-btn');
+            if (state.isHearted) {
+                heartBtn.classList.add('active');
+            } else {
+                heartBtn.classList.remove('active');
+            }
+
+            // Save tugmasini holatini yangilash
+            const saveBtn = document.getElementById('save-btn');
+            if (state.isSaved) {
+                saveBtn.classList.add('active');
+            } else {
+                saveBtn.classList.remove('active');
+            }
+
+            // Obuna holatini yangilash
+            const subscribeBtn = document.getElementById('subscribe-btn');
+            if (state.isSubscribed) {
+                subscribeBtn.textContent = "Obuna bo'lingan";
+                subscribeBtn.classList.add('subscribed');
+            } else {
+                subscribeBtn.textContent = "Obuna bo'lish";
+                subscribeBtn.classList.remove('subscribed');
+            }
+
+            // Commentlar ro'yxatini yangilash
+            renderComments();
+            
+            // Comment sonini yangilash
+            const commentsCount = document.getElementById('comments-main-count');
+            commentsCount.textContent = state.comments.length;
+        }
+
+        function renderComments() {
+            const commentsList = document.getElementById('commentsList');
+            const noCommentsIndicator = document.getElementById('no-comments-indicator');
+            
+            if (state.comments.length === 0) {
+                noCommentsIndicator.style.display = 'flex';
+                commentsList.innerHTML = '';
+            } else {
+                noCommentsIndicator.style.display = 'none';
+                commentsList.innerHTML = '';
+                
+                state.comments.forEach((comment) => {
+                    const commentDiv = document.createElement('div');
+                    commentDiv.className = 'comment';
+                    
+                    commentDiv.innerHTML = `
+                        <img src="${comment.avatar}" alt="Avatar" class="comment-avatar">
+                        <div class="comment-content">
+                            <div class="comment-header">
+                                <span class="comment-author">${comment.author}</span>
+                                <span class="comment-time">${comment.time}</span>
+                            </div>
+                            <div class="comment-text">${comment.text}</div>
+                            <div class="comment-actions">
+                                <button class="comment-action-btn like-btn ${comment.isLiked ? 'active' : ''}" 
+                                        onclick="toggleCommentLike(${comment.id})">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+                                    </svg>
+                                    <span>${comment.likes}</span>
+                                </button>
+                                <button class="reply-btn" onclick="replyToComment(${comment.id}, '${comment.author}')">
+                                    Javob berish
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    commentsList.appendChild(commentDiv);
+                });
+            }
+        }
+
+        // ========== EVENT HANDLERS ==========
+
+        // Like tugmasi
+        document.getElementById('heart-btn').addEventListener('click', () => {
+            state.isHearted = !state.isHearted;
+            if (state.isHearted) {
+                state.heartCount++;
+                showNotification("Video yoqdi");
+            } else {
+                state.heartCount--;
+            }
+            updateUI();
+        });
+
+        // Save tugmasi
+        document.getElementById('save-btn').addEventListener('click', () => {
+            state.isSaved = !state.isSaved;
+            if (state.isSaved) {
+                showNotification("Video saqlandi");
+            } else {
+                showNotification("Video saqlanganlardan olib tashlandi");
+            }
+            updateUI();
+        });
+
+        // Obuna tugmasi
+        document.getElementById('subscribe-btn').addEventListener('click', () => {
+            state.isSubscribed = !state.isSubscribed;
+            if (state.isSubscribed) {
+                showNotification("Obuna bo'ldingiz");
+            } else {
+                showNotification("Obuna bekor qilindi");
+            }
+            updateUI();
+        });
+
+        // Comments tugmasi
+        document.getElementById('comments-btn').addEventListener('click', () => {
+            document.getElementById('commentsModal').classList.add('show');
+            document.getElementById('commentInput').focus();
+        });
+
+        // Modalni yopish
+        document.getElementById('closeCommentsBtn').addEventListener('click', () => {
+            document.getElementById('commentsModal').classList.remove('show');
+        });
+
+        // Comment inputni kuzatish
+        document.getElementById('commentInput').addEventListener('input', () => {
+            const text = document.getElementById('commentInput').value.trim();
+            const commentSendBtn = document.getElementById('commentSendBtn');
+            commentSendBtn.disabled = text.length === 0;
+        });
+
+        // Comment yuborish
+        document.getElementById('commentSendBtn').addEventListener('click', () => {
+            const commentInput = document.getElementById('commentInput');
+            const text = commentInput.value.trim();
+            if (text.length === 0) return;
+
+            const newComment = {
+                id: Date.now(),
+                text: text,
+                author: 'Siz',
+                avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=880&q=80',
+                time: 'hozirgina',
+                timestamp: Date.now(),
+                likes: 0,
+                isLiked: false
+            };
+            
+            state.comments.unshift(newComment);
+            showNotification("Fikr qoldirildi");
+
+            // Clear input
+            commentInput.value = '';
+            document.getElementById('commentSendBtn').disabled = true;
+            
+            // Update UI
+            updateUI();
+        });
+
+        // Enter tugmasi bilan comment yuborish
+        document.getElementById('commentInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                const commentSendBtn = document.getElementById('commentSendBtn');
+                if (!commentSendBtn.disabled) {
+                    commentSendBtn.click();
+                }
+            }
+        });
+
+        // Comment like tugmasi
+        window.toggleCommentLike = function(commentId) {
+            const comment = state.comments.find(c => c.id === commentId);
+            if (comment) {
+                comment.isLiked = !comment.isLiked;
+                if (comment.isLiked) {
+                    comment.likes++;
+                } else {
+                    comment.likes--;
+                }
+                renderComments();
+            }
+        };
+
+        // Reply tugmasi
+        window.replyToComment = function(commentId, author) {
+            const commentInput = document.getElementById('commentInput');
+            commentInput.value = `@${author} `;
+            commentInput.focus();
+            document.getElementById('commentSendBtn').disabled = false;
+            
+            document.getElementById('commentsModal').classList.add('show');
+        };
+
+        // Recommended videolarni o'ynatish
+        window.playRecommendedVideo = function(videoIndex) {
+            const videos = [
+                {
+                    title: "Ozoda - Eng yaxshi qo'shiqlar to'plami 2024",
+                    description: "Ozodaning eng mashhur qo'shiqlari",
+                    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+                    views: "45,2 ming",
+                    timeAgo: "2 oy avval"
+                },
+                {
+                    title: "Yangi O'zbekiston qo'shiqlari 2025",
+                    description: "2025 yilning eng yangi o'zbek qo'shiqlari",
+                    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+                    views: "102,7 ming",
+                    timeAgo: "1 hafta avval"
+                }
+            ];
+            
+            const video = videos[videoIndex - 1];
+            if (video) {
+                localStorage.setItem('currentVideo', JSON.stringify(video));
+                loadVideoPlayer();
+                updateUI();
+                
+                // Scroll to top
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        };
+
+        // ========== INITIALIZATION ==========
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadVideoPlayer();
+            updateUI();
+            
+            // Recommended videolarga hover effekti
+            document.querySelectorAll('.recommended-thumbnail video').forEach(video => {
+                video.muted = true;
+                video.loop = true;
+                video.preload = 'metadata';
+                video.playsInline = true;
+                
+                const thumbnail = video.parentElement;
+                thumbnail.addEventListener('mouseenter', () => {
+                    video.play().catch(e => console.log("Video play error:", e));
+                });
+                
+                thumbnail.addEventListener('mouseleave', () => {
+                    video.pause();
+                    video.currentTime = 0;
+                });
+            });
+            
+            // Modal tashqarisini bosganda yopish
+            document.getElementById('commentsModal').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('commentsModal')) {
+                    document.getElementById('commentsModal').classList.remove('show');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
