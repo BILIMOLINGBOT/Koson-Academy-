@@ -41,16 +41,6 @@
       overflow: hidden;
     }
 
-    .cover::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(transparent 60%, rgba(0,0,0,0.5));
-    }
-
     .avatar {
       position: absolute;
       bottom: -50px;
@@ -188,9 +178,8 @@
     }
 
     .video-item {
-      background-color: #1a1a1a;
+      background-color: #000;
       border-radius: 12px;
-      padding: 15px;
       margin-bottom: 15px;
       cursor: pointer;
       transition: all 0.3s ease;
@@ -200,72 +189,46 @@
     }
 
     .video-item:hover {
-      background-color: #222;
+      background-color: #111;
       transform: translateY(-2px);
       border-color: #1da1f2;
-      box-shadow: 0 4px 12px rgba(29, 161, 242, 0.2);
     }
 
-    .video-item h3 {
+    .video-preview {
+      width: 100%;
+      height: 300px;
+      background-color: #000;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .video-preview video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .video-time {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .video-info {
+      padding: 15px;
+    }
+
+    .video-info h3 {
       font-size: 18px;
       margin-bottom: 8px;
       color: #fff;
       line-height: 1.4;
-    }
-
-    .video-item p {
-      font-size: 14px;
-      color: #8b98a5;
-      line-height: 1.4;
-      margin-bottom: 10px;
-    }
-
-    .video-thumb {
-      width: 100%;
-      height: 180px;
-      border-radius: 8px;
-      overflow: hidden;
-      margin-bottom: 12px;
-      background-color: #333;
-      position: relative;
-    }
-
-    .video-thumb video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      border-radius: 8px;
-      transition: transform 0.3s ease;
-    }
-
-    .video-item:hover .video-thumb video {
-      transform: scale(1.05);
-    }
-
-    .video-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.4);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 1;
-      transition: opacity 0.3s ease;
-      border-radius: 8px;
-    }
-
-    .video-item:hover .video-overlay {
-      opacity: 0;
-    }
-
-    .video-overlay svg {
-      width: 48px;
-      height: 48px;
-      fill: #fff;
-      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
     }
 
     .video-meta {
@@ -393,11 +356,10 @@
       
       .video-item {
         margin-bottom: 12px;
-        padding: 12px;
       }
       
-      .video-thumb {
-        height: 160px;
+      .video-preview {
+        height: 250px;
       }
       
       .profile-info {
@@ -425,8 +387,8 @@
         gap: 8px;
       }
       
-      .video-thumb {
-        height: 140px;
+      .video-preview {
+        height: 200px;
       }
     }
   </style>
@@ -446,7 +408,7 @@
       <p class="location" id="profileLocation">O'zbekiston, Toshkent</p>
       <p class="bio" id="profileBio">🎬 Video muxlisi | ✍️ Kontent yaratuvchi | 📈 Digital marketolog | 🎯 Videolar bilan dunyoni o'zgartirish istagida</p>
       <div class="follow-info">
-        <span><strong id="videoCount">12</strong> Video</span>
+        <span><strong id="videoCount">4</strong> Video</span>
         <span><strong>120</strong> Kuzatilmoqda</span>
         <span><strong>3,245</strong> Kuzatuvchilar</span>
       </div>
@@ -510,7 +472,7 @@
         }
       }
 
-      // Videolarni yuklash
+      // Videolarni yuklash - TO'G'RIDAN VIDEO ELEMENT
       function loadVideos() {
         let videos = JSON.parse(localStorage.getItem('videos')) || [];
         
@@ -539,31 +501,30 @@
           videoDiv.className = 'video-item';
           videoDiv.dataset.videoId = video.id;
           
-          // Video container
-          const videoContainer = document.createElement('div');
-          videoContainer.className = 'video-thumb';
+          // VIDEO PREVIEW - THUMBNAIL O'RNIGA TO'G'RIDAN VIDEO
+          const videoPreview = document.createElement('div');
+          videoPreview.className = 'video-preview';
           
-          // Video element yaratish
           const videoElement = document.createElement('video');
           
           // Video manbaani o'rnatish
           if (video.videoUrl) {
             videoElement.src = video.videoUrl;
-          } else if (video.videoData) {
-            // Agar base64 formatda saqlangan bo'lsa
-            videoElement.src = video.videoData;
           } else {
             // Demo video
             videoElement.src = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
           }
           
-          videoElement.poster = video.thumbnail || 'https://images.unsplash.com/photo-1571330735066-03aaa9429d89?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80';
-          videoElement.controls = false;
           videoElement.muted = true;
           videoElement.loop = true;
+          videoElement.playsInline = true;
           videoElement.preload = 'metadata';
+          videoElement.controls = false;
+          videoElement.style.width = '100%';
+          videoElement.style.height = '100%';
+          videoElement.style.objectFit = 'cover';
           
-          // Hover effekti
+          // Hover effekti - video o'ynaydi
           videoDiv.addEventListener('mouseenter', function() {
             videoElement.play().catch(e => console.log("Video play error:", e));
           });
@@ -573,34 +534,23 @@
             videoElement.currentTime = 0;
           });
           
-          videoContainer.appendChild(videoElement);
+          videoPreview.appendChild(videoElement);
           
-          // Play overlay
-          const overlayDiv = document.createElement('div');
-          overlayDiv.className = 'video-overlay';
-          overlayDiv.innerHTML = `
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M8 5v14l11-7z" fill="#fff"/>
-            </svg>
-          `;
-          videoContainer.appendChild(overlayDiv);
+          // Video vaqti
+          const timeSpan = document.createElement('div');
+          timeSpan.className = 'video-time';
+          timeSpan.textContent = video.duration || '0:15';
+          videoPreview.appendChild(timeSpan);
           
-          videoDiv.appendChild(videoContainer);
+          videoDiv.appendChild(videoPreview);
           
-          // Video sarlavhasi
+          // Video ma'lumotlari
+          const videoInfo = document.createElement('div');
+          videoInfo.className = 'video-info';
+          
           const titleH3 = document.createElement('h3');
-          titleH3.textContent = video.title || 'Nomsiz video';
-          videoDiv.appendChild(titleH3);
-          
-          // Video tavsifi
-          if (video.description) {
-            const descP = document.createElement('p');
-            const shortDesc = video.description.length > 100 
-              ? video.description.substring(0, 100) + '...' 
-              : video.description;
-            descP.textContent = shortDesc;
-            videoDiv.appendChild(descP);
-          }
+          titleH3.textContent = video.title || 'Seshanba';
+          videoInfo.appendChild(titleH3);
           
           // Video meta ma'lumotlari
           const metaDiv = document.createElement('div');
@@ -609,21 +559,20 @@
           const viewsSpan = document.createElement('span');
           viewsSpan.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8b98a5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> ${video.views || '0'}`;
           
-          const timeSpan = document.createElement('span');
-          timeSpan.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8b98a5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> ${video.timeAgo || 'hozirgina'}`;
-          
-          const likesSpan = document.createElement('span');
-          likesSpan.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8b98a5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> ${video.likes || 0}`;
+          const timeAgoSpan = document.createElement('span');
+          timeAgoSpan.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8b98a5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> ${video.timeAgo || 'hozirgina'}`;
           
           metaDiv.appendChild(viewsSpan);
-          metaDiv.appendChild(timeSpan);
-          metaDiv.appendChild(likesSpan);
-          videoDiv.appendChild(metaDiv);
+          metaDiv.appendChild(timeAgoSpan);
+          videoInfo.appendChild(metaDiv);
+          
+          videoDiv.appendChild(videoInfo);
           
           // Yuklanayotgan video uchun progress bar
           if (video.status === 'uploading') {
             const progressDiv = document.createElement('div');
             progressDiv.className = 'progress';
+            progressDiv.style.padding = '0 15px 15px';
             
             const progressText = document.createElement('span');
             progressText.className = 'progress-text';
@@ -674,25 +623,21 @@
         progressText.textContent = `${Math.floor(progress)}% • ${remainingMinutes} daqiqa ${remainingSecs} soniya qoldi`;
         
         if (progress >= 100) {
-          // Yuklash tugaganda statusni yangilash
           video.status = 'uploaded';
           video.completed = true;
           
-          // LocalStorage ni yangilash
           const videos = JSON.parse(localStorage.getItem('videos')) || [];
           if (videos[originalIndex]) {
             videos[originalIndex] = video;
             localStorage.setItem('videos', JSON.stringify(videos));
           }
           
-          // UI ni yangilash
           setTimeout(() => loadContent('video'), 1000);
         } else {
           setTimeout(() => updateProgress(video, progressText, progressFill, originalIndex), 1000);
         }
       }
 
-      
       // Playlistlarni yuklash
       function loadPlaylists() {
         contentDiv.innerHTML = `
@@ -739,6 +684,7 @@
       });
     }
 
+    
     // Demo videolarni yaratish
     function initializeDemoVideos() {
       let videos = JSON.parse(localStorage.getItem('videos')) || [];
@@ -747,50 +693,48 @@
         const demoVideos = [
           {
             id: Date.now() + 1,
-            title: "O'zbekiston manzaralari 4K",
-            description: "O'zbekistonning eng go'zal manzaralari to'plami. Tabiatning ajoyib go'zalligi",
-            keywords: ["o'zbekiston", "manzara", "tabiat", "4k", "travel"],
+            title: "Seshanba",
+            description: "Seshanba 6 kuni, 2026 yil",
+            keywords: ["seshanba", "video", "test"],
             status: "uploaded",
-            thumbnail: "https://images.unsplash.com/photo-1513326738677-b964603b136d?auto=format&fit=crop&w=1470&q=80",
-            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-            createdAt: "2025-01-15T10:30:00Z",
+            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+            createdAt: new Date().toISOString(),
             completed: true,
+            duration: "0:15",
+            views: "0",
+            timeAgo: "hozirgina",
+            likes: 0,
+            comments: 0
+          },
+          {
+            id: Date.now() + 2,
+            title: "Samarqand - Tarixiy me'moriy yodgorliklar",
+            description: "Samarqand shahrining noyob me'moriy yodgorliklari",
+            keywords: ["samarqand", "history", "architecture"],
+            status: "uploaded",
+            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+            createdAt: "2026-01-01T10:30:00Z",
+            completed: true,
+            duration: "1:45",
             views: "45,2 ming",
             timeAgo: "2 oy avval",
             likes: 1245,
             comments: 89
           },
           {
-            id: Date.now() + 2,
+            id: Date.now() + 3,
             title: "Toshkent shahri kechasi",
-            description: "Toshkent shahrining ajoyib kecha manzaralari. Yorug'lik va hayot",
-            keywords: ["toshkent", "city", "night", "uzbekistan"],
+            description: "Toshkent shahrining ajoyib kecha manzaralari",
+            keywords: ["toshkent", "city", "night"],
             status: "uploaded",
-            thumbnail: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=1470&q=80",
             videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
-            createdAt: "2025-01-10T14:20:00Z",
+            createdAt: "2026-01-05T14:20:00Z",
             completed: true,
+            duration: "2:30",
             views: "102,7 ming",
             timeAgo: "1 hafta avval",
             likes: 2345,
             comments: 156
-          },
-          {
-            id: Date.now() + 3,
-            title: "Samarqand - Tarixiy me'moriy yodgorliklar",
-            description: "Samarqand shahrining noyob me'moriy yodgorliklari. Registon maydoni",
-            keywords: ["samarqand", "history", "architecture", "registan"],
-            status: "uploading",
-            thumbnail: "https://images.unsplash.com/photo-1588666309990-d68f08e3d4c6?auto=format&fit=crop&w=1470&q=80",
-            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-            createdAt: new Date().toISOString(),
-            completed: false,
-            startTime: Date.now() - 15000,
-            totalTime: 60000,
-            views: "0",
-            timeAgo: "hozirgina",
-            likes: 0,
-            comments: 0
           }
         ];
         
