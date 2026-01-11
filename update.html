@@ -254,16 +254,22 @@
     const videoDescription = document.getElementById('videoDescription');
     const finalUploadBtn = document.getElementById('finalUploadBtn');
 
+    let selectedFile = null;
+    let videoUrl = null;
+
     // Yuklash tugmasi
     uploadVideoBtn.addEventListener('click', () => videoInput.click());
 
     videoInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (file) {
+        selectedFile = file;
+        
         // Fayl hajmini tekshirish (max 500MB)
         if (file.size > 500 * 1024 * 1024) {
           alert('Video hajmi 500MB dan katta bo\'lmasligi kerak!');
           videoInput.value = '';
+          selectedFile = null;
           return;
         }
 
@@ -282,34 +288,33 @@
             const confirmUpload = confirm(`Sizning videoning o'lchami ${video.videoWidth}x${video.videoHeight} (${videoRatio.toFixed(2)}:1).\nBu 16:9 (1.78:1) formatda emas. Davom etasizmi?`);
             if (!confirmUpload) {
               videoInput.value = '';
+              selectedFile = null;
               return;
             }
           }
           
           // Video yuklash
-          const reader = new FileReader();
-          reader.onload = (ev) => {
-            const videoElement = document.createElement('video');
-            videoElement.src = ev.target.result;
-            videoElement.controls = true;
-            videoPreview.innerHTML = '';
-            videoPreview.appendChild(videoElement);
-            
-            // Yuklash tugmasini aktivlashtirish
-            finalUploadBtn.disabled = false;
-            
-            // Agar sarlavha kiritilmagan bo'lsa, fayl nomidan foydalanish
-            if (!videoTitle.value.trim()) {
-              const fileName = file.name.replace(/\.[^/.]+$/, ""); // Kengaytmani olib tashlash
-              videoTitle.value = fileName;
-            }
-          };
-          reader.readAsDataURL(file);
+          videoUrl = URL.createObjectURL(file);
+          const videoElement = document.createElement('video');
+          videoElement.src = videoUrl;
+          videoElement.controls = true;
+          videoPreview.innerHTML = '';
+          videoPreview.appendChild(videoElement);
+          
+          // Yuklash tugmasini aktivlashtirish
+          finalUploadBtn.disabled = false;
+          
+          // Agar sarlavha kiritilmagan bo'lsa, fayl nomidan foydalanish
+          if (!videoTitle.value.trim()) {
+            const fileName = file.name.replace(/\.[^/.]+$/, ""); // Kengaytmani olib tashlash
+            videoTitle.value = fileName;
+          }
         };
         
         video.onerror = function() {
           alert('Video yuklashda xatolik yuz berdi. Iltimos, boshqa video tanlang.');
           videoInput.value = '';
+          selectedFile = null;
         };
         
         video.src = URL.createObjectURL(file);
@@ -318,18 +323,20 @@
 
     // Bekor qilish
     videoCancelBtn.addEventListener('click', () => {
+      if (videoUrl) {
+        URL.revokeObjectURL(videoUrl);
+      }
       window.location.href = 'profil.html';
     });
 
     // Yuklash tugmasi
-    finalUploadBtn.addEventListener('click', () => {
+    finalUploadBtn.addEventListener('click', async () => {
       // Ma'lumotlarni tekshirish
       const title = videoTitle.value.trim();
       const keywords = videoKeywords.value.trim();
       const description = videoDescription.value.trim();
-      const file = videoInput.files[0];
       
-      if (!file) {
+      if (!selectedFile) {
         alert('Iltimos, video faylini tanlang!');
         return;
       }
@@ -344,37 +351,108 @@
       finalUploadBtn.textContent = 'Yuklanmoqda...';
       finalUploadBtn.disabled = true;
       
-      // Yangi video obyekti yaratish
-      const newVideo = {
-        id: Date.now(),
-        title: title,
-        description: description,
-        keywords: keywords.split(',').map(k => k.trim()).filter(k => k),
-        status: 'uploading',
-        thumbnail: 'https://images.unsplash.com/photo-1571330735066-03aaa9429d89?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80',
-        createdAt: new Date().toISOString(),
-        completed: false,
-        startTime: Date.now(),
-        totalTime: 30000, // 30 soniya
-        views: "0",
-        timeAgo: "hozirgina",
-        likes: 0,
-        comments: 0,
-        fileName: file.name,
-        fileSize: (file.size / (1024 * 1024)).toFixed(2) + ' MB'
-      };
-      
-      // LocalStorage ga video qo'shish
-      let videos = JSON.parse(localStorage.getItem('videos')) || [];
-      videos.push(newVideo);
-      localStorage.setItem('videos', JSON.stringify(videos));
-      
-      // Simulyatsiya: 3 soniya kutib, keyin o'tish
-      setTimeout(() => {
-        alert('Video muvaffaqiyatli yuklandi!');
-        window.location.href = 'profil.html';
-      }, 3000);
+      try {
+        // Faylni base64 formatga o'girish
+        const videoBase64 = await fileToBase64(selectedFile);
+        
+        // Random kanal nomi yaratish
+        const channelNames = ["Digital Creators", "Video Blog", "Creative Studio", "Vision Media", "Art House"];
+        const randomChannel = channelNames[Math.floor(Math.random() * channelNames.length)];
+        
+        // Random obunachilar soni
+        const subscriberCounts = ["12.4K", "45.2K", "102.7K", "1.2M", "3.4M"];
+        const randomSubscribers = subscriberCounts[Math.floor(Math.random() * subscriberCounts.length)];
+        
+        // Overlay sarlavhalari
+        const overlayTitles = ["KREATIV", "VIDEO", "JOURNAL", "LIFE", "ART"];
+        const randomOverlay = overlayTitles[Math.floor(Math.random() * overlayTitles.length)];
+        
+        // Yangi video obyekti yaratish
+        const newVideo = {
+          id: Date.now(),
+          title: title,
+          description: description,
+          keywords: keywords.split(',').map(k => k.trim()).filter(k => k),
+          status: 'uploading',
+          videoUrl: videoBase64, // Base64 formatdagi video
+          videoFile: {
+            name: selectedFile.name,
+            size: selectedFile.size,
+            type: selectedFile.type
+          },
+          createdAt: new Date().toISOString(),
+          completed: false,
+          startTime: Date.now(),
+          totalTime: 30000, // 30 soniya
+          views: "0",
+          timeAgo: "hozirgina",
+          likes: 0,
+          comments: 0,
+          channel: randomChannel,
+          subscribers: randomSubscribers + " obuna",
+          overlayTitle: randomOverlay,
+          year: "2025",
+          fileName: selectedFile.name,
+          fileSize: (selectedFile.size / (1024 * 1024)).toFixed(2) + ' MB'
+        };
+        
+        // LocalStorage ga video qo'shish
+        let videos = JSON.parse(localStorage.getItem('videos')) || [];
+        videos.push(newVideo);
+        localStorage.setItem('videos', JSON.stringify(videos));
+        
+        // Yuklash progressini ko'rsatish
+        simulateUploadProgress(newVideo, videos.length - 1);
+        
+      } catch (error) {
+        console.error('Video yuklashda xatolik:', error);
+        alert('Video yuklashda xatolik yuz berdi. Iltimos, qayta urinib ko\'ring.');
+        finalUploadBtn.textContent = 'Yuklash';
+        finalUploadBtn.disabled = false;
+      }
     });
+
+    // Faylni base64 formatga o'girish funksiyasi
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+      });
+    }
+
+    // Yuklash progressini simulyatsiya qilish
+    function simulateUploadProgress(video, index) {
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += Math.random() * 10 + 5; // 5-15% oralig'ida
+        if (progress >= 100) {
+          progress = 100;
+          clearInterval(interval);
+          
+          // Yuklash tugaganda video holatini yangilash
+          video.status = 'uploaded';
+          video.completed = true;
+          
+          // LocalStorage ni yangilash
+          let videos = JSON.parse(localStorage.getItem('videos')) || [];
+          if (videos[index]) {
+            videos[index] = video;
+            localStorage.setItem('videos', JSON.stringify(videos));
+          }
+          
+          // Muvaffaqiyatli yuklandi xabari
+          setTimeout(() => {
+            alert('Video muvaffaqiyatli yuklandi!');
+            if (videoUrl) {
+              URL.revokeObjectURL(videoUrl);
+            }
+            window.location.href = 'profil.html';
+          }, 500);
+        }
+      }, 300);
+    }
 
     // Inputlarni tekshirish
     videoTitle.addEventListener('input', checkForm);
@@ -383,10 +461,17 @@
 
     function checkForm() {
       const title = videoTitle.value.trim();
-      const hasVideo = videoInput.files.length > 0;
+      const hasVideo = selectedFile !== null;
       
       finalUploadBtn.disabled = !(title && hasVideo);
     }
+
+    // Sahifa yopilganda URL larni tozalash
+    window.addEventListener('beforeunload', () => {
+      if (videoUrl) {
+        URL.revokeObjectURL(videoUrl);
+      }
+    });
   </script>
 
 </body>
