@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Video Yuklash</title>
   <style>
+    /* CSS kodlari o'zgarishsiz */
     * {
       margin: 0;
       padding: 0;
@@ -261,6 +262,7 @@
     const fileInfo = document.getElementById('fileInfo');
 
     let selectedVideoFile = null;
+    let videoURL = null;
 
     // Video tanlash tugmasi
     uploadVideoBtn.addEventListener('click', () => videoInput.click());
@@ -285,7 +287,7 @@
         `;
 
         // Videoni preview qilish
-        const videoURL = URL.createObjectURL(selectedVideoFile);
+        videoURL = URL.createObjectURL(selectedVideoFile);
         const videoElement = document.createElement('video');
         videoElement.src = videoURL;
         videoElement.controls = true;
@@ -310,6 +312,10 @@
 
     // Bekor qilish
     videoCancelBtn.addEventListener('click', () => {
+      // URL ni tozalash
+      if (videoURL) {
+        URL.revokeObjectURL(videoURL);
+      }
       window.location.href = 'profil.html';
     });
 
@@ -337,6 +343,11 @@
       try {
         // Faylni base64 ga o'tkazish
         const videoDataUrl = await fileToBase64(selectedVideoFile);
+        
+        // Video URL ni tozalash
+        if (videoURL) {
+          URL.revokeObjectURL(videoURL);
+        }
         
         // Yangi video obyekti yaratish
         const newVideo = {
@@ -366,8 +377,10 @@
         localStorage.setItem('currentVideo', JSON.stringify(newVideo));
         
         // Muvaffaqiyatli xabar
-        alert('Video muvaffaqiyatli yuklandi!');
-        window.location.href = 'videopage.html';
+        setTimeout(() => {
+          alert('Video muvaffaqiyatli yuklandi!');
+          window.location.href = 'videopage.html';
+        }, 1000);
         
       } catch (error) {
         console.error('Yuklashda xatolik:', error);
@@ -382,7 +395,7 @@
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result);
-        reader.onerror = reject;
+        reader.onerror = (error) => reject(error);
         reader.readAsDataURL(file);
       });
     }
