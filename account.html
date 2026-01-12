@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Profil - @javlonbek</title>
   <style>
+    /* CSS kodlari o'zgarishsiz */
     * {
       margin: 0;
       padding: 0;
@@ -447,6 +448,7 @@
   <script>
     // ========== INITIALIZATION ==========
     document.addEventListener('DOMContentLoaded', function() {
+      loadDemoVideosIfEmpty(); // Demo videolarni yuklash
       initializeApp();
     });
 
@@ -595,8 +597,13 @@
           metaDiv.appendChild(likesSpan);
           videoDiv.appendChild(metaDiv);
           
-          // Video bosilganda videopage ga o'tish
-          videoDiv.addEventListener('click', function() {
+          // MUXIM: Video bosilganda videopage.html ga o'tish
+          videoDiv.addEventListener('click', function(e) {
+            // Faqat video elementiga bosilganda ishlasin
+            if (e.target === videoElement || e.target.closest('video')) {
+              return; // Video elementiga bosilganda hech narsa qilma
+            }
+            
             // Video ma'lumotlarini localStorage ga saqlash
             localStorage.setItem('currentVideo', JSON.stringify(video));
             
@@ -652,6 +659,43 @@
           loadContent(this.dataset.tab);
         });
       });
+    }
+
+    // Demo videolarni yuklash (agar bo'sh bo'lsa)
+    function loadDemoVideosIfEmpty() {
+      let videos = JSON.parse(localStorage.getItem('videos')) || [];
+      
+      if (videos.length === 0) {
+        // Demo videolarni yaratish (birinchi marta ishga tushganda)
+        const demoVideos = [
+          {
+            id: Date.now(),
+            title: "O'zbekiston manzaralari",
+            description: "O'zbekistonning go'zal manzaralari",
+            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+            views: "1,234",
+            timeAgo: "2 kun avval",
+            likes: 56,
+            comments: 12,
+            author: "Siz",
+            channel: "Shaxsiy kanal"
+          },
+          {
+            id: Date.now() + 1,
+            title: "Toshkent shahri kechasi",
+            description: "Toshkentning ajoyib kecha manzaralari",
+            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+            views: "2,345",
+            timeAgo: "1 hafta avval",
+            likes: 89,
+            comments: 23,
+            author: "Siz",
+            channel: "Shaxsiy kanal"
+          }
+        ];
+        
+        localStorage.setItem('videos', JSON.stringify(demoVideos));
+      }
     }
 
     // Playlist yaratish funksiyasi
