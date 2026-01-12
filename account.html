@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Twitter Profil - @javlonbek</title>
+  <title>Video Profil - @javlonbek</title>
   <style>
     * {
       margin: 0;
@@ -59,13 +59,7 @@
       height: 100px;
       border: 4px solid #000;
       border-radius: 50%;
-      background: linear-gradient(45deg, #1da1f2, #0c84d1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 40px;
-      font-weight: bold;
-      color: white;
+      background: url('https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=880&q=80') no-repeat center/cover;
       cursor: pointer;
       z-index: 2;
     }
@@ -226,21 +220,25 @@
       margin-bottom: 10px;
     }
 
-    .video-container {
+    .video-thumb {
       width: 100%;
-      height: 200px;
+      height: 180px;
       border-radius: 8px;
       overflow: hidden;
       margin-bottom: 12px;
-      background-color: #000;
+      background-color: #333;
       position: relative;
-      cursor: pointer;
     }
 
-    .video-container video {
+    .video-thumb img {
       width: 100%;
       height: 100%;
       object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+
+    .video-item:hover .video-thumb img {
+      transform: scale(1.05);
     }
 
     .video-overlay {
@@ -392,8 +390,8 @@
         padding: 12px;
       }
       
-      .video-container {
-        height: 180px;
+      .video-thumb {
+        height: 160px;
       }
       
       .profile-info {
@@ -408,7 +406,6 @@
         width: 80px;
         height: 80px;
         bottom: -40px;
-        font-size: 32px;
       }
     }
 
@@ -422,8 +419,8 @@
         gap: 8px;
       }
       
-      .video-container {
-        height: 160px;
+      .video-thumb {
+        height: 140px;
       }
     }
   </style>
@@ -433,7 +430,7 @@
   <div class="container">
     <div class="header">
       <div class="cover" id="cover"></div>
-      <div class="avatar" id="avatar">J</div>
+      <div class="avatar" id="avatar"></div>
     </div>
 
     <div class="profile-info">
@@ -443,7 +440,7 @@
       <p class="location" id="profileLocation">O'zbekiston, Toshkent</p>
       <p class="bio" id="profileBio">🎬 Video muxlisi | ✍️ Kontent yaratuvchi | 📈 Digital marketolog | 🎯 Videolar bilan dunyoni o'zgartirish istagida</p>
       <div class="follow-info">
-        <span><strong id="videoCount">0</strong> Video</span>
+        <span><strong id="videoCount">12</strong> Video</span>
         <span><strong>120</strong> Kuzatilmoqda</span>
         <span><strong>3,245</strong> Kuzatuvchilar</span>
       </div>
@@ -465,7 +462,6 @@
     +
   </button>
 
-  
   <script>
     // ========== INITIALIZATION ==========
     document.addEventListener('DOMContentLoaded', function() {
@@ -540,29 +536,15 @@
           videoDiv.className = 'video-item';
           videoDiv.dataset.videoId = video.id;
           
-          // Video konteyner
-          const videoContainer = document.createElement('div');
-          videoContainer.className = 'video-container';
+          // Video tasviri
+          const thumbDiv = document.createElement('div');
+          thumbDiv.className = 'video-thumb';
           
-          if (video.videoUrl && video.videoUrl.startsWith('data:video')) {
-            // Agar video Base64 formatda bo'lsa
-            const videoElement = document.createElement('video');
-            videoElement.preload = 'metadata';
-            videoElement.playsinline = true;
-            videoElement.innerHTML = `
-              <source src="${video.videoUrl}" type="video/mp4">
-              Sizning brauzeringiz video elementini qo'llab-quvvatlamaydi.
-            `;
-            videoContainer.appendChild(videoElement);
-          } else {
-            // Agar video URL bo'lmasa, oddiy fon
-            videoContainer.style.backgroundColor = '#333';
-            videoContainer.style.display = 'flex';
-            videoContainer.style.alignItems = 'center';
-            videoContainer.style.justifyContent = 'center';
-            videoContainer.style.color = '#fff';
-            videoContainer.innerHTML = '<div>Video yuklanmagan</div>';
-          }
+          const thumbImg = document.createElement('img');
+          thumbImg.src = video.thumbnail || 'https://images.unsplash.com/photo-1571330735066-03aaa9429d89?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80';
+          thumbImg.alt = video.title;
+          thumbImg.loading = 'lazy';
+          thumbDiv.appendChild(thumbImg);
           
           // Play overlay
           const overlayDiv = document.createElement('div');
@@ -573,9 +555,9 @@
             </svg>
             <span>Ko'rish</span>
           `;
-          videoContainer.appendChild(overlayDiv);
+          thumbDiv.appendChild(overlayDiv);
           
-          videoDiv.appendChild(videoContainer);
+          videoDiv.appendChild(thumbDiv);
           
           // Video sarlavhasi
           const titleH3 = document.createElement('h3');
@@ -625,17 +607,29 @@
             progressDiv.appendChild(progressBar);
             videoDiv.appendChild(progressDiv);
             
-            updateProgress(video, progressDiv, progressFill, videos.length - 1 - index);
+            updateProgress(video, progressDiv, progressFill, index);
           }
           
           // Video bosilganda videopage ga o'tish
           videoDiv.addEventListener('click', function(e) {
             if (!e.target.closest('.progress')) {
               // Video ma'lumotlarini localStorage ga saqlash
-              localStorage.setItem('currentVideo', JSON.stringify(video));
+              const videoId = this.dataset.videoId;
+              let videos = JSON.parse(localStorage.getItem('videos')) || [];
               
-              // Videopage sahifasiga o'tish
-              window.location.href = 'videopage.html';
+              // Teskari tartibda qidirish (chunki biz reverse qilganmiz)
+              const originalIndex = videos.length - 1 - index;
+              const selectedVideo = videos[originalIndex];
+              
+              if (selectedVideo) {
+                // Video ma'lumotlarini localStorage ga saqlash
+                localStorage.setItem('currentVideo', JSON.stringify(selectedVideo));
+                
+                // Videopage sahifasiga o'tish
+                window.location.href = 'videopage.html';
+              } else {
+                alert('Video topilmadi!');
+              }
             }
           });
           
@@ -673,8 +667,9 @@
           
           // LocalStorage ni yangilash
           const videos = JSON.parse(localStorage.getItem('videos')) || [];
-          if (videos[originalIndex]) {
-            videos[originalIndex] = video;
+          const reversedIndex = videos.length - 1 - originalIndex;
+          if (videos[reversedIndex]) {
+            videos[reversedIndex] = video;
             localStorage.setItem('videos', JSON.stringify(videos));
           }
           
@@ -685,6 +680,7 @@
         }
       }
 
+      
       // Playlistlarni yuklash
       function loadPlaylists() {
         contentDiv.innerHTML = `
@@ -745,17 +741,15 @@
             description: "O'zbekistonning eng go'zal manzaralari to'plami. Tabiatning ajoyib go'zalligi",
             keywords: ["o'zbekiston", "manzara", "tabiat", "4k", "travel"],
             status: "uploaded",
-            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+            thumbnail: "https://images.unsplash.com/photo-1513326738677-b964603b136d?auto=format&fit=crop&w=1470&q=80",
             createdAt: "2025-01-15T10:30:00Z",
             completed: true,
             views: "45,2 ming",
             timeAgo: "2 oy avval",
             likes: 1245,
             comments: 89,
-            channel: "Travel Uzbekistan",
-            subscribers: "45.2K obuna",
-            overlayTitle: "TABIAT",
-            year: "2024"
+            author: "Siz",
+            authorAvatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=880&q=80"
           },
           {
             id: Date.now() + 2,
@@ -763,17 +757,33 @@
             description: "Toshkent shahrining ajoyib kecha manzaralari. Yorug'lik va hayot",
             keywords: ["toshkent", "city", "night", "uzbekistan"],
             status: "uploaded",
-            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+            thumbnail: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=1470&q=80",
             createdAt: "2025-01-10T14:20:00Z",
             completed: true,
             views: "102,7 ming",
             timeAgo: "1 hafta avval",
             likes: 2345,
             comments: 156,
-            channel: "City Life",
-            subscribers: "102.7K obuna",
-            overlayTitle: "SHAHAR",
-            year: "2024"
+            author: "Siz",
+            authorAvatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=880&q=80"
+          },
+          {
+            id: Date.now() + 3,
+            title: "Samarqand - Tarixiy me'moriy yodgorliklar",
+            description: "Samarqand shahrining noyob me'moriy yodgorliklari. Registon maydoni",
+            keywords: ["samarqand", "history", "architecture", "registan"],
+            status: "uploading",
+            thumbnail: "https://images.unsplash.com/photo-1588666309990-d68f08e3d4c6?auto=format&fit=crop&w=1470&q=80",
+            createdAt: new Date().toISOString(),
+            completed: false,
+            startTime: Date.now() - 15000, // 15 soniya oldin boshlangan
+            totalTime: 60000, // 60 soniya
+            views: "0",
+            timeAgo: "hozirgina",
+            likes: 0,
+            comments: 0,
+            author: "Siz",
+            authorAvatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=880&q=80"
           }
         ];
         
@@ -796,7 +806,7 @@
       
       // Demo rasmlar
       cover.style.backgroundImage = "linear-gradient(45deg, #1da1f2, #0c84d1)";
-      // Avatar endi faqat gradient va harf bilan
+      avatar.style.backgroundImage = "url('https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=880&q=80')";
     });
   </script>
 </body>
