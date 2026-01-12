@@ -57,7 +57,7 @@
     .video-modal-title {
       font-size: 18px;
       font-weight: 700;
-      visibility: hidden; /* Matnni yashirish */
+      visibility: hidden;
     }
 
     .video-form-container {
@@ -67,8 +67,8 @@
     .video-preview {
       width: 100%;
       height: 0;
-      padding-bottom: 56.25%; /* 16:9 nisbat */
-      background-color: #333;
+      padding-bottom: 56.25%;
+      background-color: #000;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -98,11 +98,14 @@
       align-items: center;
       justify-content: center;
       color: #8b98a5;
+      text-align: center;
+      background-color: #111;
     }
 
     .video-preview-placeholder svg {
       margin-bottom: 10px;
       opacity: 0.7;
+      color: #8b98a5;
     }
 
     .video-form-group {
@@ -147,7 +150,7 @@
       font-size: 14px;
       font-weight: 700;
       cursor: pointer;
-      transition: background-color 0.2s;
+      transition: all 0.2s;
       margin-top: 10px;
     }
 
@@ -158,7 +161,6 @@
     .upload-video-btn:disabled {
       opacity: 0.5;
       cursor: not-allowed;
-      background-color: #1da1f2;
     }
 
     .upload-action-btn {
@@ -208,7 +210,7 @@
     <div class="video-modal-header">
       <button class="video-cancel-btn" id="videoCancelBtn">Bekor qilish</button>
       <div class="video-modal-title"></div>
-      <div style="width: 60px;"></div> <!-- Bo'sh joy -->
+      <div style="width: 60px;"></div>
     </div>
     <div class="video-form-container">
       <div class="video-form-group">
@@ -237,7 +239,6 @@
         <textarea id="videoDescription" placeholder="Video tavsifi..."></textarea>
       </div>
       
-      <!-- Yuklash tugmasi (faqat video tanlangandan keyin ko'rinadi) -->
       <button class="upload-action-btn" id="finalUploadBtn" disabled>Yuklash</button>
     </div>
   </div>
@@ -254,20 +255,20 @@
     const videoDescription = document.getElementById('videoDescription');
     const finalUploadBtn = document.getElementById('finalUploadBtn');
 
-    // Yuklash tugmasi
+    let selectedVideoBlob = null;
+    let selectedVideoUrl = null;
+
     uploadVideoBtn.addEventListener('click', () => videoInput.click());
 
     videoInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (file) {
-        // Fayl hajmini tekshirish (max 500MB)
         if (file.size > 500 * 1024 * 1024) {
           alert('Video hajmi 500MB dan katta bo\'lmasligi kerak!');
           videoInput.value = '';
           return;
         }
 
-        // Video formatini tekshirish
         const video = document.createElement('video');
         video.preload = 'metadata';
         
@@ -277,7 +278,6 @@
           const targetRatio = 16/9;
           const ratioDiff = Math.abs(videoRatio - targetRatio);
           
-          // Agar video 16:9 formatda bo'lmasa, ogohlantirish
           if (ratioDiff > 0.1) {
             const confirmUpload = confirm(`Sizning videoning o'lchami ${video.videoWidth}x${video.videoHeight} (${videoRatio.toFixed(2)}:1).\nBu 16:9 (1.78:1) formatda emas. Davom etasizmi?`);
             if (!confirmUpload) {
@@ -286,21 +286,24 @@
             }
           }
           
-          // Video yuklash
           const reader = new FileReader();
           reader.onload = (ev) => {
             const videoElement = document.createElement('video');
             videoElement.src = ev.target.result;
             videoElement.controls = true;
+            videoElement.autoplay = false;
+            videoElement.muted = true;
+            
             videoPreview.innerHTML = '';
             videoPreview.appendChild(videoElement);
             
-            // Yuklash tugmasini aktivlashtirish
+            selectedVideoBlob = file;
+            selectedVideoUrl = ev.target.result;
+            
             finalUploadBtn.disabled = false;
             
-            // Agar sarlavha kiritilmagan bo'lsa, fayl nomidan foydalanish
             if (!videoTitle.value.trim()) {
-              const fileName = file.name.replace(/\.[^/.]+$/, ""); // Kengaytmani olib tashlash
+              const fileName = file.name.replace(/\.[^/.]+$/, "");
               videoTitle.value = fileName;
             }
           };
@@ -316,20 +319,16 @@
       }
     });
 
-    // Bekor qilish
     videoCancelBtn.addEventListener('click', () => {
       window.location.href = 'profil.html';
     });
 
-    // Yuklash tugmasi
     finalUploadBtn.addEventListener('click', () => {
-      // Ma'lumotlarni tekshirish
       const title = videoTitle.value.trim();
       const keywords = videoKeywords.value.trim();
       const description = videoDescription.value.trim();
-      const file = videoInput.files[0];
       
-      if (!file) {
+      if (!selectedVideoBlob) {
         alert('Iltimos, video faylini tanlang!');
         return;
       }
@@ -340,67 +339,99 @@
         return;
       }
       
-      // Yuklash jarayoni
       finalUploadBtn.textContent = 'Yuklanmoqda...';
       finalUploadBtn.disabled = true;
       
-      // Yangi video obyekti yaratish
-      const newVideo = {
-        id: Date.now(),
-        title: title,
-        description: description,
-        keywords: keywords.split(',').map(k => k.trim()).filter(k => k),
-        status: 'uploading',
-        thumbnail: 'https://images.unsplash.com/photo-1571330735066-03aaa9429d89?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80',
-        createdAt: new Date().toISOString(),
-        completed: false,
-        startTime: Date.now(),
-        totalTime: 30000, // 30 soniya
-        views: "0",
-        timeAgo: "hozirgina",
-        likes: 0,
-        comments: 0,
-        fileName: file.name,
-        fileSize: (file.size / (1024 * 1024)).toFixed(2) + ' MB',
-        author: "Siz",
-        authorAvatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=880&q=80"
+      // Videoni Base64 formatida saqlash
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const newVideo = {
+          id: Date.now(),
+          title: title,
+          description: description,
+          keywords: keywords.split(',').map(k => k.trim()).filter(k => k),
+          status: 'uploading',
+          videoData: e.target.result, // Videoni Base64 formatida saqlash
+          thumbnailData: '', // Videodan frame olamiz
+          createdAt: new Date().toISOString(),
+          completed: false,
+          startTime: Date.now(),
+          totalTime: 30000,
+          views: "0",
+          timeAgo: "hozirgina",
+          likes: 0,
+          comments: 0,
+          fileName: selectedVideoBlob.name,
+          fileSize: (selectedVideoBlob.size / (1024 * 1024)).toFixed(2) + ' MB',
+          author: "Siz",
+          authorAvatar: "",
+          duration: 0
+        };
+        
+        // Videodan thumbnail yaratish
+        createVideoThumbnail(selectedVideoUrl, function(thumbnailData) {
+          newVideo.thumbnailData = thumbnailData;
+          
+          let videos = JSON.parse(localStorage.getItem('videos')) || [];
+          videos.push(newVideo);
+          localStorage.setItem('videos', JSON.stringify(videos));
+          
+          localStorage.setItem('currentVideo', JSON.stringify(newVideo));
+          
+          setTimeout(() => {
+            newVideo.status = 'uploaded';
+            newVideo.completed = true;
+            
+            const updatedVideos = JSON.parse(localStorage.getItem('videos')) || [];
+            const videoIndex = updatedVideos.findIndex(v => v.id === newVideo.id);
+            if (videoIndex !== -1) {
+              updatedVideos[videoIndex] = newVideo;
+              localStorage.setItem('videos', JSON.stringify(updatedVideos));
+            }
+            
+            alert('Video muvaffaqiyatli yuklandi!');
+            window.location.href = 'profil.html';
+          }, 3000);
+        });
       };
       
-      // LocalStorage ga video qo'shish
-      let videos = JSON.parse(localStorage.getItem('videos')) || [];
-      videos.push(newVideo);
-      localStorage.setItem('videos', JSON.stringify(videos));
-      
-      // Video ma'lumotlarini videopage ga o'tish uchun saqlash
-      localStorage.setItem('currentVideo', JSON.stringify(newVideo));
-      
-      // Simulyatsiya: 3 soniya kutib, keyin profilga o'tish
-      setTimeout(() => {
-        // Yuklash tugaganda statusni yangilash
-        newVideo.status = 'uploaded';
-        newVideo.completed = true;
-        
-        // LocalStorage ni yangilash
-        const updatedVideos = JSON.parse(localStorage.getItem('videos')) || [];
-        const videoIndex = updatedVideos.findIndex(v => v.id === newVideo.id);
-        if (videoIndex !== -1) {
-          updatedVideos[videoIndex] = newVideo;
-          localStorage.setItem('videos', JSON.stringify(updatedVideos));
-        }
-        
-        alert('Video muvaffaqiyatli yuklandi!');
-        window.location.href = 'profil.html';
-      }, 3000);
+      reader.readAsDataURL(selectedVideoBlob);
     });
 
-    // Inputlarni tekshirish
+    function createVideoThumbnail(videoUrl, callback) {
+      const video = document.createElement('video');
+      video.crossOrigin = 'anonymous';
+      video.preload = 'metadata';
+      
+      video.onloadedmetadata = function() {
+        video.currentTime = 1; // 1-daqiqadan frame olamiz
+      };
+      
+      video.onseeked = function() {
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        const thumbnailData = canvas.toDataURL('image/jpeg', 0.7);
+        callback(thumbnailData);
+      };
+      
+      video.onerror = function() {
+        callback(''); // Agar xatolik bo'lsa, bo'sh qoldiramiz
+      };
+      
+      video.src = videoUrl;
+    }
+
     videoTitle.addEventListener('input', checkForm);
     videoKeywords.addEventListener('input', checkForm);
     videoDescription.addEventListener('input', checkForm);
 
     function checkForm() {
       const title = videoTitle.value.trim();
-      const hasVideo = videoInput.files.length > 0;
+      const hasVideo = selectedVideoBlob !== null;
       
       finalUploadBtn.disabled = !(title && hasVideo);
     }
