@@ -62,50 +62,6 @@
       margin: 0 auto;
     }
 
-    /* Stats summary */
-    .stats-summary {
-      background: white;
-      border-radius: 20px;
-      padding: 20px;
-      margin-bottom: 25px;
-      box-shadow: 0 6px 15px rgba(0,0,0,0.08);
-      border: 2px solid #e8f4ff;
-    }
-
-    .stats-summary h3 {
-      margin: 0 0 15px 0;
-      color: #333;
-      font-size: 18px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .overall-progress {
-      width: 100%;
-      height: 14px;
-      background: #e0e0e0;
-      border-radius: 10px;
-      overflow: hidden;
-      margin-bottom: 10px;
-      position: relative;
-    }
-
-    .overall-fill {
-      height: 100%;
-      width: 0;
-      background: linear-gradient(90deg, #4da3e2, #3b82f6);
-      border-radius: 10px;
-      transition: width 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-
-    .completed-text {
-      color: #555;
-      font-size: 15px;
-      display: flex;
-      justify-content: space-between;
-    }
-
     /* Cards Grid */
     .cards-grid {
       display: grid;
@@ -229,9 +185,9 @@
       box-shadow: 0 0 10px rgba(255,255,255,0.5);
     }
 
-    /* Card states - MOVIY RANG PALITRASI */
+    /* Card states - Faqat moviy rang variantlari */
     .card.completed {
-      background: linear-gradient(135deg, #2c6cb0, #1e4d8c);
+      background: linear-gradient(135deg, #3498db, #2980b9);
     }
 
     .card.in-progress {
@@ -239,11 +195,11 @@
     }
 
     .card.locked-state {
-      background: linear-gradient(135deg, #94a3b8, #64748b);
+      background: linear-gradient(135deg, #95a5a6, #7f8c8d);
     }
 
     .card.next-available {
-      background: linear-gradient(135deg, #60a5fa, #3b82f6);
+      background: linear-gradient(135deg, #4da3e2, #3b82f6);
       animation: pulse 2s infinite;
     }
 
@@ -296,6 +252,31 @@
       font-size: 14px;
       margin-top: 30px;
     }
+
+    /* Stats info - yangi qo'shilgan */
+    .stats-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: white;
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 25px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+      border: 2px solid #e8f4ff;
+    }
+
+    .completed-count {
+      font-size: 18px;
+      color: #333;
+      font-weight: 600;
+    }
+
+    .next-lesson {
+      font-size: 16px;
+      color: #3b82f6;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
@@ -310,15 +291,10 @@
 
   <div class="container">
     
-    <div class="stats-summary">
-      <h3><i class="fas fa-chart-line"></i> Umumiy progress</h3>
-      <div class="overall-progress">
-        <div class="overall-fill" id="overallProgress"></div>
-      </div>
-      <div class="completed-text">
-        <span id="completedLessons">0/30 darslar tugatildi</span>
-        <span id="nextLesson">Keyingi dars: 1</span>
-      </div>
+    <!-- Stats info bo'limi - umumiy progress o'rniga -->
+    <div class="stats-info">
+      <div class="completed-count" id="completedLessons">0/30 darslar tugatildi</div>
+      <div class="next-lesson" id="nextLesson">Keyingi dars: 1</div>
     </div>
 
     <div class="cards-grid" id="cardsContainer">
@@ -367,18 +343,15 @@
     ];
 
     const cardsContainer = document.getElementById('cardsContainer');
-    const overallProgress = document.getElementById('overallProgress');
     const completedLessons = document.getElementById('completedLessons');
     const nextLesson = document.getElementById('nextLesson');
 
     // Umumiy progressni hisoblash
     function calculateOverallProgress() {
-      let totalPercent = 0;
       let completedCount = 0;
       let nextAvailableIndex = -1;
       
       lessonsData.forEach((lesson, index) => {
-        totalPercent += lesson.percent;
         if (lesson.completed) completedCount++;
         
         // Keyingi ochiladigan darsni aniqlash
@@ -387,21 +360,15 @@
         }
       });
       
-      const averagePercent = Math.round(totalPercent / lessonsData.length);
       const completedText = `${completedCount}/${lessonsData.length} darslar tugatildi`;
       const nextLessonText = `Keyingi dars: ${nextAvailableIndex + 1}`;
       
-      return { averagePercent, completedText, nextLessonText, completedCount, nextAvailableIndex };
+      return { completedText, nextLessonText, completedCount, nextAvailableIndex };
     }
 
     // Kartalarni yaratish
     function createCards() {
-      const { averagePercent, completedText, nextLessonText, completedCount, nextAvailableIndex } = calculateOverallProgress();
-      
-      // Umumiy progressni yangilash
-      setTimeout(() => {
-        overallProgress.style.width = averagePercent + '%';
-      }, 300);
+      const { completedText, nextLessonText, completedCount, nextAvailableIndex } = calculateOverallProgress();
       
       completedLessons.textContent = completedText;
       nextLesson.textContent = nextLessonText;
@@ -526,7 +493,7 @@
           const lockIcon = card.querySelector('.lock-icon');
           if (lockIcon) lockIcon.remove();
           
-          // Karta rangini yangilash - MOVIY RANG
+          // Karta rangini yangilash
           card.style.background = 'linear-gradient(135deg, #4da3e2, #3b82f6)';
           
           // Karta bosilganda dars sahifasiga o'tish
