@@ -2,51 +2,52 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Input UI - Fixed Button</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>Language UI - Result in Keyboard Space</title>
     <style>
         :root {
             --bg-color: #1a1c22;
             --card-bg: #252830;
-            --text-color: #ffffff;
             --blue: #1cb0f6;
             --green: #58cc02;
             --gray: #37464f;
             --border: #3d3d3d;
         }
 
-        body {
+        body, html {
+            margin: 0; padding: 0;
+            height: 100%;
             background-color: var(--bg-color);
-            color: var(--text-color);
             font-family: 'Segoe UI', sans-serif;
-            display: flex;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
             overflow: hidden;
         }
 
         .app-container {
-            width: 100%;
-            max-width: 400px;
-            height: 100%;
-            padding: 20px;
             display: flex;
             flex-direction: column;
+            height: 100vh;
+            padding: 20px;
             box-sizing: border-box;
-            position: relative;
         }
 
-        /* Savol qismi */
+        /* Yuqori kontent: Savol va Slotlar */
+        .top-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
         .question-box {
             background-color: var(--card-bg);
             border-radius: 20px;
+            width: 100%;
             height: 160px;
             display: flex;
             justify-content: center;
             align-items: center;
             position: relative;
-            margin-bottom: 50px;
+            margin-bottom: 40px;
         }
 
         .q-marks {
@@ -56,51 +57,47 @@
         }
 
         .audio-btn {
-            position: absolute;
-            bottom: 15px;
-            right: 15px;
+            position: absolute; bottom: 15px; right: 15px;
             background-color: var(--blue);
-            border: none;
-            border-radius: 50%;
-            width: 45px;
-            height: 45px;
-            cursor: pointer;
+            border: none; border-radius: 50%;
+            width: 45px; height: 45px;
         }
 
-        /* Harf slotlari (Bitta qatorda) */
         .input-row {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 10px;
+            display: flex; gap: 15px;
         }
 
         .char-slot {
-            width: 50px;
-            height: 50px;
+            width: 50px; height: 55px;
             border-bottom: 3px solid var(--border);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 30px;
-            font-weight: bold;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 32px; font-weight: bold; color: white;
         }
 
-        /* QIZIL CHIZIQ O'RNIDAGI TUGMA */
-        .button-area {
-            margin-top: 100px; /* Rasmda ko'rsatilgan joyga surish */
-            padding: 0 10px;
+        /* QIZIL CHIZIQ VA JAVOB SOHASI */
+        .action-zone {
+            position: relative;
+            height: 40%; /* Taxminiy klaviatura balandligi */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        /* Qizil chiziq (faqat joylashuvni aniqlash uchun) */
+        .separator-line {
+            width: 100%;
+            height: 3px;
+            background-color: #ff4b4b; /* Rasmda belgilangan qizil chiziq */
+            margin-bottom: 25px;
         }
 
         .check-btn {
             width: 100%;
-            background-color: var(--card-bg); /* Avval xira rang */
+            background-color: var(--card-bg);
             color: #52656d;
-            border: none;
-            border-radius: 15px;
-            padding: 18px;
-            font-size: 18px;
-            font-weight: bold;
+            border: none; border-radius: 15px;
+            padding: 18px; font-size: 18px; font-weight: bold;
             text-transform: uppercase;
             transition: 0.2s;
         }
@@ -108,84 +105,83 @@
         .check-btn.ready {
             background-color: var(--blue);
             color: white;
-            cursor: pointer;
             box-shadow: 0 4px 0 #1899d6;
         }
 
         .step-num {
-            text-align: center;
-            color: #52656d;
-            font-size: 20px;
             margin-top: 15px;
+            color: #52656d; font-size: 22px;
         }
 
-        /* Yashirin input */
-        #hiddenInput {
+        /* JAVOB OYNASI (Success Panel) */
+        .result-panel {
             position: absolute;
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        /* Success Oynasi */
-        .modal {
-            position: absolute;
-            bottom: -300px;
-            left: 0;
-            right: 0;
+            top: 0; left: -20px; right: -20px; bottom: -20px;
             background-color: #2b353a;
-            padding: 30px 20px;
+            padding: 30px;
+            display: none; /* Dastlab yashirin */
+            flex-direction: column;
             border-radius: 25px 25px 0 0;
-            transition: transform 0.3s ease-out;
-            z-index: 1000;
+            z-index: 10;
         }
 
-        .modal.show {
-            transform: translateY(-300px);
+        .result-panel.active {
+            display: flex;
+            animation: slideUp 0.3s ease-out;
         }
 
-        .modal-title {
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .success-header {
             color: var(--green);
-            font-size: 26px;
-            font-weight: bold;
-            margin-bottom: 20px;
+            font-size: 28px; font-weight: bold;
+            display: flex; align-items: center; gap: 10px;
+            margin-bottom: 30px;
         }
 
-        .cont-btn {
+        .continue-btn {
             width: 100%;
             background-color: var(--green);
             color: white;
-            border: none;
-            border-radius: 15px;
-            padding: 18px;
-            font-size: 18px;
-            font-weight: bold;
+            border: none; border-radius: 15px;
+            padding: 18px; font-size: 18px; font-weight: bold;
+            box-shadow: 0 4px 0 #46a302;
         }
+
+        #hiddenInput { position: absolute; opacity: 0; pointer-events: none; }
     </style>
 </head>
-<body onclick="document.getElementById('hiddenInput').focus()">
+<body onclick="focusInput()">
 
 <div class="app-container">
     <input type="text" id="hiddenInput" maxlength="3" autocomplete="off">
 
-    <div class="question-box">
-        <div class="q-marks">??</div>
-        <button class="audio-btn">🔊</button>
+    <div class="top-section">
+        <div class="question-box">
+            <div class="q-marks">??</div>
+            <button class="audio-btn">🔊</button>
+        </div>
+
+        <div class="input-row">
+            <div class="char-slot" id="s0"></div>
+            <div class="char-slot" id="s1"></div>
+            <div class="char-slot" id="s2"></div>
+        </div>
     </div>
 
-    <div class="input-row">
-        <div class="char-slot" id="s0"></div>
-        <div class="char-slot" id="s1"></div>
-        <div class="char-slot" id="s2"></div>
-    </div>
-
-    <div class="button-area">
+    <div class="action-zone">
+        <div class="separator-line"></div>
+        
         <button class="check-btn" id="checkBtn">Tekshirish</button>
         <div class="step-num" id="step">1</div>
-    </div>
 
-    <div class="modal" id="modal">
-        <div class="modal-title">✓ To'g'ri 3</div>
-        <button class="cont-btn" onclick="nextPage()">Davom etish</button>
+        <div class="result-panel" id="resultPanel">
+            <div class="success-header">✓ To'g'ri 3</div>
+            <button class="continue-btn" onclick="location.reload()">Davom etish</button>
+        </div>
     </div>
 </div>
 
@@ -193,11 +189,11 @@
     const input = document.getElementById('hiddenInput');
     const slots = [document.getElementById('s0'), document.getElementById('s1'), document.getElementById('s2')];
     const checkBtn = document.getElementById('checkBtn');
+    const resultPanel = document.getElementById('resultPanel');
     const step = document.getElementById('step');
-    const modal = document.getElementById('modal');
 
-    // Klaviatura doim tayyor turishi uchun
-    window.onload = () => input.focus();
+    function focusInput() { input.focus(); }
+    window.onload = focusInput;
 
     input.addEventListener('input', (e) => {
         const val = e.target.value.toLowerCase();
@@ -207,11 +203,10 @@
             slot.style.borderBottomColor = val[i] ? "var(--blue)" : "var(--border)";
         });
 
-        // Agar "too" so'zi yozilsa
         if (val === "too") {
             checkBtn.classList.add('ready');
             step.innerText = "2";
-            checkBtn.onclick = () => modal.classList.add('show');
+            checkBtn.onclick = handleCheck;
         } else {
             checkBtn.classList.remove('ready');
             checkBtn.onclick = null;
@@ -219,13 +214,11 @@
         }
     });
 
-    function nextPage() {
-        // Yangi sahifa ochilishi (simulyatsiya)
-        document.body.innerHTML = `
-            <div style="text-align:center; color:white; padding-top:100px;">
-                <h1 style="color:var(--blue)">Keyingi sahifa ochildi! 🎉</h1>
-                <button onclick="location.reload()" style="margin-top:20px; padding:15px; border-radius:10px; border:none; background:var(--green); color:white; font-weight:bold;">Qayta boshlash</button>
-            </div>`;
+    function handleCheck() {
+        input.blur(); // Klaviaturani yopish
+        setTimeout(() => {
+            resultPanel.classList.add('active'); // Javob oynasini ochish
+        }, 100);
     }
 </script>
 
