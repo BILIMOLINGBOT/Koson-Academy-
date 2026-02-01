@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Input UI - Single Row</title>
+    <title>Input UI - Fixed Button</title>
     <style>
         :root {
             --bg-color: #1a1c22;
@@ -21,40 +21,38 @@
             font-family: 'Segoe UI', sans-serif;
             display: flex;
             justify-content: center;
-            align-items: center;
             height: 100vh;
             margin: 0;
             overflow: hidden;
         }
 
         .app-container {
-            width: 360px;
-            height: 640px;
-            background-color: var(--bg-color);
-            position: relative;
+            width: 100%;
+            max-width: 400px;
+            height: 100%;
+            padding: 20px;
             display: flex;
             flex-direction: column;
-            padding: 20px;
             box-sizing: border-box;
+            position: relative;
         }
 
         /* Savol qismi */
         .question-box {
             background-color: var(--card-bg);
             border-radius: 20px;
-            height: 180px;
+            height: 160px;
             display: flex;
             justify-content: center;
             align-items: center;
             position: relative;
-            margin-bottom: 40px;
+            margin-bottom: 50px;
         }
 
         .q-marks {
-            font-size: 80px;
+            font-size: 70px;
             font-weight: bold;
             color: #a385bd;
-            letter-spacing: -5px;
         }
 
         .audio-btn {
@@ -66,62 +64,38 @@
             border-radius: 50%;
             width: 45px;
             height: 45px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             cursor: pointer;
         }
 
-        /* Yozuvlar maydoni (Bitta qatorda) */
+        /* Harf slotlari (Bitta qatorda) */
         .input-row {
             display: flex;
             justify-content: center;
             gap: 15px;
             margin-top: 10px;
-            min-height: 60px;
         }
 
         .char-slot {
-            width: 45px;
+            width: 50px;
             height: 50px;
             border-bottom: 3px solid var(--border);
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 28px;
+            font-size: 30px;
             font-weight: bold;
-            text-transform: lowercase;
-            color: var(--text-color);
         }
 
-        .char-slot.active {
-            border-bottom-color: var(--blue);
-        }
-
-        /* Yashirin input */
-        #hiddenInput {
-            position: absolute;
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        /* Footer va Tugmalar */
-        .footer {
-            margin-top: auto;
-            text-align: center;
-            padding-bottom: 20px;
-        }
-
-        .step-num {
-            color: #52656d;
-            font-size: 24px;
-            margin-bottom: 15px;
+        /* QIZIL CHIZIQ O'RNIDAGI TUGMA */
+        .button-area {
+            margin-top: 100px; /* Rasmda ko'rsatilgan joyga surish */
+            padding: 0 10px;
         }
 
         .check-btn {
             width: 100%;
-            background-color: var(--gray);
-            color: #839496;
+            background-color: var(--card-bg); /* Avval xira rang */
+            color: #52656d;
             border: none;
             border-radius: 15px;
             padding: 18px;
@@ -135,9 +109,24 @@
             background-color: var(--blue);
             color: white;
             cursor: pointer;
+            box-shadow: 0 4px 0 #1899d6;
         }
 
-        /* Success Modal */
+        .step-num {
+            text-align: center;
+            color: #52656d;
+            font-size: 20px;
+            margin-top: 15px;
+        }
+
+        /* Yashirin input */
+        #hiddenInput {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Success Oynasi */
         .modal {
             position: absolute;
             bottom: -300px;
@@ -146,8 +135,8 @@
             background-color: #2b353a;
             padding: 30px 20px;
             border-radius: 25px 25px 0 0;
-            transition: transform 0.4s ease-out;
-            z-index: 100;
+            transition: transform 0.3s ease-out;
+            z-index: 1000;
         }
 
         .modal.show {
@@ -156,7 +145,7 @@
 
         .modal-title {
             color: var(--green);
-            font-size: 28px;
+            font-size: 26px;
             font-weight: bold;
             margin-bottom: 20px;
         }
@@ -170,7 +159,6 @@
             padding: 18px;
             font-size: 18px;
             font-weight: bold;
-            cursor: pointer;
         }
     </style>
 </head>
@@ -181,9 +169,7 @@
 
     <div class="question-box">
         <div class="q-marks">??</div>
-        <button class="audio-btn">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
-        </button>
+        <button class="audio-btn">🔊</button>
     </div>
 
     <div class="input-row">
@@ -192,9 +178,9 @@
         <div class="char-slot" id="s2"></div>
     </div>
 
-    <div class="footer">
-        <div class="step-num" id="step">1</div>
+    <div class="button-area">
         <button class="check-btn" id="checkBtn">Tekshirish</button>
+        <div class="step-num" id="step">1</div>
     </div>
 
     <div class="modal" id="modal">
@@ -210,20 +196,18 @@
     const step = document.getElementById('step');
     const modal = document.getElementById('modal');
 
-    // Avtomatik fokus
+    // Klaviatura doim tayyor turishi uchun
     window.onload = () => input.focus();
 
     input.addEventListener('input', (e) => {
         const val = e.target.value.toLowerCase();
         
-        // Harflarni slotlarga bitta qatorda joylash
         slots.forEach((slot, i) => {
             slot.innerText = val[i] || "";
-            if(val[i]) slot.classList.add('active');
-            else slot.classList.remove('active');
+            slot.style.borderBottomColor = val[i] ? "var(--blue)" : "var(--border)";
         });
 
-        // Agar 'too' to'liq yozilsa
+        // Agar "too" so'zi yozilsa
         if (val === "too") {
             checkBtn.classList.add('ready');
             step.innerText = "2";
@@ -236,12 +220,11 @@
     });
 
     function nextPage() {
-        // Yangi sahifa ochilishi
+        // Yangi sahifa ochilishi (simulyatsiya)
         document.body.innerHTML = `
-            <div style="text-align:center; color:white; padding:50px;">
-                <h1>Tabriklaymiz! 🎉</h1>
-                <p>Siz keyingi sahifaga o'tdingiz.</p>
-                <button onclick="location.reload()" style="background:var(--blue); color:white; border:none; padding:15px 30px; border-radius:10px; font-weight:bold; cursor:pointer;">Qayta boshlash</button>
+            <div style="text-align:center; color:white; padding-top:100px;">
+                <h1 style="color:var(--blue)">Keyingi sahifa ochildi! 🎉</h1>
+                <button onclick="location.reload()" style="margin-top:20px; padding:15px; border-radius:10px; border:none; background:var(--green); color:white; font-weight:bold;">Qayta boshlash</button>
             </div>`;
     }
 </script>
