@@ -17,12 +17,13 @@
         body {
             background-color: var(--bg-color);
             color: var(--text-color);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
+            overflow: hidden;
         }
 
         .app-container {
@@ -37,7 +38,18 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
-        /* Yuqori qism (Savol va Audio) */
+        /* Sahifalar */
+        .page {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .page.active {
+            display: flex;
+        }
+
+        /* Savol qismi */
         .question-box {
             background-color: var(--card-bg);
             border-radius: 15px;
@@ -45,10 +57,6 @@
             text-align: center;
             position: relative;
             margin-bottom: 20px;
-        }
-
-        .question-box img {
-            width: 100px;
         }
 
         .audio-btn {
@@ -63,24 +71,13 @@
             cursor: pointer;
         }
 
-        /* Harf slotlari */
         .slots-container {
             display: flex;
             justify-content: center;
             gap: 10px;
             margin: 40px 0;
-            min-height: 50px;
+            min-height: 60px;
             border-bottom: 2px solid var(--gray);
-            padding-bottom: 10px;
-        }
-
-        /* Harf tugmalari */
-        .letters-bank {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: auto;
-            margin-bottom: 50px;
         }
 
         .letter {
@@ -95,15 +92,20 @@
             font-size: 20px;
             font-weight: bold;
             cursor: pointer;
-            transition: 0.2s;
         }
 
-        .letter.selected {
-            opacity: 0;
-            pointer-events: none;
+        .bank {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: auto;
+            margin-bottom: 50px;
         }
 
-        /* Pastki tugma */
+        .bank .letter.hidden {
+            visibility: hidden;
+        }
+
         .main-btn {
             background-color: var(--gray);
             color: white;
@@ -112,15 +114,15 @@
             padding: 15px;
             font-size: 18px;
             font-weight: bold;
-            text-transform: uppercase;
             cursor: pointer;
+            transition: 0.3s;
         }
 
         .main-btn.active {
             background-color: var(--blue);
         }
 
-        /* Success Overlay (3-bosqich) */
+        /* Success Overlay */
         .success-overlay {
             position: absolute;
             bottom: 0;
@@ -128,25 +130,20 @@
             right: 0;
             background-color: #2b353a;
             padding: 30px 20px;
-            border-top-left-radius: 20px;
-            border-top-right-radius: 20px;
+            border-radius: 20px 20px 0 0;
             transform: translateY(100%);
-            transition: transform 0.3s ease-out;
-            text-align: left;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        .success-overlay.active {
+        .success-overlay.show {
             transform: translateY(0);
         }
 
         .success-title {
             color: var(--green);
-            font-size: 24px;
+            font-size: 26px;
             font-weight: bold;
             margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
         }
 
         .continue-btn {
@@ -160,60 +157,79 @@
             font-size: 18px;
             cursor: pointer;
         }
+
+        /* Keyingi sahifa stili */
+        .next-page-content {
+            text-align: center;
+            margin-top: 100px;
+        }
     </style>
 </head>
 <body>
 
 <div class="app-container">
-    <div class="question-box">
-        <span style="font-size: 60px;">??</span>
-        <button class="audio-btn">🔊</button>
-    </div>
-
-    <div class="slots-container" id="slots">
+    
+    <div id="page1" class="page active">
+        <div class="question-box">
+            <span style="font-size: 60px;">??</span>
+            <button class="audio-btn">🔊</button>
         </div>
 
-    <div class="letters-bank" id="bank">
-        <div class="letter" onclick="selectLetter(this, 't')">t</div>
-        <div class="letter" onclick="selectLetter(this, 'o')">o</div>
-        <div class="letter" onclick="selectLetter(this, 'o')">o</div>
+        <div class="slots-container" id="slots"></div>
+
+        <div class="bank" id="bank">
+            <div class="letter" onclick="choose(this, 't')">t</div>
+            <div class="letter" onclick="choose(this, 'o')">o</div>
+            <div class="letter" onclick="choose(this, 'o')">o</div>
+        </div>
+
+        <button class="main-btn" id="checkBtn">Tekshirish</button>
+
+        <div class="success-overlay" id="overlay">
+            <div class="success-title">✓ To'g'ri 3</div>
+            <button class="continue-btn" onclick="goToNextPage()">Davom etish</button>
+        </div>
     </div>
 
-    <button class="main-btn" id="checkBtn">Tekshirish</button>
-
-    <div class="success-overlay" id="overlay">
-        <div class="success-title">✓ To'g'ri 3</div>
-        <button class="continue-btn" onclick="location.reload()">Davom etish</button>
+    <div id="page2" class="page">
+        <div class="next-page-content">
+            <h2 style="color: var(--blue);">Ajoyib!</h2>
+            <p>Siz keyingi sahifaga o'tdingiz.</p>
+            <div style="font-size: 80px;">🎉</div>
+            <button class="main-btn active" style="margin-top: 50px;" onclick="location.reload()">Boshiga qaytish</button>
+        </div>
     </div>
+
 </div>
 
 <script>
-    let selectedLetters = [];
-    const maxLetters = 3;
+    let selected = [];
 
-    function selectLetter(el, char) {
-        if (selectedLetters.length < maxLetters) {
-            selectedLetters.push(char);
-            el.classList.add('selected');
+    function choose(el, char) {
+        if (selected.length < 3) {
+            selected.push(char);
+            el.classList.add('hidden');
             
-            // Slotga harfni qo'shish
             const slot = document.createElement('div');
             slot.className = 'letter';
             slot.innerText = char;
             document.getElementById('slots').appendChild(slot);
 
-            // 2-bosqich: Tugmani faollashtirish
-            if (selectedLetters.length === maxLetters) {
+            if (selected.length === 3) {
                 const btn = document.getElementById('checkBtn');
                 btn.classList.add('active');
-                btn.onclick = showSuccess;
+                btn.onclick = () => {
+                    document.getElementById('overlay').classList.add('show');
+                };
             }
         }
     }
 
-    function showSuccess() {
-        // 3-bosqich: Muvaffaqiyat oynasini chiqarish
-        document.getElementById('overlay').classList.add('active');
+    function goToNextPage() {
+        // 1-sahifani yopish
+        document.getElementById('page1').classList.remove('active');
+        // 2-sahifani ochish
+        document.getElementById('page2').classList.add('active');
     }
 </script>
 
