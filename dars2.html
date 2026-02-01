@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Til O'rganish UI</title>
+    <title>Typing UI</title>
     <style>
         :root {
             --bg-color: #1a1c22;
@@ -12,6 +12,7 @@
             --blue: #1cb0f6;
             --green: #58cc02;
             --gray: #37464f;
+            --border: #4b4b4b;
         }
 
         body {
@@ -27,209 +28,217 @@
         }
 
         .app-container {
-            width: 350px;
-            height: 600px;
+            width: 360px;
+            height: 640px;
             background-color: var(--bg-color);
             position: relative;
+            display: flex;
+            flex-direction: column;
             padding: 20px;
-            display: flex;
-            flex-direction: column;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        /* Sahifalar */
-        .page {
-            display: none;
-            flex-direction: column;
-            height: 100%;
-        }
-
-        .page.active {
-            display: flex;
+            box-sizing: border-box;
         }
 
         /* Savol qismi */
         .question-box {
             background-color: var(--card-bg);
-            border-radius: 15px;
-            padding: 30px;
-            text-align: center;
+            border-radius: 20px;
+            height: 180px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             position: relative;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .q-marks {
+            font-size: 80px;
+            font-weight: bold;
+            color: #a385bd;
+            display: flex;
+            gap: 5px;
         }
 
         .audio-btn {
             position: absolute;
-            bottom: 10px;
-            right: 10px;
+            bottom: 15px;
+            right: 15px;
             background-color: var(--blue);
             border: none;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            width: 45px;
+            height: 45px;
             cursor: pointer;
-        }
-
-        .slots-container {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin: 40px 0;
-            min-height: 60px;
-            border-bottom: 2px solid var(--gray);
-        }
-
-        .letter {
-            background-color: var(--card-bg);
-            border: 2px solid var(--gray);
-            border-radius: 8px;
-            width: 50px;
-            height: 50px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 20px;
-            font-weight: bold;
-            cursor: pointer;
         }
 
-        .bank {
+        /* Yozish maydoni (Chiziqlar) */
+        .input-area {
             display: flex;
-            justify-content: center;
-            gap: 10px;
+            flex-direction: column;
+            gap: 25px;
+            margin-top: 20px;
+            padding: 0 10px;
+        }
+
+        .input-line {
+            border-bottom: 2px solid var(--border);
+            height: 40px;
+            display: flex;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+            padding-left: 10px;
+            letter-spacing: 5px;
+        }
+
+        /* Yashirin input */
+        #hiddenInput {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Tekshirish tugmasi */
+        .footer {
             margin-top: auto;
-            margin-bottom: 50px;
+            padding-bottom: 20px;
         }
 
-        .bank .letter.hidden {
-            visibility: hidden;
-        }
-
-        .main-btn {
+        .check-btn {
+            width: 100%;
             background-color: var(--gray);
-            color: white;
+            color: #839496;
             border: none;
-            border-radius: 12px;
-            padding: 15px;
+            border-radius: 15px;
+            padding: 18px;
             font-size: 18px;
             font-weight: bold;
-            cursor: pointer;
+            text-transform: uppercase;
+            cursor: default;
             transition: 0.3s;
         }
 
-        .main-btn.active {
+        .check-btn.active {
             background-color: var(--blue);
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #1899d6;
         }
 
-        /* Success Overlay */
-        .success-overlay {
+        /* To'g'ri 3 oynasi */
+        .success-modal {
             position: absolute;
-            bottom: 0;
+            bottom: -300px;
             left: 0;
             right: 0;
             background-color: #2b353a;
             padding: 30px 20px;
-            border-radius: 20px 20px 0 0;
-            transform: translateY(100%);
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-radius: 25px 25px 0 0;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 10;
         }
 
-        .success-overlay.show {
-            transform: translateY(0);
+        .success-modal.show {
+            bottom: 0;
         }
 
-        .success-title {
+        .success-text {
             color: var(--green);
-            font-size: 26px;
+            font-size: 28px;
             font-weight: bold;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
 
         .continue-btn {
-            background-color: var(--green);
             width: 100%;
-            padding: 15px;
-            border-radius: 12px;
-            border: none;
+            background-color: var(--green);
             color: white;
-            font-weight: bold;
+            border: none;
+            border-radius: 15px;
+            padding: 18px;
             font-size: 18px;
+            font-weight: bold;
             cursor: pointer;
-        }
-
-        /* Keyingi sahifa stili */
-        .next-page-content {
-            text-align: center;
-            margin-top: 100px;
+            box-shadow: 0 4px 0 #46a302;
         }
     </style>
 </head>
-<body>
+<body onclick="focusInput()">
 
-<div class="app-container">
-    
-    <div id="page1" class="page active">
-        <div class="question-box">
-            <span style="font-size: 60px;">??</span>
-            <button class="audio-btn">🔊</button>
-        </div>
+<div class="app-container" id="gameContainer">
+    <input type="text" id="hiddenInput" maxlength="3" autocomplete="off">
 
-        <div class="slots-container" id="slots"></div>
-
-        <div class="bank" id="bank">
-            <div class="letter" onclick="choose(this, 't')">t</div>
-            <div class="letter" onclick="choose(this, 'o')">o</div>
-            <div class="letter" onclick="choose(this, 'o')">o</div>
-        </div>
-
-        <button class="main-btn" id="checkBtn">Tekshirish</button>
-
-        <div class="success-overlay" id="overlay">
-            <div class="success-title">✓ To'g'ri 3</div>
-            <button class="continue-btn" onclick="goToNextPage()">Davom etish</button>
-        </div>
+    <div class="question-box">
+        <div class="q-marks">??</div>
+        <button class="audio-btn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+        </button>
     </div>
 
-    <div id="page2" class="page">
-        <div class="next-page-content">
-            <h2 style="color: var(--blue);">Ajoyib!</h2>
-            <p>Siz keyingi sahifaga o'tdingiz.</p>
-            <div style="font-size: 80px;">🎉</div>
-            <button class="main-btn active" style="margin-top: 50px;" onclick="location.reload()">Boshiga qaytish</button>
-        </div>
+    <div class="input-area">
+        <div class="input-line" id="line1"></div>
+        <div class="input-line" id="line2"></div>
+        <div class="input-line" id="line3"></div>
     </div>
 
+    <div class="footer">
+        <div id="stepCounter" style="text-align: center; margin-bottom: 10px; color: #52656d;">1</div>
+        <button class="check-btn" id="checkBtn">Tekshirish</button>
+    </div>
+
+    <div class="success-modal" id="successModal">
+        <div class="success-text">✓ To'g'ri 3</div>
+        <button class="continue-btn" onclick="nextLevel()">Davom etish</button>
+    </div>
 </div>
 
 <script>
-    let selected = [];
+    const hiddenInput = document.getElementById('hiddenInput');
+    const lines = [document.getElementById('line1'), document.getElementById('line2'), document.getElementById('line3')];
+    const checkBtn = document.getElementById('checkBtn');
+    const successModal = document.getElementById('successModal');
+    const stepCounter = document.getElementById('stepCounter');
 
-    function choose(el, char) {
-        if (selected.length < 3) {
-            selected.push(char);
-            el.classList.add('hidden');
-            
-            const slot = document.createElement('div');
-            slot.className = 'letter';
-            slot.innerText = char;
-            document.getElementById('slots').appendChild(slot);
+    // Klaviatura ochilishi uchun avtomatik fokus
+    window.onload = () => hiddenInput.focus();
+    function focusInput() { hiddenInput.focus(); }
 
-            if (selected.length === 3) {
-                const btn = document.getElementById('checkBtn');
-                btn.classList.add('active');
-                btn.onclick = () => {
-                    document.getElementById('overlay').classList.add('show');
-                };
-            }
+    hiddenInput.addEventListener('input', (e) => {
+        const val = e.target.value.toLowerCase();
+        
+        // Harflarni chiziqlarga joylash
+        lines.forEach((line, index) => {
+            line.innerText = val[index] ? val[index] : "";
+        });
+
+        // 2-bosqich: Agar "too" yozilgan bo'lsa tugmani yoqish
+        if (val === "too") {
+            checkBtn.classList.add('active');
+            stepCounter.innerText = "2";
+            checkBtn.onclick = () => {
+                successModal.classList.add('show');
+            };
+        } else {
+            checkBtn.classList.remove('active');
+            checkBtn.onclick = null;
+            stepCounter.innerText = "1";
         }
-    }
+    });
 
-    function goToNextPage() {
-        // 1-sahifani yopish
-        document.getElementById('page1').classList.remove('active');
-        // 2-sahifani ochish
-        document.getElementById('page2').classList.add('active');
+    function nextLevel() {
+        // 3-bosqichdan keyingi sahifaga o'tish simulyatsiyasi
+        document.body.innerHTML = `
+            <div style="text-align: center; color: white;">
+                <h1>Keyingi Sahifa Ochildi!</h1>
+                <p>Muvaffaqiyatli yakunladingiz.</p>
+                <button onclick="location.reload()" style="padding: 10px 20px; border-radius: 10px; border: none; background: #1cb0f6; color: white; font-weight: bold; cursor: pointer;">Qaytadan boshlash</button>
+            </div>
+        `;
     }
 </script>
 
