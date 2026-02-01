@@ -3,70 +3,219 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test UI</title>
+    <title>Til O'rganish UI</title>
     <style>
+        :root {
+            --bg-color: #1a1c22;
+            --card-bg: #252830;
+            --text-color: #ffffff;
+            --blue: #1cb0f6;
+            --green: #58cc02;
+            --gray: #37464f;
+        }
+
         body {
-            font-family: sans-serif;
-            text-align: center;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .app-container {
+            width: 350px;
+            height: 600px;
+            background-color: var(--bg-color);
+            position: relative;
             padding: 20px;
+            display: flex;
+            flex-direction: column;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
-        h1 {
-            color: #333;
+
+        /* Yuqori qism (Savol va Audio) */
+        .question-box {
+            background-color: var(--card-bg);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            margin-bottom: 20px;
         }
-        .score {
+
+        .question-box img {
+            width: 100px;
+        }
+
+        .audio-btn {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background-color: var(--blue);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+        }
+
+        /* Harf slotlari */
+        .slots-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 40px 0;
+            min-height: 50px;
+            border-bottom: 2px solid var(--gray);
+            padding-bottom: 10px;
+        }
+
+        /* Harf tugmalari */
+        .letters-bank {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: auto;
+            margin-bottom: 50px;
+        }
+
+        .letter {
+            background-color: var(--card-bg);
+            border: 2px solid var(--gray);
+            border-radius: 8px;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .letter.selected {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Pastki tugma */
+        .main-btn {
+            background-color: var(--gray);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+
+        .main-btn.active {
+            background-color: var(--blue);
+        }
+
+        /* Success Overlay (3-bosqich) */
+        .success-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #2b353a;
+            padding: 30px 20px;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            transform: translateY(100%);
+            transition: transform 0.3s ease-out;
+            text-align: left;
+        }
+
+        .success-overlay.active {
+            transform: translateY(0);
+        }
+
+        .success-title {
+            color: var(--green);
             font-size: 24px;
             font-weight: bold;
-            color: #007bff;
-            margin: 20px 0;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        .question-area {
-            margin: 30px 0;
-            font-size: 20px;
-        }
-        input {
-            padding: 10px;
-            font-size: 18px;
-            margin: 10px;
-        }
-        .button {
-            background-color: #28a745;
-            color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            margin: 10px;
-        }
-        .check-btn {
-            background-color: #007bff;
-        }
+
         .continue-btn {
-            background-color: #6c757d;
+            background-color: var(--green);
+            width: 100%;
+            padding: 15px;
+            border-radius: 12px;
+            border: none;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <h1>Mavzuga qaytish</h1>
-    <div class="score">Score: <span id="score-value">75%</span></div>
-    
-    <div class="question-area">
-        <p>?</p>
-        <input type="text" id="answer-input" placeholder="Javobingizni yozing">
-    </div>
-    
-    <button class="button check-btn" onclick="tekshirish()">Tekshirish</button>
-    <button class="button continue-btn" onclick="davomEtish()" style="display:none;" id="continue-btn">Davom etish</button>
 
-    <script>
-        function tekshirish() {
-            // Tekshirish mantiqi
-            document.getElementById('continue-btn').style.display = 'inline-block';
+<div class="app-container">
+    <div class="question-box">
+        <span style="font-size: 60px;">??</span>
+        <button class="audio-btn">🔊</button>
+    </div>
+
+    <div class="slots-container" id="slots">
+        </div>
+
+    <div class="letters-bank" id="bank">
+        <div class="letter" onclick="selectLetter(this, 't')">t</div>
+        <div class="letter" onclick="selectLetter(this, 'o')">o</div>
+        <div class="letter" onclick="selectLetter(this, 'o')">o</div>
+    </div>
+
+    <button class="main-btn" id="checkBtn">Tekshirish</button>
+
+    <div class="success-overlay" id="overlay">
+        <div class="success-title">✓ To'g'ri 3</div>
+        <button class="continue-btn" onclick="location.reload()">Davom etish</button>
+    </div>
+</div>
+
+<script>
+    let selectedLetters = [];
+    const maxLetters = 3;
+
+    function selectLetter(el, char) {
+        if (selectedLetters.length < maxLetters) {
+            selectedLetters.push(char);
+            el.classList.add('selected');
+            
+            // Slotga harfni qo'shish
+            const slot = document.createElement('div');
+            slot.className = 'letter';
+            slot.innerText = char;
+            document.getElementById('slots').appendChild(slot);
+
+            // 2-bosqich: Tugmani faollashtirish
+            if (selectedLetters.length === maxLetters) {
+                const btn = document.getElementById('checkBtn');
+                btn.classList.add('active');
+                btn.onclick = showSuccess;
+            }
         }
-        function davomEtish() {
-            // Keyingi savolga o'tish
-            alert('Davom etish...');
-        }
-    </script>
+    }
+
+    function showSuccess() {
+        // 3-bosqich: Muvaffaqiyat oynasini chiqarish
+        document.getElementById('overlay').classList.add('active');
+    }
+</script>
+
 </body>
 </html>
