@@ -105,16 +105,43 @@
             background-color: rgba(255, 255, 255, 0.2);
         }
 
-        /* Question section */
-        .question-section {
+        /* Main content - Rasm va inputlarni yonma-yon joylashtirish */
+        .main-content {
             flex: 1;
+            display: flex;
             padding: 20px;
+            gap: 30px;
+            overflow-y: auto;
+        }
+
+        /* Left side - Rasm */
+        .image-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 300px;
+        }
+
+        .question-image {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            border: 3px solid white;
+            object-fit: cover;
+        }
+
+        /* Right side - Input slots */
+        .input-container {
+            flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            min-width: 300px;
             gap: 40px;
-            overflow-y: auto;
         }
 
         /* Input slots - Darslar kartalaridagi elementlarga mos */
@@ -152,15 +179,11 @@
 
         /* Check button area - Oq fon olib tashlandi */
         .check-btn-area {
-            position: sticky;
-            bottom: 0;
-            left: 0;
-            right: 0;
+            width: 100%;
+            max-width: 500px;
             background: transparent;
-            padding: 20px;
-            padding-bottom: max(env(safe-area-inset-bottom), 20px);
+            padding: 20px 0;
             z-index: 100;
-            margin-top: auto;
         }
 
         /* Check button - Darslar kartalaridagi gradientlarga mos */
@@ -332,6 +355,27 @@
         }
 
         /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+                gap: 30px;
+            }
+            
+            .image-container, .input-container {
+                min-width: 100%;
+            }
+            
+            .question-image {
+                max-width: 300px;
+            }
+            
+            .slot {
+                width: 65px;
+                height: 75px;
+                font-size: 36px;
+            }
+        }
+
         @media (max-width: 480px) {
             .slot {
                 width: 55px;
@@ -340,11 +384,19 @@
             }
             
             .check-btn-area {
-                padding: 15px;
+                padding: 15px 0;
+            }
+            
+            .question-image {
+                max-width: 250px;
             }
         }
 
-        @media (min-width: 768px) {
+        @media (min-width: 1200px) {
+            .question-image {
+                max-width: 500px;
+            }
+            
             .slot {
                 width: 85px;
                 height: 95px;
@@ -368,6 +420,10 @@
                 border-color: var(--border);
                 color: var(--text-primary);
             }
+            
+            .question-image {
+                border-color: var(--border);
+            }
         }
 
         /* Footer style from darslar sahifasi */
@@ -376,7 +432,7 @@
             padding: 20px;
             color: var(--text-secondary);
             font-size: 14px;
-            margin-top: 20px;
+            margin-top: auto;
         }
     </style>
 </head>
@@ -394,22 +450,35 @@
         </div>
     </div>
 
-    <!-- FAKAT INPUT SLOTS QOLDI (Rasmda nima bor? va Test progressi olib tashlandi) -->
-    <div class="question-section">
-        <div class="input-slots">
-            <div class="slot card-animation" id="s0" aria-label="Birinchi harf" style="animation-delay: 0.1s"></div>
-            <div class="slot card-animation" id="s1" aria-label="Ikkinchi harf" style="animation-delay: 0.2s"></div>
-            <div class="slot card-animation" id="s2" aria-label="Uchinchi harf" style="animation-delay: 0.3s"></div>
+    <!-- Asosiy kontent - rasm chapda, inputlar o'ngda -->
+    <div class="main-content">
+        <!-- Chap tomon - Rasm -->
+        <div class="image-container">
+            <img 
+                src="https://image2url.com/r2/default/images/1770027181544-97c9f448-22a5-4309-b255-add410e809c2.png" 
+                alt="Savol uchun rasm" 
+                class="question-image"
+            >
+        </div>
+        
+        <!-- O'ng tomon - Input slots -->
+        <div class="input-container">
+            <div class="input-slots">
+                <div class="slot card-animation" id="s0" aria-label="Birinchi harf" style="animation-delay: 0.1s"></div>
+                <div class="slot card-animation" id="s1" aria-label="Ikkinchi harf" style="animation-delay: 0.2s"></div>
+                <div class="slot card-animation" id="s2" aria-label="Uchinchi harf" style="animation-delay: 0.3s"></div>
+            </div>
+            
+            <!-- "Tekshirish" tugma maydoni -->
+            <div class="check-btn-area">
+                <button class="check-btn" id="checkBtn" disabled aria-label="Tekshirish">
+                    <span>Tekshirish</span>
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- Oq fon olib tashlangan "Tekshirish" tugma maydoni -->
-    <div class="check-btn-area">
-        <button class="check-btn" id="checkBtn" disabled aria-label="Tekshirish">
-            <span>Tekshirish</span>
-        </button>
-    </div>
-
+    <!-- Result panel -->
     <div class="result-panel" id="resultPanel" role="dialog" aria-labelledby="resultTitle" aria-modal="true">
         <div class="result-content">
             <div class="success-header">
@@ -435,6 +504,7 @@
         Har bir savol faqat oldingisi to'g'ri javoblangandan keyin ochiladi
     </div>
 </div>
+
 
 <script>
     // DOM Elements
