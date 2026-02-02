@@ -6,17 +6,16 @@
     <title>Language UI - Interactive Learning</title>
     <style>
         :root {
-            --bg-gradient-start: #f5f7fa;
-            --bg-gradient-end: #c3cfe2;
-            --primary-blue: #3b82f6;
-            --success-light: #2ecc71;
-            --success: #27ae60;
-            --progress-light: #3498db;
-            --progress: #2980b9;
-            --disabled-light: #95a5a6;
-            --disabled: #7f8c8d;
-            --text-primary: #333;
-            --border: #e2e8f0;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --text-primary: #000000;
+            --text-secondary: #6c757d;
+            --border-light: #e9ecef;
+            --border-dark: #dee2e6;
+            --accent-dark: #212529;
+            --shadow-sm: rgba(0, 0, 0, 0.05);
+            --shadow-md: rgba(0, 0, 0, 0.1);
+            --shadow-lg: rgba(0, 0, 0, 0.15);
         }
 
         * {
@@ -27,11 +26,11 @@
 
         body, html {
             height: 100%;
-            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+            background: var(--bg-primary);
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             color: var(--text-primary);
             -webkit-tap-highlight-color: transparent;
-            overflow: hidden; /* Skrolni yo'qotish */
+            overflow: hidden;
         }
 
         .app-container {
@@ -39,6 +38,7 @@
             flex-direction: column;
             height: 100vh;
             padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom);
+            background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
         }
 
         /* Markaziy qism */
@@ -52,37 +52,38 @@
 
         .input-slots {
             display: flex;
-            gap: 15px;
+            gap: 16px;
             justify-content: center;
         }
 
         .slot {
             width: 75px;
             height: 85px;
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.4);
-            border: 2px solid var(--border);
+            border-radius: 16px;
+            background: var(--bg-primary);
+            border: 2px solid var(--border-light);
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 40px;
-            font-weight: bold;
-            color: var(--text-primary);
-            transition: all 0.2s ease;
+            font-weight: 600;
+            color: var(--text-secondary);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             text-transform: uppercase;
+            box-shadow: 0 2px 8px var(--shadow-sm);
         }
 
         .slot.filled {
-            border-color: var(--primary-blue);
-            background: white;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(77, 163, 226, 0.2);
-            color: var(--primary-blue);
+            border-color: var(--text-primary);
+            background: var(--bg-primary);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px var(--shadow-md);
+            color: var(--text-primary);
         }
 
         /* Tugma qismi */
         .check-btn-area {
-            padding: 20px 0 40px 0; /* Pastdan biroz masofa */
+            padding: 20px 0 40px 0;
         }
 
         .check-btn {
@@ -90,19 +91,27 @@
             height: 56px;
             border: none;
             border-radius: 16px;
-            background: linear-gradient(135deg, var(--disabled-light), var(--disabled));
-            color: white;
+            background: var(--border-dark);
+            color: var(--text-secondary);
             font-size: 18px;
             font-weight: 600;
             cursor: not-allowed;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px var(--shadow-sm);
+            letter-spacing: 0.3px;
         }
 
         .check-btn.active {
-            background: linear-gradient(135deg, var(--progress-light), var(--progress));
+            background: var(--text-primary);
+            color: var(--bg-primary);
             cursor: pointer;
-            box-shadow: 0 8px 20px rgba(41, 128, 185, 0.3);
+            box-shadow: 0 8px 24px var(--shadow-lg);
+            transform: translateY(-1px);
+        }
+
+        .check-btn.active:active {
+            transform: translateY(0px);
+            box-shadow: 0 4px 12px var(--shadow-md);
         }
 
         /* Natija paneli */
@@ -111,37 +120,82 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: linear-gradient(135deg, var(--success-light), var(--success));
+            background: var(--text-primary);
             border-radius: 24px 24px 0 0;
             padding: 30px 20px;
             transform: translateY(100%);
             transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
             z-index: 1000;
-            color: white;
+            color: var(--bg-primary);
+            box-shadow: 0 -4px 32px var(--shadow-lg);
         }
 
-        .result-panel.active { transform: translateY(0); }
+        .result-panel.active { 
+            transform: translateY(0); 
+        }
+
+        .result-panel h2 {
+            font-size: 28px;
+            margin-bottom: 12px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .result-panel p {
+            font-size: 16px;
+            opacity: 0.9;
+            line-height: 1.5;
+        }
 
         .continue-btn {
             width: 100%;
             height: 56px;
             border: none;
             border-radius: 16px;
-            background: white;
-            color: var(--success);
+            background: var(--bg-primary);
+            color: var(--text-primary);
             font-size: 18px;
             font-weight: 600;
-            margin-top: 20px;
+            margin-top: 24px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 16px rgba(255, 255, 255, 0.1);
         }
 
-        .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+        .continue-btn:active {
+            transform: scale(0.98);
+        }
+
+        .sr-only { 
+            position: absolute; 
+            width: 1px; 
+            height: 1px; 
+            padding: 0; 
+            margin: -1px; 
+            overflow: hidden; 
+            clip: rect(0,0,0,0); 
+            border: 0; 
+        }
         
         @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+            0% { transform: scale(1) translateY(-3px); }
+            50% { transform: scale(1.08) translateY(-3px); }
+            100% { transform: scale(1) translateY(-3px); }
         }
-        .pulse { animation: pulse 0.3s ease; }
+        
+        .pulse { 
+            animation: pulse 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+
+        /* Minimal ripple effect */
+        @keyframes ripple {
+            0% {
+                box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.1);
+            }
+            100% {
+                box-shadow: 0 0 0 20px rgba(0, 0, 0, 0);
+            }
+        }
     </style>
 </head>
 <body>
@@ -163,7 +217,7 @@
 
     <div class="result-panel" id="resultPanel">
         <div style="max-width: 500px; margin: 0 auto;">
-            <h2 style="font-size: 24px; margin-bottom: 15px;">Ajoyib! 🎉</h2>
+            <h2>Ajoyib! 🎉</h2>
             <p>Javobingiz to'g'ri qabul qilindi.</p>
             <button class="continue-btn" id="continueBtn">Keyingi savol →</button>
         </div>
