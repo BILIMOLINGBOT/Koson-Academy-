@@ -3,15 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Language UI - Monochrome Edition</title>
+    <title>LingvoMaster - Interactive Learning</title>
     <style>
         :root {
-            --bg-color: #ffffff;
-            --text-main: #000000;
-            --text-reverse: #ffffff;
-            --border-color: #000000;
-            --disabled-gray: #e0e0e0;
-            --accent-gray: #f5f5f5;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-gradient-start: #f8f9fa;
+            --bg-gradient-end: #e9ecef;
+            --text-primary: #000000;
+            --text-secondary: #495057;
+            --accent-dark: #212529;
+            --accent-light: #6c757d;
+            --success-dark: #28a745;
+            --success-light: #20c997;
+            --border: #dee2e6;
+            --shadow: rgba(0, 0, 0, 0.08);
+            --shadow-dark: rgba(0, 0, 0, 0.15);
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.2);
         }
 
         * {
@@ -22,9 +31,9 @@
 
         body, html {
             height: 100%;
-            background-color: var(--bg-color);
-            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
-            color: var(--text-main);
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            color: var(--text-primary);
             -webkit-tap-highlight-color: transparent;
             overflow: hidden;
         }
@@ -33,7 +42,31 @@
             display: flex;
             flex-direction: column;
             height: 100vh;
-            padding: env(safe-area-inset-top) 24px env(safe-area-inset-bottom);
+            padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom);
+            position: relative;
+        }
+
+        /* Sarlavha qismi */
+        .header {
+            text-align: center;
+            padding: 24px 0 16px;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, var(--text-primary), var(--accent-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
         }
 
         /* Markaziy qism */
@@ -43,63 +76,132 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            padding: 20px 0;
+        }
+
+        .question-container {
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 40px;
+        }
+
+        .question-text {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 30px;
+            text-align: center;
+            line-height: 1.5;
         }
 
         .input-slots {
             display: flex;
-            gap: 12px;
+            gap: 20px;
             justify-content: center;
+            margin-bottom: 30px;
         }
 
         .slot {
-            width: 70px;
-            height: 80px;
-            border-radius: 4px; /* Zamonaviy o'tkir burchaklar */
-            background: var(--accent-gray);
-            border: 2px solid transparent;
+            width: 85px;
+            height: 95px;
+            border-radius: 16px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 2px solid var(--border);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 36px;
+            font-size: 42px;
             font-weight: 800;
-            color: var(--text-main);
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            color: var(--accent-dark);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
             text-transform: uppercase;
+            box-shadow: 0 8px 20px var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .slot::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, transparent 30%, rgba(255,255,255,0.3) 100%);
+            opacity: 0;
+            transition: opacity 0.3s;
         }
 
         .slot.filled {
-            border-color: var(--border-color);
-            background: var(--text-main);
-            color: var(--text-reverse);
-            transform: scale(1.05);
+            border-color: var(--accent-dark);
+            background: var(--bg-primary);
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px var(--shadow-dark);
+            color: var(--text-primary);
+        }
+
+        .slot.filled::before {
+            opacity: 1;
+        }
+
+        .slot-hint {
+            position: absolute;
+            bottom: -25px;
+            font-size: 14px;
+            color: var(--accent-light);
+            font-weight: 500;
         }
 
         /* Tugma qismi */
         .check-btn-area {
-            padding: 20px 0 48px 0;
+            padding: 20px 0 40px 0;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
         }
 
         .check-btn {
             width: 100%;
             height: 60px;
-            border: 2px solid var(--border-color);
-            border-radius: 4px;
-            background: transparent;
-            color: var(--border-color);
-            font-size: 16px;
+            border: none;
+            border-radius: 18px;
+            background: var(--accent-light);
+            color: white;
+            font-size: 18px;
             font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
             cursor: not-allowed;
-            transition: all 0.2s ease;
-            opacity: 0.3;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 10px 25px var(--shadow);
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .check-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.7s;
         }
 
         .check-btn.active {
-            background: var(--text-main);
-            color: var(--text-reverse);
+            background: var(--accent-dark);
             cursor: pointer;
-            opacity: 1;
+            box-shadow: 0 15px 35px rgba(33, 37, 41, 0.25);
+        }
+
+        .check-btn.active:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 20px 40px rgba(33, 37, 41, 0.3);
+        }
+
+        .check-btn.active:hover::before {
+            left: 100%;
         }
 
         /* Natija paneli */
@@ -108,39 +210,111 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: var(--text-main);
-            border-radius: 0; /* To'liq qora minimalist blok */
-            padding: 40px 24px;
+            background: linear-gradient(135deg, var(--accent-dark), var(--text-primary));
+            border-radius: 30px 30px 0 0;
+            padding: 40px 20px;
             transform: translateY(100%);
-            transition: transform 0.4s cubic-bezier(0.2, 1, 0.3, 1);
+            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
             z-index: 1000;
-            color: var(--text-reverse);
+            color: white;
+            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2);
         }
 
-        .result-panel.active { transform: translateY(0); }
+        .result-panel.active { 
+            transform: translateY(0); 
+        }
+
+        .result-content {
+            max-width: 500px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .result-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .result-title {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 15px;
+            letter-spacing: -0.5px;
+        }
+
+        .result-message {
+            font-size: 16px;
+            opacity: 0.9;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
 
         .continue-btn {
             width: 100%;
-            height: 56px;
+            height: 60px;
             border: none;
-            border-radius: 4px;
-            background: var(--text-reverse);
-            color: var(--text-main);
-            font-size: 16px;
+            border-radius: 18px;
+            background: white;
+            color: var(--accent-dark);
+            font-size: 18px;
             font-weight: 700;
-            text-transform: uppercase;
-            margin-top: 24px;
+            margin-top: 20px;
             cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            letter-spacing: 0.5px;
         }
 
-        .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
-        
-        @keyframes pop {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1.05); }
+        .continue-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
         }
-        .pulse { animation: pop 0.2s ease forwards; }
+
+        .sr-only { 
+            position: absolute; 
+            width: 1px; 
+            height: 1px; 
+            padding: 0; 
+            margin: -1px; 
+            overflow: hidden; 
+            clip: rect(0,0,0,0); 
+            border: 0; 
+        }
+
+        .progress-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 25px;
+        }
+
+        .progress-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--border);
+            transition: background 0.3s;
+        }
+
+        .progress-dot.active {
+            background: var(--accent-dark);
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .pulse { animation: pulse 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        
+        .slide-in { animation: slideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
     </style>
 </head>
 <body>
@@ -148,11 +322,28 @@
 <div class="app-container">
     <input type="text" id="hiddenInput" class="sr-only" maxlength="3" autocomplete="off">
     
+    <div class="header">
+        <h1>LingvoMaster</h1>
+        <p>Harflarni joylashtiring va so'zni toping</p>
+    </div>
+    
     <div class="question-section">
-        <div class="input-slots">
-            <div class="slot" id="s0"></div>
-            <div class="slot" id="s1"></div>
-            <div class="slot" id="s2"></div>
+        <div class="question-container">
+            <div class="question-text">Quyidagi so'zni to'g'ri harflar bilan to'ldiring:</div>
+            
+            <div class="input-slots">
+                <div class="slot" id="s0"></div>
+                <div class="slot" id="s1"></div>
+                <div class="slot" id="s2"></div>
+            </div>
+            
+            <div class="progress-indicator">
+                <div class="progress-dot active"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+            </div>
         </div>
     </div>
 
@@ -161,10 +352,11 @@
     </div>
 
     <div class="result-panel" id="resultPanel">
-        <div style="max-width: 500px; margin: 0 auto; text-align: center;">
-            <h2 style="font-size: 28px; font-weight: 900; margin-bottom: 8px; text-transform: uppercase;">Ajoyib!</h2>
-            <p style="opacity: 0.8; font-weight: 400;">Javobingiz to'g'ri qabul qilindi.</p>
-            <button class="continue-btn" id="continueBtn">Keyingi savol</button>
+        <div class="result-content">
+            <div class="result-icon">✅</div>
+            <h2 class="result-title">Ajoyib! 🎉</h2>
+            <p class="result-message">Siz "KIT" so'zini to'g'ri topdingiz. Keyingi savolga o'tish uchun davom eting.</p>
+            <button class="continue-btn" id="continueBtn">Davom etish →</button>
         </div>
     </div>
 </div>
@@ -174,34 +366,99 @@
     const slots = [document.getElementById('s0'), document.getElementById('s1'), document.getElementById('s2')];
     const checkBtn = document.getElementById('checkBtn');
     const resultPanel = document.getElementById('resultPanel');
+    const progressDots = document.querySelectorAll('.progress-dot');
 
-    document.addEventListener('click', () => input.focus());
+    // Boshlang'ich fokus
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => input.focus(), 300);
+    });
 
+    // Har qanday joyga bosganda inputga fokus qaytarish
+    document.addEventListener('click', (e) => {
+        if (e.target !== input && !resultPanel.classList.contains('active')) {
+            input.focus();
+        }
+    });
+
+    // Inputni kuzatish
     input.addEventListener('input', (e) => {
-        const val = e.target.value.toUpperCase().slice(0, 3);
+        const val = e.target.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 3);
+        input.value = val;
+        
         slots.forEach((slot, i) => {
-            slot.textContent = val[i] || '';
-            slot.classList.toggle('filled', !!val[i]);
-            if (val[i] && val.length === i + 1) slot.classList.add('pulse');
-            setTimeout(() => slot.classList.remove('pulse'), 200);
+            const char = val[i] || '';
+            slot.textContent = char;
+            slot.classList.toggle('filled', !!char);
+            
+            if (char && val.length === i + 1) {
+                slot.classList.add('pulse');
+                setTimeout(() => slot.classList.remove('pulse'), 300);
+            }
         });
         
         const isReady = val.length === 3;
         checkBtn.disabled = !isReady;
         checkBtn.classList.toggle('active', isReady);
+        
+        // Progress nuqtalarini yangilash
+        if (isReady) {
+            progressDots[1].classList.add('active');
+        }
     });
 
+    // Tekshirish tugmasi
     checkBtn.addEventListener('click', () => {
         resultPanel.classList.add('active');
+        // Natija panelidagi harflarni animatsiya qilish
+        const resultIcon = document.querySelector('.result-icon');
+        resultIcon.style.animation = 'none';
+        setTimeout(() => {
+            resultIcon.style.animation = 'pulse 0.5s ease';
+        }, 10);
+        
+        // Progress yangilash
+        progressDots[2].classList.add('active');
     });
 
+    // Davom etish tugmasi
     document.getElementById('continueBtn').addEventListener('click', () => {
         resultPanel.classList.remove('active');
-        input.value = '';
-        slots.forEach(s => { s.textContent = ''; s.classList.remove('filled'); });
-        checkBtn.disabled = true;
-        checkBtn.classList.remove('active');
-        input.focus();
+        
+        // Yangi savol tayyorlash animatsiyasi
+        slots.forEach(s => {
+            s.style.transition = 'all 0.4s ease';
+            s.style.transform = 'translateY(20px)';
+            s.style.opacity = '0';
+        });
+        
+        setTimeout(() => {
+            input.value = '';
+            slots.forEach(s => { 
+                s.textContent = ''; 
+                s.classList.remove('filled');
+                s.style.transform = 'translateY(0)';
+                s.style.opacity = '1';
+            });
+            checkBtn.disabled = true;
+            checkBtn.classList.remove('active');
+            input.focus();
+            
+            // Keyingi progress nuqtasini faollashtirish
+            progressDots[3].classList.add('active');
+        }, 400);
+    });
+
+    // Klaviatura boshqaruvi
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && checkBtn.classList.contains('active')) {
+            checkBtn.click();
+        } else if (e.key === 'Escape' && resultPanel.classList.contains('active')) {
+            document.getElementById('continueBtn').click();
+        } else if (e.key === 'Backspace' && input.value.length > 0 && !resultPanel.classList.contains('active')) {
+            // Backspace bosilganda oxirgi harfni o'chirish
+            input.value = input.value.slice(0, -1);
+            input.dispatchEvent(new Event('input'));
+        }
     });
 </script>
 
