@@ -3,20 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Language UI - Interactive Learning</title>
+    <title>Language UI</title>
     <style>
         :root {
             --bg-gradient-start: #f5f7fa;
             --bg-gradient-end: #c3cfe2;
             --primary-blue: #3b82f6;
-            --success-light: #2ecc71;
-            --success: #27ae60;
             --progress-light: #3498db;
             --progress: #2980b9;
             --disabled-light: #95a5a6;
             --disabled: #7f8c8d;
             --text-primary: #333;
-            --text-secondary: #555;
             --border: #e2e8f0;
         }
 
@@ -29,26 +26,24 @@
         body, html {
             height: 100%;
             background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             color: var(--text-primary);
-            -webkit-tap-highlight-color: transparent;
+            overflow: hidden;
         }
 
         .app-container {
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
-            padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom);
+            height: 100vh;
+            padding: 20px;
         }
 
-        /* Question section markazda turishi uchun */
         .question-section {
             flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 40px;
         }
 
         .input-slots {
@@ -83,7 +78,7 @@
 
         .check-btn-area {
             padding: 20px 0;
-            margin-top: auto;
+            margin-bottom: env(safe-area-inset-bottom);
         }
 
         .check-btn {
@@ -106,41 +101,6 @@
             box-shadow: 0 8px 20px rgba(41, 128, 185, 0.3);
         }
 
-        .result-panel {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(135deg, var(--success-light), var(--success));
-            border-radius: 24px 24px 0 0;
-            padding: 30px 20px;
-            transform: translateY(100%);
-            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            z-index: 1000;
-            color: white;
-        }
-
-        .result-panel.active { transform: translateY(0); }
-
-        .continue-btn {
-            width: 100%;
-            height: 56px;
-            border: none;
-            border-radius: 16px;
-            background: white;
-            color: var(--success);
-            font-size: 18px;
-            font-weight: 600;
-            margin-top: 20px;
-        }
-
-        .footer {
-            text-align: center;
-            padding: 20px;
-            color: var(--text-secondary);
-            font-size: 14px;
-        }
-
         .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
         
         @keyframes pulse {
@@ -155,7 +115,7 @@
 
 <div class="app-container">
     <input type="text" id="hiddenInput" class="sr-only" maxlength="3" autocomplete="off">
-    
+
     <div class="question-section">
         <div class="input-slots">
             <div class="slot" id="s0"></div>
@@ -167,28 +127,16 @@
     <div class="check-btn-area">
         <button class="check-btn" id="checkBtn" disabled>Tekshirish</button>
     </div>
-
-    <div class="result-panel" id="resultPanel">
-        <div style="max-width: 500px; margin: 0 auto;">
-            <h2 style="font-size: 24px; margin-bottom: 15px;">Ajoyib! 🎉</h2>
-            <p>Javobingiz to'g'ri qabul qilindi.</p>
-            <button class="continue-btn" id="continueBtn">Keyingi savol →</button>
-        </div>
-    </div>
-
-    <div class="footer">
-        Har bir savol faqat oldingisi to'g'ri javoblangandan keyin ochiladi
-    </div>
 </div>
 
 <script>
     const input = document.getElementById('hiddenInput');
     const slots = [document.getElementById('s0'), document.getElementById('s1'), document.getElementById('s2')];
     const checkBtn = document.getElementById('checkBtn');
-    const resultPanel = document.getElementById('resultPanel');
 
-    // Ekranning istalgan joyiga bosilganda klaviaturani ochish
+    // Klaviatura doim tayyor turishi uchun
     document.addEventListener('click', () => input.focus());
+    window.onload = () => input.focus();
 
     input.addEventListener('input', (e) => {
         const val = e.target.value.toUpperCase().slice(0, 3);
@@ -204,16 +152,15 @@
         checkBtn.classList.toggle('active', isReady);
     });
 
+    // Tugma bosilganda kiritilganlarni tozalash (keyingi safar uchun)
     checkBtn.addEventListener('click', () => {
-        resultPanel.classList.add('active');
-    });
-
-    document.getElementById('continueBtn').addEventListener('click', () => {
-        resultPanel.classList.remove('active');
-        input.value = '';
-        slots.forEach(s => { s.textContent = ''; s.classList.remove('filled'); });
-        checkBtn.disabled = true;
-        checkBtn.classList.remove('active');
+        setTimeout(() => {
+            input.value = '';
+            slots.forEach(s => { s.textContent = ''; s.classList.remove('filled'); });
+            checkBtn.disabled = true;
+            checkBtn.classList.remove('active');
+            input.focus();
+        }, 200);
     });
 </script>
 
