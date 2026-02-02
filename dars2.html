@@ -43,33 +43,6 @@
             background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
         }
 
-        /* Header */
-        .header {
-            padding: 20px 0;
-            text-align: center;
-        }
-
-        .progress-bar {
-            height: 8px;
-            background: var(--border-light);
-            border-radius: 10px;
-            overflow: hidden;
-            margin-bottom: 20px;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: var(--text-primary);
-            width: 0%;
-            transition: width 0.4s ease;
-        }
-
-        .question-number {
-            font-size: 14px;
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-
         /* Markaziy qism */
         .question-section {
             flex: 1;
@@ -298,14 +271,6 @@
 <body>
 
 <div class="app-container">
-    <!-- Header -->
-    <div class="header">
-        <div class="progress-bar">
-            <div class="progress-fill" id="progressFill"></div>
-        </div>
-        <div class="question-number" id="questionNumber">Savol 1 / 10</div>
-    </div>
-
     <!-- Question Section -->
     <div class="question-section">
         <div class="question-card">
@@ -363,11 +328,20 @@
             text: "I love learning new languages",
             hint: "Til o'rganish haqida",
             answer: "Men yangi tillarni o'rganishni yaxshi ko'raman"
+        },
+        {
+            text: "Good morning!",
+            hint: "Ertalabki salomlashish",
+            answer: "Xayrli tong!"
+        },
+        {
+            text: "Thank you very much",
+            hint: "Minnatdorchilik bildirish",
+            answer: "Katta rahmat"
         }
     ];
 
     let currentQuestion = 0;
-    let score = 0;
 
     const input = document.getElementById('userInput');
     const inputWrapper = document.getElementById('inputWrapper');
@@ -376,8 +350,6 @@
     const charCount = document.getElementById('charCount');
     const questionText = document.getElementById('questionText');
     const questionHint = document.getElementById('questionHint');
-    const questionNumber = document.getElementById('questionNumber');
-    const progressFill = document.getElementById('progressFill');
 
     // Focus on input
     input.focus();
@@ -408,7 +380,6 @@
         const isCorrect = userAnswer === correctAnswer;
         
         if (isCorrect) {
-            score++;
             showResult(true);
         } else {
             showResult(false);
@@ -449,7 +420,9 @@
         if (currentQuestion < questions.length) {
             loadQuestion();
         } else {
-            showFinalScore();
+            // Reset to first question
+            currentQuestion = 0;
+            loadQuestion();
         }
     });
 
@@ -457,8 +430,6 @@
         const q = questions[currentQuestion];
         questionText.textContent = q.text;
         questionHint.textContent = q.hint;
-        questionNumber.textContent = `Savol ${currentQuestion + 1} / ${questions.length}`;
-        progressFill.style.width = `${((currentQuestion + 1) / questions.length) * 100}%`;
         
         input.value = '';
         charCount.textContent = '0';
@@ -466,13 +437,6 @@
         checkBtn.classList.remove('active');
         inputWrapper.classList.remove('correct', 'incorrect', 'focused');
         input.focus();
-    }
-
-    function showFinalScore() {
-        questionText.textContent = `Siz ${score} / ${questions.length} ta to'g'ri javob berdingiz!`;
-        questionHint.textContent = 'Ajoyib natija!';
-        document.querySelector('.input-area').style.display = 'none';
-        document.querySelector('.check-btn-area').style.display = 'none';
     }
 
     // Enter key support
