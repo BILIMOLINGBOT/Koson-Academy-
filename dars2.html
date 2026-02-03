@@ -1,14 +1,9 @@
-Men sizning til o'rganish ilovasiga zamonaviy ikonkalar va ikkita rejim qo'shaman: "Eshitib yozish" va "Eshitib tushunish". Quyidagi yangilangan versiyada:
-Eshitib yozish rejimi - audio tinglab, yozish
-Eshitib tushunish rejimi - audio tinglab, javob tanlash
-Zamonaviy ikonkalar va animatsiyalar
-Audio playback funksiyasi
 <!DOCTYPE html>
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Language Learning - Audio Practice</title>
+    <title>Language UI - Interactive Learning</title>
     <style>
         :root {
             --bg-primary: #ffffff;
@@ -17,13 +12,14 @@ Audio playback funksiyasi
             --text-secondary: #6c757d;
             --border-light: #e9ecef;
             --border-dark: #dee2e6;
-            --accent-blue: #007bff;
-            --accent-purple: #6f42c1;
-            --success: #28a745;
-            --error: #dc3545;
+            --accent-dark: #212529;
             --shadow-sm: rgba(0, 0, 0, 0.05);
             --shadow-md: rgba(0, 0, 0, 0.1);
             --shadow-lg: rgba(0, 0, 0, 0.15);
+            --success: #28a745;
+            --error: #dc3545;
+            --listen-btn-bg: #000000;
+            --listen-btn-text: #ffffff;
         }
 
         * {
@@ -49,43 +45,7 @@ Audio playback funksiyasi
             background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
         }
 
-        /* Header with mode toggle */
-        .header {
-            padding: 20px 0;
-            text-align: center;
-        }
-
-        .mode-toggle {
-            display: inline-flex;
-            background: var(--bg-secondary);
-            border-radius: 16px;
-            padding: 4px;
-            gap: 4px;
-            box-shadow: 0 2px 8px var(--shadow-sm);
-        }
-
-        .mode-btn {
-            padding: 12px 20px;
-            border: none;
-            border-radius: 12px;
-            background: transparent;
-            color: var(--text-secondary);
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .mode-btn.active {
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            box-shadow: 0 2px 8px var(--shadow-sm);
-        }
-
-        /* Question Section */
+        /* Markaziy qism */
         .question-section {
             flex: 1;
             display: flex;
@@ -96,112 +56,63 @@ Audio playback funksiyasi
             overflow-y: auto;
         }
 
-        /* Audio Player */
-        .audio-player {
+        /* Listen button container - yangi qo'shildi */
+        .listen-container {
             width: 100%;
-            max-width: 400px;
-            margin-bottom: 40px;
+            max-width: 500px;
+            margin-bottom: 30px;
+            text-align: center;
         }
 
-        .audio-control {
-            position: relative;
-            width: 120px;
-            height: 120px;
-            margin: 0 auto 20px;
-        }
-
-        .play-btn {
-            width: 120px;
-            height: 120px;
+        .listen-btn {
+            width: 100%;
+            height: 56px;
+            background: var(--listen-btn-bg);
+            color: var(--listen-btn-text);
             border: none;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
-            color: white;
-            font-size: 40px;
-            cursor: pointer;
-            box-shadow: 0 8px 24px rgba(111, 66, 193, 0.3);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 16px;
+            font-size: 18px;
+            font-weight: 600;
             display: flex;
             align-items: center;
             justify-content: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            position: relative;
+            overflow: hidden;
         }
 
-        .play-btn:active {
-            transform: scale(0.95);
+        .listen-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.2);
         }
 
-        .play-btn.playing {
-            animation: pulse 2s infinite;
+        .listen-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .listen-btn .icon {
+            font-size: 22px;
+            transition: transform 0.3s ease;
+        }
+
+        .listen-btn.active .icon {
+            animation: pulse 1.5s infinite;
         }
 
         @keyframes pulse {
-            0%, 100% { 
-                box-shadow: 0 8px 24px rgba(111, 66, 193, 0.3);
-                transform: scale(1);
-            }
-            50% { 
-                box-shadow: 0 12px 32px rgba(111, 66, 193, 0.5);
-                transform: scale(1.05);
-            }
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
         }
 
-        .audio-waves {
-            display: flex;
-            gap: 4px;
-            justify-content: center;
-            margin-top: 20px;
-            height: 40px;
-            align-items: center;
-        }
-
-        .wave-bar {
-            width: 4px;
-            background: var(--accent-purple);
-            border-radius: 2px;
-            opacity: 0.3;
-            transition: all 0.3s ease;
-        }
-
-        .wave-bar.active {
-            opacity: 1;
-            animation: wave 1s ease-in-out infinite;
-        }
-
-        @keyframes wave {
-            0%, 100% { height: 8px; }
-            50% { height: 32px; }
-        }
-
-        /* Slow speed button */
-        .speed-btn {
-            margin: 20px auto;
-            padding: 12px 24px;
-            border: 2px solid var(--border-dark);
-            border-radius: 12px;
-            background: var(--bg-primary);
-            color: var(--text-secondary);
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .speed-btn:active {
-            transform: scale(0.98);
-        }
-
-        /* Input area - Eshitib yozish */
+        /* Input area */
         .input-area {
             width: 100%;
             max-width: 500px;
-            display: none;
-        }
-
-        .input-area.active {
-            display: block;
         }
 
         .input-wrapper {
@@ -217,6 +128,16 @@ Audio playback funksiyasi
         .input-wrapper.focused {
             border-color: var(--text-primary);
             box-shadow: 0 4px 20px var(--shadow-md);
+        }
+
+        .input-wrapper.correct {
+            border-color: var(--success);
+            background: rgba(40, 167, 69, 0.05);
+        }
+
+        .input-wrapper.incorrect {
+            border-color: var(--error);
+            background: rgba(220, 53, 69, 0.05);
         }
 
         #userInput {
@@ -244,51 +165,7 @@ Audio playback funksiyasi
             color: var(--text-secondary);
         }
 
-        /* Options area - Eshitib tushunish */
-        .options-area {
-            width: 100%;
-            max-width: 500px;
-            display: none;
-            gap: 12px;
-        }
-
-        .options-area.active {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .option-card {
-            padding: 20px;
-            border: 2px solid var(--border-light);
-            border-radius: 16px;
-            background: var(--bg-primary);
-            font-size: 18px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px var(--shadow-sm);
-        }
-
-        .option-card:active {
-            transform: scale(0.98);
-        }
-
-        .option-card.selected {
-            border-color: var(--text-primary);
-            background: rgba(0, 0, 0, 0.03);
-        }
-
-        .option-card.correct {
-            border-color: var(--success);
-            background: rgba(40, 167, 69, 0.05);
-        }
-
-        .option-card.incorrect {
-            border-color: var(--error);
-            background: rgba(220, 53, 69, 0.05);
-        }
-
-        /* Check Button */
+        /* Tugma qismi */
         .check-btn-area {
             padding: 20px 0 30px 0;
             max-width: 500px;
@@ -308,6 +185,7 @@ Audio playback funksiyasi
             cursor: not-allowed;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 4px 12px var(--shadow-sm);
+            letter-spacing: 0.3px;
         }
 
         .check-btn.active {
@@ -320,9 +198,10 @@ Audio playback funksiyasi
 
         .check-btn.active:active {
             transform: translateY(0px);
+            box-shadow: 0 4px 12px var(--shadow-md);
         }
 
-        /* Result Panel */
+        /* Natija paneli */
         .result-panel {
             position: fixed;
             bottom: 0;
@@ -354,6 +233,7 @@ Audio playback funksiyasi
             font-size: 28px;
             margin-bottom: 12px;
             font-weight: 700;
+            letter-spacing: -0.5px;
         }
 
         .result-panel p {
@@ -383,10 +263,19 @@ Audio playback funksiyasi
             margin-top: 24px;
             cursor: pointer;
             transition: all 0.2s ease;
+            box-shadow: 0 4px 16px rgba(255, 255, 255, 0.1);
         }
 
         .continue-btn:active {
             transform: scale(0.98);
+        }
+
+        /* Keyboard helper */
+        .keyboard-hint {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 13px;
+            color: var(--text-secondary);
         }
 
         @keyframes shake {
@@ -399,85 +288,46 @@ Audio playback funksiyasi
             animation: shake 0.4s ease; 
         }
 
-        /* Icons */
-        .icon {
-            width: 20px;
-            height: 20px;
-            display: inline-block;
+        /* O'rtaga joylashtirish uchun moslashuvchan joylashtirish */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            width: 100%;
         }
     </style>
 </head>
 <body>
 
 <div class="app-container">
-    <!-- Header with Mode Toggle -->
-    <div class="header">
-        <div class="mode-toggle">
-            <button class="mode-btn active" data-mode="write">
-                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
-                </svg>
-                Eshitib yozish
-            </button>
-            <button class="mode-btn" data-mode="listen">
-                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M9 18l6-6-6-6"/>
-                </svg>
-                Eshitib tushunish
-            </button>
-        </div>
-    </div>
-
     <!-- Question Section -->
     <div class="question-section">
-        <!-- Audio Player -->
-        <div class="audio-player">
-            <div class="audio-control">
-                <button class="play-btn" id="playBtn">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="white">
-                        <path d="M8 5v14l11-7z"/>
-                    </svg>
+        <div class="main-content">
+            <!-- "Tinglang" tugmasi - markazda -->
+            <div class="listen-container">
+                <button class="listen-btn" id="listenBtn">
+                    <span class="icon">🔊</span>
+                    <span>Tinglang</span>
                 </button>
             </div>
-            
-            <div class="audio-waves" id="audioWaves">
-                <div class="wave-bar" style="animation-delay: 0s;"></div>
-                <div class="wave-bar" style="animation-delay: 0.1s;"></div>
-                <div class="wave-bar" style="animation-delay: 0.2s;"></div>
-                <div class="wave-bar" style="animation-delay: 0.3s;"></div>
-                <div class="wave-bar" style="animation-delay: 0.4s;"></div>
+
+            <!-- Input area -->
+            <div class="input-area">
+                <div class="input-wrapper" id="inputWrapper">
+                    <input 
+                        type="text" 
+                        id="userInput" 
+                        placeholder="Javobingizni kiriting..."
+                        autocomplete="off"
+                        autocorrect="off"
+                        spellcheck="false"
+                    >
+                    <div class="char-count" id="charCount">0</div>
+                </div>
+                <div class="keyboard-hint">💡 Klaviaturadan yozing</div>
             </div>
-
-            <button class="speed-btn" id="speedBtn">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <polyline points="12 6 12 12 16 14"/>
-                </svg>
-                Sekinroq eshitish
-            </button>
-        </div>
-
-        <!-- Input Area for "Eshitib yozish" -->
-        <div class="input-area active" id="inputArea">
-            <div class="input-wrapper" id="inputWrapper">
-                <input 
-                    type="text" 
-                    id="userInput" 
-                    placeholder="Eshitganingizni yozing..."
-                    autocomplete="off"
-                    autocorrect="off"
-                    spellcheck="false"
-                >
-                <div class="char-count" id="charCount">0</div>
-            </div>
-        </div>
-
-        <!-- Options Area for "Eshitib tushunish" -->
-        <div class="options-area" id="optionsArea">
-            <div class="option-card" data-option="1">The cat is sleeping on the couch</div>
-            <div class="option-card" data-option="2">The dog is playing in the garden</div>
-            <div class="option-card" data-option="3">The bird is singing in the tree</div>
-            <div class="option-card" data-option="4">The fish is swimming in the pond</div>
         </div>
     </div>
 
@@ -498,91 +348,16 @@ Audio playback funksiyasi
 </div>
 
 <script>
-    // Elements
-    const modeButtons = document.querySelectorAll('.mode-btn');
-    const playBtn = document.getElementById('playBtn');
-    const speedBtn = document.getElementById('speedBtn');
-    const inputArea = document.getElementById('inputArea');
-    const optionsArea = document.getElementById('optionsArea');
     const input = document.getElementById('userInput');
     const inputWrapper = document.getElementById('inputWrapper');
     const checkBtn = document.getElementById('checkBtn');
     const resultPanel = document.getElementById('resultPanel');
     const charCount = document.getElementById('charCount');
-    const audioWaves = document.getElementById('audioWaves');
-    const optionCards = document.querySelectorAll('.option-card');
+    const listenBtn = document.getElementById('listenBtn');
 
-    let currentMode = 'write'; // 'write' or 'listen'
-    let isPlaying = false;
-    let normalSpeed = true;
-    let selectedOption = null;
-
-    // Audio simulation (bu yerda backend dan audio keladi)
-    const audio = new Audio(); // Backend dan URL qo'shiladi
-
-    // Mode switching
-    modeButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const mode = btn.dataset.mode;
-            currentMode = mode;
-            
-            modeButtons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            
-            if (mode === 'write') {
-                inputArea.classList.add('active');
-                optionsArea.classList.remove('active');
-                input.focus();
-            } else {
-                inputArea.classList.remove('active');
-                optionsArea.classList.add('active');
-            }
-            
-            resetQuestion();
-        });
-    });
-
-    // Audio player
-    playBtn.addEventListener('click', () => {
-        if (!isPlaying) {
-            playAudio();
-        }
-    });
-
-    function playAudio() {
-        isPlaying = true;
-        playBtn.classList.add('playing');
-        
-        // Waves animation
-        const waves = audioWaves.querySelectorAll('.wave-bar');
-        waves.forEach(wave => wave.classList.add('active'));
-        
-        // Bu yerda audio.play() chaqiriladi
-        // audio.play();
-        
-        // Demo uchun 2 soniyadan keyin to'xtash
-        setTimeout(() => {
-            stopAudio();
-        }, 2000);
-    }
-
-    function stopAudio() {
-        isPlaying = false;
-        playBtn.classList.remove('playing');
-        
-        const waves = audioWaves.querySelectorAll('.wave-bar');
-        waves.forEach(wave => wave.classList.remove('active'));
-    }
-
-    // Speed control
-    speedBtn.addEventListener('click', () => {
-        normalSpeed = !normalSpeed;
-        speedBtn.textContent = normalSpeed ? '🐢 Sekinroq eshitish' : '⚡ Oddiy tezlik';
-        
-        // audio.playbackRate = normalSpeed ? 1.0 : 0.75;
-    });
-
-    // Input handling for "Eshitib yozish"
+    // Focus on input
+    input.focus();
+    
     input.addEventListener('focus', () => {
         inputWrapper.classList.add('focused');
     });
@@ -591,6 +366,26 @@ Audio playback funksiyasi
         inputWrapper.classList.remove('focused');
     });
 
+    // "Tinglang" tugmasi funksiyasi
+    listenBtn.addEventListener('click', () => {
+        // Bu yerda audio o'ynatish logikasi bo'ladi
+        // Masalan: Text-to-speech API yordamida matnni ovozga aylantirish
+        
+        // Demo uchun animatsiya
+        listenBtn.classList.add('active');
+        
+        // Demo audio (agar mavjud bo'lsa)
+        // const audio = new Audio('audio/sample.mp3');
+        // audio.play();
+        // audio.onended = () => listenBtn.classList.remove('active');
+        
+        // Demo uchun 3 soniya kutish
+        setTimeout(() => {
+            listenBtn.classList.remove('active');
+        }, 3000);
+    });
+
+    // Input handling
     input.addEventListener('input', (e) => {
         const val = e.target.value;
         charCount.textContent = val.length;
@@ -600,28 +395,16 @@ Audio playback funksiyasi
         checkBtn.classList.toggle('active', isReady);
     });
 
-    // Option selection for "Eshitib tushunish"
-    optionCards.forEach(card => {
-        card.addEventListener('click', () => {
-            optionCards.forEach(c => c.classList.remove('selected'));
-            card.classList.add('selected');
-            selectedOption = card.dataset.option;
-            
-            checkBtn.disabled = false;
-            checkBtn.classList.add('active');
-        });
-    });
-
     // Check answer
     checkBtn.addEventListener('click', () => {
-        if (currentMode === 'write') {
-            const userAnswer = input.value.trim();
-            // Backend API: checkWritingAnswer(userAnswer)
-            showResult(true); // Demo
-        } else {
-            // Backend API: checkListeningAnswer(selectedOption)
-            showResult(true); // Demo
-        }
+        // Backend bilan tekshirish logikasi bu yerda bo'ladi
+        const userAnswer = input.value.trim();
+        
+        // Bu yerda backend API ga so'rov yuboriladi
+        // Masalan: fetch('/api/check-answer', { method: 'POST', body: JSON.stringify({ answer: userAnswer }) })
+        
+        // Hozircha demo uchun:
+        showResult(true); // yoki showResult(false);
     });
 
     function showResult(isCorrect) {
@@ -641,8 +424,39 @@ Audio playback funksiyasi
             resultTitle.textContent = 'Xato! 😔';
             resultMessage.textContent = 'Qaytadan urinib ko\'ring.';
             correctAnswerDiv.style.display = 'block';
-            correctAnswerDiv.textContent = `To'g'ri javob: The cat is sleeping`;
-            
-            if (currentMode === 'write') {
-                inputWrapper.classList.add('shake');
-                setTimeout(() => inputWrapper.classList.remove('shake'
+            correctAnswerDiv.textContent = `To'g'ri javob: [Backend dan keladi]`;
+            inputWrapper.classList.add('shake');
+            setTimeout(() => inputWrapper.classList.remove('shake'), 400);
+        }
+        
+        resultPanel.classList.add('active');
+    }
+
+    // Continue to next question
+    document.getElementById('continueBtn').addEventListener('click', () => {
+        resultPanel.classList.remove('active');
+        loadQuestion();
+    });
+
+    function loadQuestion() {
+        // Bu yerda backend dan yangi savol yuklanadi
+        // Masalan: fetch('/api/next-question').then(...)
+        
+        input.value = '';
+        charCount.textContent = '0';
+        checkBtn.disabled = true;
+        checkBtn.classList.remove('active');
+        inputWrapper.classList.remove('correct', 'incorrect', 'focused');
+        input.focus();
+    }
+
+    // Enter key support
+    input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !checkBtn.disabled) {
+            checkBtn.click();
+        }
+    });
+</script>
+
+</body>
+</html>
