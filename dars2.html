@@ -18,7 +18,7 @@
             --shadow-lg: rgba(0, 0, 0, 0.15);
             --success: #28a745;
             --error: #dc3545;
-            --primary-blue: #007bff;
+            --speak-btn: #007bff;
         }
 
         * {
@@ -66,48 +66,13 @@
             position: relative;
         }
 
-        .question-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 15px;
-        }
-
         .question-label {
             font-size: 14px;
             color: var(--text-secondary);
+            margin-bottom: 12px;
             font-weight: 500;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-        }
-
-        .listen-btn {
-            background: var(--primary-blue);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 44px;
-            height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
-        }
-
-        .listen-btn:hover {
-            background: #0056b3;
-            transform: translateY(-2px);
-        }
-
-        .listen-btn:active {
-            transform: translateY(0);
-        }
-
-        .listen-btn.listening {
-            background: var(--success);
-            animation: pulse 1.5s infinite;
         }
 
         .question-text {
@@ -116,6 +81,7 @@
             line-height: 1.4;
             color: var(--text-primary);
             margin-bottom: 8px;
+            min-height: 80px;
         }
 
         .question-hint {
@@ -123,6 +89,41 @@
             color: var(--text-secondary);
             margin-top: 12px;
             font-style: italic;
+        }
+
+        /* Speak button */
+        .speak-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 25px;
+        }
+
+        .speak-btn {
+            background: var(--speak-btn);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(0, 123, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .speak-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(0, 123, 255, 0.4);
+        }
+
+        .speak-btn:active {
+            transform: scale(0.95);
+        }
+
+        .speak-btn .icon {
+            font-size: 24px;
         }
 
         /* Input area */
@@ -286,12 +287,35 @@
             transform: scale(0.98);
         }
 
-        /* Keyboard helper */
-        .keyboard-hint {
-            text-align: center;
+        /* Progress indicator */
+        .progress-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
             margin-top: 15px;
-            font-size: 13px;
-            color: var(--text-secondary);
+        }
+
+        .progress-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--border-light);
+            transition: all 0.3s ease;
+        }
+
+        .progress-dot.active {
+            background: var(--text-primary);
+            transform: scale(1.2);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .pulse {
+            animation: pulse 0.5s ease;
         }
 
         @keyframes shake {
@@ -303,11 +327,6 @@
         .shake { 
             animation: shake 0.4s ease; 
         }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
     </style>
 </head>
 <body>
@@ -316,16 +335,20 @@
     <!-- Question Section -->
     <div class="question-section">
         <div class="question-card">
-            <div class="question-header">
-                <div class="question-label">Tarjima qiling</div>
-                <button class="listen-btn" id="listenBtn" title="Savolni eshitish">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path>
-                    </svg>
-                </button>
+            <div class="question-label">Eshiting va tarjima qiling</div>
+            <div class="question-text" id="questionText">
+                Quyidagi tugmani bosib gapni eshiting, so'ng tarjima qiling
             </div>
-            <div class="question-text" id="questionText">The quick brown fox jumps over the lazy dog</div>
-            <div class="question-hint" id="questionHint">Inglizchadan o'zbekchaga tarjima qiling</div>
+            <div class="question-hint" id="questionHint">
+                Eshitilgan gapni o'zbek tiliga tarjima qiling
+            </div>
+        </div>
+
+        <!-- Speak button -->
+        <div class="speak-btn-container">
+            <button class="speak-btn" id="speakBtn">
+                <span class="icon">🎤</span>
+            </button>
         </div>
 
         <div class="input-area">
@@ -333,14 +356,14 @@
                 <input 
                     type="text" 
                     id="userInput" 
-                    placeholder="Javobingizni kiriting..."
+                    placeholder="Eshitgan gapingizni tarjima qilib yozing..."
                     autocomplete="off"
                     autocorrect="off"
                     spellcheck="false"
                 >
                 <div class="char-count" id="charCount">0</div>
             </div>
-            <div class="keyboard-hint">💡 Klaviaturadan yozing yoki eshitish tugmasini bosing</div>
+            <div class="keyboard-hint">💡 Eshitgan gapingizni yozing</div>
         </div>
     </div>
 
@@ -361,37 +384,11 @@
 </div>
 
 <script>
-    // Sample questions
-    const questions = [
-        {
-            text: "The quick brown fox jumps over the lazy dog",
-            hint: "Inglizchadan o'zbekchaga tarjima qiling",
-            answer: "Tez jigarrang tulki dangasa it ustidan sakraydi"
-        },
-        {
-            text: "Hello, how are you?",
-            hint: "Oddiy salomlashish",
-            answer: "Salom, qalaysiz?"
-        },
-        {
-            text: "I love learning new languages",
-            hint: "Til o'rganish haqida",
-            answer: "Men yangi tillarni o'rganishni yaxshi ko'raman"
-        },
-        {
-            text: "Good morning!",
-            hint: "Ertalabki salomlashish",
-            answer: "Xayrli tong!"
-        },
-        {
-            text: "Thank you very much",
-            hint: "Minnatdorchilik bildirish",
-            answer: "Katta rahmat"
-        }
-    ];
-
+    // Empty array for dynamic questions
+    const questions = [];
     let currentQuestion = 0;
 
+    // DOM elements
     const input = document.getElementById('userInput');
     const inputWrapper = document.getElementById('inputWrapper');
     const checkBtn = document.getElementById('checkBtn');
@@ -399,7 +396,7 @@
     const charCount = document.getElementById('charCount');
     const questionText = document.getElementById('questionText');
     const questionHint = document.getElementById('questionHint');
-    const listenBtn = document.getElementById('listenBtn');
+    const speakBtn = document.getElementById('speakBtn');
 
     // Focus on input
     input.focus();
@@ -422,8 +419,65 @@
         checkBtn.classList.toggle('active', isReady);
     });
 
+    // Speak button functionality
+    speakBtn.addEventListener('click', () => {
+        speakBtn.classList.add('pulse');
+        
+        // Show listening state
+        questionText.textContent = "Eshityapman...";
+        questionHint.textContent = "Iltimos, kuting...";
+        
+        // Simulate speech recognition
+        setTimeout(() => {
+            // Generate a random English sentence
+            const sentences = [
+                "The weather is beautiful today",
+                "I like to read books",
+                "Where is the nearest restaurant?",
+                "Can you help me please?",
+                "What time is it?",
+                "How much does this cost?",
+                "I need to practice more",
+                "Learning languages is fun"
+            ];
+            
+            const randomSentence = sentences[Math.floor(Math.random() * sentences.length)];
+            const translations = {
+                "The weather is beautiful today": "Bugun ob-havo juda chiroyli",
+                "I like to read books": "Men kitob o'qishni yaxshi ko'raman",
+                "Where is the nearest restaurant?": "Eng yaqin restoran qayerda?",
+                "Can you help me please?": "Iltimos, menga yordam bera olasizmi?",
+                "What time is it?": "Soat nechi bo'ldi?",
+                "How much does this cost?": "Bu qancha turadi?",
+                "I need to practice more": "Men ko'proq mashq qilishim kerak",
+                "Learning languages is fun": "Tillarni o'rganish qiziqarli"
+            };
+            
+            // Create a new question
+            questions[currentQuestion] = {
+                text: randomSentence,
+                hint: "Eshitilgan gapni o'zbek tiliga tarjima qiling",
+                answer: translations[randomSentence]
+            };
+            
+            // Update display
+            questionText.textContent = "Gapni eshiting: '" + randomSentence + "'";
+            questionHint.textContent = "Endi tarjima qilib yozing";
+            
+            speakBtn.classList.remove('pulse');
+            
+            // Focus on input
+            input.focus();
+        }, 1500);
+    });
+
     // Check answer
     checkBtn.addEventListener('click', () => {
+        if (!questions[currentQuestion]) {
+            showResult(false, "Avval gapni eshiting!");
+            return;
+        }
+        
         const userAnswer = input.value.trim().toLowerCase();
         const correctAnswer = questions[currentQuestion].answer.toLowerCase();
         
@@ -436,48 +490,7 @@
         }
     });
 
-    // Text-to-Speech functionality
-    listenBtn.addEventListener('click', () => {
-        speakQuestion();
-    });
-
-    function speakQuestion() {
-        const question = questions[currentQuestion].text;
-        
-        // Check if browser supports speech synthesis
-        if ('speechSynthesis' in window) {
-            // Stop any ongoing speech
-            speechSynthesis.cancel();
-            
-            // Add listening animation
-            listenBtn.classList.add('listening');
-            
-            const utterance = new SpeechSynthesisUtterance(question);
-            
-            // Set voice properties
-            utterance.lang = 'en-US';
-            utterance.rate = 0.9; // Slightly slower for better comprehension
-            utterance.pitch = 1;
-            utterance.volume = 1;
-            
-            // On speech end
-            utterance.onend = () => {
-                listenBtn.classList.remove('listening');
-            };
-            
-            // On speech error
-            utterance.onerror = () => {
-                listenBtn.classList.remove('listening');
-                alert("Ovozli o'qishda xatolik yuz berdi. Iltimos, brauzeringizning ovoz sozlashlarini tekshiring.");
-            };
-            
-            speechSynthesis.speak(utterance);
-        } else {
-            alert("Kechirasiz, brauzeringiz ovozli o'qishni qo'llab-quvvatlamaydi.");
-        }
-    }
-
-    function showResult(isCorrect) {
+    function showResult(isCorrect, customMessage = null) {
         const resultTitle = document.getElementById('resultTitle');
         const resultMessage = document.getElementById('resultMessage');
         const correctAnswerDiv = document.getElementById('correctAnswer');
@@ -487,14 +500,18 @@
         if (isCorrect) {
             resultPanel.classList.add('success');
             resultTitle.textContent = 'Ajoyib! 🎉';
-            resultMessage.textContent = 'Javobingiz to\'g\'ri!';
+            resultMessage.textContent = customMessage || 'Javobingiz to\'g\'ri!';
             correctAnswerDiv.style.display = 'none';
         } else {
             resultPanel.classList.add('error');
             resultTitle.textContent = 'Xato! 😔';
-            resultMessage.textContent = 'Qaytadan urinib ko\'ring.';
-            correctAnswerDiv.style.display = 'block';
-            correctAnswerDiv.textContent = `To'g'ri javob: ${questions[currentQuestion].answer}`;
+            resultMessage.textContent = customMessage || 'Qaytadan urinib ko\'ring.';
+            
+            if (questions[currentQuestion]) {
+                correctAnswerDiv.style.display = 'block';
+                correctAnswerDiv.textContent = `To'g'ri javob: ${questions[currentQuestion].answer}`;
+            }
+            
             inputWrapper.classList.add('shake');
             setTimeout(() => inputWrapper.classList.remove('shake'), 400);
         }
@@ -504,41 +521,21 @@
 
     // Continue to next question
     document.getElementById('continueBtn').addEventListener('click', () => {
-        // Stop any ongoing speech when moving to next question
-        if ('speechSynthesis' in window) {
-            speechSynthesis.cancel();
-            listenBtn.classList.remove('listening');
-        }
-        
         resultPanel.classList.remove('active');
         
         currentQuestion++;
         
-        if (currentQuestion < questions.length) {
-            loadQuestion();
-        } else {
-            // Reset to first question
-            currentQuestion = 0;
-            loadQuestion();
-        }
-    });
-
-    function loadQuestion() {
-        const q = questions[currentQuestion];
-        questionText.textContent = q.text;
-        questionHint.textContent = q.hint;
+        // Reset for new question
+        questionText.textContent = "Quyidagi tugmani bosib yangi gapni eshiting";
+        questionHint.textContent = "Eshitilgan gapni o'zbek tiliga tarjima qiling";
         
         input.value = '';
         charCount.textContent = '0';
         checkBtn.disabled = true;
         checkBtn.classList.remove('active');
         inputWrapper.classList.remove('correct', 'incorrect', 'focused');
-        
-        // Remove listening animation
-        listenBtn.classList.remove('listening');
-        
         input.focus();
-    }
+    });
 
     // Enter key support
     input.addEventListener('keypress', (e) => {
@@ -547,12 +544,9 @@
         }
     });
 
-    // Auto-focus input when result panel closes
-    resultPanel.addEventListener('transitionend', (e) => {
-        if (!resultPanel.classList.contains('active')) {
-            input.focus();
-        }
-    });
+    // Initialize
+    questionText.textContent = "Quyidagi tugmani bosib gapni eshiting, so'ng tarjima qiling";
+    questionHint.textContent = "Avval eshitish tugmasini bosing";
 </script>
 
 </body>
