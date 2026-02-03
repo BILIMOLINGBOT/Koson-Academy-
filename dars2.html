@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Language UI - Interactive Learning</title>
+    <title>Language UI - Listening Practice</title>
     <style>
         :root {
             --bg-primary: #ffffff;
@@ -18,7 +18,10 @@
             --shadow-lg: rgba(0, 0, 0, 0.15);
             --success: #28a745;
             --error: #dc3545;
-            --blue: #007bff;
+            --speak-blue: #4361ee;
+            --slow-purple: #7209b7;
+            --speak-hover: #3a56d4;
+            --slow-hover: #5a08a0;
         }
 
         * {
@@ -62,7 +65,8 @@
             box-shadow: 0 4px 20px var(--shadow-sm);
             max-width: 500px;
             width: 100%;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
+            text-align: center;
         }
 
         .question-label {
@@ -74,71 +78,93 @@
             letter-spacing: 0.5px;
         }
 
-        .audio-section {
-            display: flex;
-            align-items: center;
-            gap: 20px;
+        .question-text {
+            font-size: 22px;
+            font-weight: 600;
+            line-height: 1.4;
+            color: var(--text-primary);
             margin-bottom: 15px;
-        }
-
-        .play-button {
-            width: 64px;
-            height: 64px;
-            border: none;
-            border-radius: 50%;
-            background: var(--text-primary);
-            color: var(--bg-primary);
-            font-size: 28px;
-            cursor: pointer;
+            min-height: 100px;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 16px var(--shadow-md);
-            flex-shrink: 0;
-        }
-
-        .play-button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 20px var(--shadow-lg);
-        }
-
-        .play-button:active {
-            transform: scale(0.95);
-        }
-
-        .play-button.playing {
-            background: var(--blue);
-            animation: pulse-play 1.5s infinite;
-        }
-
-        .audio-info {
-            flex: 1;
-        }
-
-        .audio-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 5px;
-        }
-
-        .audio-subtitle {
-            font-size: 14px;
-            color: var(--text-secondary);
+            padding: 15px;
+            border-radius: 12px;
+            background: var(--bg-secondary);
         }
 
         .question-hint {
             font-size: 14px;
             color: var(--text-secondary);
-            margin-top: 12px;
+            margin-top: 15px;
             font-style: italic;
+        }
+
+        /* Eshitish tugmalari */
+        .listen-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 25px 0;
+            flex-wrap: wrap;
+        }
+
+        .listen-btn {
+            border: none;
+            border-radius: 50px;
+            padding: 16px 28px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px var(--shadow-sm);
+            min-width: 180px;
+        }
+
+        .listen-btn .icon {
+            font-size: 20px;
+        }
+
+        .normal-speed {
+            background: var(--speak-blue);
+            color: white;
+        }
+
+        .slow-speed {
+            background: var(--slow-purple);
+            color: white;
+        }
+
+        .listen-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--shadow-md);
+        }
+
+        .normal-speed:hover {
+            background: var(--speak-hover);
+        }
+
+        .slow-speed:hover {
+            background: var(--slow-hover);
+        }
+
+        .listen-btn:active {
+            transform: translateY(0);
+        }
+
+        .listen-btn.playing {
+            animation: pulse 1.5s infinite;
         }
 
         /* Input area */
         .input-area {
             width: 100%;
             max-width: 500px;
+            margin-top: 20px;
         }
 
         .input-wrapper {
@@ -152,7 +178,7 @@
         }
 
         .input-wrapper.focused {
-            border-color: var(--text-primary);
+            border-color: var(--speak-blue);
             box-shadow: 0 4px 20px var(--shadow-md);
         }
 
@@ -170,7 +196,7 @@
             width: 100%;
             border: none;
             outline: none;
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 500;
             color: var(--text-primary);
             background: transparent;
@@ -191,7 +217,7 @@
             color: var(--text-secondary);
         }
 
-        /* Tugma qismi */
+        /* Tekshirish tugmasi */
         .check-btn-area {
             padding: 20px 0 30px 0;
             max-width: 500px;
@@ -215,16 +241,16 @@
         }
 
         .check-btn.active {
-            background: var(--text-primary);
-            color: var(--bg-primary);
+            background: var(--speak-blue);
+            color: white;
             cursor: pointer;
-            box-shadow: 0 8px 24px var(--shadow-lg);
+            box-shadow: 0 8px 24px rgba(67, 97, 238, 0.3);
             transform: translateY(-1px);
         }
 
         .check-btn.active:active {
             transform: translateY(0px);
-            box-shadow: 0 4px 12px var(--shadow-md);
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.2);
         }
 
         /* Natija paneli */
@@ -296,12 +322,11 @@
             transform: scale(0.98);
         }
 
-        /* Keyboard helper */
-        .keyboard-hint {
-            text-align: center;
-            margin-top: 15px;
-            font-size: 13px;
-            color: var(--text-secondary);
+        /* Animatsiyalar */
+        @keyframes pulse {
+            0% { transform: translateY(-2px) scale(1); box-shadow: 0 6px 20px rgba(67, 97, 238, 0.4); }
+            50% { transform: translateY(-2px) scale(1.05); box-shadow: 0 6px 20px rgba(67, 97, 238, 0.6); }
+            100% { transform: translateY(-2px) scale(1); box-shadow: 0 6px 20px rgba(67, 97, 238, 0.4); }
         }
 
         @keyframes shake {
@@ -314,13 +339,74 @@
             animation: shake 0.4s ease; 
         }
 
-        @keyframes pulse-play {
-            0%, 100% { 
-                box-shadow: 0 4px 16px var(--shadow-md), 0 0 0 0 rgba(0, 123, 255, 0.7);
-            }
-            50% { 
-                box-shadow: 0 4px 16px var(--shadow-md), 0 0 0 15px rgba(0, 123, 255, 0);
-            }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        /* Progress ko'rsatgichi */
+        .progress-dots {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 20px;
+        }
+
+        .progress-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--border-light);
+            transition: all 0.3s ease;
+        }
+
+        .progress-dot.active {
+            background: var(--speak-blue);
+            transform: scale(1.2);
+        }
+
+        /* Listening indikatori */
+        .listening-indicator {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+            color: var(--speak-blue);
+            font-weight: 500;
+        }
+
+        .listening-indicator.active {
+            display: flex;
+        }
+
+        .sound-wave {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            height: 30px;
+        }
+
+        .sound-bar {
+            width: 4px;
+            background: var(--speak-blue);
+            border-radius: 2px;
+            animation: soundWave 1.5s infinite ease-in-out;
+        }
+
+        .sound-bar:nth-child(1) { animation-delay: 0s; height: 10px; }
+        .sound-bar:nth-child(2) { animation-delay: 0.1s; height: 20px; }
+        .sound-bar:nth-child(3) { animation-delay: 0.2s; height: 25px; }
+        .sound-bar:nth-child(4) { animation-delay: 0.3s; height: 20px; }
+        .sound-bar:nth-child(5) { animation-delay: 0.4s; height: 10px; }
+
+        @keyframes soundWave {
+            0%, 100% { transform: scaleY(1); }
+            50% { transform: scaleY(1.5); }
         }
     </style>
 </head>
@@ -330,43 +416,68 @@
     <!-- Question Section -->
     <div class="question-section">
         <div class="question-card">
-            <div class="question-label">Eshiting va yozing</div>
-            
-            <div class="audio-section">
-                <button class="play-button" id="playButton">
-                    <span id="playIcon">▶</span>
-                </button>
-                <div class="audio-info">
-                    <div class="audio-title">Audio tinglang</div>
-                    <div class="audio-subtitle">Eshitgan gapingizni yozing</div>
-                </div>
+            <div class="question-label">Eshiting va tarjima qiling</div>
+            <div class="question-text" id="questionText">
+                Quyidagi tugmalardan birini bosib gapni eshiting
             </div>
-
-            <div class="question-hint" id="questionHint">Audioda aytilgan gapni yozing</div>
+            <div class="question-hint" id="questionHint">
+                Eshitilgan gapni o'zbek tiliga tarjima qiling
+            </div>
         </div>
 
+        <!-- Eshitish tugmalari -->
+        <div class="listen-buttons">
+            <button class="listen-btn normal-speed" id="normalListenBtn">
+                <span class="icon">🔊</span>
+                <span>Normal tezlikda eshitish</span>
+            </button>
+            <button class="listen-btn slow-speed" id="slowListenBtn">
+                <span class="icon">🐌</span>
+                <span>Sekin eshitish</span>
+            </button>
+        </div>
+
+        <!-- Listening indikatori -->
+        <div class="listening-indicator" id="listeningIndicator">
+            <div class="sound-wave">
+                <div class="sound-bar"></div>
+                <div class="sound-bar"></div>
+                <div class="sound-bar"></div>
+                <div class="sound-bar"></div>
+                <div class="sound-bar"></div>
+            </div>
+            <span>Eshityapman...</span>
+        </div>
+
+        <!-- Input area -->
         <div class="input-area">
             <div class="input-wrapper" id="inputWrapper">
                 <input 
                     type="text" 
                     id="userInput" 
-                    placeholder="Eshitgan gapingizni kiriting..."
+                    placeholder="Eshitgan gapingizni tarjima qiling..."
                     autocomplete="off"
                     autocorrect="off"
                     spellcheck="false"
                 >
                 <div class="char-count" id="charCount">0</div>
             </div>
-            <div class="keyboard-hint">💡 Audio tugmasini bosing va eshiting</div>
+            <div class="progress-dots">
+                <div class="progress-dot active"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+            </div>
         </div>
     </div>
 
-    <!-- Check Button -->
+    <!-- Tekshirish tugmasi -->
     <div class="check-btn-area">
         <button class="check-btn" id="checkBtn" disabled>Tekshirish</button>
     </div>
 
-    <!-- Result Panel -->
+    <!-- Natija paneli -->
     <div class="result-panel" id="resultPanel">
         <div style="max-width: 500px; margin: 0 auto;">
             <h2 id="resultTitle">Ajoyib! 🎉</h2>
@@ -378,80 +489,167 @@
 </div>
 
 <script>
-    // Current question data - you can integrate with backend later
-    let currentAudioText = "Salom, bugun havo juda yaxshi";
+    // Gap va tarjimalar bazasi
+    const sentences = [
+        {
+            english: "The weather is beautiful today",
+            uzbek: "Bugun ob-havo juda chiroyli",
+            category: "Ob-havo"
+        },
+        {
+            english: "I like to read books",
+            uzbek: "Men kitob o'qishni yaxshi ko'raman",
+            category: "O'qish"
+        },
+        {
+            english: "Where is the nearest restaurant?",
+            uzbek: "Eng yaqin restoran qayerda?",
+            category: "Savollar"
+        },
+        {
+            english: "Can you help me please?",
+            uzbek: "Iltimos, menga yordam bera olasizmi?",
+            category: "Yordam so'rash"
+        },
+        {
+            english: "What time is it?",
+            uzbek: "Soat nechi bo'ldi?",
+            category: "Vaqt"
+        },
+        {
+            english: "How much does this cost?",
+            uzbek: "Bu qancha turadi?",
+            category: "Narx"
+        },
+        {
+            english: "I need to practice more",
+            uzbek: "Men ko'proq mashq qilishim kerak",
+            category: "Mashq"
+        },
+        {
+            english: "Learning languages is fun",
+            uzbek: "Tillarni o'rganish qiziqarli",
+            category: "Til o'rganish"
+        },
+        {
+            english: "Good morning, how are you?",
+            uzbek: "Xayrli tong, yaxshimisiz?",
+            category: "Salomlashish"
+        },
+        {
+            english: "Thank you very much for your help",
+            uzbek: "Yordamingiz uchun katta rahmat",
+            category: "Rahmat"
+        }
+    ];
 
+    // Dastur o'zgaruvchilari
+    let currentSentence = null;
+    let currentSentenceIndex = 0;
+    let isPlaying = false;
+
+    // DOM elementlari
     const input = document.getElementById('userInput');
     const inputWrapper = document.getElementById('inputWrapper');
     const checkBtn = document.getElementById('checkBtn');
     const resultPanel = document.getElementById('resultPanel');
     const charCount = document.getElementById('charCount');
+    const questionText = document.getElementById('questionText');
     const questionHint = document.getElementById('questionHint');
-    const playButton = document.getElementById('playButton');
-    const playIcon = document.getElementById('playIcon');
+    const normalListenBtn = document.getElementById('normalListenBtn');
+    const slowListenBtn = document.getElementById('slowListenBtn');
+    const listeningIndicator = document.getElementById('listeningIndicator');
+    const progressDots = document.querySelectorAll('.progress-dot');
+    const continueBtn = document.getElementById('continueBtn');
 
-    // Text-to-Speech for audio playback
-    let speechSynthesis = window.speechSynthesis;
-    let currentUtterance = null;
-
-    // Play audio button
-    playButton.addEventListener('click', () => {
-        if (speechSynthesis.speaking) {
-            speechSynthesis.cancel();
-            playButton.classList.remove('playing');
-            playIcon.textContent = '▶';
-            return;
-        }
-
-        playAudio(currentAudioText);
-    });
-
-    function playAudio(text) {
-        // Cancel any ongoing speech
-        speechSynthesis.cancel();
-
-        currentUtterance = new SpeechSynthesisUtterance(text);
+    // Dasturni boshlash
+    function initApp() {
+        // Random gap tanlash
+        selectRandomSentence();
+        updateProgressDots();
         
-        // Try to use Russian voice as it might work better for Uzbek
-        const voices = speechSynthesis.getVoices();
-        const uzbekVoice = voices.find(voice => voice.lang.startsWith('uz')) ||
-                          voices.find(voice => voice.lang.startsWith('ru')) ||
-                          voices.find(voice => voice.lang.startsWith('tr'));
+        // Input fokus
+        input.focus();
         
-        if (uzbekVoice) {
-            currentUtterance.voice = uzbekVoice;
-        }
-        
-        currentUtterance.rate = 0.9; // Slightly slower
-        currentUtterance.pitch = 1;
-        currentUtterance.volume = 1;
-
-        currentUtterance.onstart = () => {
-            playButton.classList.add('playing');
-            playIcon.textContent = '⏸';
-        };
-
-        currentUtterance.onend = () => {
-            playButton.classList.remove('playing');
-            playIcon.textContent = '▶';
-        };
-
-        currentUtterance.onerror = () => {
-            playButton.classList.remove('playing');
-            playIcon.textContent = '▶';
-        };
-
-        speechSynthesis.speak(currentUtterance);
+        // Hint ko'rsatish
+        questionHint.textContent = "Avval eshitish tugmalaridan birini bosing";
     }
 
-    // Load voices (needed for some browsers)
-    speechSynthesis.onvoiceschanged = () => {
-        speechSynthesis.getVoices();
-    };
+    // Random gap tanlash
+    function selectRandomSentence() {
+        currentSentenceIndex = Math.floor(Math.random() * sentences.length);
+        currentSentence = sentences[currentSentenceIndex];
+        
+        // Ko'rsatishni yangilash
+        questionText.textContent = `Kategoriya: ${currentSentence.category}`;
+        questionText.classList.add('fade-in');
+        
+        // Audio tugmalarini yoqish
+        normalListenBtn.disabled = false;
+        slowListenBtn.disabled = false;
+    }
 
-    // Focus on input
-    input.focus();
-    
+    // Eshitish funksiyasi
+    function playSentence(speed = 'normal') {
+        if (isPlaying) return;
+        
+        isPlaying = true;
+        
+        // Tugmalarni o'chirish
+        normalListenBtn.disabled = true;
+        slowListenBtn.disabled = true;
+        
+        // Playing holatini ko'rsatish
+        normalListenBtn.classList.add('playing');
+        slowListenBtn.classList.add('playing');
+        
+        // Listening indikatorini ko'rsatish
+        listeningIndicator.classList.add('active');
+        questionText.textContent = "Gapni eshityapman...";
+        
+        // Audio simulyatsiyasi
+        const delay = speed === 'slow' ? 2000 : 1500;
+        
+        setTimeout(() => {
+            // Audio tugaganidan keyin
+            isPlaying = false;
+            
+            // Playing holatini olib tashlash
+            normalListenBtn.classList.remove('playing');
+            slowListenBtn.classList.remove('playing');
+            
+            // Listening indikatorini yashirish
+            listeningIndicator.classList.remove('active');
+            
+            // Gapni ko'rsatish
+            questionText.textContent = `Eshitildi: "${currentSentence.english}"`;
+            questionHint.textContent = "Endi tarjima qilib yozing";
+            
+            // Tugmalarni yoqish
+            normalListenBtn.disabled = false;
+            slowListenBtn.disabled = false;
+            
+            // Input fokus
+            input.focus();
+        }, delay);
+    }
+
+    // Progress nuqtalarni yangilash
+    function updateProgressDots() {
+        progressDots.forEach((dot, index) => {
+            if (index <= currentSentenceIndex % 5) {
+                dot.classList.add('active');
+            } else {
+                dot.classList.remove('active');
+            }
+        });
+    }
+
+    // Tugmalarni bog'lash
+    normalListenBtn.addEventListener('click', () => playSentence('normal'));
+    slowListenBtn.addEventListener('click', () => playSentence('slow'));
+
+    // Input fokus holati
     input.addEventListener('focus', () => {
         inputWrapper.classList.add('focused');
     });
@@ -460,7 +658,7 @@
         inputWrapper.classList.remove('focused');
     });
 
-    // Input handling
+    // Input kuzatish
     input.addEventListener('input', (e) => {
         const val = e.target.value;
         charCount.textContent = val.length;
@@ -470,15 +668,40 @@
         checkBtn.classList.toggle('active', isReady);
     });
 
-    // Check answer
+    // Tekshirish tugmasi
     checkBtn.addEventListener('click', () => {
+        if (!currentSentence) {
+            showResult(false, "Avval gapni eshiting!");
+            return;
+        }
+        
         const userAnswer = input.value.trim().toLowerCase();
-        const correctAnswer = currentAudioText.toLowerCase();
+        const correctAnswer = currentSentence.uzbek.toLowerCase();
         
-        // Simple comparison (you can make this more flexible)
-        const normalizeText = (text) => text.replace(/[.,!?]/g, '').replace(/\s+/g, ' ').trim();
+        // Qiyinroq tekshirish (qisqartmalar va variantlarga yo'l qo'yish)
+        const normalizedUserAnswer = userAnswer.replace(/[.,!?]/g, '').replace(/\s+/g, ' ');
+        const normalizedCorrectAnswer = correctAnswer.replace(/[.,!?]/g, '').replace(/\s+/g, ' ');
         
-        const isCorrect = normalizeText(userAnswer) === normalizeText(correctAnswer);
+        let isCorrect = false;
+        
+        // Variantlarga ruxsat berish
+        if (normalizedUserAnswer === normalizedCorrectAnswer) {
+            isCorrect = true;
+        } else {
+            // Qisman to'g'ri javoblar uchun
+            const userWords = normalizedUserAnswer.split(' ');
+            const correctWords = normalizedCorrectAnswer.split(' ');
+            const matchingWords = userWords.filter(word => 
+                correctWords.some(correctWord => 
+                    correctWord.includes(word) || word.includes(correctWord)
+                )
+            );
+            
+            // Agar 70% dan ko'p so'zlar mos kelsa
+            if (matchingWords.length / correctWords.length > 0.7) {
+                isCorrect = true;
+            }
+        }
         
         if (isCorrect) {
             showResult(true);
@@ -487,7 +710,8 @@
         }
     });
 
-    function showResult(isCorrect) {
+    // Natijani ko'rsatish
+    function showResult(isCorrect, customMessage = null) {
         const resultTitle = document.getElementById('resultTitle');
         const resultMessage = document.getElementById('resultMessage');
         const correctAnswerDiv = document.getElementById('correctAnswer');
@@ -497,14 +721,25 @@
         if (isCorrect) {
             resultPanel.classList.add('success');
             resultTitle.textContent = 'Ajoyib! 🎉';
-            resultMessage.textContent = 'Javobingiz to\'g\'ri!';
+            resultMessage.textContent = customMessage || 'Javobingiz to\'g\'ri!';
             correctAnswerDiv.style.display = 'none';
+            
+            // Inputni yashil rangga bo'yash
+            inputWrapper.classList.add('correct');
+            inputWrapper.classList.remove('incorrect');
         } else {
             resultPanel.classList.add('error');
             resultTitle.textContent = 'Xato! 😔';
-            resultMessage.textContent = 'Qaytadan urinib ko\'ring.';
-            correctAnswerDiv.style.display = 'block';
-            correctAnswerDiv.textContent = `To'g'ri javob: ${currentAudioText}`;
+            resultMessage.textContent = customMessage || 'Qaytadan urinib ko\'ring.';
+            
+            if (currentSentence) {
+                correctAnswerDiv.style.display = 'block';
+                correctAnswerDiv.textContent = `To'g'ri javob: ${currentSentence.uzbek}`;
+            }
+            
+            // Inputni qizil rangga bo'yash
+            inputWrapper.classList.add('incorrect');
+            inputWrapper.classList.remove('correct');
             inputWrapper.classList.add('shake');
             setTimeout(() => inputWrapper.classList.remove('shake'), 400);
         }
@@ -512,35 +747,35 @@
         resultPanel.classList.add('active');
     }
 
-    // Continue to next question
-    document.getElementById('continueBtn').addEventListener('click', () => {
+    // Keyingi savolga o'tish
+    continueBtn.addEventListener('click', () => {
         resultPanel.classList.remove('active');
         
-        // Here you would load the next question from your backend
-        // For now, we'll just reset the same question
-        loadQuestion();
-    });
-
-    function loadQuestion() {
-        // Stop any playing audio
-        speechSynthesis.cancel();
-        playButton.classList.remove('playing');
-        playIcon.textContent = '▶';
+        // Yangi gap tanlash
+        selectRandomSentence();
+        updateProgressDots();
         
+        // Inputni tozalash
         input.value = '';
         charCount.textContent = '0';
         checkBtn.disabled = true;
         checkBtn.classList.remove('active');
         inputWrapper.classList.remove('correct', 'incorrect', 'focused');
         input.focus();
-    }
+        
+        // Ko'rsatishni yangilash
+        questionHint.textContent = "Eshitish tugmalaridan birini bosing";
+    });
 
-    // Enter key support
+    // Enter tugmasi bilan tekshirish
     input.addEventListener('keypress', (e) => {
         if (e.key === 'Enter' && !checkBtn.disabled) {
             checkBtn.click();
         }
     });
+
+    // Dasturni ishga tushirish
+    initApp();
 </script>
 
 </body>
