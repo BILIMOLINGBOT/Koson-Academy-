@@ -18,6 +18,7 @@
             --shadow-lg: rgba(0, 0, 0, 0.15);
             --success: #28a745;
             --error: #dc3545;
+            --primary-blue: #007bff;
         }
 
         * {
@@ -62,15 +63,51 @@
             max-width: 500px;
             width: 100%;
             margin-bottom: 30px;
+            position: relative;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
         }
 
         .question-label {
             font-size: 14px;
             color: var(--text-secondary);
-            margin-bottom: 12px;
             font-weight: 500;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+        }
+
+        .listen-btn {
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+        }
+
+        .listen-btn:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        .listen-btn:active {
+            transform: translateY(0);
+        }
+
+        .listen-btn.listening {
+            background: var(--success);
+            animation: pulse 1.5s infinite;
         }
 
         .question-text {
@@ -266,6 +303,11 @@
         .shake { 
             animation: shake 0.4s ease; 
         }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
     </style>
 </head>
 <body>
@@ -274,7 +316,14 @@
     <!-- Question Section -->
     <div class="question-section">
         <div class="question-card">
-            <div class="question-label">Tarjima qiling</div>
+            <div class="question-header">
+                <div class="question-label">Tarjima qiling</div>
+                <button class="listen-btn" id="listenBtn" title="Savolni eshitish">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path>
+                    </svg>
+                </button>
+            </div>
             <div class="question-text" id="questionText">The quick brown fox jumps over the lazy dog</div>
             <div class="question-hint" id="questionHint">Inglizchadan o'zbekchaga tarjima qiling</div>
         </div>
@@ -291,7 +340,7 @@
                 >
                 <div class="char-count" id="charCount">0</div>
             </div>
-            <div class="keyboard-hint">💡 Klaviaturadan yozing</div>
+            <div class="keyboard-hint">💡 Klaviaturadan yozing yoki eshitish tugmasini bosing</div>
         </div>
     </div>
 
@@ -350,6 +399,7 @@
     const charCount = document.getElementById('charCount');
     const questionText = document.getElementById('questionText');
     const questionHint = document.getElementById('questionHint');
+    const listenBtn = document.getElementById('listenBtn');
 
     // Focus on input
     input.focus();
@@ -386,6 +436,47 @@
         }
     });
 
+    // Text-to-Speech functionality
+    listenBtn.addEventListener('click', () => {
+        speakQuestion();
+    });
+
+    function speakQuestion() {
+        const question = questions[currentQuestion].text;
+        
+        // Check if browser supports speech synthesis
+        if ('speechSynthesis' in window) {
+            // Stop any ongoing speech
+            speechSynthesis.cancel();
+            
+            // Add listening animation
+            listenBtn.classList.add('listening');
+            
+            const utterance = new SpeechSynthesisUtterance(question);
+            
+            // Set voice properties
+            utterance.lang = 'en-US';
+            utterance.rate = 0.9; // Slightly slower for better comprehension
+            utterance.pitch = 1;
+            utterance.volume = 1;
+            
+            // On speech end
+            utterance.onend = () => {
+                listenBtn.classList.remove('listening');
+            };
+            
+            // On speech error
+            utterance.onerror = () => {
+                listenBtn.classList.remove('listening');
+                alert("Ovozli o'qishda xatolik yuz berdi. Iltimos, brauzeringizning ovoz sozlashlarini tekshiring.");
+            };
+            
+            speechSynthesis.speak(utterance);
+        } else {
+            alert("Kechirasiz, brauzeringiz ovozli o'qishni qo'llab-quvvatlamaydi.");
+        }
+    }
+
     function showResult(isCorrect) {
         const resultTitle = document.getElementById('resultTitle');
         const resultMessage = document.getElementById('resultMessage');
@@ -413,6 +504,12 @@
 
     // Continue to next question
     document.getElementById('continueBtn').addEventListener('click', () => {
+        // Stop any ongoing speech when moving to next question
+        if ('speechSynthesis' in window) {
+            speechSynthesis.cancel();
+            listenBtn.classList.remove('listening');
+        }
+        
         resultPanel.classList.remove('active');
         
         currentQuestion++;
@@ -436,6 +533,10 @@
         checkBtn.disabled = true;
         checkBtn.classList.remove('active');
         inputWrapper.classList.remove('correct', 'incorrect', 'focused');
+        
+        // Remove listening animation
+        listenBtn.classList.remove('listening');
+        
         input.focus();
     }
 
@@ -443,6 +544,13 @@
     input.addEventListener('keypress', (e) => {
         if (e.key === 'Enter' && !checkBtn.disabled) {
             checkBtn.click();
+        }
+    });
+
+    // Auto-focus input when result panel closes
+    resultPanel.addEventListener('transitionend', (e) => {
+        if (!resultPanel.classList.contains('active')) {
+            input.focus();
         }
     });
 </script>
