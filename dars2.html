@@ -3,23 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Language UI - Interactive Learning</title>
+    <title>Test yakunlandi</title>
     <style>
-        :root {
-            --bg-primary: #ffffff;
-            --bg-secondary: #f8f9fa;
-            --text-primary: #000000;
-            --text-secondary: #6c757d;
-            --border-light: #e9ecef;
-            --border-dark: #dee2e6;
-            --accent-dark: #212529;
-            --shadow-sm: rgba(0, 0, 0, 0.05);
-            --shadow-md: rgba(0, 0, 0, 0.1);
-            --shadow-lg: rgba(0, 0, 0, 0.15);
-            --success: #28a745;
-            --error: #dc3545;
-        }
-
         * {
             margin: 0;
             padding: 0;
@@ -28,337 +13,338 @@
 
         body, html {
             height: 100%;
-            background: var(--bg-primary);
+            background: #0a1628;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            color: var(--text-primary);
-            -webkit-tap-highlight-color: transparent;
+            color: #ffffff;
             overflow: hidden;
         }
 
-        .app-container {
+        .container {
             display: flex;
             flex-direction: column;
             height: 100vh;
-            padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom);
-            background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            padding: 20px;
+            padding-top: 80px;
         }
 
-        /* Markaziy qism */
-        .question-section {
-            flex: 1;
+        /* Success Animation Area */
+        .success-animation {
             display: flex;
-            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 60px 0;
+            position: relative;
+        }
+
+        .checkmark-circle {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #ec4899, #f43f5e);
+            border-radius: 50%;
+            display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px 0;
-            overflow-y: auto;
-        }
-
-        /* Input area */
-        .input-area {
-            width: 100%;
-            max-width: 500px;
-        }
-
-        .input-wrapper {
+            box-shadow: 0 8px 32px rgba(236, 72, 153, 0.4);
+            animation: scaleIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
             position: relative;
-            background: var(--bg-primary);
-            border-radius: 16px;
-            border: 2px solid var(--border-light);
-            padding: 20px;
-            box-shadow: 0 2px 12px var(--shadow-sm);
-            transition: all 0.3s ease;
+            z-index: 2;
         }
 
-        .input-wrapper.focused {
-            border-color: var(--text-primary);
-            box-shadow: 0 4px 20px var(--shadow-md);
+        .checkmark {
+            font-size: 48px;
+            color: #ffffff;
         }
 
-        .input-wrapper.correct {
-            border-color: var(--success);
-            background: rgba(40, 167, 69, 0.05);
-        }
-
-        .input-wrapper.incorrect {
-            border-color: var(--error);
-            background: rgba(220, 53, 69, 0.05);
-        }
-
-        #userInput {
-            width: 100%;
-            border: none;
-            outline: none;
-            font-size: 20px;
-            font-weight: 500;
-            color: var(--text-primary);
-            background: transparent;
-            padding: 10px 0;
-            font-family: inherit;
-        }
-
-        #userInput::placeholder {
-            color: var(--text-secondary);
-            opacity: 0.5;
-        }
-
-        .char-count {
+        /* Floating particles */
+        .particle {
             position: absolute;
-            bottom: 8px;
-            right: 20px;
-            font-size: 12px;
-            color: var(--text-secondary);
+            border-radius: 50%;
+            animation: float 3s infinite;
         }
 
-        /* Tugma qismi */
-        .check-btn-area {
-            padding: 20px 0 30px 0;
-            max-width: 500px;
-            width: 100%;
-            margin: 0 auto;
+        .particle.dot {
+            width: 20px;
+            height: 20px;
+            background: #ec4899;
+            opacity: 0.4;
         }
 
-        .check-btn {
-            width: 100%;
-            height: 56px;
-            border: none;
-            border-radius: 16px;
-            background: var(--border-dark);
-            color: var(--text-secondary);
-            font-size: 18px;
-            font-weight: 600;
-            cursor: not-allowed;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 12px var(--shadow-sm);
-            letter-spacing: 0.3px;
+        .particle.star {
+            font-size: 20px;
+            color: #ec4899;
+            opacity: 0.6;
         }
 
-        .check-btn.active {
-            background: var(--text-primary);
-            color: var(--bg-primary);
-            cursor: pointer;
-            box-shadow: 0 8px 24px var(--shadow-lg);
-            transform: translateY(-1px);
+        .particle:nth-child(1) {
+            top: 20%;
+            left: 15%;
+            animation-delay: 0s;
         }
 
-        .check-btn.active:active {
-            transform: translateY(0px);
-            box-shadow: 0 4px 12px var(--shadow-md);
+        .particle:nth-child(2) {
+            top: 30%;
+            right: 20%;
+            animation-delay: 0.5s;
         }
 
-        /* Natija paneli */
-        .result-panel {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: var(--text-primary);
-            border-radius: 24px 24px 0 0;
-            padding: 30px 20px;
-            transform: translateY(100%);
-            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            z-index: 1000;
-            color: var(--bg-primary);
-            box-shadow: 0 -4px 32px var(--shadow-lg);
+        .particle:nth-child(3) {
+            bottom: 30%;
+            left: 25%;
+            animation-delay: 1s;
         }
 
-        .result-panel.active { 
-            transform: translateY(0); 
+        .particle:nth-child(4) {
+            bottom: 20%;
+            right: 15%;
+            animation-delay: 1.5s;
         }
 
-        .result-panel.success {
-            background: var(--success);
+        .particle:nth-child(5) {
+            top: 50%;
+            left: 10%;
+            animation-delay: 2s;
         }
 
-        .result-panel.error {
-            background: var(--error);
+        .particle:nth-child(6) {
+            top: 40%;
+            right: 10%;
+            animation-delay: 2.5s;
         }
 
-        .result-panel h2 {
-            font-size: 28px;
-            margin-bottom: 12px;
+        /* Title Section */
+        .title-section {
+            text-align: center;
+            padding: 0 20px 40px;
+        }
+
+        .main-title {
+            font-size: 36px;
             font-weight: 700;
-            letter-spacing: -0.5px;
+            margin-bottom: 16px;
+            color: #ffffff;
         }
 
-        .result-panel p {
-            font-size: 16px;
-            opacity: 0.9;
+        .subtitle {
+            font-size: 17px;
+            color: rgba(255, 255, 255, 0.7);
             line-height: 1.5;
         }
 
-        .correct-answer {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 15px;
-            border-radius: 12px;
-            margin-top: 15px;
-            font-size: 18px;
-            font-weight: 600;
+        /* Stats Card */
+        .stats-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 24px;
+            margin: 0 0 auto 0;
         }
 
+        .stat-item {
+            display: flex;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(59, 130, 246, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 20px;
+            font-size: 24px;
+        }
+
+        .stat-icon.time {
+            background: rgba(59, 130, 246, 0.15);
+        }
+
+        .stat-icon.points {
+            background: rgba(139, 92, 246, 0.15);
+        }
+
+        .stat-icon.accuracy {
+            background: rgba(59, 130, 246, 0.15);
+        }
+
+        .stat-content {
+            flex: 1;
+        }
+
+        .stat-label {
+            font-size: 17px;
+            font-weight: 500;
+            color: #ffffff;
+            margin-bottom: 2px;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #60a5fa;
+        }
+
+        /* Continue Button */
         .continue-btn {
             width: 100%;
-            height: 56px;
+            height: 64px;
             border: none;
-            border-radius: 16px;
-            background: var(--bg-primary);
-            color: var(--text-primary);
+            border-radius: 20px;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: #ffffff;
             font-size: 18px;
-            font-weight: 600;
-            margin-top: 24px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 16px rgba(255, 255, 255, 0.1);
+            margin-top: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .continue-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(59, 130, 246, 0.5);
         }
 
         .continue-btn:active {
-            transform: scale(0.98);
+            transform: translateY(0);
         }
 
-        /* Keyboard helper */
-        .keyboard-hint {
-            text-align: center;
-            margin-top: 15px;
-            font-size: 13px;
-            color: var(--text-secondary);
+        /* Animations */
+        @keyframes scaleIn {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
 
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-10px); }
-            75% { transform: translateX(10px); }
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) scale(1);
+                opacity: 0.4;
+            }
+            50% {
+                transform: translateY(-20px) scale(1.1);
+                opacity: 0.7;
+            }
         }
-        
-        .shake { 
-            animation: shake 0.4s ease; 
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease forwards;
+        }
+
+        .delay-1 {
+            animation-delay: 0.2s;
+            opacity: 0;
+        }
+
+        .delay-2 {
+            animation-delay: 0.4s;
+            opacity: 0;
+        }
+
+        .delay-3 {
+            animation-delay: 0.6s;
+            opacity: 0;
         }
     </style>
 </head>
 <body>
 
-<div class="app-container">
-    <!-- Question Section -->
-    <div class="question-section">
-        <div class="input-area">
-            <div class="input-wrapper" id="inputWrapper">
-                <input 
-                    type="text" 
-                    id="userInput" 
-                    placeholder="Javobingizni kiriting..."
-                    autocomplete="off"
-                    autocorrect="off"
-                    spellcheck="false"
-                >
-                <div class="char-count" id="charCount">0</div>
+<div class="container">
+    <!-- Success Animation -->
+    <div class="success-animation">
+        <div class="particle dot" style="width: 16px; height: 16px;"></div>
+        <div class="particle star">★</div>
+        <div class="particle dot" style="width: 24px; height: 24px;"></div>
+        <div class="particle star">★</div>
+        <div class="particle dot" style="width: 20px; height: 20px;"></div>
+        <div class="particle star">★</div>
+        
+        <div class="checkmark-circle">
+            <div class="checkmark">✓</div>
+        </div>
+    </div>
+
+    <!-- Title Section -->
+    <div class="title-section fade-in delay-1">
+        <h1 class="main-title">Test yakunlandi</h1>
+        <p class="subtitle">Siz bu testdan 2 ball to'pladingiz!</p>
+    </div>
+
+    <!-- Stats Card -->
+    <div class="stats-card fade-in delay-2">
+        <div class="stat-item">
+            <div class="stat-icon time">🕐</div>
+            <div class="stat-content">
+                <div class="stat-label">Vaqt</div>
             </div>
-            <div class="keyboard-hint">💡 Klaviaturadan yozing</div>
+            <div class="stat-value">2:24</div>
+        </div>
+
+        <div class="stat-item">
+            <div class="stat-icon points">💎</div>
+            <div class="stat-content">
+                <div class="stat-label">Ball</div>
+            </div>
+            <div class="stat-value">2</div>
+        </div>
+
+        <div class="stat-item">
+            <div class="stat-icon accuracy">🎯</div>
+            <div class="stat-content">
+                <div class="stat-label">Aniqlik</div>
+            </div>
+            <div class="stat-value">92%</div>
         </div>
     </div>
 
-    <!-- Check Button -->
-    <div class="check-btn-area">
-        <button class="check-btn" id="checkBtn" disabled>Tekshirish</button>
-    </div>
-
-    <!-- Result Panel -->
-    <div class="result-panel" id="resultPanel">
-        <div style="max-width: 500px; margin: 0 auto;">
-            <h2 id="resultTitle">Ajoyib! 🎉</h2>
-            <p id="resultMessage">Javobingiz to'g'ri!</p>
-            <div class="correct-answer" id="correctAnswer" style="display: none;"></div>
-            <button class="continue-btn" id="continueBtn">Keyingi savol →</button>
-        </div>
-    </div>
+    <!-- Continue Button -->
+    <button class="continue-btn fade-in delay-3">DAVOM ETISH</button>
 </div>
 
 <script>
-    const input = document.getElementById('userInput');
-    const inputWrapper = document.getElementById('inputWrapper');
-    const checkBtn = document.getElementById('checkBtn');
-    const resultPanel = document.getElementById('resultPanel');
-    const charCount = document.getElementById('charCount');
-
-    // Focus on input
-    input.focus();
-    
-    input.addEventListener('focus', () => {
-        inputWrapper.classList.add('focused');
+    // Button click handler
+    document.querySelector('.continue-btn').addEventListener('click', function() {
+        // Navigate to next page or reload
+        console.log('Continue clicked');
+        // window.location.href = 'next-page.html';
     });
 
-    input.addEventListener('blur', () => {
-        inputWrapper.classList.remove('focused');
+    // Add click animation
+    document.querySelector('.continue-btn').addEventListener('mousedown', function() {
+        this.style.transform = 'scale(0.98)';
     });
 
-    // Input handling
-    input.addEventListener('input', (e) => {
-        const val = e.target.value;
-        charCount.textContent = val.length;
-        
-        const isReady = val.trim().length > 0;
-        checkBtn.disabled = !isReady;
-        checkBtn.classList.toggle('active', isReady);
-    });
-
-    // Check answer
-    checkBtn.addEventListener('click', () => {
-        // Backend bilan tekshirish logikasi bu yerda bo'ladi
-        const userAnswer = input.value.trim();
-        
-        // Bu yerda backend API ga so'rov yuboriladi
-        // Masalan: fetch('/api/check-answer', { method: 'POST', body: JSON.stringify({ answer: userAnswer }) })
-        
-        // Hozircha demo uchun:
-        showResult(true); // yoki showResult(false);
-    });
-
-    function showResult(isCorrect) {
-        const resultTitle = document.getElementById('resultTitle');
-        const resultMessage = document.getElementById('resultMessage');
-        const correctAnswerDiv = document.getElementById('correctAnswer');
-        
-        resultPanel.classList.remove('success', 'error');
-        
-        if (isCorrect) {
-            resultPanel.classList.add('success');
-            resultTitle.textContent = 'Ajoyib! 🎉';
-            resultMessage.textContent = 'Javobingiz to\'g\'ri!';
-            correctAnswerDiv.style.display = 'none';
-        } else {
-            resultPanel.classList.add('error');
-            resultTitle.textContent = 'Xato! 😔';
-            resultMessage.textContent = 'Qaytadan urinib ko\'ring.';
-            correctAnswerDiv.style.display = 'block';
-            correctAnswerDiv.textContent = `To'g'ri javob: [Backend dan keladi]`;
-            inputWrapper.classList.add('shake');
-            setTimeout(() => inputWrapper.classList.remove('shake'), 400);
-        }
-        
-        resultPanel.classList.add('active');
-    }
-
-    // Continue to next question
-    document.getElementById('continueBtn').addEventListener('click', () => {
-        resultPanel.classList.remove('active');
-        loadQuestion();
-    });
-
-    function loadQuestion() {
-        // Bu yerda backend dan yangi savol yuklanadi
-        // Masalan: fetch('/api/next-question').then(...)
-        
-        input.value = '';
-        charCount.textContent = '0';
-        checkBtn.disabled = true;
-        checkBtn.classList.remove('active');
-        inputWrapper.classList.remove('correct', 'incorrect', 'focused');
-        input.focus();
-    }
-
-    // Enter key support
-    input.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && !checkBtn.disabled) {
-            checkBtn.click();
-        }
+    document.querySelector('.continue-btn').addEventListener('mouseup', function() {
+        this.style.transform = 'scale(1)';
     });
 </script>
 
