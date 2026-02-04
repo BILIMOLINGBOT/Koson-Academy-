@@ -18,6 +18,7 @@
             --shadow-lg: rgba(0, 0, 0, 0.15);
             --success: #28a745;
             --error: #dc3545;
+            --recording: #dc3545;
         }
 
         * {
@@ -54,6 +55,40 @@
             overflow-y: auto;
         }
 
+        .question-card {
+            background: var(--bg-primary);
+            border-radius: 20px;
+            padding: 30px 25px;
+            box-shadow: 0 4px 20px var(--shadow-sm);
+            max-width: 500px;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        .question-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .question-text {
+            font-size: 24px;
+            font-weight: 600;
+            line-height: 1.4;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .question-hint {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 12px;
+            font-style: italic;
+        }
+
         /* Input area */
         .input-area {
             width: 100%;
@@ -68,6 +103,9 @@
             padding: 20px;
             box-shadow: 0 2px 12px var(--shadow-sm);
             transition: all 0.3s ease;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
         }
 
         .input-wrapper.focused {
@@ -75,36 +113,60 @@
             box-shadow: 0 4px 20px var(--shadow-md);
         }
 
-        .input-wrapper.correct {
-            border-color: var(--success);
-            background: rgba(40, 167, 69, 0.05);
-        }
-
-        .input-wrapper.incorrect {
-            border-color: var(--error);
+        .input-wrapper.recording {
+            border-color: var(--recording);
             background: rgba(220, 53, 69, 0.05);
+            box-shadow: 0 4px 20px rgba(220, 53, 69, 0.2);
         }
 
-        #userInput {
-            width: 100%;
-            border: none;
-            outline: none;
-            font-size: 20px;
-            font-weight: 500;
+        .input-display {
+            flex: 1;
+            font-size: 18px;
+            font-weight: 400;
             color: var(--text-primary);
-            background: transparent;
-            padding: 10px 0;
-            font-family: inherit;
+            line-height: 1.6;
+            min-height: 60px;
+            margin-bottom: 15px;
         }
 
-        #userInput::placeholder {
+        .input-display.empty {
             color: var(--text-secondary);
             opacity: 0.5;
         }
 
+        .voice-button {
+            width: 100%;
+            height: 50px;
+            border: none;
+            border-radius: 12px;
+            background: var(--text-primary);
+            color: var(--bg-primary);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .voice-button:active {
+            transform: scale(0.98);
+        }
+
+        .voice-button.recording {
+            background: var(--recording);
+            animation: pulse-recording 1.5s infinite;
+        }
+
+        .voice-icon {
+            font-size: 20px;
+        }
+
         .char-count {
             position: absolute;
-            bottom: 8px;
+            top: 8px;
             right: 20px;
             font-size: 12px;
             color: var(--text-secondary);
@@ -232,6 +294,43 @@
         .shake { 
             animation: shake 0.4s ease; 
         }
+
+        @keyframes pulse-recording {
+            0%, 100% { 
+                box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+            }
+            50% { 
+                box-shadow: 0 0 0 15px rgba(220, 53, 69, 0);
+            }
+        }
+
+        /* Recording indicator */
+        .recording-indicator {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: var(--recording);
+            font-weight: 500;
+        }
+
+        .recording-indicator.active {
+            display: flex;
+        }
+
+        .recording-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--recording);
+            border-radius: 50%;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
     </style>
 </head>
 <body>
@@ -239,19 +338,26 @@
 <div class="app-container">
     <!-- Question Section -->
     <div class="question-section">
+        <div class="question-card">
+            <div class="question-label">Tarjima qiling</div>
+            <div class="question-text" id="questionText">The quick brown fox jumps over the lazy dog</div>
+            <div class="question-hint" id="questionHint">Inglizchadan o'zbekchaga tarjima qiling</div>
+        </div>
+
         <div class="input-area">
             <div class="input-wrapper" id="inputWrapper">
-                <input 
-                    type="text" 
-                    id="userInput" 
-                    placeholder="Javobingizni kiriting..."
-                    autocomplete="off"
-                    autocorrect="off"
-                    spellcheck="false"
-                >
                 <div class="char-count" id="charCount">0</div>
+                <div class="recording-indicator" id="recordingIndicator">
+                    <div class="recording-dot"></div>
+                    <span>Tinglayapman...</span>
+                </div>
+                <div class="input-display" id="inputDisplay">Javobingizni aytish uchun tugmani bosib turing</div>
+                <button class="voice-button" id="voiceButton">
+                    <span class="voice-icon">🎤</span>
+                    <span id="voiceButtonText">Bosib turib gapiring</span>
+                </button>
             </div>
-            <div class="keyboard-hint">💡 Klaviaturadan yozing</div>
+            <div class="keyboard-hint">💡 Tugmani bosib turing va gapiring</div>
         </div>
     </div>
 
@@ -272,43 +378,168 @@
 </div>
 
 <script>
-    const input = document.getElementById('userInput');
+    // Sample questions
+    const questions = [
+        {
+            text: "The quick brown fox jumps over the lazy dog",
+            hint: "Inglizchadan o'zbekchaga tarjima qiling",
+            answer: "tez jigarrang tulki dangasa it ustidan sakraydi"
+        },
+        {
+            text: "Hello, how are you?",
+            hint: "Oddiy salomlashish",
+            answer: "salom qalaysiz"
+        },
+        {
+            text: "I love learning new languages",
+            hint: "Til o'rganish haqida",
+            answer: "men yangi tillarni o'rganishni yaxshi ko'raman"
+        },
+        {
+            text: "Good morning!",
+            hint: "Ertalabki salomlashish",
+            answer: "xayrli tong"
+        },
+        {
+            text: "Thank you very much",
+            hint: "Minnatdorchilik bildirish",
+            answer: "katta rahmat"
+        }
+    ];
+
+    let currentQuestion = 0;
+    let recognition = null;
+    let isRecording = false;
+    let recognizedText = '';
+
     const inputWrapper = document.getElementById('inputWrapper');
+    const inputDisplay = document.getElementById('inputDisplay');
+    const voiceButton = document.getElementById('voiceButton');
+    const voiceButtonText = document.getElementById('voiceButtonText');
+    const recordingIndicator = document.getElementById('recordingIndicator');
     const checkBtn = document.getElementById('checkBtn');
     const resultPanel = document.getElementById('resultPanel');
     const charCount = document.getElementById('charCount');
+    const questionText = document.getElementById('questionText');
+    const questionHint = document.getElementById('questionHint');
 
-    // Focus on input
-    input.focus();
-    
-    input.addEventListener('focus', () => {
-        inputWrapper.classList.add('focused');
+    // Web Speech API setup
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechRecognition();
+        recognition.lang = 'uz-UZ'; // O'zbek tili
+        recognition.continuous = false;
+        recognition.interimResults = true;
+
+        recognition.onresult = (event) => {
+            let interimTranscript = '';
+            let finalTranscript = '';
+
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                const transcript = event.results[i][0].transcript;
+                if (event.results[i].isFinal) {
+                    finalTranscript += transcript;
+                } else {
+                    interimTranscript += transcript;
+                }
+            }
+
+            recognizedText = finalTranscript || interimTranscript;
+            updateDisplay(recognizedText);
+        };
+
+        recognition.onend = () => {
+            stopRecording();
+        };
+
+        recognition.onerror = (event) => {
+            console.error('Speech recognition error:', event.error);
+            stopRecording();
+            if (event.error === 'no-speech') {
+                inputDisplay.textContent = 'Ovoz aniqlanmadi. Qaytadan urinib ko\'ring.';
+                inputDisplay.classList.add('empty');
+            }
+        };
+    }
+
+    // Voice button handlers
+    voiceButton.addEventListener('mousedown', startRecording);
+    voiceButton.addEventListener('mouseup', stopRecording);
+    voiceButton.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        startRecording();
+    });
+    voiceButton.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        stopRecording();
     });
 
-    input.addEventListener('blur', () => {
-        inputWrapper.classList.remove('focused');
-    });
+    function startRecording() {
+        if (!recognition) {
+            alert('Ovozni tanish qo\'llab-quvvatlanmaydi. Iltimos, Chrome yoki Edge brauzeridan foydalaning.');
+            return;
+        }
 
-    // Input handling
-    input.addEventListener('input', (e) => {
-        const val = e.target.value;
-        charCount.textContent = val.length;
-        
-        const isReady = val.trim().length > 0;
-        checkBtn.disabled = !isReady;
-        checkBtn.classList.toggle('active', isReady);
-    });
+        if (isRecording) return;
+
+        isRecording = true;
+        inputWrapper.classList.add('recording');
+        voiceButton.classList.add('recording');
+        voiceButtonText.textContent = 'Gapiring...';
+        recordingIndicator.classList.add('active');
+
+        try {
+            recognition.start();
+        } catch (error) {
+            console.error('Recognition start error:', error);
+        }
+    }
+
+    function stopRecording() {
+        if (!isRecording) return;
+
+        isRecording = false;
+        inputWrapper.classList.remove('recording');
+        voiceButton.classList.remove('recording');
+        voiceButtonText.textContent = 'Bosib turib gapiring';
+        recordingIndicator.classList.remove('active');
+
+        if (recognition) {
+            recognition.stop();
+        }
+    }
+
+    function updateDisplay(text) {
+        if (text && text.trim().length > 0) {
+            inputDisplay.textContent = text;
+            inputDisplay.classList.remove('empty');
+            charCount.textContent = text.length;
+            checkBtn.disabled = false;
+            checkBtn.classList.add('active');
+        } else {
+            inputDisplay.textContent = 'Javobingizni aytish uchun tugmani bosib turing';
+            inputDisplay.classList.add('empty');
+            charCount.textContent = '0';
+            checkBtn.disabled = true;
+            checkBtn.classList.remove('active');
+        }
+    }
 
     // Check answer
     checkBtn.addEventListener('click', () => {
-        // Backend bilan tekshirish logikasi bu yerda bo'ladi
-        const userAnswer = input.value.trim();
+        const userAnswer = recognizedText.trim().toLowerCase();
+        const correctAnswer = questions[currentQuestion].answer.toLowerCase();
         
-        // Bu yerda backend API ga so'rov yuboriladi
-        // Masalan: fetch('/api/check-answer', { method: 'POST', body: JSON.stringify({ answer: userAnswer }) })
+        // Simple similarity check (removing punctuation and extra spaces)
+        const normalizeText = (text) => text.replace(/[.,!?]/g, '').replace(/\s+/g, ' ').trim();
         
-        // Hozircha demo uchun:
-        showResult(true); // yoki showResult(false);
+        const isCorrect = normalizeText(userAnswer) === normalizeText(correctAnswer);
+        
+        if (isCorrect) {
+            showResult(true);
+        } else {
+            showResult(false);
+        }
     });
 
     function showResult(isCorrect) {
@@ -328,7 +559,7 @@
             resultTitle.textContent = 'Xato! 😔';
             resultMessage.textContent = 'Qaytadan urinib ko\'ring.';
             correctAnswerDiv.style.display = 'block';
-            correctAnswerDiv.textContent = `To'g'ri javob: [Backend dan keladi]`;
+            correctAnswerDiv.textContent = `To'g'ri javob: ${questions[currentQuestion].answer}`;
             inputWrapper.classList.add('shake');
             setTimeout(() => inputWrapper.classList.remove('shake'), 400);
         }
@@ -339,27 +570,26 @@
     // Continue to next question
     document.getElementById('continueBtn').addEventListener('click', () => {
         resultPanel.classList.remove('active');
-        loadQuestion();
+        
+        currentQuestion++;
+        
+        if (currentQuestion < questions.length) {
+            loadQuestion();
+        } else {
+            currentQuestion = 0;
+            loadQuestion();
+        }
     });
 
     function loadQuestion() {
-        // Bu yerda backend dan yangi savol yuklanadi
-        // Masalan: fetch('/api/next-question').then(...)
+        const q = questions[currentQuestion];
+        questionText.textContent = q.text;
+        questionHint.textContent = q.hint;
         
-        input.value = '';
-        charCount.textContent = '0';
-        checkBtn.disabled = true;
-        checkBtn.classList.remove('active');
-        inputWrapper.classList.remove('correct', 'incorrect', 'focused');
-        input.focus();
+        recognizedText = '';
+        updateDisplay('');
+        inputWrapper.classList.remove('focused');
     }
-
-    // Enter key support
-    input.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && !checkBtn.disabled) {
-            checkBtn.click();
-        }
-    });
 </script>
 
 </body>
