@@ -2,445 +2,354 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Language UI - Interactive Learning</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language Learning - Black & White UI</title>
     <style>
         :root {
-            --bg-primary: #0a0a0a;
-            --bg-secondary: #141414;
+            --bg-primary: #000000;
+            --bg-secondary: #0a0a0a;
             --text-primary: #ffffff;
             --text-secondary: #a0a0a0;
-            --border-light: #2a2a2a;
-            --border-dark: #333333;
-            --accent-dark: #ffffff;
-            --shadow-sm: rgba(255, 255, 255, 0.05);
-            --shadow-md: rgba(255, 255, 255, 0.1);
-            --shadow-lg: rgba(255, 255, 255, 0.15);
+            --border-light: #333333;
+            --border-dark: #444444;
+            --accent: #ffffff;
+            --shadow: rgba(255, 255, 255, 0.1);
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
         }
 
-        body, html {
-            height: 100%;
-            background: var(--bg-primary);
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        body {
+            background-color: var(--bg-primary);
             color: var(--text-primary);
-            -webkit-tap-highlight-color: transparent;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 40px 24px;
             overflow: hidden;
         }
 
-        .app-container {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom);
-            background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+        /* Progress indicator */
+        .progress-bar {
+            width: 100%;
+            max-width: 400px;
+            height: 4px;
+            background: var(--border-light);
+            border-radius: 2px;
+            margin-bottom: 40px;
+            overflow: hidden;
         }
 
-        /* Header section with icon */
-        .header-section {
-            padding: 20px 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
+        .progress-fill {
+            width: 33%;
+            height: 100%;
+            background: var(--text-primary);
+            border-radius: 2px;
+            transition: width 0.3s ease;
         }
 
-        .header-icon {
-            width: 32px;
-            height: 32px;
-            fill: var(--text-primary);
-        }
-
-        .header-title {
+        /* Yuqori matn */
+        .header {
+            width: 100%;
+            max-width: 400px;
             font-size: 20px;
             font-weight: 600;
+            text-align: center;
+            margin-bottom: 40px;
             letter-spacing: -0.3px;
         }
 
-        /* Markaziy qism */
-        .question-section {
-            flex: 1;
+        /* Markaziy karta - minimal oq-qora */
+        .phrase-container {
+            width: 100%;
+            max-width: 400px;
+            border: 1.5px solid var(--border-light);
+            border-radius: 24px;
+            padding: 32px 28px;
             display: flex;
-            flex-direction: column;
             align-items: center;
-            justify-content: center;
-            gap: 40px;
-        }
-
-        .input-slots {
-            display: flex;
-            gap: 16px;
-            justify-content: center;
-        }
-
-        .slot {
-            width: 75px;
-            height: 85px;
-            border-radius: 16px;
+            justify-content: space-between;
             background: var(--bg-secondary);
-            border: 2px solid var(--border-light);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 40px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            text-transform: uppercase;
-            box-shadow: 0 2px 8px var(--shadow-sm);
+            box-shadow: 0 8px 32px var(--shadow);
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
         }
 
-        .slot.filled {
-            border-color: var(--text-primary);
-            background: var(--bg-secondary);
-            transform: translateY(-3px);
-            box-shadow: 0 8px 24px var(--shadow-md);
-            color: var(--text-primary);
+        .phrase-container:active {
+            transform: scale(0.99);
+            opacity: 0.9;
         }
 
-        /* Icons container */
-        .icon-display {
-            display: flex;
-            gap: 24px;
-            align-items: center;
-            justify-content: center;
-            margin-top: 20px;
+        .phrase-text {
+            font-size: 28px;
+            font-weight: 700;
+            line-height: 1.3;
+            letter-spacing: -0.5px;
         }
 
-        .icon-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .icon-circle {
+        /* Volume icon - custom minimal design */
+        .volume-icon {
             width: 48px;
             height: 48px;
             border-radius: 50%;
-            background: var(--bg-secondary);
-            border: 1.5px solid var(--border-light);
+            border: 2px solid var(--text-primary);
             display: flex;
             align-items: center;
             justify-content: center;
+            cursor: pointer;
             transition: all 0.2s ease;
+            flex-shrink: 0;
         }
 
-        .icon-circle.active {
-            border-color: var(--text-primary);
+        .volume-icon:active {
             background: rgba(255, 255, 255, 0.1);
+            transform: scale(0.95);
         }
 
-        .icon-svg {
+        .volume-icon svg {
             width: 24px;
             height: 24px;
             fill: var(--text-primary);
-            opacity: 0.8;
         }
 
-        .icon-label {
-            font-size: 12px;
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-
-        /* Tugma qismi */
-        .check-btn-area {
-            padding: 20px 0 40px 0;
-        }
-
-        .check-btn {
+        /* Pastki tugmalar qismi */
+        .footer {
             width: 100%;
-            height: 56px;
-            border: none;
-            border-radius: 16px;
-            background: var(--border-dark);
-            color: var(--text-secondary);
-            font-size: 18px;
-            font-weight: 600;
-            cursor: not-allowed;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 12px var(--shadow-sm);
-            letter-spacing: 0.3px;
+            max-width: 400px;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: center;
-            gap: 10px;
+            gap: 32px;
         }
 
-        .check-btn.active {
+        /* Asosiy oq tugma - micro uchun */
+        .mic-button {
+            width: 100%;
             background: var(--text-primary);
             color: var(--bg-primary);
-            cursor: pointer;
-            box-shadow: 0 8px 24px var(--shadow-lg);
-            transform: translateY(-1px);
-        }
-
-        .check-btn.active:active {
-            transform: translateY(0px);
-            box-shadow: 0 4px 12px var(--shadow-md);
-        }
-
-        .check-icon {
-            width: 20px;
-            height: 20px;
-            fill: currentColor;
-        }
-
-        /* Natija paneli */
-        .result-panel {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: var(--text-primary);
-            border-radius: 24px 24px 0 0;
-            padding: 30px 20px;
-            transform: translateY(100%);
-            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            z-index: 1000;
-            color: var(--bg-primary);
-            box-shadow: 0 -4px 32px var(--shadow-lg);
-        }
-
-        .result-panel.active { 
-            transform: translateY(0); 
-        }
-
-        .result-panel h2 {
-            font-size: 28px;
-            margin-bottom: 12px;
+            border: none;
+            padding: 20px;
+            border-radius: 20px;
+            font-size: 18px;
             font-weight: 700;
-            letter-spacing: -0.5px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .result-icon {
-            width: 32px;
-            height: 32px;
-            fill: currentColor;
-        }
-
-        .result-panel p {
-            font-size: 16px;
-            opacity: 0.9;
-            line-height: 1.5;
-        }
-
-        .continue-btn {
-            width: 100%;
-            height: 56px;
-            border: none;
-            border-radius: 16px;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            font-size: 18px;
-            font-weight: 600;
-            margin-top: 24px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 12px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 16px rgba(255, 255, 255, 0.15);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .continue-btn:active {
-            transform: scale(0.98);
+        .mic-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(255, 255, 255, 0.2);
         }
 
-        .continue-icon {
-            width: 20px;
-            height: 20px;
-            fill: currentColor;
+        .mic-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
         }
 
-        .sr-only { 
-            position: absolute; 
-            width: 1px; 
-            height: 1px; 
-            padding: 0; 
-            margin: -1px; 
-            overflow: hidden; 
-            clip: rect(0,0,0,0); 
-            border: 0; 
-        }
-        
-        @keyframes pulse {
-            0% { transform: scale(1) translateY(-3px); }
-            50% { transform: scale(1.08) translateY(-3px); }
-            100% { transform: scale(1) translateY(-3px); }
-        }
-        
-        .pulse { 
-            animation: pulse 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+        .mic-icon {
+            width: 24px;
+            height: 24px;
+            position: relative;
         }
 
-        /* Minimal ripple effect */
-        @keyframes ripple {
-            0% {
-                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.1);
-            }
-            100% {
-                box-shadow: 0 0 0 20px rgba(255, 255, 255, 0);
-            }
+        .mic-icon svg {
+            width: 100%;
+            height: 100%;
+            fill: var(--bg-primary);
         }
+
+        /* Skip tugmasi */
+        .skip-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            padding: 12px 24px;
+            border: 1.5px solid var(--border-light);
+            border-radius: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .skip-link:hover {
+            color: var(--text-primary);
+            border-color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Sound wave animation */
+        @keyframes soundWave {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .sound-wave {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            margin-top: 16px;
+        }
+
+        .wave-bar {
+            width: 3px;
+            height: 16px;
+            background: var(--text-primary);
+            border-radius: 2px;
+            animation: soundWave 1.4s ease-in-out infinite;
+        }
+
+        .wave-bar:nth-child(2) { animation-delay: 0.2s; }
+        .wave-bar:nth-child(3) { animation-delay: 0.4s; }
+        .wave-bar:nth-child(4) { animation-delay: 0.6s; }
+        .wave-bar:nth-child(5) { animation-delay: 0.8s; }
     </style>
 </head>
 <body>
 
-<!-- SVG Sprite Container -->
-<svg style="display: none;">
-    <symbol id="icon-language" viewBox="0 0 24 24">
-        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-    </symbol>
-    <symbol id="icon-check" viewBox="0 0 24 24">
-        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-    </symbol>
-    <symbol id="icon-arrow" viewBox="0 0 24 24">
-        <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
-    </symbol>
-    <symbol id="icon-star" viewBox="0 0 24 24">
-        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
-    </symbol>
-    <symbol id="icon-celebration" viewBox="0 0 24 24">
-        <path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm-2-15l4.5 4.5L10 17l-4.5-4.5L10 7zm2 0l4.5 4.5L12 17l-4.5-4.5L12 7z"/>
-    </symbol>
-</svg>
-
-<div class="app-container">
-    <input type="text" id="hiddenInput" class="sr-only" maxlength="3" autocomplete="off">
-    
-    <div class="header-section">
-        <svg class="header-icon">
-            <use href="#icon-language"></use>
-        </svg>
-        <span class="header-title">Language Master</span>
-    </div>
-    
-    <div class="question-section">
-        <div class="input-slots">
-            <div class="slot" id="s0"></div>
-            <div class="slot" id="s1"></div>
-            <div class="slot" id="s2"></div>
-        </div>
-        
-        <div class="icon-display">
-            <div class="icon-item">
-                <div class="icon-circle" id="icon1">
-                    <svg class="icon-svg">
-                        <use href="#icon-star"></use>
-                    </svg>
-                </div>
-                <span class="icon-label">Progress</span>
-            </div>
-            <div class="icon-item">
-                <div class="icon-circle active" id="icon2">
-                    <svg class="icon-svg">
-                        <use href="#icon-language"></use>
-                    </svg>
-                </div>
-                <span class="icon-label">Current</span>
-            </div>
-            <div class="icon-item">
-                <div class="icon-circle" id="icon3">
-                    <svg class="icon-svg">
-                        <use href="#icon-check"></use>
-                    </svg>
-                </div>
-                <span class="icon-label">Complete</span>
-            </div>
-        </div>
+    <div class="progress-bar">
+        <div class="progress-fill"></div>
     </div>
 
-    <div class="check-btn-area">
-        <button class="check-btn" id="checkBtn" disabled>
-            <svg class="check-icon">
-                <use href="#icon-check"></use>
+    <div class="header">
+        Tinglang va takrorlang
+    </div>
+
+    <div class="phrase-container" id="phraseCard">
+        <div class="phrase-text">Hello. How are you?</div>
+        <div class="volume-icon" id="volumeBtn">
+            <svg viewBox="0 0 24 24">
+                <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
             </svg>
-            Tekshirish
-        </button>
-    </div>
-
-    <div class="result-panel" id="resultPanel">
-        <div style="max-width: 500px; margin: 0 auto;">
-            <h2>
-                <svg class="result-icon">
-                    <use href="#icon-celebration"></use>
-                </svg>
-                Ajoyib! 🎉
-            </h2>
-            <p>Javobingiz to'g'ri qabul qilindi. Davom eting!</p>
-            <button class="continue-btn" id="continueBtn">
-                Keyingi savol
-                <svg class="continue-icon">
-                    <use href="#icon-arrow"></use>
-                </svg>
-            </button>
         </div>
     </div>
-</div>
 
-<script>
-    const input = document.getElementById('hiddenInput');
-    const slots = [document.getElementById('s0'), document.getElementById('s1'), document.getElementById('s2')];
-    const checkBtn = document.getElementById('checkBtn');
-    const resultPanel = document.getElementById('resultPanel');
-    const iconCircles = document.querySelectorAll('.icon-circle');
+    <div class="sound-wave" id="soundWave">
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+    </div>
 
-    document.addEventListener('click', () => input.focus());
+    <div class="footer">
+        <button class="mic-button" id="micBtn">
+            <div class="mic-icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/>
+                </svg>
+            </div>
+            Bosib turib gapiring
+        </button>
+        <a href="#" class="skip-link">O'tkazib yuborish</a>
+    </div>
 
-    input.addEventListener('input', (e) => {
-        const val = e.target.value.toUpperCase().slice(0, 3);
-        slots.forEach((slot, i) => {
-            slot.textContent = val[i] || '';
-            slot.classList.toggle('filled', !!val[i]);
-            if (val[i] && val.length === i + 1) slot.classList.add('pulse');
-            setTimeout(() => slot.classList.remove('pulse'), 300);
+    <!-- SVG icons -->
+    <svg style="display: none;">
+        <symbol id="icon-volume" viewBox="0 0 24 24">
+            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+        </symbol>
+        <symbol id="icon-mic" viewBox="0 0 24 24">
+            <path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/>
+        </symbol>
+        <symbol id="icon-skip" viewBox="0 0 24 24">
+            <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
+        </symbol>
+    </svg>
+
+    <script>
+        const phraseCard = document.getElementById('phraseCard');
+        const volumeBtn = document.getElementById('volumeBtn');
+        const micBtn = document.getElementById('micBtn');
+        const soundWave = document.getElementById('soundWave');
+        
+        // Hide sound wave initially
+        soundWave.style.display = 'none';
+        
+        // Volume button click - play sound
+        volumeBtn.addEventListener('click', () => {
+            // Add visual feedback
+            volumeBtn.style.transform = 'scale(0.95)';
+            volumeBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+            
+            // Show sound wave animation
+            soundWave.style.display = 'flex';
+            
+            // Simulate sound playing
+            setTimeout(() => {
+                volumeBtn.style.transform = '';
+                volumeBtn.style.backgroundColor = '';
+                soundWave.style.display = 'none';
+            }, 2000);
         });
         
-        const isReady = val.length === 3;
-        checkBtn.disabled = !isReady;
-        checkBtn.classList.toggle('active', isReady);
-        
-        // Ikonkalarni yangilash
-        updateIcons(val.length);
-    });
-
-    function updateIcons(filledCount) {
-        iconCircles.forEach((circle, index) => {
-            circle.classList.remove('active');
-            if (index === 1) {
-                circle.classList.add('active');
-            } else if (filledCount === 3 && index === 2) {
-                circle.classList.add('active');
+        // Microphone button - recording simulation
+        let isRecording = false;
+        micBtn.addEventListener('click', () => {
+            isRecording = !isRecording;
+            
+            if (isRecording) {
+                // Start recording state
+                micBtn.innerHTML = `
+                    <div class="mic-icon">
+                        <svg viewBox="0 0 24 24" style="fill: #ff0000">
+                            <path d="M12 2C9.24 2 7 4.24 7 7v6c0 2.76 2.24 5 5 5s5-2.24 5-5V7c0-2.76-2.24-5-5-5z"/>
+                            <path d="M19 10v3c0 3.87-3.13 7-7 7s-7-3.13-7-7v-3h2v3c0 2.76 2.24 5 5 5s5-2.24 5-5v-3h2z"/>
+                        </svg>
+                    </div>
+                    Qo'yish uchun bosish
+                `;
+                micBtn.style.background = 'rgba(255, 255, 255, 0.9)';
+                
+                // Show sound wave
+                soundWave.style.display = 'flex';
+            } else {
+                // Stop recording state
+                micBtn.innerHTML = `
+                    <div class="mic-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/>
+                        </svg>
+                    </div>
+                    Bosib turib gapiring
+                `;
+                micBtn.style.background = '';
+                
+                // Hide sound wave
+                soundWave.style.display = 'none';
+                
+                // Simulate successful recording
+                phraseCard.style.borderColor = '#ffffff';
+                phraseCard.style.boxShadow = '0 0 0 2px rgba(255, 255, 255, 0.3)';
+                
+                setTimeout(() => {
+                    phraseCard.style.borderColor = '';
+                    phraseCard.style.boxShadow = '';
+                }, 1000);
             }
         });
-    }
-
-    checkBtn.addEventListener('click', () => {
-        resultPanel.classList.add('active');
-        iconCircles[2].classList.add('active');
-    });
-
-    document.getElementById('continueBtn').addEventListener('click', () => {
-        resultPanel.classList.remove('active');
-        input.value = '';
-        slots.forEach(s => { s.textContent = ''; s.classList.remove('filled'); });
-        checkBtn.disabled = true;
-        checkBtn.classList.remove('active');
-        updateIcons(0);
-        input.focus();
-    });
-</script>
-
+        
+        // Add some interactive effects
+        phraseCard.addEventListener('mouseenter', () => {
+            phraseCard.style.borderColor = 'rgba(255, 255, 255, 0.5)';
+        });
+        
+        phraseCard.addEventListener('mouseleave', () => {
+            phraseCard.style.borderColor = 'var(--border-light)';
+        });
+    </script>
 </body>
 </html>
