@@ -51,35 +51,47 @@
             gap: 40px;
         }
 
-        .input-slots {
-            display: flex;
-            gap: 16px;
-            justify-content: center;
+        .input-container {
+            position: relative;
+            width: 100%;
+            max-width: 300px;
         }
 
-        .slot {
-            width: 75px;
+        .single-input {
+            width: 100%;
             height: 85px;
             border-radius: 16px;
             background: var(--bg-secondary);
             border: 2px solid var(--border-light);
-            display: flex;
-            align-items: center;
-            justify-content: center;
             font-size: 40px;
             font-weight: 600;
-            color: var(--text-secondary);
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            color: var(--text-primary);
+            text-align: center;
             text-transform: uppercase;
             box-shadow: 0 2px 8px var(--shadow-sm);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            outline: none;
+            padding: 0 20px;
+            letter-spacing: 10px;
         }
 
-        .slot.filled {
+        .single-input:focus {
             border-color: var(--text-primary);
             background: var(--bg-secondary);
             transform: translateY(-3px);
             box-shadow: 0 8px 24px var(--shadow-md);
-            color: var(--text-primary);
+        }
+
+        .single-input::placeholder {
+            color: var(--text-secondary);
+            letter-spacing: normal;
+        }
+
+        .input-hint {
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 12px;
         }
 
         /* Tugma qismi */
@@ -209,7 +221,7 @@
         
         @keyframes pulse {
             0% { transform: scale(1) translateY(-3px); }
-            50% { transform: scale(1.08) translateY(-3px); }
+            50% { transform: scale(1.05) translateY(-3px); }
             100% { transform: scale(1) translateY(-3px); }
         }
         
@@ -234,13 +246,18 @@
 </svg>
 
 <div class="app-container">
-    <input type="text" id="hiddenInput" class="sr-only" maxlength="3" autocomplete="off">
-    
     <div class="question-section">
-        <div class="input-slots">
-            <div class="slot" id="s0"></div>
-            <div class="slot" id="s1"></div>
-            <div class="slot" id="s2"></div>
+        <div class="input-container">
+            <input 
+                type="text" 
+                class="single-input" 
+                id="mainInput" 
+                maxlength="3" 
+                autocomplete="off" 
+                placeholder="?"
+                autofocus
+            >
+            <div class="input-hint">3 ta harf kiriting</div>
         </div>
     </div>
 
@@ -273,38 +290,63 @@
 </div>
 
 <script>
-    const input = document.getElementById('hiddenInput');
-    const slots = [document.getElementById('s0'), document.getElementById('s1'), document.getElementById('s2')];
+    const mainInput = document.getElementById('mainInput');
     const checkBtn = document.getElementById('checkBtn');
     const resultPanel = document.getElementById('resultPanel');
 
-    document.addEventListener('click', () => input.focus());
+    // Avtomatik fokus
+    mainInput.focus();
 
-    input.addEventListener('input', (e) => {
+    mainInput.addEventListener('input', (e) => {
         const val = e.target.value.toUpperCase().slice(0, 3);
-        slots.forEach((slot, i) => {
-            slot.textContent = val[i] || '';
-            slot.classList.toggle('filled', !!val[i]);
-            if (val[i] && val.length === i + 1) slot.classList.add('pulse');
-            setTimeout(() => slot.classList.remove('pulse'), 300);
-        });
+        mainInput.value = val;
         
         const isReady = val.length === 3;
         checkBtn.disabled = !isReady;
         checkBtn.classList.toggle('active', isReady);
+        
+        if (val.length === 3) {
+            mainInput.classList.add('pulse');
+            setTimeout(() => mainInput.classList.remove('pulse'), 300);
+        }
+    });
+
+    mainInput.addEventListener('keypress', (e) => {
+        // Faqat harflar va raqamlarga ruxsat berish
+        const charCode = e.keyCode || e.which;
+        const charStr = String.fromCharCode(charCode);
+        
+        if (!/^[A-Za-z0-9]$/.test(charStr)) {
+            e.preventDefault();
+        }
+    });
+
+    mainInput.addEventListener('keyup', (e) => {
+        // Enter tugmasi bilan tekshirish
+        if (e.key === 'Enter' && mainInput.value.length === 3) {
+            checkBtn.click();
+        }
     });
 
     checkBtn.addEventListener('click', () => {
-        resultPanel.classList.add('active');
+        if (mainInput.value.length === 3) {
+            resultPanel.classList.add('active');
+        }
     });
 
     document.getElementById('continueBtn').addEventListener('click', () => {
         resultPanel.classList.remove('active');
-        input.value = '';
-        slots.forEach(s => { s.textContent = ''; s.classList.remove('filled'); });
+        mainInput.value = '';
         checkBtn.disabled = true;
         checkBtn.classList.remove('active');
-        input.focus();
+        mainInput.focus();
+    });
+
+    // Ekranning istalgan joyiga bosganda inputga fokus qilish
+    document.addEventListener('click', (e) => {
+        if (e.target !== mainInput && !e.target.closest('.result-panel')) {
+            mainInput.focus();
+        }
     });
 </script>
 
