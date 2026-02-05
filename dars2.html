@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Language UI - Interactive Learning</title>
+    <title>Ispan Tili - Interactive Learning</title>
     <style>
         :root {
             --bg-primary: #0a0a0a;
@@ -14,6 +14,8 @@
             --border-dark: #333333;
             --accent-color: #ffffff;
             --shadow-lg: rgba(255, 255, 255, 0.1);
+            --correct: #10b981;
+            --incorrect: #ef4444;
         }
 
         * {
@@ -40,7 +42,7 @@
             background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
         }
 
-        /* YUQORI QISM: Rasm chapda, Matn o'ngda */
+        /* YUQORI QISM: Rasm va Savol */
         .top-section {
             display: flex;
             align-items: center;
@@ -54,27 +56,26 @@
         }
 
         .question-image {
-            width: 120px; /* Mobil uchun qulay o'lcham */
+            width: 120px;
             height: auto;
             filter: drop-shadow(0 10px 15px rgba(0,0,0,0.5));
             display: block;
         }
 
-        /* Nutq pufakchasi */
         .speech-bubble {
             position: relative;
             background: var(--bg-secondary);
             border: 2px solid var(--border-light);
             border-radius: 20px;
             padding: 15px 20px;
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 600;
             color: var(--text-primary);
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            line-height: 1.2;
+            line-height: 1.4;
+            flex: 1;
         }
 
-        /* Pufakchaning quyruqchasi (chapga qaragan) */
         .speech-bubble::before {
             content: '';
             position: absolute;
@@ -97,40 +98,72 @@
             border-color: transparent var(--bg-secondary) transparent transparent;
         }
 
-        /* MARKAZIY QISM: Input */
-        .question-section {
+        /* MARKAZIY QISM: Variantlar */
+        .options-section {
             flex: 1;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            gap: 12px;
+            padding: 20px 0;
         }
 
-        .input-container {
+        .option-btn {
             width: 100%;
-            max-width: 280px;
-        }
-
-        .single-input {
-            width: 100%;
-            height: 80px;
-            border-radius: 20px;
+            padding: 18px 20px;
+            border-radius: 16px;
             background: var(--bg-secondary);
             border: 2px solid var(--border-light);
-            font-size: 36px;
-            font-weight: 700;
             color: var(--text-primary);
-            text-align: center;
-            text-transform: uppercase;
-            outline: none;
+            font-size: 16px;
+            font-weight: 500;
+            text-align: left;
+            cursor: pointer;
             transition: all 0.3s ease;
-            letter-spacing: 5px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
-        .single-input:focus {
-            border-color: var(--text-primary);
-            box-shadow: 0 0 20px var(--shadow-lg);
+        .option-btn:hover {
+            border-color: var(--text-secondary);
             transform: translateY(-2px);
+        }
+
+        .option-btn.selected {
+            border-color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .option-btn.correct {
+            background: var(--correct);
+            border-color: var(--correct);
+        }
+
+        .option-btn.incorrect {
+            background: var(--incorrect);
+            border-color: var(--incorrect);
+        }
+
+        .option-letter {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            background: var(--border-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.selected .option-letter {
+            background: var(--text-primary);
+            color: var(--bg-primary);
+        }
+
+        .option-text {
+            flex: 1;
         }
 
         /* PASTKI QISM: Tugma */
@@ -166,6 +199,23 @@
             transform: scale(0.98);
         }
 
+        /* PROGRESS BAR */
+        .progress-container {
+            width: 100%;
+            height: 4px;
+            background: var(--border-light);
+            border-radius: 2px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--text-primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
         /* NATIJA PANELI */
         .result-panel {
             position: fixed;
@@ -184,7 +234,15 @@
 
         .result-panel.active { transform: translateY(0); }
 
-        .result-panel h2 { font-size: 28px; margin-bottom: 10px; }
+        .result-panel h2 { 
+            font-size: 28px; 
+            margin-bottom: 10px;
+        }
+
+        .result-emoji {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
 
         .continue-btn {
             width: 100%;
@@ -205,6 +263,12 @@
             50% { transform: translateY(-5px); }
         }
         .animate-bounce { animation: bounce 0.5s ease; }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .animate-pulse { animation: pulse 0.3s ease; }
     </style>
 </head>
 <body>
@@ -216,25 +280,20 @@
                 src="https://image2url.com/r2/default/images/1770213716285-e701e8d5-a098-4e7d-8ffa-9f8eb938c38e.png" 
                 alt="Character" 
                 class="question-image"
+                id="questionImage"
             >
         </div>
-        <div class="speech-bubble">
-            What is your name?
+        <div class="speech-bubble" id="questionText">
+            Ispan alifbosida nechta harf bor?
         </div>
     </div>
 
-    <div class="question-section">
-        <div class="input-container">
-            <input 
-                type="text" 
-                class="single-input" 
-                id="mainInput" 
-                maxlength="3" 
-                placeholder="?"
-                autocomplete="off"
-                autofocus
-            >
-        </div>
+    <div class="options-section" id="optionsContainer">
+        <!-- Variantlar JavaScript orqali yuklanadi -->
+    </div>
+
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
     </div>
 
     <div class="check-btn-area">
@@ -247,54 +306,263 @@
     </div>
 
     <div class="result-panel" id="resultPanel">
-        <h2>Ajoyib! 🎉</h2>
-        <p>Javob to'g'ri. Davom etamizmi?</p>
+        <div class="result-emoji" id="resultEmoji">🎉</div>
+        <h2 id="resultTitle">Ajoyib!</h2>
+        <p id="resultMessage">Javob to'g'ri. Davom etamizmi?</p>
         <button class="continue-btn" id="continueBtn">Keyingi savol</button>
     </div>
 </div>
 
 <script>
-    const mainInput = document.getElementById('mainInput');
+    const questions = [
+        {
+            question: "Ispan alifbosida nechta harf bor?",
+            image: "https://image2url.com/r2/default/images/1770213716285-e701e8d5-a098-4e7d-8ffa-9f8eb938c38e.png",
+            options: [
+                { text: "26", letter: "A" },
+                { text: "27", letter: "B" }
+            ],
+            correctAnswer: "B",
+            explanation: "Ispan alifbosida 27 ta harf bor: A, B, C, D, E, F, G, H, I, J, K, L, M, N, Ñ, O, P, Q, R, S, T, U, V, W, X, Y, Z"
+        },
+        {
+            question: "Ispan tilida nechta unli harf bor?",
+            image: "https://image2url.com/r2/default/images/1770213716285-e701e8d5-a098-4e7d-8ffa-9f8eb938c38e.png",
+            options: [
+                { text: "4", letter: "A" },
+                { text: "5", letter: "B" }
+            ],
+            correctAnswer: "B",
+            explanation: "Ispan tilida 5 ta unli harf bor: A, E, I, O, U"
+        },
+        {
+            question: "Ispan tilida nechta undosh harf bor?",
+            image: "https://image2url.com/r2/default/images/1770213716285-e701e8d5-a098-4e7d-8ffa-9f8eb938c38e.png",
+            options: [
+                { text: "21", letter: "A" },
+                { text: "22", letter: "B" }
+            ],
+            correctAnswer: "B",
+            explanation: "Ispan tilida 22 ta undosh harf bor: B, C, D, F, G, H, J, K, L, M, N, Ñ, P, Q, R, S, T, V, W, X, Y, Z"
+        },
+        {
+            question: "«C» qachon «k» kabi o'qiladi?",
+            image: "https://image2url.com/r2/default/images/1770213716285-e701e8d5-a098-4e7d-8ffa-9f8eb938c38e.png",
+            options: [
+                { text: "E, I bilan", letter: "A" },
+                { text: "A, O, U bilan", letter: "B" }
+            ],
+            correctAnswer: "B",
+            explanation: "«C» harfi A, O, U unlilaridan oldin «k» kabi o'qiladi (masalan: casa, cosa, cuna)"
+        },
+        {
+            question: "«G» harfi talaffuzi qachon o'zgaradi?",
+            image: "https://image2url.com/r2/default/images/1770213716285-e701e8d5-a098-4e7d-8ffa-9f8eb938c38e.png",
+            options: [
+                { text: "A, O, U bilan", letter: "A" },
+                { text: "E, I bilan", letter: "B" }
+            ],
+            correctAnswer: "B",
+            explanation: "«G» harfi E va I unlilaridan oldin «x» tovushini beradi (masalan: gente, girasol)"
+        },
+        {
+            question: "«H» harfi qachon o'qilmaydi?",
+            image: "https://image2url.com/r2/default/images/1770213716285-e701e8d5-a098-4e7d-8ffa-9f8eb938c38e.png",
+            options: [
+                { text: "Har doim", letter: "A" },
+                { text: "Hech qachon", letter: "B" }
+            ],
+            correctAnswer: "A",
+            explanation: "«H» harfi ispan tilida har doim o'qilmaydi (sessiz harf), masalan: hola, hombre"
+        },
+        {
+            question: "«J» harfi qanday tovush beradi?",
+            image: "https://image2url.com/r2/default/images/1770213716285-e701e8d5-a098-4e7d-8ffa-9f8eb938c38e.png",
+            options: [
+                { text: "j", letter: "A" },
+                { text: "x", letter: "B" }
+            ],
+            correctAnswer: "B",
+            explanation: "«J» harfi ispan tilida «x» tovushini beradi, masalan: juego, jirafa"
+        },
+        {
+            question: "«B» va «V» talaffuzi…",
+            image: "https://image2url.com/r2/default/images/1770213716285-e701e8d5-a098-4e7d-8ffa-9f8eb938c38e.png",
+            options: [
+                { text: "Farq qiladi", letter: "A" },
+                { text: "Bir xil", letter: "B" }
+            ],
+            correctAnswer: "B",
+            explanation: "Ispan tilida «B» va «V» harflari bir xil talaffuz qilinadi"
+        },
+        {
+            question: "«X» harfi qanday o'qilishi mumkin?",
+            image: "https://image2url.com/r2/default/images/1770213716285-e701e8d5-a098-4e7d-8ffa-9f8eb938c38e.png",
+            options: [
+                { text: "ks", letter: "A" },
+                { text: "x", letter: "B" }
+            ],
+            correctAnswer: "A",
+            explanation: "«X» harfi ko'pincha «ks» kabi o'qiladi, masalan: examen, éxito"
+        },
+        {
+            question: "«C» qachon «s» bo'ladi?",
+            image: "https://image2url.com/r2/default/images/1770213716285-e701e8d5-a098-4e7d-8ffa-9f8eb938c38e.png",
+            options: [
+                { text: "A, O, U bilan", letter: "A" },
+                { text: "E, I bilan", letter: "B" }
+            ],
+            correctAnswer: "B",
+            explanation: "«C» harfi E va I unlilaridan oldin «s» kabi o'qiladi (masalan: cerveza, cine)"
+        }
+    ];
+
+    // DOM elementlari
+    const questionText = document.getElementById('questionText');
+    const questionImage = document.getElementById('questionImage');
+    const optionsContainer = document.getElementById('optionsContainer');
     const checkBtn = document.getElementById('checkBtn');
     const resultPanel = document.getElementById('resultPanel');
+    const resultTitle = document.getElementById('resultTitle');
+    const resultMessage = document.getElementById('resultMessage');
+    const resultEmoji = document.getElementById('resultEmoji');
+    const progressBar = document.getElementById('progressBar');
 
-    // Har bir kiritishda tugmani tekshirish
-    mainInput.addEventListener('input', (e) => {
-        const val = e.target.value.toUpperCase();
-        mainInput.value = val;
+    // O'zgaruvchilar
+    let currentQuestionIndex = 0;
+    let selectedOption = null;
+    let score = 0;
+
+    // Dasturni ishga tushirish
+    function init() {
+        loadQuestion(currentQuestionIndex);
+        updateProgress();
+    }
+
+    // Savolni yuklash
+    function loadQuestion(index) {
+        const question = questions[index];
         
-        // Agar 3 ta harf bo'lsa tugmani yoqish
-        if (val.length === 3) {
-            checkBtn.disabled = false;
-            checkBtn.classList.add('active');
-            mainInput.classList.add('animate-bounce');
-            setTimeout(() => mainInput.classList.remove('animate-bounce'), 500);
-        } else {
-            checkBtn.disabled = true;
-            checkBtn.classList.remove('active');
-        }
-    });
-
-    // Tekshirish tugmasi bosilganda
-    checkBtn.addEventListener('click', () => {
-        resultPanel.classList.add('active');
-    });
-
-    // Keyingi savol tugmasi
-    document.getElementById('continueBtn').addEventListener('click', () => {
-        resultPanel.classList.remove('active');
-        mainInput.value = '';
+        // Savol matni va rasm
+        questionText.textContent = question.question;
+        questionImage.src = question.image;
+        
+        // Variantlarni yaratish
+        optionsContainer.innerHTML = '';
+        question.options.forEach(option => {
+            const button = document.createElement('button');
+            button.className = 'option-btn';
+            button.innerHTML = `
+                <div class="option-letter">${option.letter}</div>
+                <div class="option-text">${option.text}</div>
+            `;
+            
+            button.addEventListener('click', () => selectOption(option.letter, button));
+            optionsContainer.appendChild(button);
+        });
+        
+        // Tanlangan variantni tozalash
+        selectedOption = null;
         checkBtn.disabled = true;
         checkBtn.classList.remove('active');
-        mainInput.focus();
-    });
+    }
 
-    // Enter bosilganda ham tekshirish
-    mainInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && mainInput.value.length === 3) {
-            checkBtn.click();
+    // Variant tanlash
+    function selectOption(letter, button) {
+        // Avvalgi tanlangan variantni tozalash
+        document.querySelectorAll('.option-btn').forEach(btn => {
+            btn.classList.remove('selected');
+        });
+        
+        // Yangi variantni tanlash
+        button.classList.add('selected');
+        selectedOption = letter;
+        
+        // Tekshirish tugmasini yoqish
+        checkBtn.disabled = false;
+        checkBtn.classList.add('active');
+        
+        // Animatsiya
+        button.classList.add('animate-pulse');
+        setTimeout(() => button.classList.remove('animate-pulse'), 300);
+    }
+
+    // Tekshirish tugmasi
+    checkBtn.addEventListener('click', checkAnswer);
+
+    function checkAnswer() {
+        const question = questions[currentQuestionIndex];
+        const isCorrect = selectedOption === question.correctAnswer;
+        
+        // Natijani ko'rsatish
+        if (isCorrect) {
+            score++;
+            resultTitle.textContent = "Ajoyib! 🎉";
+            resultMessage.textContent = question.explanation;
+            resultEmoji.textContent = "✅";
+        } else {
+            resultTitle.textContent = "Noto'g'ri 😕";
+            resultMessage.textContent = `${question.explanation}\nTo'g'ri javob: ${question.correctAnswer}`;
+            resultEmoji.textContent = "❌";
         }
-    });
+        
+        // Variantlarni rang bilan belgilash
+        document.querySelectorAll('.option-btn').forEach(button => {
+            const letter = button.querySelector('.option-letter').textContent;
+            if (letter === question.correctAnswer) {
+                button.classList.add('correct');
+            } else if (letter === selectedOption && letter !== question.correctAnswer) {
+                button.classList.add('incorrect');
+            }
+            button.style.pointerEvents = 'none';
+        });
+        
+        // Natija panelini ko'rsatish
+        resultPanel.classList.add('active');
+    }
+
+    // Keyingi savol
+    document.getElementById('continueBtn').addEventListener('click', nextQuestion);
+
+    function nextQuestion() {
+        resultPanel.classList.remove('active');
+        
+        if (currentQuestionIndex < questions.length - 1) {
+            currentQuestionIndex++;
+            loadQuestion(currentQuestionIndex);
+            updateProgress();
+        } else {
+            // Test tugadi
+            showFinalResults();
+        }
+    }
+
+    // Progress yangilash
+    function updateProgress() {
+        const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+        progressBar.style.width = `${progress}%`;
+    }
+
+    // Yakuniy natija
+    function showFinalResults() {
+        questionText.textContent = "Test yakunlandi!";
+        optionsContainer.innerHTML = `
+            <div style="text-align: center; padding: 40px 20px;">
+                <div style="font-size: 48px; margin-bottom: 20px;">🏆</div>
+                <h2 style="margin-bottom: 10px;">Tabriklaymiz!</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                    Siz ${questions.length} ta savoldan ${score} tasiga to'g'ri javob berdingiz
+                </p>
+                <p style="font-size: 14px; color: var(--text-secondary);">
+                    ${Math.round((score / questions.length) * 100)}% natija
+                </p>
+            </div>
+        `;
+        checkBtn.style.display = 'none';
+    }
+
+    // Dasturni boshlash
+    document.addEventListener('DOMContentLoaded', init);
 </script>
 
 </body>
