@@ -3,226 +3,262 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ispan Tili - Interaktiv Test</title>
+    <title>Ispan Tili Testi</title>
     <style>
         :root {
-            --bg-primary: #0a0a0a;
-            --bg-secondary: #141414;
-            --text-primary: #ffffff;
-            --text-secondary: #a0a0a0;
-            --border-light: #2a2a2a;
-            --accent-color: #58cc02; /* Duolingo yashil rang */
-            --error-color: #ff4b4b;
+            --bg-dark: #0a0a0a;
+            --bg-card: #1a1a1a;
+            --accent-green: #58cc02;
+            --accent-red: #ff4b4b;
+            --accent-blue: #1cb0f6;
+            --text-main: #ffffff;
+            --text-dim: #afafaf;
+            --border: #333333;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            background: var(--bg-primary);
-            font-family: 'Segoe UI', Roboto, sans-serif;
-            color: var(--text-primary);
-            height: 100vh;
+            background-color: var(--bg-dark);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text-main);
             display: flex;
             justify-content: center;
+            height: 100vh;
+            overflow: hidden;
         }
 
         .app-container {
             width: 100%;
-            max-width: 500px;
-            padding: 20px;
+            max-width: 480px;
             display: flex;
             flex-direction: column;
-            background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            padding: 20px;
         }
 
         /* Progress Bar */
-        .progress-bar {
+        .header { padding: 10px 0 30px; }
+        .progress-bg {
+            background: var(--border);
             height: 12px;
-            background: var(--border-light);
             border-radius: 10px;
-            margin-bottom: 30px;
-            overflow: hidden;
+            width: 100%;
         }
-        #progress {
-            width: 0%;
+        #progress-fill {
+            background: var(--accent-green);
             height: 100%;
-            background: var(--accent-color);
-            transition: width 0.4s ease;
+            border-radius: 10px;
+            width: 10%;
+            transition: width 0.3s ease;
         }
 
-        .top-section {
+        /* Savol qismi */
+        .question-box {
             display: flex;
             align-items: center;
             gap: 15px;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
         }
-
-        .question-image { width: 80px; height: auto; }
-
-        .speech-bubble {
-            background: var(--bg-secondary);
-            border: 2px solid var(--border-light);
-            border-radius: 18px;
+        .char-img { width: 80px; height: 80px; object-fit: contain; }
+        .bubble {
+            background: var(--bg-card);
+            border: 2px solid var(--border);
             padding: 15px;
+            border-radius: 15px;
+            position: relative;
             font-size: 18px;
             font-weight: 600;
-            position: relative;
             flex: 1;
+        }
+        .bubble::after {
+            content: '';
+            position: absolute;
+            left: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+            border-width: 10px 10px 10px 0;
+            border-style: solid;
+            border-color: transparent var(--border) transparent transparent;
         }
 
         /* Variantlar */
-        .options-grid {
-            display: grid;
+        .options-container {
+            display: flex;
+            flex-direction: column;
             gap: 12px;
-            margin-top: 20px;
+            flex: 1;
         }
-
-        .option-card {
-            background: var(--bg-secondary);
-            border: 2px solid var(--border-light);
-            border-bottom: 4px solid var(--border-light);
-            padding: 15px 20px;
+        .option {
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-bottom: 5px solid var(--border);
+            padding: 15px;
             border-radius: 15px;
             cursor: pointer;
-            font-size: 18px;
-            transition: all 0.1s;
             display: flex;
             align-items: center;
+            transition: all 0.1s ease;
+            user-select: none;
         }
-
-        .option-card:hover { background: #1a1a1a; }
-
-        .option-card.selected {
-            border-color: #3894ff;
-            background: rgba(56, 148, 255, 0.1);
+        .option:active { transform: translateY(2px); border-bottom-width: 2px; }
+        .option.selected {
+            border-color: var(--accent-blue);
+            background: rgba(28, 176, 246, 0.1);
+            color: var(--accent-blue);
         }
-
-        .option-card.correct {
-            border-color: var(--accent-color);
-            background: rgba(88, 204, 2, 0.1);
+        .option-prefix {
+            width: 30px;
+            height: 30px;
+            border: 2px solid currentColor;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-weight: bold;
         }
+        .option-text { font-size: 17px; font-weight: 500; }
 
-        .option-card.wrong {
-            border-color: var(--error-color);
-            background: rgba(255, 75, 75, 0.1);
-        }
+        /* Natija holatlari */
+        .option.correct { border-color: var(--accent-green); background: rgba(88, 204, 2, 0.1); color: var(--accent-green); }
+        .option.wrong { border-color: var(--accent-red); background: rgba(255, 75, 75, 0.1); color: var(--accent-red); }
 
-        /* Footer */
-        .footer {
-            margin-top: auto;
-            padding: 20px 0;
-        }
-
-        .check-btn {
+        /* Footer tugmasi */
+        .footer { padding: 20px 0; }
+        .btn-check {
             width: 100%;
-            height: 55px;
+            padding: 18px;
             border-radius: 15px;
             border: none;
-            background: var(--border-light);
-            color: var(--text-secondary);
+            background: var(--border);
+            color: var(--text-dim);
             font-size: 18px;
-            font-weight: 800;
+            font-weight: bold;
             text-transform: uppercase;
-            cursor: pointer;
+            cursor: not-allowed;
+            transition: 0.2s;
         }
-
-        .check-btn.active {
-            background: var(--accent-color);
+        .btn-check.active {
+            background: var(--accent-green);
             color: white;
+            cursor: pointer;
             box-shadow: 0 4px 0 #46a302;
         }
-
-        .check-btn.active:active { transform: translateY(3px); box-shadow: none; }
+        .btn-check.next { background: var(--accent-blue); box-shadow: 0 4px 0 #0c91d1; color: white; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="app-container">
-    <div class="progress-bar"><div id="progress"></div></div>
-
-    <div class="top-section">
-        <img src="https://image2url.com/r2/default/images/1770213716285-e701e8d5-a098-4e7d-8ffa-9f8eb938c38e.png" class="question-image">
-        <div class="speech-bubble" id="questionText">Tayyormisiz?</div>
+    <div class="header">
+        <div class="progress-bg"><div id="progress-fill"></div></div>
     </div>
 
-    <div class="options-grid" id="optionsContainer">
+    <div class="question-box">
+        <img src="https://image2url.com/r2/default/images/1770213716285-e701e8d5-a098-4e7d-8ffa-9f8eb938c38e.png" class="char-img">
+        <div class="bubble" id="question-text">Ispan alifbosida nechta harf bor?</div>
+    </div>
+
+    <div class="options-container" id="options-list">
         </div>
 
     <div class="footer">
-        <button class="check-btn" id="actionBtn" disabled>Tekshirish</button>
+        <button class="btn-check" id="main-btn" disabled>Tekshirish</button>
     </div>
 </div>
 
 <script>
     const questions = [
-        { q: "Ispan alifbosida nechta harf bor?", o: ["26", "27", "28", "29"], a: 1 },
-        { q: "Ispan tilida nechta unli harf bor?", o: ["4", "5", "6", "7"], a: 1 },
-        { q: "“J” harfi qanday tovush beradi?", o: ["j", "h", "x", "y"], a: 2 },
-        { q: "“C” qachon “k” kabi o‘qiladi?", o: ["E, I bilan", "A, O, U bilan", "Y bilan", "H bilan"], a: 1 },
-        { q: "“B” va “V” talaffuzi qanday?", o: ["Farq qiladi", "Bir xil", "Har doim farq qiladi", "Faqat yozuvda"], a: 1 }
+        { q: "Ispan alifbosida nechta harf bor?", a: ["26", "27", "28", "29"], correct: 1 },
+        { q: "Ispan tilida nechta unli harf bor?", a: ["4", "5", "6", "7"], correct: 1 },
+        { q: "Ispan tilida nechta undosh harf bor?", a: ["21", "22", "23", "24"], correct: 1 },
+        { q: "“C” qachon “k” kabi o‘qiladi?", a: ["E, I bilan", "A, O, U bilan", "Y bilan", "H bilan"], correct: 1 },
+        { q: "“G” harfi talaffuzi qachon o‘zgaradi?", a: ["A, O, U bilan", "E, I bilan", "Y bilan", "H bilan"], correct: 1 },
+        { q: "“H” harfi qachon o‘qilmaydi?", a: ["Har doim", "Hech qachon", "Ba’zan", "So‘z oxirida"], correct: 0 },
+        { q: "“J” harfi qanday tovush beradi?", a: ["j", "h", "x", "y"], correct: 2 },
+        { q: "“B” va “V” talaffuzi...", a: ["Farq qiladi", "Bir xil", "Har doim farq qiladi", "Faqat yozuvda"], correct: 1 },
+        { q: "“X” harfi qanday o‘qilishi mumkin?", a: ["s", "ks", "x", "h"], correct: 1 },
+        { q: "“C” qachon “s” bo‘ladi?", a: ["A, O, U bilan", "R bilan", "E, I bilan", "H bilan"], correct: 2 }
     ];
 
-    let currentQ = 0;
+    let currentIdx = 0;
     let selectedIdx = null;
+    let isChecked = false;
 
-    const qText = document.getElementById('questionText');
-    const optCont = document.getElementById('optionsContainer');
-    const actionBtn = document.getElementById('actionBtn');
-    const progress = document.getElementById('progress');
+    const qText = document.getElementById('question-text');
+    const optList = document.getElementById('options-list');
+    const mainBtn = document.getElementById('main-btn');
+    const progress = document.getElementById('progress-fill');
 
     function loadQuestion() {
-        const q = questions[currentQ];
-        qText.innerText = q.q;
-        optCont.innerHTML = '';
+        const item = questions[currentIdx];
+        qText.innerText = item.q;
+        optList.innerHTML = '';
         selectedIdx = null;
-        actionBtn.disabled = true;
-        actionBtn.innerText = "Tekshirish";
-        actionBtn.classList.remove('active');
+        isChecked = false;
         
-        q.o.forEach((opt, idx) => {
+        mainBtn.innerText = "Tekshirish";
+        mainBtn.className = "btn-check";
+        mainBtn.disabled = true;
+
+        item.a.forEach((opt, i) => {
+            const prefix = String.fromCharCode(65 + i); // A, B, C, D
             const div = document.createElement('div');
-            div.className = 'option-card';
-            div.innerText = opt;
-            div.onclick = () => selectOption(idx, div);
-            optCont.appendChild(div);
+            div.className = 'option';
+            div.innerHTML = `<div class="option-prefix">${prefix}</div><div class="option-text">${opt}</div>`;
+            div.onclick = () => selectOption(i);
+            optList.appendChild(div);
         });
-        
-        progress.style.width = `${(currentQ / questions.length) * 100}%`;
+
+        progress.style.width = `${((currentIdx + 1) / questions.length) * 100}%`;
     }
 
-    function selectOption(idx, el) {
+    function selectOption(idx) {
+        if (isChecked) return;
         selectedIdx = idx;
-        document.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
-        el.classList.add('selected');
-        actionBtn.disabled = false;
-        actionBtn.classList.add('active');
+        const options = document.querySelectorAll('.option');
+        options.forEach(o => o.classList.remove('selected'));
+        options[idx].classList.add('selected');
+        
+        mainBtn.disabled = false;
+        mainBtn.classList.add('active');
     }
 
-    actionBtn.onclick = () => {
-        if (actionBtn.innerText === "DAVOM ETISH") {
-            currentQ++;
-            if (currentQ < questions.length) {
-                loadQuestion();
-            } else {
-                alert("Tabriklaymiz! Kursni tugatdingiz.");
-                currentQ = 0;
-                loadQuestion();
-            }
-            return;
-        }
-
-        const cards = document.querySelectorAll('.option-card');
-        const correctIdx = questions[currentQ].a;
-
-        if (selectedIdx === correctIdx) {
-            cards[selectedIdx].classList.add('correct');
-            actionBtn.innerText = "DAVOM ETISH";
+    mainBtn.onclick = () => {
+        if (!isChecked) {
+            checkAnswer();
         } else {
-            cards[selectedIdx].classList.add('wrong');
-            cards[correctIdx].classList.add('correct');
-            actionBtn.innerText = "DAVOM ETISH";
+            nextQuestion();
         }
     };
+
+    function checkAnswer() {
+        isChecked = true;
+        const options = document.querySelectorAll('.option');
+        const correct = questions[currentIdx].correct;
+
+        if (selectedIdx === correct) {
+            options[selectedIdx].classList.add('correct');
+        } else {
+            options[selectedIdx].classList.add('wrong');
+            options[correct].classList.add('correct');
+        }
+
+        mainBtn.innerText = "Davom etish";
+        mainBtn.className = "btn-check next";
+    }
+
+    function nextQuestion() {
+        currentIdx++;
+        if (currentIdx < questions.length) {
+            loadQuestion();
+        } else {
+            qText.innerText = "Tabriklaymiz! Test tugadi. 🎉";
+            optList.innerHTML = "";
+            mainBtn.innerText = "Qayta boshlash";
+            currentIdx = -1; 
+        }
+    }
 
     loadQuestion();
 </script>
