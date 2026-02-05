@@ -70,10 +70,9 @@
             flex: 1;
         }
 
-        /* Variantlar - Endi 3 ta */
+        /* Variantlar */
         .options-grid {
-            display: flex;
-            flex-direction: column;
+            display: grid;
             gap: 12px;
             margin-top: 20px;
         }
@@ -82,60 +81,35 @@
             background: var(--bg-secondary);
             border: 2px solid var(--border-light);
             border-bottom: 4px solid var(--border-light);
-            padding: 20px;
+            padding: 15px 20px;
             border-radius: 15px;
             cursor: pointer;
             font-size: 18px;
             transition: all 0.1s;
             display: flex;
             align-items: center;
-            min-height: 60px;
         }
 
-        .option-card:hover { 
-            background: #1a1a1a; 
-            transform: translateY(-2px);
-        }
+        .option-card:hover { background: #1a1a1a; }
 
         .option-card.selected {
             border-color: #3894ff;
-            background: rgba(56, 148, 255, 0.15);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(56, 148, 255, 0.2);
+            background: rgba(56, 148, 255, 0.1);
         }
 
         .option-card.correct {
             border-color: var(--accent-color);
-            background: rgba(88, 204, 2, 0.15);
+            background: rgba(88, 204, 2, 0.1);
         }
 
         .option-card.wrong {
             border-color: var(--error-color);
-            background: rgba(255, 75, 75, 0.15);
-        }
-
-        /* Variant raqamlari */
-        .option-number {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 30px;
-            height: 30px;
-            background: var(--border-light);
-            border-radius: 50%;
-            margin-right: 12px;
-            font-weight: 700;
-            font-size: 14px;
-        }
-
-        .option-card.selected .option-number {
-            background: #3894ff;
-            color: white;
+            background: rgba(255, 75, 75, 0.1);
         }
 
         /* Footer */
         .footer {
-            margin-top: 40px;
+            margin-top: auto;
             padding: 20px 0;
         }
 
@@ -150,7 +124,6 @@
             font-weight: 800;
             text-transform: uppercase;
             cursor: pointer;
-            transition: all 0.2s;
         }
 
         .check-btn.active {
@@ -159,19 +132,7 @@
             box-shadow: 0 4px 0 #46a302;
         }
 
-        .check-btn.active:hover {
-            background: #4db802;
-        }
-
-        .check-btn.active:active { 
-            transform: translateY(3px); 
-            box-shadow: none; 
-        }
-        
-        /* 3 ta variant uchun maxsus class */
-        .three-options .option-card {
-            padding: 22px;
-        }
+        .check-btn.active:active { transform: translateY(3px); box-shadow: none; }
     </style>
 </head>
 <body>
@@ -184,9 +145,8 @@
         <div class="speech-bubble" id="questionText">Tayyormisiz?</div>
     </div>
 
-    <div class="options-grid three-options" id="optionsContainer">
-        <!-- 3 ta variant bu yerga yuklanadi -->
-    </div>
+    <div class="options-grid" id="optionsContainer">
+        </div>
 
     <div class="footer">
         <button class="check-btn" id="actionBtn" disabled>Tekshirish</button>
@@ -195,11 +155,11 @@
 
 <script>
     const questions = [
-        { q: "Ispan alifbosida nechta harf bor?", o: ["26", "27", "28"], a: 1 },
-        { q: "Ispan tilida nechta unli harf bor?", o: ["4", "5", "6"], a: 1 },
-        { q: "“J” harfi qanday tovush beradi?", o: ["j", "h", "x"], a: 0 },
-        { q: "“C” qachon “k” kabi o‘qiladi?", o: ["E, I bilan", "A, O, U bilan", "Y bilan"], a: 1 },
-        { q: "“B” va “V” talaffuzi qanday?", o: ["Farq qiladi", "Bir xil", "Faqat yozuvda farq qiladi"], a: 1 }
+        { q: "Ispan alifbosida nechta harf bor?", o: ["26", "27", "28", "29"], a: 1 },
+        { q: "Ispan tilida nechta unli harf bor?", o: ["4", "5", "6", "7"], a: 1 },
+        { q: "“J” harfi qanday tovush beradi?", o: ["j", "h", "x", "y"], a: 2 },
+        { q: "“C” qachon “k” kabi o‘qiladi?", o: ["E, I bilan", "A, O, U bilan", "Y bilan", "H bilan"], a: 1 },
+        { q: "“B” va “V” talaffuzi qanday?", o: ["Farq qiladi", "Bir xil", "Har doim farq qiladi", "Faqat yozuvda"], a: 1 }
     ];
 
     let currentQ = 0;
@@ -222,23 +182,12 @@
         q.o.forEach((opt, idx) => {
             const div = document.createElement('div');
             div.className = 'option-card';
-            
-            // Variant raqamini qo'shish
-            const numberSpan = document.createElement('span');
-            numberSpan.className = 'option-number';
-            numberSpan.innerText = String.fromCharCode(65 + idx); // A, B, C
-            
-            const textSpan = document.createElement('span');
-            textSpan.innerText = opt;
-            
-            div.appendChild(numberSpan);
-            div.appendChild(textSpan);
-            
+            div.innerText = opt;
             div.onclick = () => selectOption(idx, div);
             optCont.appendChild(div);
         });
         
-        progress.style.width = `${((currentQ + 1) / questions.length) * 100}%`;
+        progress.style.width = `${(currentQ / questions.length) * 100}%`;
     }
 
     function selectOption(idx, el) {
@@ -250,18 +199,12 @@
     }
 
     actionBtn.onclick = () => {
-        if (actionBtn.innerText === "KEYINGI SAVOL") {
+        if (actionBtn.innerText === "DAVOM ETISH") {
             currentQ++;
             if (currentQ < questions.length) {
                 loadQuestion();
             } else {
-                // Test tugadi
-                const percent = Math.round((questions.filter((q, idx) => {
-                    // Bu yerda foydalanuvchi javoblarini saqlash kerak
-                    return true; // Hozircha oddiy versiya
-                }).length / questions.length) * 100);
-                
-                alert(`Tabriklaymiz! Testni yakunladingiz.\nNatija: ${percent}%`);
+                alert("Tabriklaymiz! Kursni tugatdingiz.");
                 currentQ = 0;
                 loadQuestion();
             }
@@ -271,18 +214,13 @@
         const cards = document.querySelectorAll('.option-card');
         const correctIdx = questions[currentQ].a;
 
-        // Barcha variantlarni noaktiv qilish
-        cards.forEach(card => {
-            card.style.pointerEvents = 'none';
-        });
-
         if (selectedIdx === correctIdx) {
             cards[selectedIdx].classList.add('correct');
-            actionBtn.innerText = "KEYINGI SAVOL";
+            actionBtn.innerText = "DAVOM ETISH";
         } else {
             cards[selectedIdx].classList.add('wrong');
             cards[correctIdx].classList.add('correct');
-            actionBtn.innerText = "KEYINGI SAVOL";
+            actionBtn.innerText = "DAVOM ETISH";
         }
     };
 
