@@ -1,535 +1,74 @@
+
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vaqt va Ball Ko'rsatgichi</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', system-ui, sans-serif;
-        }
-        
-        body {
-            background-color: #000;
-            color: #fff;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            overflow-x: hidden;
-            position: relative;
-        }
-        
-        /* Orqa fondagi geometrik shakllar */
-        .background-elements {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            overflow: hidden;
-        }
-        
-        .shape {
-            position: absolute;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(0, 255, 255, 0.1) 0%, rgba(0, 255, 255, 0) 70%);
-            animation: float 15s infinite linear;
-        }
-        
-        .shape:nth-child(1) {
-            width: 300px;
-            height: 300px;
-            top: 10%;
-            left: 5%;
-            animation-delay: 0s;
-        }
-        
-        .shape:nth-child(2) {
-            width: 200px;
-            height: 200px;
-            top: 60%;
-            right: 10%;
-            animation-delay: -5s;
-            background: radial-gradient(circle, rgba(255, 0, 128, 0.1) 0%, rgba(255, 0, 128, 0) 70%);
-        }
-        
-        .shape:nth-child(3) {
-            width: 150px;
-            height: 150px;
-            bottom: 20%;
-            left: 15%;
-            animation-delay: -10s;
-            background: radial-gradient(circle, rgba(0, 255, 0, 0.1) 0%, rgba(0, 255, 0, 0) 70%);
-        }
-        
-        @keyframes float {
-            0% {
-                transform: translateY(0) rotate(0deg);
-            }
-            50% {
-                transform: translateY(-20px) rotate(180deg);
-            }
-            100% {
-                transform: translateY(0) rotate(360deg);
-            }
-        }
-        
-        /* Asosiy konteyner */
-        .container {
-            width: 90%;
-            max-width: 1200px;
-            text-align: center;
-            padding: 30px;
-            z-index: 1;
-        }
-        
-        /* Sarlavha */
-        .header {
-            margin-bottom: 50px;
-        }
-        
-        .header h1 {
-            font-size: 2.8rem;
-            font-weight: 700;
-            margin-bottom: 10px;
-            background: linear-gradient(90deg, #00ffff, #ff00ff);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            letter-spacing: 1px;
-        }
-        
-        .header p {
-            color: #aaa;
-            font-size: 1.1rem;
-            max-width: 600px;
-            margin: 0 auto;
-            line-height: 1.6;
-        }
-        
-        /* Asosiy ma'lumotlar paneli */
-        .dashboard {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 30px;
-            margin-bottom: 50px;
-        }
-        
-        /* Kartalar uchun umumiy stil */
-        .card {
-            background: rgba(20, 20, 20, 0.8);
-            border-radius: 20px;
-            padding: 30px;
-            min-width: 280px;
-            flex: 1;
-            max-width: 400px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        
-        .card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 35px rgba(0, 255, 255, 0.2);
-        }
-        
-        .card h2 {
-            font-size: 1.5rem;
-            margin-bottom: 20px;
-            color: #ddd;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-        
-        .card h2 i {
-            color: #00ffff;
-        }
-        
-        /* Vaqt kartasi */
-        .time-display {
-            font-size: 3.5rem;
-            font-weight: 700;
-            font-family: 'Courier New', monospace;
-            color: #00ff9d;
-            text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
-            margin-bottom: 10px;
-            letter-spacing: 2px;
-        }
-        
-        .date-display {
-            font-size: 1.2rem;
-            color: #aaa;
-            margin-bottom: 20px;
-        }
-        
-        .time-zone {
-            font-size: 0.9rem;
-            color: #888;
-            background: rgba(0, 255, 157, 0.1);
-            padding: 5px 15px;
-            border-radius: 20px;
-            display: inline-block;
-        }
-        
-        /* Ball kartasi */
-        .score-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        
-        .score-display {
-            font-size: 4.5rem;
-            font-weight: 800;
-            color: #ff00ff;
-            text-shadow: 0 0 15px rgba(255, 0, 128, 0.6);
-            margin: 15px 0;
-        }
-        
-        .score-label {
-            font-size: 1.1rem;
-            color: #bbb;
-            margin-bottom: 20px;
-        }
-        
-        .score-progress {
-            width: 100%;
-            height: 12px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 6px;
-            overflow: hidden;
-            margin-bottom: 20px;
-        }
-        
-        .score-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #ff0080, #ff00ff);
-            width: 75%;
-            border-radius: 6px;
-            transition: width 1s ease;
-        }
-        
-        .score-info {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            font-size: 0.9rem;
-            color: #888;
-        }
-        
-        /* Aniqlik indikatori */
-        .accuracy-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        
-        .accuracy-display {
-            position: relative;
-            width: 200px;
-            height: 200px;
-            margin: 20px auto;
-        }
-        
-        .accuracy-circle {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background: conic-gradient(
-                #00ff9d 0% 85%,
-                rgba(255, 255, 255, 0.1) 85% 100%
-            );
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            box-shadow: 0 0 30px rgba(0, 255, 157, 0.2);
-        }
-        
-        .accuracy-circle::before {
-            content: '';
-            position: absolute;
-            width: 85%;
-            height: 85%;
-            background-color: #111;
-            border-radius: 50%;
-        }
-        
-        .accuracy-value {
-            position: absolute;
-            font-size: 3rem;
-            font-weight: 700;
-            color: #00ff9d;
-            z-index: 2;
-        }
-        
-        .accuracy-label {
-            margin-top: 10px;
-            font-size: 1.1rem;
-            color: #bbb;
-        }
-        
-        /* Pastki ma'lumotlar paneli */
-        .info-panel {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 20px;
-            margin-top: 30px;
-        }
-        
-        .info-item {
-            background: rgba(30, 30, 30, 0.7);
-            padding: 15px 25px;
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            min-width: 200px;
-        }
-        
-        .info-item i {
-            color: #00ffff;
-            font-size: 1.5rem;
-        }
-        
-        .info-text h3 {
-            font-size: 0.9rem;
-            color: #aaa;
-            margin-bottom: 5px;
-        }
-        
-        .info-text p {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: #fff;
-        }
-        
-        /* Responsivlik */
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2.2rem;
-            }
-            
-            .time-display {
-                font-size: 2.8rem;
-            }
-            
-            .score-display {
-                font-size: 3.5rem;
-            }
-            
-            .card {
-                min-width: 100%;
-            }
-            
-            .dashboard {
-                gap: 20px;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .header h1 {
-                font-size: 1.8rem;
-            }
-            
-            .time-display {
-                font-size: 2.2rem;
-            }
-            
-            .score-display {
-                font-size: 2.8rem;
-            }
-            
-            .accuracy-display {
-                width: 150px;
-                height: 150px;
-            }
-            
-            .accuracy-value {
-                font-size: 2.2rem;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Score Board UI</title>
+  <style>
+    body {
+      background-color: #000; /* qora fon */
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      color: #fff;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .card {
+      background: #111;
+      padding: 20px 30px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0, 150, 255, 0.4); /* zamonaviy neon effekt */
+    }
+
+    .card h2 {
+      font-size: 18px;
+      color: #aaa;
+      margin-bottom: 10px;
+    }
+
+    .card p {
+      font-size: 24px;
+      font-weight: bold;
+      color: #fff;
+    }
+  </style>
 </head>
 <body>
-    <!-- Orqa fondagi geometrik shakllar -->
-    <div class="background-elements">
-        <div class="shape"></div>
-        <div class="shape"></div>
-        <div class="shape"></div>
+  <div class="container">
+    <div class="card">
+      <h2>⏰ Vaqt</h2>
+      <p id="time">19:44</p>
     </div>
-    
-    <div class="container">
-        <!-- Sarlavha -->
-        <div class="header">
-            <h1><i class="fas fa-chart-line"></i> VAQT, BALL VA ANIQLIK KÖRINISHI</h1>
-            <p>Zamonaviy interfeysda real vaqt, ball va aniqlik ko'rsatkichlarini kuzatish</p>
-        </div>
-        
-        <!-- Asosiy ma'lumotlar paneli -->
-        <div class="dashboard">
-            <!-- Vaqt kartasi -->
-            <div class="card">
-                <h2><i class="far fa-clock"></i> JORIY VAQT</h2>
-                <div class="time-display" id="current-time">00:00:00</div>
-                <div class="date-display" id="current-date">1 Yanvar, 2023</div>
-                <div class="time-zone" id="time-zone">UTC+5</div>
-            </div>
-            
-            <!-- Ball kartasi -->
-            <div class="card">
-                <h2><i class="fas fa-star"></i> BALL KO'RSATGICHI</h2>
-                <div class="score-container">
-                    <div class="score-display" id="score-value">9.8</div>
-                    <div class="score-label">Jami ball (10 ballik tizimda)</div>
-                    <div class="score-progress">
-                        <div class="score-bar" id="score-bar"></div>
-                    </div>
-                    <div class="score-info">
-                        <span>0</span>
-                        <span>5</span>
-                        <span>10</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Aniqlik kartasi -->
-            <div class="card">
-                <h2><i class="fas fa-bullseye"></i> ANIQLIK DARAJASI</h2>
-                <div class="accuracy-container">
-                    <div class="accuracy-display">
-                        <div class="accuracy-circle"></div>
-                        <div class="accuracy-value" id="accuracy-value">85%</div>
-                    </div>
-                    <div class="accuracy-label">O'rtacha aniqlik darajasi</div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Pastki ma'lumotlar paneli -->
-        <div class="info-panel">
-            <div class="info-item">
-                <i class="fas fa-calendar-alt"></i>
-                <div class="info-text">
-                    <h3>HAFTANING KUNI</h3>
-                    <p id="week-day">Dushanba</p>
-                </div>
-            </div>
-            
-            <div class="info-item">
-                <i class="fas fa-history"></i>
-                <div class="info-text">
-                    <h3>VAQT SARFLANGAN</h3>
-                    <p id="time-spent">2 soat 15 min</p>
-                </div>
-            </div>
-            
-            <div class="info-item">
-                <i class="fas fa-chart-bar"></i>
-                <div class="info-text">
-                    <h3>BUGUNGI NATIJA</h3>
-                    <p id="daily-result">Yuksak</p>
-                </div>
-            </div>
-            
-            <div class="info-item">
-                <i class="fas fa-trophy"></i>
-                <div class="info-text">
-                    <h3>REYTING</h3>
-                    <p id="ranking">5-o'rin</p>
-                </div>
-            </div>
-        </div>
+    <div class="card">
+      <h2>🏆 Ball</h2>
+      <p id="score">120</p>
     </div>
+    <div class="card">
+      <h2>📊 Aniqlik</h2>
+      <p id="accuracy">95%</p>
+    </div>
+  </div>
 
-    <script>
-        // Vaqtni yangilash funksiyasi
-        function updateTime() {
-            const now = new Date();
-            
-            // Soat, daqiqa, soniya
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
-            
-            // Vaqtni ko'rsatish
-            document.getElementById('current-time').textContent = `${hours}:${minutes}:${seconds}`;
-            
-            // Sana
-            const options = { year: 'numeric', month: 'long', day: 'numeric' };
-            const dateString = now.toLocaleDateString('uz-UZ', options);
-            document.getElementById('current-date').textContent = dateString;
-            
-            // Haftaning kuni
-            const weekDays = ["Yakshanba", "Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba"];
-            const dayOfWeek = weekDays[now.getDay()];
-            document.getElementById('week-day').textContent = dayOfWeek;
-            
-            // Vaqt zonalari
-            const timeZone = now.toLocaleTimeString('uz-UZ', { timeZoneName: 'short' }).split(' ')[1];
-            document.getElementById('time-zone').textContent = timeZone;
-        }
-        
-        // Ball va aniqlikni yangilash funksiyasi
-        function updateMetrics() {
-            // Tasodifiy ball generatsiyasi (real loyihada bu ma'lumotlar serverdan keladi)
-            const score = 9.5 + Math.random() * 0.5;
-            document.getElementById('score-value').textContent = score.toFixed(1);
-            
-            // Progress bar
-            const scoreBar = document.getElementById('score-bar');
-            const scorePercentage = (score / 10) * 100;
-            scoreBar.style.width = `${scorePercentage}%`;
-            
-            // Aniqlik darajasi
-            const accuracy = 80 + Math.random() * 10;
-            document.getElementById('accuracy-value').textContent = `${accuracy.toFixed(0)}%`;
-            
-            // Aniqlik doirasi
-            const accuracyCircle = document.querySelector('.accuracy-circle');
-            accuracyCircle.style.background = `conic-gradient(
-                #00ff9d 0% ${accuracy}%,
-                rgba(255, 255, 255, 0.1) ${accuracy}% 100%
-            )`;
-            
-            // Vaqt sarflangan
-            const hours = Math.floor(Math.random() * 4);
-            const minutes = Math.floor(Math.random() * 60);
-            document.getElementById('time-spent').textContent = `${hours} soat ${minutes} min`;
-            
-            // Kunlik natija
-            const results = ["Yuksak", "O'rtacha", "Qoniqarli"];
-            const randomResult = results[Math.floor(Math.random() * results.length)];
-            document.getElementById('daily-result').textContent = randomResult;
-            
-            // Reyting
-            const rank = Math.floor(Math.random() * 10) + 1;
-            document.getElementById('ranking').textContent = `${rank}-o'rin`;
-        }
-        
-        // Dasturni ishga tushirish
-        document.addEventListener('DOMContentLoaded', () => {
-            // Dastlabki qiymatlarni o'rnatish
-            updateTime();
-            updateMetrics();
-            
-            // Har soniyada vaqtni yangilash
-            setInterval(updateTime, 1000);
-            
-            // Har 5 soniyada metrikalarni yangilash
-            setInterval(updateMetrics, 5000);
-        });
-    </script>
+  <script>
+    // Dinamik vaqt ko‘rsatish
+    function updateTime() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      document.getElementById('time').textContent = `${hours}:${minutes}`;
+    }
+    setInterval(updateTime, 1000);
+    updateTime();
+  </script>
 </body>
 </html>
