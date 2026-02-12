@@ -2,568 +2,385 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ispan Tili - Interactive Learning</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ispan tili | Yo va Tú</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome 5 (icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        :root {
-            --bg-primary: #0a0a0a;
-            --bg-secondary: #141414;
-            --text-primary: #ffffff;
-            --text-secondary: #a0a0a0;
-            --border-light: #2a2a2a;
-            --border-dark: #333333;
-            --accent-color: #ffffff;
-            --shadow-lg: rgba(255, 255, 255, 0.1);
-            --correct: #10b981;
-            --incorrect: #ef4444;
-        }
-
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        body, html {
-            height: 100%;
-            background: var(--bg-primary);
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            color: var(--text-primary);
-            overflow: hidden;
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(145deg, #f9f5ff 0%, #f1ecfe 100%);
+            color: #1e1a2b;
+            line-height: 1.7;
+            padding: 2rem 1.5rem;
+            min-height: 100vh;
         }
 
-        .app-container {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            max-width: 500px;
+        .page {
+            max-width: 900px;
             margin: 0 auto;
-            padding: 20px;
-            background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 48px 48px 48px 48px;
+            box-shadow: 0 20px 40px -12px rgba(94, 43, 128, 0.18);
+            padding: 2.5rem 2.8rem;
+            border: 1px solid rgba(255, 255, 255, 0.5);
         }
 
-        /* YUQORI QISM: Rasm va Savol */
-        .top-section {
+        /* ispancha qizil-sariq aksentlar */
+        .spain-flag {
             display: flex;
+            gap: 6px;
             align-items: center;
-            gap: 15px;
-            padding-top: 40px;
-            padding-bottom: 20px;
+            margin-bottom: 1.2rem;
+        }
+        .flag-bar {
+            width: 28px;
+            height: 18px;
+            background: linear-gradient(135deg, #aa1515 40%, #f1bf00 40%, #f1bf00 60%, #aa1515 60%);
+            border-radius: 4px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
         }
 
-        .character-container {
-            flex-shrink: 0;
-        }
-
-        .question-image {
-            width: 120px;
-            height: auto;
-            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.5));
-            display: block;
-        }
-
-        .speech-bubble {
-            position: relative;
-            background: var(--bg-secondary);
-            border: 2px solid var(--border-light);
-            border-radius: 20px;
-            padding: 15px 20px;
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--text-primary);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            line-height: 1.4;
-            flex: 1;
-        }
-
-        .speech-bubble::before {
-            content: '';
-            position: absolute;
-            left: -12px;
-            top: 50%;
-            transform: translateY(-50%);
-            border-width: 8px 12px 8px 0;
-            border-style: solid;
-            border-color: transparent var(--border-light) transparent transparent;
-        }
-
-        .speech-bubble::after {
-            content: '';
-            position: absolute;
-            left: -9px;
-            top: 50%;
-            transform: translateY(-50%);
-            border-width: 7px 10px 7px 0;
-            border-style: solid;
-            border-color: transparent var(--bg-secondary) transparent transparent;
-        }
-
-        /* MARKAZIY QISM: Variantlar */
-        .options-section {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            padding: 20px 0;
-        }
-
-        .option-btn {
-            width: 100%;
-            padding: 18px 20px;
-            border-radius: 16px;
-            background: var(--bg-secondary);
-            border: 2px solid var(--border-light);
-            color: var(--text-primary);
-            font-size: 16px;
-            font-weight: 500;
-            text-align: left;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .option-btn:hover {
-            border-color: var(--text-secondary);
-            transform: translateY(-2px);
-        }
-
-        .option-btn.selected {
-            border-color: var(--text-primary);
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .option-btn.correct {
-            background: var(--correct);
-            border-color: var(--correct);
-        }
-
-        .option-btn.incorrect {
-            background: var(--incorrect);
-            border-color: var(--incorrect);
-        }
-
-        .option-letter {
-            width: 32px;
-            height: 32px;
-            border-radius: 10px;
-            background: var(--border-dark);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 14px;
-            flex-shrink: 0;
-        }
-
-        .option-btn.selected .option-letter {
-            background: var(--text-primary);
-            color: var(--bg-primary);
-        }
-
-        .option-text {
-            flex: 1;
-        }
-
-        /* PASTKI QISM: Tugma */
-        .check-btn-area {
-            padding-bottom: 30px;
-        }
-
-        .check-btn {
-            width: 100%;
-            height: 60px;
-            border: none;
-            border-radius: 18px;
-            background: var(--border-dark);
-            color: var(--text-secondary);
-            font-size: 18px;
+        h1 {
+            font-size: 2.4rem;
             font-weight: 700;
-            cursor: not-allowed;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            letter-spacing: -0.02em;
+            color: #2f1b4a;
+            margin-top: 0.2rem;
+            margin-bottom: 0.5rem;
             display: flex;
             align-items: center;
-            justify-content: center;
+            gap: 12px;
+        }
+        h1 i {
+            color: #c2571a;
+            font-size: 2.2rem;
+        }
+
+        .greeting {
+            background: white;
+            padding: 1.5rem 2rem;
+            border-radius: 32px;
+            margin: 1.8rem 0 2.2rem 0;
+            box-shadow: 0 4px 10px rgba(128, 64, 128, 0.04);
+            border-left: 8px solid #c2571a;
+            font-size: 1.2rem;
+            font-weight: 400;
+            color: #2d2a3a;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            font-weight: 650;
+            color: #341c4a;
+            margin-top: 2rem;
+            margin-bottom: 0.75rem;
+            border-bottom: 3px dashed #d4b2ff;
+            padding-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
             gap: 10px;
         }
-
-        .check-btn.active {
-            background: var(--text-primary);
-            color: var(--bg-primary);
-            cursor: pointer;
-            box-shadow: 0 10px 25px rgba(255, 255, 255, 0.2);
+        h2 i {
+            color: #9747ff;
+            font-size: 1.8rem;
         }
 
-        .check-btn.active:active {
-            transform: scale(0.98);
-        }
-
-        /* PROGRESS BAR */
-        .progress-container {
-            width: 100%;
-            height: 4px;
-            background: var(--border-light);
-            border-radius: 2px;
-            margin-top: 20px;
-            overflow: hidden;
-        }
-
-        .progress-bar {
-            height: 100%;
-            background: var(--text-primary);
-            width: 0%;
-            transition: width 0.3s ease;
-        }
-
-        /* NATIJA PANELI */
-        .result-panel {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #ffffff;
-            border-radius: 30px 30px 0 0;
-            padding: 30px 20px;
-            transform: translateY(100%);
-            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-            z-index: 1000;
-            color: #000;
-            text-align: center;
-        }
-
-        .result-panel.active { transform: translateY(0); }
-
-        .result-panel h2 { 
-            font-size: 28px; 
-            margin-bottom: 10px;
-        }
-
-        .result-emoji {
-            font-size: 40px;
-            margin-bottom: 15px;
-        }
-
-        .continue-btn {
-            width: 100%;
-            height: 56px;
-            border: none;
-            border-radius: 16px;
-            background: #000;
-            color: #fff;
-            font-size: 18px;
+        h3 {
             font-weight: 600;
-            margin-top: 20px;
-            cursor: pointer;
+            font-size: 1.3rem;
+            color: #4a2a5e;
+            margin-top: 1.8rem;
+            margin-bottom: 0.6rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        /* Animatsiyalar */
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
+        p {
+            margin-bottom: 1.1rem;
+            font-size: 1.06rem;
+            color: #262134;
         }
-        .animate-bounce { animation: bounce 0.5s ease; }
 
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+        .card-note {
+            background: #ffffffd4;
+            border-radius: 24px;
+            padding: 1.6rem 1.9rem;
+            margin: 1.4rem 0 1.8rem 0;
+            box-shadow: 0 6px 0 #f1bf00, 0 16px 30px -8px rgba(128,0,128,0.08);
+            border: 1px solid white;
         }
-        .animate-pulse { animation: pulse 0.3s ease; }
+
+        .rule-box {
+            background: #fdedd7;
+            padding: 1.5rem 1.9rem;
+            border-radius: 24px;
+            border-bottom: 4px solid #f1bf00;
+            margin: 1.5rem 0 2rem 0;
+        }
+
+        .example {
+            background: #ffffff;
+            padding: 1.2rem 1.8rem;
+            border-radius: 18px;
+            margin: 1rem 0 1.2rem 0;
+            border: 1px solid #eddfff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.01);
+            font-size: 1.1rem;
+        }
+
+        .example i {
+            color: #9747ff;
+            margin-right: 10px;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #341c4a;
+            color: white;
+            border-radius: 100px;
+            padding: 0.2rem 1rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-right: 10px;
+        }
+
+        .highlight {
+            background: linear-gradient(120deg, #fef9e7 0%, #fef9e7 40%, #ffeab3 90%);
+            padding: 0.2rem 0.4rem;
+            border-radius: 8px;
+            font-weight: 600;
+            color: #1e1a2b;
+        }
+
+        .acento {
+            background: #ffe0b0;
+            color: #9d3d0b;
+            font-weight: 700;
+            padding: 0.1rem 0.4rem;
+            border-radius: 6px;
+        }
+
+        ul {
+            list-style: none;
+            margin: 1.2rem 0 1.5rem 0;
+        }
+
+        li {
+            margin-bottom: 0.85rem;
+            padding-left: 2rem;
+            position: relative;
+            font-size: 1.05rem;
+        }
+
+        li:before {
+            font-family: "Font Awesome 5 Free";
+            content: "\f0a4";
+            font-weight: 900;
+            position: absolute;
+            left: 0;
+            color: #c2571a;
+        }
+
+        .contrast-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            margin-top: 1.8rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .use-case {
+            flex: 1 1 240px;
+            background: white;
+            padding: 1.8rem 1.5rem;
+            border-radius: 28px;
+            box-shadow: 0 10px 18px -10px rgba(94, 43, 128, 0.1);
+            border: 1px solid rgba(255,215,0,0.3);
+        }
+
+        .use-case h4 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: #341c4a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .divider {
+            height: 4px;
+            background: linear-gradient(90deg, #f1bf00, #aa1515, #f1bf00);
+            width: 100%;
+            border-radius: 4px;
+            margin: 2rem 0 1.2rem 0;
+            opacity: 0.6;
+        }
+
+        .footer-phrase {
+            margin-top: 2.8rem;
+            background: #f1e7fe;
+            padding: 1.5rem 2rem;
+            border-radius: 40px 12px 40px 12px;
+            text-align: center;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #2a1736;
+            letter-spacing: 1px;
+            border: 2px solid white;
+        }
+
+        .footer-phrase i {
+            color: #aa1515;
+            margin-right: 8px;
+        }
+
+        .small-note {
+            font-size: 0.95rem;
+            color: #4c3a5c;
+            margin-top: 0.5rem;
+            font-style: italic;
+        }
+
+        @media (max-width: 550px) {
+            .page {
+                padding: 1.8rem 1.2rem;
+            }
+            h1 {
+                font-size: 1.9rem;
+            }
+        }
     </style>
 </head>
 <body>
-
-<div class="app-container">
-    <div class="top-section">
-        <div class="character-container">
-            <img 
-                src="https://image2url.com/r2/default/images/1770213716285-e701e8d5-a098-4e7d-8ffa-9f8eb938c38e.png" 
-                alt="Character" 
-                class="question-image"
-                id="questionImage"
-            >
+    <div class="page">
+        <!-- Ispan bayrog‘i dekor -->
+        <div class="spain-flag">
+            <span class="flag-bar"></span>
+            <span style="font-weight: 500; color: #4d2a5a;">Español para ti</span>
         </div>
-        <div class="speech-bubble" id="questionText">
-            Ispan alifbosida nechta harf bor?
+
+        <!-- Sarlavha -->
+        <h1>
+            <i class="fas fa-language"></i> Yo & Tú
+        </h1>
+        <p style="font-size: 1.2rem; color: #3b2b4a; margin-bottom: 0.2rem;"><strong>Ispan tilining tamal toshlari</strong></p>
+
+        <!-- Tabriknoma bloki -->
+        <div class="greeting">
+            <i class="fas fa-hand-sparkles" style="color: #c2571a; font-size: 1.6rem; float: left; margin-right: 16px;"></i>
+            ¡Hola! Ispan tilini o‘rganishga qaror qilganingiz bilan tabriklayman. Bu til nafaqat chiroyli, balki <span style="background: #f1bf00; padding: 2px 8px; border-radius: 30px; font-weight: 600;">juda mantiqiy</span> hamdir. 
+            Ispan tili grammatikasining tamal toshlari bo‘lmish <strong>Yo</strong> va <strong>Tú</strong> olmoshlarini ipidan-ignasigacha ko‘rib chiqamiz.
         </div>
-    </div>
 
-    <div class="options-section" id="optionsContainer">
-        <!-- Variantlar JavaScript orqali yuklanadi -->
-    </div>
+        <!-- 1. YO -->
+        <h2><i class="fas fa-user"></i> 1. Yo (Men)</h2>
+        <p>Ispan tilida "men" — bu <span class="highlight">Yo</span>. Uni talaffuz qilishda "Yo" yoki ba’zi hududlarda (masalan, Argentina) "Jo" kabi eshitilishi mumkin, lekin standart holatda yumshoq "Yo".</p>
 
-    <div class="progress-container">
-        <div class="progress-bar" id="progressBar"></div>
-    </div>
-
-    <div class="check-btn-area">
-        <button class="check-btn" id="checkBtn" disabled>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-            </svg>
-            Tekshirish
-        </button>
-    </div>
-
-    <div class="result-panel" id="resultPanel">
-        <div class="result-emoji" id="resultEmoji">🎉</div>
-        <h2 id="resultTitle">Ajoyib!</h2>
-        <p id="resultMessage">Javob to'g'ri. Davom etamizmi?</p>
-        <button class="continue-btn" id="continueBtn">Keyingi savol</button>
-    </div>
-</div>
-
-<script>
-    const questions = [
-        {
-            question: "Ispan alifbosida nechta harf bor?",
-            image: "https://image2url.com/r2/default/images/1770213716285-e701e8d5-a098-4e7d-8ffa-9f8eb938c38e.png",
-            options: [
-                { text: "26", letter: "A" },
-                { text: "27", letter: "B" }
-            ],
-            correctAnswer: "B",
-            explanation: "Ispan alifbosida 27 ta harf bor: A, B, C, D, E, F, G, H, I, J, K, L, M, N, Ñ, O, P, Q, R, S, T, U, V, W, X, Y, Z"
-        },
-        {
-            question: "Ispan tilida nechta unli harf bor?",
-            image: "https://image2url.com/r2/default/images/1770213716285-e701e8d5-a098-4e7d-8ffa-9f8eb938c38e.png",
-            options: [
-                { text: "4", letter: "A" },
-                { text: "5", letter: "B" }
-            ],
-            correctAnswer: "B",
-            explanation: "Ispan tilida 5 ta unli harf bor: A, E, I, O, U"
-        },
-        {
-            question: "Ispan tilida nechta undosh harf bor?",
-            image: "https://image2url.com/r2/default/images/1770213716285-e701e8d5-a098-4e7d-8ffa-9f8eb938c38e.png",
-            options: [
-                { text: "21", letter: "A" },
-                { text: "22", letter: "B" }
-            ],
-            correctAnswer: "B",
-            explanation: "Ispan tilida 22 ta undosh harf bor: B, C, D, F, G, H, J, K, L, M, N, Ñ, P, Q, R, S, T, V, W, X, Y, Z"
-        },
-        {
-            question: "«C» qachon «k» kabi o'qiladi?",
-            image: "https://image2url.com/r2/default/images/1770213716285-e701e8d5-a098-4e7d-8ffa-9f8eb938c38e.png",
-            options: [
-                { text: "E, I bilan", letter: "A" },
-                { text: "A, O, U bilan", letter: "B" }
-            ],
-            correctAnswer: "B",
-            explanation: "«C» harfi A, O, U unlilaridan oldin «k» kabi o'qiladi (masalan: casa, cosa, cuna)"
-        },
-        {
-            question: "«G» harfi talaffuzi qachon o'zgaradi?",
-            image: "https://image2url.com/r2/default/images/1770213716285-e701e8d5-a098-4e7d-8ffa-9f8eb938c38e.png",
-            options: [
-                { text: "A, O, U bilan", letter: "A" },
-                { text: "E, I bilan", letter: "B" }
-            ],
-            correctAnswer: "B",
-            explanation: "«G» harfi E va I unlilaridan oldin «x» tovushini beradi (masalan: gente, girasol)"
-        },
-        {
-            question: "«H» harfi qachon o'qilmaydi?",
-            image: "https://image2url.com/r2/default/images/1770213716285-e701e8d5-a098-4e7d-8ffa-9f8eb938c38e.png",
-            options: [
-                { text: "Har doim", letter: "A" },
-                { text: "Hech qachon", letter: "B" }
-            ],
-            correctAnswer: "A",
-            explanation: "«H» harfi ispan tilida har doim o'qilmaydi (sessiz harf), masalan: hola, hombre"
-        },
-        {
-            question: "«J» harfi qanday tovush beradi?",
-            image: "https://image2url.com/r2/default/images/1770213716285-e701e8d5-a098-4e7d-8ffa-9f8eb938c38e.png",
-            options: [
-                { text: "j", letter: "A" },
-                { text: "x", letter: "B" }
-            ],
-            correctAnswer: "B",
-            explanation: "«J» harfi ispan tilida «x» tovushini beradi, masalan: juego, jirafa"
-        },
-        {
-            question: "«B» va «V» talaffuzi…",
-            image: "https://image2url.com/r2/default/images/1770213716285-e701e8d5-a098-4e7d-8ffa-9f8eb938c38e.png",
-            options: [
-                { text: "Farq qiladi", letter: "A" },
-                { text: "Bir xil", letter: "B" }
-            ],
-            correctAnswer: "B",
-            explanation: "Ispan tilida «B» va «V» harflari bir xil talaffuz qilinadi"
-        },
-        {
-            question: "«X» harfi qanday o'qilishi mumkin?",
-            image: "https://image2url.com/r2/default/images/1770213716285-e701e8d5-a098-4e7d-8ffa-9f8eb938c38e.png",
-            options: [
-                { text: "ks", letter: "A" },
-                { text: "x", letter: "B" }
-            ],
-            correctAnswer: "A",
-            explanation: "«X» harfi ko'pincha «ks» kabi o'qiladi, masalan: examen, éxito"
-        },
-        {
-            question: "«C» qachon «s» bo'ladi?",
-            image: "https://image2url.com/r2/default/images/1770213716285-e701e8d5-a098-4e7d-8ffa-9f8eb938c38e.png",
-            options: [
-                { text: "A, O, U bilan", letter: "A" },
-                { text: "E, I bilan", letter: "B" }
-            ],
-            correctAnswer: "B",
-            explanation: "«C» harfi E va I unlilaridan oldin «s» kabi o'qiladi (masalan: cerveza, cine)"
-        }
-    ];
-
-    // DOM elementlari
-    const questionText = document.getElementById('questionText');
-    const questionImage = document.getElementById('questionImage');
-    const optionsContainer = document.getElementById('optionsContainer');
-    const checkBtn = document.getElementById('checkBtn');
-    const resultPanel = document.getElementById('resultPanel');
-    const resultTitle = document.getElementById('resultTitle');
-    const resultMessage = document.getElementById('resultMessage');
-    const resultEmoji = document.getElementById('resultEmoji');
-    const progressBar = document.getElementById('progressBar');
-
-    // O'zgaruvchilar
-    let currentQuestionIndex = 0;
-    let selectedOption = null;
-    let score = 0;
-
-    // Dasturni ishga tushirish
-    function init() {
-        loadQuestion(currentQuestionIndex);
-        updateProgress();
-    }
-
-    // Savolni yuklash
-    function loadQuestion(index) {
-        const question = questions[index];
-        
-        // Savol matni va rasm
-        questionText.textContent = question.question;
-        questionImage.src = question.image;
-        
-        // Variantlarni yaratish
-        optionsContainer.innerHTML = '';
-        question.options.forEach(option => {
-            const button = document.createElement('button');
-            button.className = 'option-btn';
-            button.innerHTML = `
-                <div class="option-letter">${option.letter}</div>
-                <div class="option-text">${option.text}</div>
-            `;
-            
-            button.addEventListener('click', () => selectOption(option.letter, button));
-            optionsContainer.appendChild(button);
-        });
-        
-        // Tanlangan variantni tozalash
-        selectedOption = null;
-        checkBtn.disabled = true;
-        checkBtn.classList.remove('active');
-    }
-
-    // Variant tanlash
-    function selectOption(letter, button) {
-        // Avvalgi tanlangan variantni tozalash
-        document.querySelectorAll('.option-btn').forEach(btn => {
-            btn.classList.remove('selected');
-        });
-        
-        // Yangi variantni tanlash
-        button.classList.add('selected');
-        selectedOption = letter;
-        
-        // Tekshirish tugmasini yoqish
-        checkBtn.disabled = false;
-        checkBtn.classList.add('active');
-        
-        // Animatsiya
-        button.classList.add('animate-pulse');
-        setTimeout(() => button.classList.remove('animate-pulse'), 300);
-    }
-
-    // Tekshirish tugmasi
-    checkBtn.addEventListener('click', checkAnswer);
-
-    function checkAnswer() {
-        const question = questions[currentQuestionIndex];
-        const isCorrect = selectedOption === question.correctAnswer;
-        
-        // Natijani ko'rsatish
-        if (isCorrect) {
-            score++;
-            resultTitle.textContent = "Ajoyib! 🎉";
-            resultMessage.textContent = question.explanation;
-            resultEmoji.textContent = "✅";
-        } else {
-            resultTitle.textContent = "Noto'g'ri 😕";
-            resultMessage.textContent = `${question.explanation}\nTo'g'ri javob: ${question.correctAnswer}`;
-            resultEmoji.textContent = "❌";
-        }
-        
-        // Variantlarni rang bilan belgilash
-        document.querySelectorAll('.option-btn').forEach(button => {
-            const letter = button.querySelector('.option-letter').textContent;
-            if (letter === question.correctAnswer) {
-                button.classList.add('correct');
-            } else if (letter === selectedOption && letter !== question.correctAnswer) {
-                button.classList.add('incorrect');
-            }
-            button.style.pointerEvents = 'none';
-        });
-        
-        // Natija panelini ko'rsatish
-        resultPanel.classList.add('active');
-    }
-
-    // Keyingi savol
-    document.getElementById('continueBtn').addEventListener('click', nextQuestion);
-
-    function nextQuestion() {
-        resultPanel.classList.remove('active');
-        
-        if (currentQuestionIndex < questions.length - 1) {
-            currentQuestionIndex++;
-            loadQuestion(currentQuestionIndex);
-            updateProgress();
-        } else {
-            // Test tugadi
-            showFinalResults();
-        }
-    }
-
-    // Progress yangilash
-    function updateProgress() {
-        const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
-        progressBar.style.width = `${progress}%`;
-    }
-
-    // Yakuniy natija
-    function showFinalResults() {
-        questionText.textContent = "Test yakunlandi!";
-        optionsContainer.innerHTML = `
-            <div style="text-align: center; padding: 40px 20px;">
-                <div style="font-size: 48px; margin-bottom: 20px;">🏆</div>
-                <h2 style="margin-bottom: 10px;">Tabriklaymiz!</h2>
-                <p style="color: var(--text-secondary); margin-bottom: 20px;">
-                    Siz ${questions.length} ta savoldan ${score} tasiga to'g'ri javob berdingiz
-                </p>
-                <p style="font-size: 14px; color: var(--text-secondary);">
-                    ${Math.round((score / questions.length) * 100)}% natija
-                </p>
+        <div class="card-note">
+            <h3 style="margin-top: 0; color: #2f1b4a;"><i class="fas fa-exclamation-circle" style="color: #c2571a;"></i> Muhim jihatlari:</h3>
+            <ul>
+                <li><span class="badge" style="background: #9747ff;">katta harf EMAS</span> Ingliz tilidagi "I" doim katta harf bilan yozilsa, ispan tilidagi <strong>yo</strong> gapning boshida kelmasa, kichik harf bilan yozilaveradi.</li>
+                <li><span class="badge" style="background: #f1bf00; color: #2f1b4a;">tashlab ketish</span> Ispan tilida fe’lning oxiri kim haqida gap ketayotganini aytib turadi. Shuning uchun "Yo"ni ishlatish shart emas.</li>
+            </ul>
+            <div class="example" style="margin-bottom: 0;">
+                <i class="fas fa-check-circle" style="color: #1f8b4c;"></i> <strong>Yo hablo español</strong> — (Men ispancha gapiraman) To‘g‘ri.
+                <br>
+                <i class="fas fa-check-circle" style="color: #1f8b4c;"></i> <strong>Hablo español</strong> — Bu ham to‘g‘ri va <u>ko‘proq ishlatiladi</u>.
             </div>
-        `;
-        checkBtn.style.display = 'none';
-    }
+        </div>
 
-    // Dasturni boshlash
-    document.addEventListener('DOMContentLoaded', init);
-</script>
+        <!-- 2. TÚ -->
+        <h2><i class="fas fa-user-friends"></i> 2. Tú (Sen)</h2>
+        <p><span class="highlight">Tú</span> — bu "sen", ya’ni yaqin do‘stlar, oila a’zolari yoki tengqurlar bilan muloqotda ishlatiladigan norasmiy shakl.</p>
 
+        <div class="rule-box">
+            <h3 style="margin-top: 0; display: flex; align-items: center; gap: 8px;"><i class="fas fa-exclamation-triangle" style="color: #aa1515;"></i> Eng muhim qoida: Urg‘u (Acento)</h3>
+            <p style="font-size: 1.15rem; background: white; padding: 0.6rem 1rem; border-radius: 40px; display: inline-block;">
+                ⚡ <span class="acento">Tú</span> (urg‘u bilan) = <strong>Sen</strong> (Olmosh).
+            </p>
+            <p style="font-size: 1.15rem; background: white; padding: 0.6rem 1rem; border-radius: 40px; display: inline-block; margin-left: 8px;">
+                ⚡ <span style="background: #e2d1ff; padding: 0.1rem 0.5rem; border-radius: 6px;">Tu</span> (urg‘usiz) = <strong>Sening</strong> (Egalik sifati).
+            </p>
+
+            <div style="background: #fef5e6; margin-top: 1.4rem; padding: 1.1rem 1.6rem; border-radius: 20px; font-size: 1.2rem; border-left: 6px solid #aa1515;">
+                <i class="fas fa-quote-right" style="color: #9747ff; opacity: 0.8;"></i>  
+                <strong>Ejemplo:</strong> <em style="background: white; padding: 0.2rem 0.6rem; border-radius: 12px;">Tú eres mi amigo y tu perro es simpático.</em>
+                <br>
+                <span style="font-size: 0.98rem; color: #2d2a3a;">(Sen mening do'stimsan va sening iting yoqimtoy.)</span>
+            </div>
+        </div>
+
+        <!-- 3. Qachon ishlatamiz-u, qachon ishlatmaymiz? -->
+        <h2><i class="fas fa-question-circle"></i> 3. Qachon ishlatamiz-u, qachon ishlatmaymiz?</h2>
+        <p style="background: #e7dcf3; padding: 0.8rem 1.4rem; border-radius: 40px; display: inline-block; font-weight: 600;">
+            <i class="fas fa-arrow-right"></i> Ispan tili — <span style="border-bottom: 3px dotted #6a3e8a;">"pro-drop" (olmoshni tashlab ketuvchi)</span> til. 
+            Ya’ni, gapda olmoshni aytish doimiy majburiyat emas.
+        </p>
+
+        <div class="contrast-row">
+            <!-- kerak holatlar -->
+            <div class="use-case">
+                <h4><i class="fas fa-bold" style="color: #aa1515;"></i> Ishlatish KERAK</h4>
+                <ul style="margin-top: 0.5rem; list-style: none; padding-left: 0;">
+                    <li style="padding-left: 1.8rem; margin-bottom: 1.2rem;"><i class="fas fa-exclamation" style="color: #c2571a;"></i> <strong>Urg‘u berish (Emphasis)</strong><br>
+                    <span style="background: #ffeecc; padding: 4px 10px; border-radius: 20px; display: inline-block; margin-top: 6px;">¡Yo lo hice!</span> <span style="font-size: 0.9rem;">(Buni men qildim!)</span></li>
+                    <li style="padding-left: 1.8rem;"><i class="fas fa-balance-scale" style="color: #c2571a;"></i> <strong>Taqqoslash (Contrast)</strong><br>
+                    <span style="background: #ffeecc; padding: 4px 10px; border-radius: 20px; display: inline-block; margin-top: 6px;">Tú hablas inglés, pero yo hablo español.</span> <span style="font-size: 0.9rem;">(Sen inglizcha gapirasan, lekin men ispancha gapiraman.)</span></li>
+                </ul>
+            </div>
+            <!-- kerak emas holatlar -->
+            <div class="use-case">
+                <h4><i class="fas fa-times-circle" style="color: #348f3c;"></i> Ishlatilmaydi</h4>
+                <div style="margin-top: 0.8rem;">
+                    <p style="background: #e9f4e9; padding: 0.8rem 1rem; border-radius: 16px;">
+                        <i class="fas fa-check" style="color: #1f8b4c;"></i>  Oddiy suhbatda fe’lning o‘zi yetarli.
+                    </p>
+                    <div style="background: white; padding: 1rem; border-radius: 16px; margin-top: 0.8rem; border: 1px solid #b7e0b7;">
+                        <i class="fas fa-comment-dots" style="color: #348f3c;"></i> ¿Cómo estás (tú)?<br>
+                        <span style="color: #46404e;">— (Sen) qalaysan?</span><br><br>
+                        <i class="fas fa-comment-dots" style="color: #348f3c;"></i> (Yo) Estoy bien.<br>
+                        <span style="color: #46404e;">— (Men) yaxshiman.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- qo‘shimcha eslatma: ixtiyoriylik -->
+        <div style="background: #faf3fd; padding: 1.2rem 1.8rem; border-radius: 22px; margin-top: 1.4rem;">
+            <i class="fas fa-check-double" style="color: #9747ff; margin-right: 8px;"></i> 
+            Eslab qoling: <strong>Yo</strong> va <strong>Tú</strong> olmoshlari ko‘p hollarda tushib qoladi, lekin kerakli joyda urg‘u va farqni ko‘rsatish uchun ularni ishlatish — zo‘r ispan tilidan dalolat beradi.
+        </div>
+
+        <!-- dekorativ chiziq -->
+        <div class="divider"></div>
+
+        <!-- yakuniy ruhlantiruvchi ibora -->
+        <div class="footer-phrase">
+            <i class="fas fa-flag"></i> ¡Ánimo! 
+            <span style="font-size: 1.2rem; font-weight: 400; display: block; margin-top: 6px; color: #1e1a2b;">Omad! Ispan tili sizni kutib oladi.</span>
+        </div>
+
+        <!-- yengil izoh: urg‘u belgilari -->
+        <div class="small-note" style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-top: 2rem;">
+            <span><i class="fas fa-circle" style="color: #f1bf00; font-size: 0.5rem;"></i> Yo — kichik harf</span>
+            <span><i class="fas fa-circle" style="color: #f1bf00; font-size: 0.5rem;"></i> Tú (urg‘u) vs Tu (egalik)</span>
+            <span><i class="fas fa-circle" style="color: #f1bf00; font-size: 0.5rem;"></i> Pro-drop: olmosh shart emas</span>
+        </div>
+    </div>
+    <!-- ispancha iliqlik bilan -->
 </body>
 </html>
