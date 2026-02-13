@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ispan shaxs olmoshlari | Él va Ella</title>
     <style>
-        /* Qora fon, oq matn — boshqa hech qanday o‘zgarish yo‘q */
+        /* Asosiy fon va matn */
         body {
             background-color: black;
             color: white;
@@ -13,28 +13,128 @@
             line-height: 1.6;
             margin: 2em;
         }
-        /* Faqat matn rangi va fon — qolgani brauzer standarti */
+
         p {
-            margin-bottom: 1em;
+            margin-bottom: 1.5em;
+        }
+
+        /* Ispancha so'zlar uchun uslub */
+        .sp-word {
+            color: #ffeb3b; /* Ispancha so'zlarni ajratib ko'rsatish uchun sarg'ish rang */
+            text-decoration: underline dotted;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .sp-word:hover {
+            color: #ffffff;
+        }
+
+        /* Popup (oyna) uslubi */
+        #popup {
+            display: none;
+            position: absolute;
+            background-color: #333;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(255,255,255,0.2);
+            z-index: 1000;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            border: 1px solid #555;
+        }
+
+        /* Oq rangli karnay ikonka */
+        .audio-icon {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            fill: white; /* Karnay rangi oq */
+        }
+
+        /* Popupning pastki burchagi (strelka) */
+        #popup::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #333 transparent transparent transparent;
         }
     </style>
 </head>
 <body>
-    <p>Él (U — erkaklar uchun)<br>
-    Bu olmosh faqat erkak jinsidagi shaxslarga nisbatan ishlatiladi.<br>
-    Él come pan. – U non yeydi.<br>
-    Él bebe agua. – U suv ichadi.<br>
-    Él estudia español. – U ispan tilini o‘rganadi.</p>
 
-    <p>Ella (U — ayollar uchun)<br>
-    Ayol jinsidagi shaxslar uchun Ella olmoshini ishlatamiz.<br>
-    Talaffuz siri:<br>
-    Ispan tilida ikkita "ll" harfi yonma-yon kelsa, u "y" kabi o‘qiladi.<br>
-    * Ella deb yoziladi, lekin "Eya" deb talaffuz qilinadi.<br>
-    * Eslatma: Ba’zi Lotin Amerikasi shevalarida "Eja" yoki "Esha" kabi eshitilishi ham mumkin, lekin standart talaffuzi — Eya.<br>
-    <br>
-    Ella come pan – U non yeydi.<br>
-    Ella bebe agua – U suv ichadi.<br>
-    Ella estudia español – U ispan tilini o‘rganadi.</p>
+    <p>
+        <strong>Él (U — erkaklar uchun)</strong><br>
+        Bu olmosh faqat erkak jinsidagi shaxslarga nisbatan ishlatiladi.<br>
+        <span class="sp-word" data-tr="U non yeydi">Él come pan.</span> – U non yeydi.<br>
+        <span class="sp-word" data-tr="U suv ichadi">Él bebe agua.</span> – U suv ichadi.<br>
+        <span class="sp-word" data-tr="U ispan tilini o'rganadi">Él estudia español.</span> – U ispan tilini o‘rganadi.
+    </p>
+
+    <p>
+        <strong>Ella (U — ayollar uchun)</strong><br>
+        Ayol jinsidagi shaxslar uchun Ella olmoshini ishlatamiz.<br>
+        Talaffuz siri:<br>
+        Ispan tilida ikkita "ll" harfi yonma-yon kelsa, u "y" kabi o‘qiladi.<br>
+        * <span class="sp-word" data-tr="U (ayol)">Ella</span> deb yoziladi, lekin "Eya" deb talaffuz qilinadi.<br>
+        * Eslatma: Ba’zi Lotin Amerikasi shevalarida "Eja" yoki "Esha" kabi eshitilishi ham mumkin, lekin standart talaffuzi — Eya.<br>
+        <br>
+        <span class="sp-word" data-tr="U non yeydi">Ella come pan.</span> – U non yeydi.<br>
+        <span class="sp-word" data-tr="U suv ichadi">Ella bebe agua.</span> – U suv ichadi.<br>
+        <span class="sp-word" data-tr="U ispan tilini o'rganadi">Ella estudia español.</span> – U ispan tilini o‘rganadi.
+    </p>
+
+    <div id="popup">
+        <span id="popup-text"></span>
+        <svg class="audio-icon" id="speak-btn" viewBox="0 0 24 24">
+            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+        </svg>
+    </div>
+
+    <script>
+        const words = document.querySelectorAll('.sp-word');
+        const popup = document.getElementById('popup');
+        const popupText = document.getElementById('popup-text');
+        const speakBtn = document.getElementById('speak-btn');
+        let currentSpanishText = "";
+
+        words.forEach(word => {
+            word.addEventListener('click', (e) => {
+                const rect = word.getBoundingClientRect();
+                currentSpanishText = word.innerText;
+                const translation = word.getAttribute('data-tr');
+
+                // Matn va pozitsiyani o'rnatish
+                popupText.innerText = translation;
+                popup.style.display = 'flex';
+                
+                // Popupni so'zning o'rtasiga joylashtirish
+                const popupWidth = popup.offsetWidth;
+                popup.style.left = `${rect.left + (rect.width / 2) - (popupWidth / 2)}px`;
+                popup.style.top = `${rect.top + window.scrollY - 45}px`;
+                
+                e.stopPropagation();
+            });
+        });
+
+        // Ovoz berish funksiyasi
+        speakBtn.addEventListener('click', (e) => {
+            const utterance = new SpeechSynthesisUtterance(currentSpanishText);
+            utterance.lang = 'es-ES'; // Ispan tili talaffuzi
+            window.speechSynthesis.speak(utterance);
+            e.stopPropagation();
+        });
+
+        // Ekranning bo'sh joyi bosilganda popupni yopish
+        document.addEventListener('click', () => {
+            popup.style.display = 'none';
+        });
+    </script>
 </body>
 </html>
