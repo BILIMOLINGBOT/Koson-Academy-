@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="uz">
 <head>
@@ -18,6 +19,7 @@
             text-decoration: underline dotted;
             cursor: pointer;
             font-weight: bold;
+            display: inline-block;
         }
 
         #popup {
@@ -25,21 +27,22 @@
             position: absolute;
             background-color: #131f24;
             min-width: 180px;
-            max-width: 90vw; /* mobil uchun cheklash */
+            max-width: 90vw;
             padding: 15px;
             border-radius: 15px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.5);
             z-index: 1000;
-            flex-direction: column;
             border: 2px solid #334155;
-
+            flex-direction: column;
+            
             /* Animatsiya */
             opacity: 0;
             transform: scale(0.8);
-            transition: opacity 0.25s ease, transform 0.25s ease;
+            transition: opacity 0.2s ease, transform 0.2s ease;
         }
 
         #popup.show {
+            display: flex !important;
             opacity: 1;
             transform: scale(1);
         }
@@ -69,6 +72,12 @@
             cursor: pointer;
             fill: #1cb0f6;
             transition: transform 0.1s;
+            flex-shrink: 0;
+        }
+
+        .audio-icon:hover {
+            fill: #4fc3f7;
+            transform: scale(1.1);
         }
 
         .audio-icon:active {
@@ -118,56 +127,120 @@
     </div>
 
     <script>
-        const words = document.querySelectorAll('.sp-word');
-        const popup = document.getElementById('popup');
-        const popupMainWord = document.getElementById('popup-main-word');
-        const popupTranslation = document.getElementById('popup-translation');
-        const speakBtn = document.getElementById('speak-btn');
-        let textToSpeak = "";
+        (function() {
+            const words = document.querySelectorAll('.sp-word');
+            const popup = document.getElementById('popup');
+            const popupMainWord = document.getElementById('popup-main-word');
+            const popupTranslation = document.getElementById('popup-translation');
+            const speakBtn = document.getElementById('speak-btn');
+            let textToSpeak = "";
 
-        words.forEach(word => {
-            word.addEventListener('click', (e) => {
-                const rect = word.getBoundingClientRect();
-                textToSpeak = word.innerText;
-                const translation = word.getAttribute('data-tr');
+            function hidePopup() {
+                popup.classList.remove('show');
+                setTimeout(() => {
+                    if (!popup.classList.contains('show')) {
+                        popup.style.display = 'none';
+                    }
+                }, 200);
+            }
 
-                popupMainWord.innerText = textToSpeak;
-                popupTranslation.innerText = translation;
+            words.forEach(word => {
+                word.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    
+                    const rect = word.getBoundingClientRect();
+                    textToSpeak = word.innerText.trim();
+                    const translation = word.getAttribute('data-tr');
 
-                popup.style.display = 'flex';
+                    popupMainWord.innerText = textToSpeak;
+                    popupTranslation.innerText = translation;
 
-                let left = rect.left + window.scrollX + (rect.width /Width / 2);
-                let top = rect.top + window.scrollY - popup.offsetHeight - 15;
+                    // Popupni to'g'ri joylashtirish
+                    popup.style.display = 'flex';
+                    
+                    // Pozitsiyani hisoblash
+                    let left = rect.left + window.scrollX + (rect.width / 2) - (popup.offsetWidth / 2);
+                    let top = rect.top + window.scrollY - popup.offsetHeight - 15;
 
-                if (left < 10) left = 10;
-                if (left + popup.offsetWidth > window.innerWidth - 10) {
-                    left = window.innerWidth - popup.offsetWidth - 10;
+                    // Ekran chetlarini tekshirish
+                    if (left < 10) {
+                        left = 10;
+                    }
+                    if (left + popup.offsetWidth > window.innerWidth - 10) {
+                        left = window.innerWidth - popup.offsetWidth - 10;
+                    }
+                    
+                    // Agar tepaga sig'masa, pastga ochish
+                    if (top < window.scrollY + 10) {
+                        top = rect.bottom + window.scrollY + 15;
+                        popup.classList.add('bottom');
+                        popup.style.setProperty('--arrow-rotate', '180deg');
+                        popup.style.setProperty('--arrow-top', '-16px');
+                    } else {
+                        popup.classList.remove('bottom');
+                        popup.style.removeProperty('--arrow-rotate');
+                        popup.style.removeProperty('--arrow-top');
+                    }
+
+                    popup.style.left = `${left}px`;
+                    popup.style.top = `${top}px`;
+
+                    // Animatsiya
+                    requestAnimationFrame(() => {
+                        popup.classList.add('show');
+                    });
+                });
+            });
+
+            speakBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (textToSpeak) {
+                    try {
+                        const utterance = new SpeechSynthesisUtterance(textToSpeak);
+                        utterance.lang = 'es-ES';
+                        utterance.rate = 0.9;
+                        window.speechSynthesis.cancel();
+                        window.speechSynthesis.speak(utterance);
+                    } catch (error) {
+                        console.log('Ovozli sintez ishlamadi');
+                    }
                 }
-                if (top < 10) top = rect.bottom + window.scrollY + 15;
+            });
 
-                popup.style.left = `${left}px`;
-                popup.style.top = `${top}px`;
-
-                // Animatsiya uchun class qo‘shish
-                setTimeout(() => popup.classList.add('show'), 10);
-
+            // Popup ichiga bosilganda yopilmasligi uchun
+            popup.addEventListener('click', (e) => {
                 e.stopPropagation();
             });
-        });
 
-        speakBtn.addEventListener('click', (e) => {
-            if (textToSpeak) {
-                const utterance = new SpeechSynthesisUtterance(textToSpeak);
-                utterance.lang = 'es-ES';
-                window.speechSynthesis.speak(utterance);
-            }
-            e.stopPropagation();
-        });
+            // Tashqariga bosilganda yopish
+            document.addEventListener('click', (e) => {
+                if (!e.target.classList.contains('sp-word') && !popup.contains(e.target)) {
+                    hidePopup();
+                }
+            });
 
-        document.addEventListener('click', () => {
-            popup.classList.remove('show');
-            setTimeout(() => popup.style.display = 'none', 200);
-        });
+            // Scroll qilinganda popupni yopish
+            window.addEventListener('scroll', () => {
+                if (popup.classList.contains('show')) {
+                    hidePopup();
+                }
+            });
+
+            // Oyna kattalashganda popupni yopish
+            window.addEventListener('resize', () => {
+                if (popup.classList.contains('show')) {
+                    hidePopup();
+                }
+            });
+
+            // SpeechSynthesis uchun
+            window.addEventListener('load', () => {
+                if (window.speechSynthesis) {
+                    window.speechSynthesis.getVoices();
+                }
+            });
+
+        })();
     </script>
 </body>
 </html>
