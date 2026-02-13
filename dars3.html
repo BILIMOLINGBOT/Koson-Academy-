@@ -3,204 +3,156 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ispan shaxs olmoshlari | Él va Ella</title>
+    <title>Ispan tili interaktiv dars</title>
     <style>
-        /* Qora fon, oq matn — boshqa hech qanday o‘zgarish yo‘q */
+        /* Asosiy fon */
         body {
             background-color: black;
             color: white;
-            font-family: sans-serif;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             line-height: 1.6;
             margin: 2em;
-            position: relative;
-            min-height: 100vh;
         }
-        
-        p {
-            margin-bottom: 1.5em;
-        }
-        
-        /* Ispancha so'zlar uchun stil */
-        .ispancha {
+
+        /* Ispancha matnlar uslubi */
+        .sp-word {
+            color: #4db6ac;
+            text-decoration: underline dotted;
             cursor: pointer;
-            border-bottom: 1px dashed #888;
-            transition: all 0.2s ease;
-            display: inline-block;
-        }
-        
-        .ispancha:hover {
-            border-bottom: 1px solid white;
-            background-color: #333;
-        }
-        
-        /* Tarjima qutisi */
-        #tarjima-qutisi {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            background-color: #1a1a1a;
-            color: white;
-            border-left: 5px solid #f1bf00;
-            padding: 15px 20px;
-            border-radius: 8px;
-            max-width: 300px;
-            display: none;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-            border: 1px solid #444;
-            z-index: 1000;
-        }
-        
-        #tarjima-soz {
-            font-size: 1.2em;
             font-weight: bold;
-            color: #f1bf00;
+        }
+
+        /* Popup oynasi (Rasmga moslangan) */
+        #popup {
+            display: none;
+            position: absolute;
+            background-color: #131f24; /* To'q ko'k/qora fon */
+            min-width: 180px;
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            z-index: 1000;
+            flex-direction: column;
+            border: 2px solid #334155;
+        }
+
+        /* Popup ichidagi yuqori qator (So'z va Karnay) */
+        .popup-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
             margin-bottom: 5px;
         }
-        
-        #tarjima-mazmun {
-            font-size: 1em;
-            margin-bottom: 10px;
+
+        #popup-main-word {
+            font-size: 22px;
+            font-weight: bold;
+            color: #ffffff;
         }
-        
-        #tarjima-yopish {
-            position: absolute;
-            top: 10px;
-            right: 15px;
+
+        /* Tarjima uslubi */
+        #popup-translation {
+            font-size: 16px;
+            color: #94a3b8; /* Kulrang matn */
+        }
+
+        /* Karnay ikonka (Rasmga mos moviy rang) */
+        .audio-icon {
+            width: 28px;
+            height: 28px;
             cursor: pointer;
-            color: #aaa;
-            font-size: 1.2em;
+            fill: #1cb0f6; /* Moviy rang */
+            transition: transform 0.1s;
         }
-        
-        #tarjima-yopish:hover {
-            color: white;
+
+        .audio-icon:active {
+            transform: scale(0.9);
         }
-        
-        /* Izoh qutisi */
-        .eslatma {
-            background-color: #0a0a0a;
-            border-left: 4px solid #888;
-            padding: 10px 15px;
-            margin: 20px 0;
-            font-style: italic;
-            color: #ccc;
+
+        /* Popupning pastki ko'rsatkichi */
+        #popup::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -8px;
+            border-width: 8px;
+            border-style: solid;
+            border-color: #131f24 transparent transparent transparent;
         }
-        
-        hr {
-            border: 0.5px solid #333;
-            margin: 30px 0;
-        }
-        
-        .footer {
-            margin-top: 50px;
-            color: #888;
-            font-size: 0.9em;
-            text-align: center;
-        }
+
+        strong { color: #ff9800; }
     </style>
 </head>
 <body>
-    <h2 style="color: white; border-bottom: 2px solid #f1bf00; padding-bottom: 10px;">🇪🇸 Ispan shaxs olmoshlari: Él va Ella</h2>
-    
+
     <p>
-        <span class="ispancha" onclick="showTranslation('Él', 'U (erkaklar uchun)')">Él</span> 
-        (U — erkaklar uchun)<br>
+        <strong>Él (U — erkaklar uchun)</strong><br>
         Bu olmosh faqat erkak jinsidagi shaxslarga nisbatan ishlatiladi.<br>
-        <span class="ispancha" onclick="showTranslation('Él come pan.', 'U non yeydi.')">Él come pan.</span> – U non yeydi.<br>
-        <span class="ispancha" onclick="showTranslation('Él bebe agua.', 'U suv ichadi.')">Él bebe agua.</span> – U suv ichadi.<br>
-        <span class="ispancha" onclick="showTranslation('Él estudia español.', 'U ispan tilini o‘rganadi.')">Él estudia español.</span> – U ispan tilini o‘rganadi.
+        <span class="sp-word" data-tr="U non yeydi">Él come pan.</span> – U non yeydi.<br>
+        <span class="sp-word" data-tr="U suv ichadi">Él bebe agua.</span> – U suv ichadi.<br>
+        <span class="sp-word" data-tr="U ispan tilini o'rganadi">Él estudia español.</span> – U ispan tilini o‘rganadi.
     </p>
 
     <p>
-        <span class="ispancha" onclick="showTranslation('Ella', 'U (ayollar uchun)')">Ella</span> 
-        (U — ayollar uchun)<br>
+        <strong>Ella (U — ayollar uchun)</strong><br>
         Ayol jinsidagi shaxslar uchun Ella olmoshini ishlatamiz.<br>
-        Talaffuz siri:<br>
-        Ispan tilida ikkita "ll" harfi yonma-yon kelsa, 
-        <span class="ispancha" onclick="showTranslation('ll', '"y" tovushi')">"ll"</span> 
-        <span class="ispancha" onclick="showTranslation('y', '"y" (ye)')">"y"</span> kabi o‘qiladi.<br>
-        * <span class="ispancha" onclick="showTranslation('Ella', 'Ella')">Ella</span> deb yoziladi, lekin 
-        <span class="ispancha" onclick="showTranslation('Eya', 'Talaffuzi: Eya')">"Eya"</span> deb talaffuz qilinadi.<br>
-        * Eslatma: Ba’zi Lotin Amerikasi shevalarida 
-        <span class="ispancha" onclick="showTranslation('Eja', 'Talaffuz varianti: Eja')">"Eja"</span> yoki 
-        <span class="ispancha" onclick="showTranslation('Esha', 'Talaffuz varianti: Esha')">"Esha"</span> kabi eshitilishi ham mumkin, lekin standart talaffuzi — 
-        <span class="ispancha" onclick="showTranslation('Eya', 'Standart talaffuz: Eya')">Eya</span>.<br>
         <br>
-        <span class="ispancha" onclick="showTranslation('Ella come pan', 'U non yeydi')">Ella come pan</span> – U non yeydi.<br>
-        <span class="ispancha" onclick="showTranslation('Ella bebe agua', 'U suv ichadi')">Ella bebe agua</span> – U suv ichadi.<br>
-        <span class="ispancha" onclick="showTranslation('Ella estudia español', 'U ispan tilini o‘rganadi')">Ella estudia español</span> – U ispan tilini o‘rganadi.
+        <span class="sp-word" data-tr="U non yeydi">Ella come pan.</span> – U non yeydi.<br>
+        <span class="sp-word" data-tr="U suv ichadi">Ella bebe agua.</span> – U suv ichadi.<br>
+        <span class="sp-word" data-tr="U ispan tilini o'rganadi">Ella estudia español.</span> – U ispan tilini o‘rganadi.
     </p>
-    
-    <div class="eslatma">
-        💡 Eslatma: Ispan tilidagi so'zlarga tarjimani ko'rish uchun ustiga bosing. Tarjima qutisi pastki o'ng burchakda chiqadi.
-    </div>
-    
-    <hr>
-    
-    <div style="display: flex; gap: 20px; margin-top: 20px;">
-        <div>
-            <h3 style="color: #f1bf00; margin-bottom: 10px;">📚 Él (erkak)</h3>
-            <span class="ispancha" onclick="showTranslation('Él', 'U (erkak)')">Él</span><br>
-            <span class="ispancha" onclick="showTranslation('hombre', 'erkak')">hombre</span><br>
-            <span class="ispancha" onclick="showTranslation('niño', 'bola (o‘g‘il)')">niño</span><br>
-            <span class="ispancha" onclick="showTranslation('padre', 'ota')">padre</span><br>
-            <span class="ispancha" onclick="showTranslation('hermano', 'aka/uka')">hermano</span>
+
+    <div id="popup">
+        <div class="popup-header">
+            <span id="popup-main-word"></span>
+            <svg class="audio-icon" id="speak-btn" viewBox="0 0 24 24">
+                <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+            </svg>
         </div>
-        <div>
-            <h3 style="color: #f1bf00; margin-bottom: 10px;">📚 Ella (ayol)</h3>
-            <span class="ispancha" onclick="showTranslation('Ella', 'U (ayol)')">Ella</span><br>
-            <span class="ispancha" onclick="showTranslation('mujer', 'ayol')">mujer</span><br>
-            <span class="ispancha" onclick="showTranslation('niña', 'bola (qiz)')">niña</span><br>
-            <span class="ispancha" onclick="showTranslation('madre', 'ona')">madre</span><br>
-            <span class="ispancha" onclick="showTranslation('hermana', 'opa/singil')">hermana</span>
-        </div>
-        <div>
-            <h3 style="color: #f1bf00; margin-bottom: 10px;">📚 Fe'llar</h3>
-            <span class="ispancha" onclick="showTranslation('come', 'yeydi (comer)')">come</span><br>
-            <span class="ispancha" onclick="showTranslation('bebe', 'ichadi (beber)')">bebe</span><br>
-            <span class="ispancha" onclick="showTranslation('estudia', 'o‘rganadi (estudiar)')">estudia</span><br>
-            <span class="ispancha" onclick="showTranslation('habla', 'gapiradi (hablar)')">habla</span><br>
-            <span class="ispancha" onclick="showTranslation('vive', 'yashaydi (vivir)')">vive</span>
-        </div>
-    </div>
-    
-    <div class="footer">
-        Har bir ispancha so'zni bosish orqali tarjimasini ko'rish mumkin. ¡Ánimo!
-    </div>
-    
-    <!-- Tarjima qutisi -->
-    <div id="tarjima-qutisi">
-        <span id="tarjima-yopish" onclick="yopish()">✕</span>
-        <div id="tarjima-soz">Él</div>
-        <div id="tarjima-mazmun">U (erkaklar uchun)</div>
-        <div style="font-size: 0.8em; color: #aaa;">So'zni bosish orqali tarjima ko'rildi</div>
+        <div id="popup-translation"></div>
     </div>
 
     <script>
-        // Tarjima qutisini ko'rsatish funksiyasi
-        function showTranslation(soz, tarjima) {
-            document.getElementById('tarjima-soz').innerHTML = soz;
-            document.getElementById('tarjima-mazmun').innerHTML = tarjima;
-            document.getElementById('tarjima-qutisi').style.display = 'block';
-        }
-        
-        // Tarjima qutisini yopish funksiyasi
-        function yopish() {
-            document.getElementById('tarjima-qutisi').style.display = 'none';
-        }
-        
-        // Qutidan tashqariga bosilganda yopish (ixtiyoriy)
-        window.onclick = function(event) {
-            let quti = document.getElementById('tarjima-qutisi');
-            if (event.target !== quti && !event.target.classList.contains('ispancha') && !quti.contains(event.target)) {
-                quti.style.display = 'none';
-            }
-        }
-        
-        // Escape tugmasi bosilganda yopish
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') {
-                document.getElementById('tarjima-qutisi').style.display = 'none';
-            }
+        const words = document.querySelectorAll('.sp-word');
+        const popup = document.getElementById('popup');
+        const popupMainWord = document.getElementById('popup-main-word');
+        const popupTranslation = document.getElementById('popup-translation');
+        const speakBtn = document.getElementById('speak-btn');
+        let textToSpeak = "";
+
+        words.forEach(word => {
+            word.addEventListener('click', (e) => {
+                const rect = word.getBoundingClientRect();
+                textToSpeak = word.innerText;
+                const translation = word.getAttribute('data-tr');
+
+                // Popup ichini to'ldirish
+                popupMainWord.innerText = textToSpeak;
+                popupTranslation.innerText = translation;
+
+                // Popupni ko'rsatish va joylashtirish
+                popup.style.display = 'flex';
+                const popupWidth = popup.offsetWidth;
+                popup.style.left = `${rect.left + (rect.width / 2) - (popupWidth / 2)}px`;
+                popup.style.top = `${rect.top + window.scrollY - popup.offsetHeight - 15}px`;
+                
+                e.stopPropagation();
+            });
+        });
+
+        // Ovoz berish tugmasi
+        speakBtn.addEventListener('click', (e) => {
+            const utterance = new SpeechSynthesisUtterance(textToSpeak);
+            utterance.lang = 'es-ES';
+            window.speechSynthesis.speak(utterance);
+            e.stopPropagation();
+        });
+
+        // Tashqariga bosilganda yopish
+        document.addEventListener('click', () => {
+            popup.style.display = 'none';
         });
     </script>
 </body>
