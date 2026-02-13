@@ -25,12 +25,23 @@
             position: absolute;
             background-color: #131f24;
             min-width: 180px;
+            max-width: 90vw; /* mobil uchun cheklash */
             padding: 15px;
             border-radius: 15px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.5);
             z-index: 1000;
             flex-direction: column;
             border: 2px solid #334155;
+
+            /* Animatsiya */
+            opacity: 0;
+            transform: scale(0.8);
+            transition: opacity 0.25s ease, transform 0.25s ease;
+        }
+
+        #popup.show {
+            opacity: 1;
+            transform: scale(1);
         }
 
         .popup-header {
@@ -124,8 +135,21 @@
                 popupTranslation.innerText = translation;
 
                 popup.style.display = 'flex';
-                popup.style.left = `${rect.left + window.scrollX + (rect.width / 2) - (popup.offsetWidth / 2)}px`;
-                popup.style.top = `${rect.top + window.scrollY - popup.offsetHeight - 15}px`;
+
+                let left = rect.left + window.scrollX + (rect.width /Width / 2);
+                let top = rect.top + window.scrollY - popup.offsetHeight - 15;
+
+                if (left < 10) left = 10;
+                if (left + popup.offsetWidth > window.innerWidth - 10) {
+                    left = window.innerWidth - popup.offsetWidth - 10;
+                }
+                if (top < 10) top = rect.bottom + window.scrollY + 15;
+
+                popup.style.left = `${left}px`;
+                popup.style.top = `${top}px`;
+
+                // Animatsiya uchun class qo‘shish
+                setTimeout(() => popup.classList.add('show'), 10);
 
                 e.stopPropagation();
             });
@@ -141,7 +165,8 @@
         });
 
         document.addEventListener('click', () => {
-            popup.style.display = 'none';
+            popup.classList.remove('show');
+            setTimeout(() => popup.style.display = 'none', 200);
         });
     </script>
 </body>
