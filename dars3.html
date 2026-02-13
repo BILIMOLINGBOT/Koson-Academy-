@@ -14,7 +14,7 @@
         }
 
         .sp-word {
-            color: #ffffff;
+            color: white;
             text-decoration: underline dotted #555;
             cursor: pointer;
             font-weight: bold;
@@ -23,20 +23,21 @@
         }
 
         .sp-word:hover {
-            color: #38bdf8; /* Bosganda yoki ustiga borganda ko'kroq rang */
+            color: white;
+            text-decoration: underline dotted #aaa;
         }
 
         #popup {
             display: none;
             position: absolute;
-            background-color: #131f24;
+            background-color: #1a1a1a;
             min-width: 120px;
             max-width: 90vw;
             padding: 12px;
             border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.7);
             z-index: 1000;
-            border: 2px solid #334155;
+            border: 2px solid #444;
             flex-direction: column;
             opacity: 0;
             transform: scale(0.8);
@@ -61,37 +62,38 @@
         #popup-main-word {
             font-size: 20px;
             font-weight: bold;
-            color: #ffffff;
+            color: white;
         }
 
         #popup-translation {
             font-size: 15px;
-            color: #94a3b8;
+            color: #ccc;
         }
 
         .audio-icon {
             width: 24px;
             height: 24px;
             cursor: pointer;
-            fill: #ffffff;
+            fill: white;
             transition: transform 0.1s;
             flex-shrink: 0;
         }
 
         .audio-icon:hover {
-            fill: #38bdf8;
+            fill: #ccc;
             transform: scale(1.1);
         }
 
         strong {
-            color: #38bdf8;
+            color: white;
             font-size: 1.2em;
+            font-weight: bold;
         }
         
         .sentence-row {
             margin-bottom: 15px;
             padding: 10px;
-            border-bottom: 1px solid #222;
+            border-bottom: 1px solid #333;
         }
     </style>
 </head>
@@ -179,10 +181,11 @@
 
                     popup.style.display = 'flex';
                     
-                    // Pozitsiyani hisoblash (backtick tuzatildi)
+                    // Pozitsiyani hisoblash
                     let left = rect.left + window.scrollX + (rect.width / 2) - (popup.offsetWidth / 2);
                     let top = rect.top + window.scrollY - popup.offsetHeight - 15;
 
+                    // Chegaralarni tekshirish
                     if (left < 10) left = 10;
                     if (left + popup.offsetWidth > window.innerWidth - 10) {
                         left = window.innerWidth - popup.offsetWidth - 10;
@@ -192,9 +195,10 @@
                         top = rect.bottom + window.scrollY + 15;
                     }
 
-                    popup.style.left = `${left}px`;
-                    popup.style.top = `${top}px`;
+                    popup.style.left = Math.round(left) + 'px';
+                    popup.style.top = Math.round(top) + 'px';
 
+                    // Animation for showing
                     requestAnimationFrame(() => {
                         popup.classList.add('show');
                     });
@@ -208,6 +212,7 @@
                         const utterance = new SpeechSynthesisUtterance(textToSpeak);
                         utterance.lang = 'es-ES';
                         utterance.rate = 0.8;
+                        // Cancel any ongoing speech
                         window.speechSynthesis.cancel();
                         window.speechSynthesis.speak(utterance);
                     } catch (error) {
@@ -217,11 +222,18 @@
             });
 
             document.addEventListener('click', (e) => {
-                if (!popup.contains(e.target)) hidePopup();
+                if (!popup.contains(e.target)) {
+                    hidePopup();
+                }
             });
 
             window.addEventListener('scroll', hidePopup);
             window.addEventListener('resize', hidePopup);
+            
+            // Popup ichida bosilganda yopilmasligi uchun
+            popup.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
         })();
     </script>
 </body>
