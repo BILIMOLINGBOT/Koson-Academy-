@@ -3,221 +3,347 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Present Simple Savollari Haqida</title>
+    <title>Ispan tili interaktiv dars</title>
     <style>
         body {
-            margin-top: 50px; /* Adjust margin to prevent overlap */
-            padding: 20px;
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333; /* Standart matn rangi */
-            background-color: #fff; /* Standart fon rangi */
-            transition: color 0.3s ease, background-color 0.3s ease; /* Animatsiya */
-            position: relative; /* Bolalar elementlarini absolyut joylashtirish uchun */
+            background-color: black;
+            color: white;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.8;
+            margin: 2em;
         }
-        .back-button-container {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-        }
-        .back-button {
+
+        .sp-word {
+            color: white;
+            text-decoration: underline dotted #555;
+            cursor: pointer;
+            font-weight: bold;
             display: inline-block;
-            padding: 8px 15px;
-            text-decoration: none;
-            background-color: #f2f2f2;
-            color: #333;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+            transition: color 0.2s;
         }
-        .back-button:hover {
-            background-color: #e0e0e0;
+
+        .sp-word:hover {
+            color: white;
+            text-decoration: underline dotted #aaa;
         }
-        h1, h2, h3, h4, p, ul, ol {
-            color: #333;
-            transition: color 0.3s ease;
+
+        #popup {
+            display: none;
+            position: absolute;
+            background-color: #1a1a1a;
+            min-width: 120px;
+            max-width: 90vw;
+            padding: 12px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.7);
+            z-index: 1000;
+            border: 2px solid #444;
+            flex-direction: column;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            pointer-events: auto;
         }
-        h1 {
-            border-bottom: 2px solid #ccc;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
+
+        #popup.show {
+            display: flex !important;
+            opacity: 1;
+            transform: scale(1);
         }
-        h2 {
-            margin-top: 25px;
-        }
-        h3 {
-            margin-top: 20px;
-        }
-        ul, ol {
-            margin-bottom: 15px;
-            padding-left: 20px;
-        }
-        li {
+
+        .popup-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
             margin-bottom: 5px;
         }
 
-        /* Dark Mode uchun stillar */
-        @media (prefers-color-scheme: dark) {
-            body {
-                color: #fff;
-                background-color: #121212;
-            }
-            h1, h2, h3, h4, p, ul, ol {
-                color: #eee;
-            }
-            h1 {
-                border-bottom-color: #555;
-            }
-            .back-button {
-                background-color: #333;
-                color: #eee;
-                border-color: #555;
-            }
-            .back-button:hover {
-                background-color: #444;
-            }
-            a {
-                color: #add8e6; /* Ochiqroq ko'k rang */
-            }
-            a:hover {
-                color: #87ceeb; /* Yana ham ochiqroq ko'k rang */
-            }
+        #popup-main-word {
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+        }
+
+        #popup-translation {
+            font-size: 15px;
+            color: #ccc;
+        }
+
+        .audio-icon {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            fill: white;
+            transition: transform 0.1s;
+            flex-shrink: 0;
+        }
+
+        .audio-icon:hover {
+            fill: #ccc;
+            transform: scale(1.1);
+        }
+
+        strong {
+            color: white;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        
+        .sentence-row {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-bottom: 1px solid #333;
+        }
+        
+        .note {
+            color: #ccc;
+            font-style: italic;
+            margin-top: 5px;
+            font-size: 0.95em;
+            border-left: 3px solid #555;
+            padding-left: 10px;
+        }
+        
+        .grammar-box {
+            background-color: #111;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border: 1px solid #333;
+        }
+        
+        .article-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: white;
+        }
+        
+        .el-article {
+            color: #6ab0f3;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        
+        .la-article {
+            color: #f9a8d4;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        
+        .example-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .example-list li {
+            margin-bottom: 12px;
+            padding: 8px 12px;
+            background-color: #1a1a1a;
+            border-radius: 4px;
+        }
+        
+        .rule-icon {
+            font-size: 1.5em;
+            margin-right: 10px;
+        }
+        
+        .highlight {
+            color: white;
+            background-color: #333;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .explanation {
+            margin: 10px 0;
+            color: #ddd;
         }
     </style>
 </head>
 <body>
-    <div class="back-button-container">
-        <p class="back-button"><a href="a1.html">&larr; Orqaga qaytish</a></p>
+
+    <div class="sentence-row">
+        <div style="text-align: center; margin-bottom: 20px; font-size: 1.4em;">
+            📖 Aniq artikllar: "El" va "La"
+        </div>
+        
+        <div class="grammar-box">
+            <div class="article-title">
+                <span class="rule-icon">👨</span> <span class="el-article">"El"</span> – erkak jinsdagi (masculino) otlar oldida
+            </div>
+            <p class="explanation">
+                <strong>El</strong> – bu aniq artikl bo‘lib, erkak jinsdagi (masculino) otlar oldida ishlatiladi.
+                Gapiruvchi va eshituvchi biladi: qaysi erkak haqida gap ketayapti.
+            </p>
+            
+            <ul class="example-list">
+                <li>
+                    <span class="sp-word" data-tr="U (erkak)">Él</span> 
+                    <span class="sp-word" data-tr="yeydi">come</span> 
+                    <span class="sp-word" data-tr="non">pan</span>. 
+                    – U (erkak) non yeydi.<br>
+                    <span class="note">Gapiruvchi va eshituvchi biladi: qaysi erkak non yeyapti.</span>
+                </li>
+                <li>
+                    <span class="sp-word" data-tr="U (erkak)">Él</span> 
+                    <span class="sp-word" data-tr="ichadi">bebe</span> 
+                    <span class="sp-word" data-tr="suv">agua</span>. 
+                    – U (erkak) suv ichadi.
+                </li>
+                <li>
+                    <span class="sp-word" data-tr="U (erkak)">Él</span> 
+                    <span class="sp-word" data-tr="o'rganadi">estudia</span> 
+                    <span class="sp-word" data-tr="ispan tili">español</span>. 
+                    – U (erkak) ispan tilini o‘rganadi.
+                </li>
+            </ul>
+            
+            <div class="note" style="margin-top: 10px;">
+                ℹ️ "El" artikli faqat erkak jinsidagi otlar bilan ishlatiladi: <strong>el hombre</strong> (erkak), <strong>el perro</strong> (it), <strong>el libro</strong> (kitob).
+            </div>
+        </div>
+
+        <div class="grammar-box">
+            <div class="article-title">
+                <span class="rule-icon">👩</span> <span class="la-article">"La"</span> – ayol jinsdagi (femenino) otlar oldida
+            </div>
+            <p class="explanation">
+                <strong>La</strong> – bu ayol jinsdagi (femenino) otlar oldida ishlatiladigan aniq artikl.
+                Gapiruvchi va eshituvchi biladi: qaysi ayol haqida gap ketayapti.
+            </p>
+            
+            <ul class="example-list">
+                <li>
+                    <span class="sp-word" data-tr="U (qiz)">La niña</span> 
+                    <span class="sp-word" data-tr="yeydi">come</span> 
+                    <span class="sp-word" data-tr="non">pan</span>. 
+                    – U (qiz) non yeydi.<br>
+                    <span class="note">Gapiruvchi va eshituvchi biladi: qaysi qiz non yeyapti.</span>
+                </li>
+                <li>
+                    <span class="sp-word" data-tr="U (qiz)">La niña</span> 
+                    <span class="sp-word" data-tr="ichadi">bebe</span> 
+                    <span class="sp-word" data-tr="suv">agua</span>. 
+                    – U (qiz) suv ichadi.
+                </li>
+                <li>
+                    <span class="sp-word" data-tr="U (qiz)">La niña</span> 
+                    <span class="sp-word" data-tr="o'rganadi">estudia</span> 
+                    <span class="sp-word" data-tr="ispan tili">español</span>. 
+                    – U (qiz) ispan tilini o‘rganadi.
+                </li>
+            </ul>
+            
+            <div class="note" style="margin-top: 10px;">
+                ℹ️ "La" artikli faqat ayol jinsidagi otlar bilan ishlatiladi: <strong>la mujer</strong> (ayol), <strong>la gata</strong> (mushuk-ayol), <strong>la casa</strong> (uy).
+            </div>
+        </div>
+        
+        <div class="fun-fact" style="margin-top: 20px; background-color: #111; padding: 10px; border-radius: 6px; border: 1px solid #333;">
+            ⚡ Eslatma: "Él" (u - erkak) va "el" (artikl) bir-biriga o'xshash, lekin farqli so'zlar! 
+            "Él" urg'u bilan yoziladi va olmosh, "el" esa urg'usiz va artikl.
+        </div>
     </div>
 
-    <h1>Present Simple Savollari Haqida Toʻliq Maʼlumot</h1>
+    <div id="popup">
+        <div class="popup-header">
+            <span id="popup-main-word"></span>
+            <svg class="audio-icon" id="speak-btn" viewBox="0 0 24 24">
+                <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+            </svg>
+        </div>
+        <div id="popup-translation"></div>
+    </div>
 
-    <p>Present simpleda savollar yasashning asosiy usullari va ularni qanday ishlatish haqida toʻliq maʼlumot beraman:</p>
+    <script>
+        (function() {
+            const words = document.querySelectorAll('.sp-word');
+            const popup = document.getElementById('popup');
+            const popupMainWord = document.getElementById('popup-main-word');
+            const popupTranslation = document.getElementById('popup-translation');
+            const speakBtn = document.getElementById('speak-btn');
+            let textToSpeak = "";
 
-    <h2>Present Simpleda Savollar Yasash (Forming Questions in Present Simple)</h2>
+            function hidePopup() {
+                popup.classList.remove('show');
+                setTimeout(() => {
+                    if (!popup.classList.contains('show')) {
+                        popup.style.display = 'none';
+                    }
+                }, 200);
+            }
 
-    <p>Present simpleda savollar yasash uchun "do" va "does" yordamchi feʼllaridan foydalanamiz . "Does" faqat uchinchi shaxs birlik (he, she, it) uchun ishlatiladi, qolgan shaxslar uchun esa "do" ishlatiladi.</p>
+            words.forEach(word => {
+                word.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    
+                    const rect = word.getBoundingClientRect();
+                    // So'zni tozalash (tinish belgilarini olib tashlash)
+                    textToSpeak = word.innerText.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").trim();
+                    const translation = word.getAttribute('data-tr');
 
-    <h3>1. Umumiy Savollar (Yes/No Questions)</h3>
+                    popupMainWord.innerText = textToSpeak;
+                    popupTranslation.innerText = translation;
 
-    <p>Bu turdagi savollarga javob "ha" (yes) yoki "yoʻq" (no) bilan boshlanadi.</p>
+                    popup.style.display = 'flex';
+                    
+                    // Pozitsiyani hisoblash
+                    let left = rect.left + window.scrollX + (rect.width / 2) - (popup.offsetWidth / 2);
+                    let top = rect.top + window.scrollY - popup.offsetHeight - 15;
 
-    <h4>Tuzilishi:</h4>
-    <ul>
-        <li><b>Do</b> + I / You / We / They + feʼl (asosiy shakli)?</li>
-        <li><b>Does</b> + He / She / It + feʼl (asosiy shakli)?</li>
-    </ul>
+                    // Chegaralarni tekshirish
+                    if (left < 10) left = 10;
+                    if (left + popup.offsetWidth > window.innerWidth - 10) {
+                        left = window.innerWidth - popup.offsetWidth - 10;
+                    }
+                    
+                    if (top < window.scrollY + 10) {
+                        top = rect.bottom + window.scrollY + 15;
+                    }
 
-    <h4>Misollar:</h4>
-    <ul>
-        <li><b>Do</b> you like pizza? (Siz pizzani yoqtirasizmi?)</li>
-        <li><b>Do</b> they live in Tashkent? (Ular Toshkentda yashaydimi?)</li>
-        <li><b>Do</b> we need to buy milk? (Bizga sut sotib olish kerakmi?)</li>
-        <li><b>Does</b> he speak English? (U ingliz tilida gapiradimi?)</li>
-        <li><b>Does</b> she work at a bank? (U bankda ishlaydimi?)</li>
-        <li><b>Does</b> it rain a lot in autumn? (Kuzda koʻp yomgʻir yogʻadimi?)</li>
-    </ul>
+                    popup.style.left = Math.round(left) + 'px';
+                    popup.style.top = Math.round(top) + 'px';
 
-    <h3>2. Maxsus Savollar (Wh- Questions)</h3>
+                    // Animation for showing
+                    requestAnimationFrame(() => {
+                        popup.classList.add('show');
+                    });
+                });
+            });
 
-    <p>Bu turdagi savollar "who" (kim), "what" (nima), "where" (qayerda), "when" (qachon), "why" (nima uchun), "how" (qanday) kabi soʻroq soʻzlari bilan boshlanadi.</p>
+            speakBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (textToSpeak) {
+                    try {
+                        const utterance = new SpeechSynthesisUtterance(textToSpeak);
+                        utterance.lang = 'es-ES';
+                        utterance.rate = 0.8;
+                        // Cancel any ongoing speech
+                        window.speechSynthesis.cancel();
+                        window.speechSynthesis.speak(utterance);
+                    } catch (error) {
+                        console.log('Ovozli sintezda xatolik');
+                    }
+                }
+            });
 
-    <h4>Tuzilishi:</h4>
-    <ul>
-        <li>Soʻroq soʻzi + <b>do</b> / <b>does</b> + ega + feʼl (asosiy shakli)?</li>
-    </ul>
+            document.addEventListener('click', (e) => {
+                if (!popup.contains(e.target)) {
+                    hidePopup();
+                }
+            });
 
-    <h4>Soʻroq soʻzlari va misollar:</h4>
-    <ul>
-        <li><b>What</b> (nima):
-            <ul>
-                <li><b>What do</b> you do? (Siz nima bilan shugʻullanasiz?)</li>
-                <li><b>What does</b> he eat for breakfast? (U nonushtaga nima yeydi?)</li>
-            </ul>
-        </li>
-        <li><b>Where</b> (qayerda):
-            <ul>
-                <li><b>Where do</b> they live? (Ular qayerda yashashadi?)</li>
-                <li><b>Where does</b> she go to school? (U qayerda oʻqiydi?)</li>
-            </ul>
-        </li>
-        <li><b>When</b> (qachon):
-            <ul>
-                <li><b>When do</b> we have the meeting? (Bizning uchrashuv qachon?)</li>
-                <li><b>When does</b> the bus arrive? (Avtobus qachon keladi?)</li>
-            </ul>
-        </li>
-        <li><b>Why</b> (nima uchun):
-            <ul>
-                <li><b>Why do</b> you study English? (Nima uchun siz ingliz tilini oʻrganyapsiz?)</li>
-                <li><b>Why does</b> he like football? (Nima uchun u futbolni yoqtiradi?)</li>
-            </ul>
-        </li>
-        <li><b>Who</b> (kim):
-            <ul>
-                <li><b>Who do</b> you want to invite? (Siz kimni taklif qilmoqchisiz?)</li>
-                <li><b>Who does</b> she live with? (U kim bilan yashaydi?)</li>
-            </ul>
-        </li>
-        <li><b>How</b> (qanday):
-            <ul>
-                <li><b>How do</b> you go to work? (Siz ishga qanday borasiz?)</li>
-                <li><b>How does</b> he feel today? (U bugun oʻzini qanday his qilyapti?)</li>
-            </ul>
-        </li>
-        <li><b>Which</b> (qaysi):
-            <ul>
-                <li><b>Which do</b> you prefer, tea or coffee? (Sizga nima koʻproq yoqadi, choymi yoki kofe?)</li>
-                <li><b>Which does</b> she usually buy? (U odatda nimani sotib oladi?)</li>
-            </ul>
-        </li>
-        <li><b>How often</b> (qanchalik tez):
-            <ul>
-                <li><b>How often do</b> you go to the cinema? (Siz qanchalik tez kinoga borasiz?)</li>
-                <li><b>How often does</b> he play computer games? (U qanchalik tez kompyuter oʻyinlarini oʻynaydi?)</li>
-            </ul>
-        </li>
-    </ul>
-
-    <h2>Present Simple Savollarini Qanday Ishlatish Kerak?</h2>
-
-    <p>Present simple savollari quyidagi vazifalarni bajaradi:</p>
-    <ul>
-        <li><b>Maʼlumot soʻrash:</b> Odatlar, kundalik ishlar, faktlar, holatlar haqida maʼlumot olish uchun.
-            <ul>
-                <li>Do you like to read? (Siz oʻqishni yoqtirasizmi?)</li>
-                <li>Where does your brother work? (Sizning akangiz qayerda ishlaydi?)</li>
-            </ul>
-        </li>
-        <li><b>Tasdiqlash yoki inkor qilishni soʻrash:</b> Biror narsaning toʻgʻri yoki notoʻgʻri ekanligini aniqlash uchun.
-            <ul>
-                <li>Do they speak Uzbek? (Ular oʻzbek tilida gapirishadimi?)</li>
-                <li>Doesn't she like ice cream? (U muzqaymoqni yoqtirmaydimi?) (Inkor shaklidagi savol)</li>
-            </ul>
-        </li>
-        <li><b>Taklif qilish (baʼzan):</b> Garchi bu koʻproq boshqa zamonlarda boʻlsa-da, baʼzi holatlarda present simple savollari taklif maʼnosini ham berishi mumkin.
-            <ul>
-                <li>Do you want some tea? (Siz choy xohlaysizmi?)</li>
-            </ul>
-        </li>
-    </ul>
-
-    <p><b>Eslatma:</b></p>
-    <ul>
-        <li>Uchinchi shaxs birlikda (he, she, it) savol yasaganda "does" yordamchi feʼli ishlatiladi va asosiy feʼldan "-s" yoki "-es" qoʻshimchasi olib tashlanadi.
-            <ul>
-                <li>Misol: Does he <b>plays</b> football? (Notoʻgʻri) -> Does he <b>play</b> football? (Toʻgʻri)</li>
-            </ul>
-        </li>
-        <li>"To be" feʼli bilan savol yasaganda "do" yoki "does" yordamchi feʼllari ishlatilmaydi. "To be" feʼlining oʻzi ega oldiga oʻtadi.
-            <ul>
-                <li>Are you tired? (Siz charchadingizmi?)</li>
-                <li>Is she a doctor? (U shifokormi?)</li>
-            </ul>
-        </li>
-    </ul>
-
-    <p>Present simple savollarini toʻgʻri ishlatish uchun ularning tuzilishini va qaysi soʻroq soʻz qanday maʼnoni bildirishini yaxshi tushunish kerak. Agar sizda yana qandaydir savollar boʻlsa, bemalol soʻrashingiz mumkin!</p>
-
+            window.addEventListener('scroll', hidePopup);
+            window.addEventListener('resize', hidePopup);
+            
+            // Popup ichida bosilganda yopilmasligi uchun
+            popup.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+        })();
+    </script>
 </body>
 </html>
