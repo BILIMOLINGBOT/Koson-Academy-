@@ -3,190 +3,423 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>I have / I have got Bilan Savollar</title>
+    <title>Ispan tili interaktiv dars</title>
     <style>
         body {
-            margin-top: 50px; /* Adjust margin to prevent overlap */
-            padding: 20px;
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333; /* Standart matn rangi */
-            background-color: #fff; /* Standart fon rangi */
-            transition: color 0.3s ease, background-color 0.3s ease; /* Animatsiya */
-            position: relative; /* Bolalar elementlarini absolyut joylashtirish uchun */
+            background-color: black;
+            color: white;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.8;
+            margin: 2em;
         }
-        .back-button-container {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-        }
-        .back-button {
+
+        .sp-word {
+            color: white;
+            text-decoration: underline dotted #555;
+            cursor: pointer;
+            font-weight: bold;
             display: inline-block;
-            padding: 8px 15px;
-            text-decoration: none;
-            background-color: #f2f2f2;
-            color: #333;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+            transition: color 0.2s;
         }
-        .back-button:hover {
-            background-color: #e0e0e0;
+
+        .sp-word:hover {
+            color: white;
+            text-decoration: underline dotted #aaa;
         }
-        h1, h2, h3, h4, p, ul, ol {
-            color: #333;
-            transition: color 0.3s ease;
+
+        #popup {
+            display: none;
+            position: absolute;
+            background-color: #1a1a1a;
+            min-width: 120px;
+            max-width: 90vw;
+            padding: 12px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.7);
+            z-index: 1000;
+            border: 2px solid #444;
+            flex-direction: column;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            pointer-events: auto;
         }
-        h1 {
-            border-bottom: 2px solid #ccc;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
+
+        #popup.show {
+            display: flex !important;
+            opacity: 1;
+            transform: scale(1);
         }
-        h2 {
-            margin-top: 25px;
-        }
-        h3 {
-            margin-top: 20px;
-        }
-        ul, ol {
-            margin-bottom: 15px;
-            padding-left: 20px;
-        }
-        li {
+
+        .popup-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
             margin-bottom: 5px;
         }
 
-        /* Dark Mode uchun stillar */
-        @media (prefers-color-scheme: dark) {
-            body {
-                color: #fff;
-                background-color: #121212;
-            }
-            h1, h2, h3, h4, p, ul, ol {
-                color: #eee;
-            }
-            h1 {
-                border-bottom-color: #555;
-            }
-            .back-button {
-                background-color: #333;
-                color: #eee;
-                border-color: #555;
-            }
-            .back-button:hover {
-                background-color: #444;
-            }
-            a {
-                color: #add8e6; /* Ochiqroq ko'k rang */
-            }
-            a:hover {
-                color: #87ceeb; /* Yana ham ochiqroq ko'k rang */
-            }
+        #popup-main-word {
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+        }
+
+        #popup-translation {
+            font-size: 15px;
+            color: #ccc;
+        }
+
+        .audio-icon {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            fill: white;
+            transition: transform 0.1s;
+            flex-shrink: 0;
+        }
+
+        .audio-icon:hover {
+            fill: #ccc;
+            transform: scale(1.1);
+        }
+
+        strong {
+            color: white;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        
+        .sentence-row {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-bottom: 1px solid #333;
+        }
+        
+        .note {
+            color: #ccc;
+            font-style: italic;
+            margin-top: 5px;
+            font-size: 0.95em;
+            border-left: 3px solid #555;
+            padding-left: 10px;
+        }
+        
+        .grammar-box {
+            background-color: #111;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border: 1px solid #333;
+        }
+        
+        .article-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: white;
+        }
+        
+        .unos-article {
+            color: #6ab0f3;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        
+        .unas-article {
+            color: #f9a8d4;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        
+        .example-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .example-list li {
+            margin-bottom: 12px;
+            padding: 8px 12px;
+            background-color: #1a1a1a;
+            border-radius: 4px;
+        }
+        
+        .rule-icon {
+            font-size: 1.5em;
+            margin-right: 10px;
+        }
+        
+        .highlight {
+            color: white;
+            background-color: #333;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .explanation {
+            margin: 10px 0;
+            color: #ddd;
+        }
+        
+        .arrow {
+            color: #888;
+            font-size: 1.2em;
+            margin: 0 5px;
+        }
+        
+        .comparison-box {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #1a2a2a;
+            border-radius: 8px;
+        }
+        
+        .comparison-item {
+            text-align: center;
+        }
+        
+        .plural-rule {
+            background-color: #1a2a2a;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border-left: 4px solid #888;
         }
     </style>
 </head>
 <body>
-    <div class="back-button-container">
-        <p class="back-button"><a href="a1.html">&larr; Orqaga qaytish</a></p>
+
+    <div class="sentence-row">
+        <div style="text-align: center; margin-bottom: 20px; font-size: 1.4em;">
+            📖 Noaniq artikllarning ko'plik shakllari: "Unos" va "Unas"
+        </div>
+        
+        <div class="note" style="margin-bottom: 20px;">
+            <strong>Un/Una</strong> noaniq artiklining ko'plik shakli <strong>Unos/Unas</strong> bo'lib, 
+            bu ko'plik shakli o'zbek tilidagi <strong>"-lar"</strong> qo'shimchasiga teng.
+        </div>
+        
+        <div class="grammar-box">
+            <div class="article-title">
+                <span class="rule-icon">👨‍👦</span> <span class="unos-article">"Unos"</span> – erkak jinsi (ko'plik)
+            </div>
+            <p class="explanation">
+                <strong>Unos</strong> – erkak jinsidagi otlarning noaniq ko'plik shakli.
+                Bu yerda qaysi bolalar ekani aniq emas.
+            </p>
+            
+            <ul class="example-list">
+                <li>
+                    <span class="sp-word" data-tr="Bir nechta bolalar">Unos niños</span> 
+                    <span class="sp-word" data-tr="yeydilar">comen</span> 
+                    <span class="sp-word" data-tr="non">pan</span>. 
+                    – Bir nechta bolalar non yeydi.<br>
+                    <span class="note">👉 Qaysi bolalar ekani aniq emas.</span>
+                </li>
+                <li>
+                    <span class="sp-word" data-tr="Bir nechta bolalar">Unos niños</span> 
+                    <span class="sp-word" data-tr="ichadilar">beben</span> 
+                    <span class="sp-word" data-tr="suv">agua</span>. 
+                    – Bir nechta bolalar suv ichadi.
+                </li>
+                <li>
+                    <span class="sp-word" data-tr="Bir nechta bolalar">Unos niños</span> 
+                    <span class="sp-word" data-tr="o'rganadilar">estudian</span> 
+                    <span class="sp-word" data-tr="ispan tili">español</span>. 
+                    – Bir nechta bolalar ispan tilini o‘rganadi.
+                </li>
+            </ul>
+            
+            <div class="note" style="margin-top: 10px;">
+                ℹ️ Boshqa misollar: <strong>unos perros</strong> (bir nechta itlar), <strong>unos amigos</strong> (bir nechta do'stlar), <strong>unos libros</strong> (bir nechta kitoblar)
+            </div>
+        </div>
+
+        <div class="grammar-box">
+            <div class="article-title">
+                <span class="rule-icon">👩‍👧</span> <span class="unas-article">"Unas"</span> – ayol jinsi (ko'plik)
+            </div>
+            <p class="explanation">
+                <strong>Unas</strong> – ayol jinsidagi otlarning noaniq ko'plik shakli.
+                Bu yerda qaysi qizlar ekani aniq emas.
+            </p>
+            
+            <ul class="example-list">
+                <li>
+                    <span class="sp-word" data-tr="Bir nechta qizlar">Unas niñas</span> 
+                    <span class="sp-word" data-tr="yeydilar">comen</span> 
+                    <span class="sp-word" data-tr="non">pan</span>. 
+                    – Bir nechta qizlar non yeydi.<br>
+                    <span class="note">👉 Qaysi qizlar ekani aniq emas.</span>
+                </li>
+                <li>
+                    <span class="sp-word" data-tr="Bir nechta qizlar">Unas niñas</span> 
+                    <span class="sp-word" data-tr="ichadilar">beben</span> 
+                    <span class="sp-word" data-tr="suv">agua</span>. 
+                    – Bir nechta qizlar suv ichadi.
+                </li>
+                <li>
+                    <span class="sp-word" data-tr="Bir nechta qizlar">Unas niñas</span> 
+                    <span class="sp-word" data-tr="o'rganadilar">estudian</span> 
+                    <span class="sp-word" data-tr="ispan tili">español</span>. 
+                    – Bir nechta qizlar ispan tilini o‘rganadi.
+                </li>
+            </ul>
+            
+            <div class="note" style="margin-top: 10px;">
+                ℹ️ Boshqa misollar: <strong>unas gatas</strong> (bir nechta mushuklar-ayol), <strong>unas amigas</strong> (bir nechta do'stlar-qiz), <strong>unas casas</strong> (bir nechta uylar)
+            </div>
+        </div>
+        
+        <div class="grammar-box">
+            <div class="article-title">
+                <span class="rule-icon">🔄</span> Birlik va ko'plik shakllari
+            </div>
+            
+            <div class="comparison-box">
+                <div class="comparison-item">
+                    <div style="font-size: 1.2em; margin-bottom: 10px;">📌 Birlik</div>
+                    <span class="un-article">Un niño</span> – Bir bola<br>
+                    <span class="una-article">Una niña</span> – Bir qiz
+                </div>
+                <div class="comparison-item">
+                    <div style="font-size: 1.2em; margin-bottom: 10px;">📌 Ko'plik</div>
+                    <span class="unos-article">Unos niños</span> – Bir nechta bolalar<br>
+                    <span class="unas-article">Unas niñas</span> – Bir nechta qizlar
+                </div>
+            </div>
+            
+            <div class="plural-rule" style="text-align: center;">
+                <strong>Eslab qoling:</strong> Un/Una (birlik) → Unos/Unas (ko'plik)
+            </div>
+        </div>
+        
+        <div class="grammar-box">
+            <div class="article-title">
+                <span class="rule-icon">🔍</span> Qachon "Unos/Unas" ishlatiladi?
+            </div>
+            
+            <div class="plural-rule">
+                <strong>• Bir nechta narsa/shaxslar haqida gapirganda:</strong><br>
+                <span class="unos-article">Unos</span> estudiantes están en clase. (Bir nechta talabalar sinfda.)
+            </div>
+            
+            <div class="plural-rule">
+                <strong>• Taxminiy sonlarni ifodalaganda:</strong><br>
+                <span class="unas-article">Unas</span> veinte personas. (Taxminan yigirma kishi.)
+            </div>
+            
+            <div class="plural-rule">
+                <strong>• Biror narsaning bir qismini ko'rsatganda:</strong><br>
+                Quiero <span class="unos-article">unos</span> libros. (Menga bir nechta kitoblar kerak.)
+            </div>
+        </div>
+        
+        <div class="fun-fact" style="margin-top: 20px; background-color: #111; padding: 15px; border-radius: 8px; border: 1px solid #444;">
+            <span style="font-size: 1.3em;">💡</span> <strong>Qiziqarli fakt:</strong> "Unos" va "Unas" so'zlari "bir nechta" ma'nosidan tashqari, 
+            "taxminan" ma'nosida ham ishlatiladi! Masalan: "unos diez minutos" – taxminan o'n daqiqa.
+        </div>
     </div>
 
-    <h1>I have / I have got Bilan Savollar Haqida Toʻliq Maʼlumot</h1>
+    <div id="popup">
+        <div class="popup-header">
+            <span id="popup-main-word"></span>
+            <svg class="audio-icon" id="speak-btn" viewBox="0 0 24 24">
+                <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+            </svg>
+        </div>
+        <div id="popup-translation"></div>
+    </div>
 
-    <p>Keling, "I have" va "I have got" bilan savollar yasash haqida toʻliq maʼlumot beray:</p>
+    <script>
+        (function() {
+            const words = document.querySelectorAll('.sp-word');
+            const popup = document.getElementById('popup');
+            const popupMainWord = document.getElementById('popup-main-word');
+            const popupTranslation = document.getElementById('popup-translation');
+            const speakBtn = document.getElementById('speak-btn');
+            let textToSpeak = "";
 
-    <h2>"I have" / "I have got" bilan savollar yasash</h2>
+            function hidePopup() {
+                popup.classList.remove('show');
+                setTimeout(() => {
+                    if (!popup.classList.contains('show')) {
+                        popup.style.display = 'none';
+                    }
+                }, 200);
+            }
 
-    <p>"I have" va "I have got" bilan savollar yasashning ikki asosiy usuli mavjud:</p>
+            words.forEach(word => {
+                word.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    
+                    const rect = word.getBoundingClientRect();
+                    // So'zni tozalash (tinish belgilarini olib tashlash)
+                    textToSpeak = word.innerText.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").trim();
+                    const translation = word.getAttribute('data-tr');
 
-    <h3>1. "Do/Does" yordamchi feʼli bilan (koʻpincha faqat "have" bilan ishlatiladi, ayniqsa Amerika ingliz tilida):</h3>
+                    popupMainWord.innerText = textToSpeak;
+                    popupTranslation.innerText = translation;
 
-    <h4>Tuzilishi:</h4>
-    <ul>
-        <li><b>Do</b> + ega (I, you, we, they) + <b>have</b> + ...?</li>
-        <li><b>Does</b> + ega (he, she, it) + <b>have</b> + ...?</li>
-    </ul>
+                    popup.style.display = 'flex';
+                    
+                    // Pozitsiyani hisoblash
+                    let left = rect.left + window.scrollX + (rect.width / 2) - (popup.offsetWidth / 2);
+                    let top = rect.top + window.scrollY - popup.offsetHeight - 15;
 
-    <h4>Misollar:</h4>
-    <ul>
-        <li><b>Do</b> you <b>have</b> a pen? (Sizda ruchka bormi?)</li>
-        <li><b>Does</b> he <b>have</b> a car? (Uning mashinasi bormi?)</li>
-        <li><b>Do</b> they <b>have</b> any children? (Ularning farzandlari bormi?)</li>
-        <li><b>Does</b> she <b>have</b> a headache? (Uning boshi ogʻriyaptimi?)</li>
-    </ul>
+                    // Chegaralarni tekshirish
+                    if (left < 10) left = 10;
+                    if (left + popup.offsetWidth > window.innerWidth - 10) {
+                        left = window.innerWidth - popup.offsetWidth - 10;
+                    }
+                    
+                    if (top < window.scrollY + 10) {
+                        top = rect.bottom + window.scrollY + 15;
+                    }
 
-    <h3>2. "Have" yoki "Have got" feʼlini egadan oldinga oʻtkazish orqali (koʻproq norasmiy va Britaniya ingliz tilida "have got" bilan koʻp ishlatiladi):</h3>
+                    popup.style.left = Math.round(left) + 'px';
+                    popup.style.top = Math.round(top) + 'px';
 
-    <h4>Tuzilishi:</h4>
-    <ul>
-        <li><b>Have</b> + ega (I, you, we, they) + (<b>got</b>) + ...?</li>
-        <li><b>Has</b> + ega (he, she, it) + (<b>got</b>) + ...?</li>
-    </ul>
+                    // Animation for showing
+                    requestAnimationFrame(() => {
+                        popup.classList.add('show');
+                    });
+                });
+            });
 
-    <h4>Misollar:</h4>
-    <ul>
-        <li><b>Have</b> you <b>got</b> a pen? (Sizda ruchka bormi?)</li>
-        <li><b>Has</b> he <b>got</b> a car? (Uning mashinasi bormi?)</li>
-        <li><b>Have</b> they <b>got</b> any children? (Ularning farzandlari bormi?)</li>
-        <li><b>Has</b> she <b>got</b> a headache? (Uning boshi ogʻriyaptimi?)</li>
-        <li><b>Have</b> I <b>got</b> time to finish this? (Buni tugatishga vaqtim bormi?)</li>
-    </ul>
+            speakBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (textToSpeak) {
+                    try {
+                        const utterance = new SpeechSynthesisUtterance(textToSpeak);
+                        utterance.lang = 'es-ES';
+                        utterance.rate = 0.8;
+                        // Cancel any ongoing speech
+                        window.speechSynthesis.cancel();
+                        window.speechSynthesis.speak(utterance);
+                    } catch (error) {
+                        console.log('Ovozli sintezda xatolik');
+                    }
+                }
+            });
 
-    <p><b>Eʼtibor bering:</b> Amerika ingliz tilida "have got" bilan savollar bu usulda kamroq ishlatiladi. Ular koʻproq "Do you have...?" va "Does he have...?" shakllarini afzal koʻrishadi.</p>
+            document.addEventListener('click', (e) => {
+                if (!popup.contains(e.target)) {
+                    hidePopup();
+                }
+            });
 
-    <p><b>"Got"ni ishlatish yoki ishlatmaslik:</b></p>
-    <ul>
-        <li>"Have you a pen?" kabi qisqa shakl (yordamchi feʼlsiz) ham baʼzan ishlatiladi, lekin u juda formal va kam uchraydi.</li>
-        <li>Kundalik suhbatda "have got" bilan savollar koʻproq tarqalgan, ayniqsa Britaniya ingliz tilida.</li>
-    </ul>
-
-    <h3>Maxsus soʻroq soʻzlari bilan savollar (Wh- Questions):</h3>
-
-    <p>"Who", "What", "Where", "When", "Why", "How" kabi soʻroq soʻzlari bilan savollar yasash uchun soʻroq soʻzi gapning boshiga qoʻyiladi, soʻngra yuqoridagi tuzilmalardan biri ishlatiladi.</p>
-
-    <h4>Misollar:</h4>
-    <ul>
-        <li><b>What do</b> you <b>have</b> in your bag? (Sizning sumkangizda nima bor?)</li>
-        <li><b>Where does</b> he <b>have</b> lunch? (U qayerda tushlik qiladi?)</li>
-        <li><b>When have</b> you <b>got</b> time to meet? (Qachon uchrashishga vaqtingiz bor?)</li>
-        <li><b>How many brothers has</b> she <b>got</b>? (Uning nechta akasi bor?)</li>
-    </ul>
-
-    <h2>"I have" / "I have got" bilan savollar nima vazifani bajaradi:</h2>
-
-    <p>Asosan, bu turdagi savollar quyidagi maqsaddlarda ishlatiladi:</p>
-    <ul>
-        <li><b>Egalik haqida soʻrash:</b> Biror kishining nimaga egaligi yoki nima borligi haqida maʼlumot olish.
-            <ul>
-                <li>Have you got a ticket? (Sizda bilet bormi?)</li>
-            </ul>
-        </li>
-        <li><b>Munosabatlar haqida soʻrash:</b> Biror kishining oila aʼzolari yoki boshqa aloqalari haqida maʼlumot olish.
-            <ul>
-                <li>How many sisters does she have? (Uning nechta opasi bor?)</li>
-            </ul>
-        </li>
-        <li><b>Holatlar haqida soʻrash:</b> Biror kishining ahvoli, kasalligi yoki boshqa holati haqida maʼlumot olish.
-            <ul>
-                <li>Have you got a fever? (Sizda isitma bormi?)</li>
-            </ul>
-        </li>
-        <li><b>Imkoniyat yoki ruxsat haqida soʻrash (kamroq):</b> Baʼzan imkoniyat yoki ruxsatni soʻrash uchun ham ishlatilishi mumkin.
-            <ul>
-                <li>Have we got permission to go? (Ketishga ruxsatimiz bormi?)</li>
-            </ul>
-        </li>
-    </ul>
-
-    <h2>"I have" / "I have got" savollari haqida nimalarni bilish kerak:</h2>
-    <ul>
-        <li>Savollar yasashning ikki asosiy usuli mavjud: "do/does" bilan va "have/has"ni egadan oldinga oʻtkazish orqali.</li>
-        <li>"Have got" bilan savollar norasmiroq va Britaniya ingliz tilida koʻproq tarqalgan.</li>
-        <li>Amerika ingliz tilida koʻproq "do/does + have" shakli afzal koʻriladi.</li>
-        <li>Uchinchi shaxs birlikda "have" "has"ga oʻzgaradi.</li>
-        <li>Soʻroq soʻzlari (wh-words) savolning boshiga qoʻyiladi.</li>
-    </ul>
-
-    <p>Xulosa qilib aytganda, "I have" va "I have got" bilan savollar egalik, munosabatlar, holatlar va baʼzan imkoniyatlar haqida maʼlumot olish uchun ishlatiladi. Savol tuzilishini tanlash koʻpincha formallik darajasiga va ingliz tilining qaysi variantidan foydalanayotganingizga bogʻliq boʻladi.</p>
-
+            window.addEventListener('scroll', hidePopup);
+            window.addEventListener('resize', hidePopup);
+            
+            // Popup ichida bosilganda yopilmasligi uchun
+            popup.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+        })();
+    </script>
 </body>
 </html>
