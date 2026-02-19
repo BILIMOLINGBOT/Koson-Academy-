@@ -3,167 +3,418 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Present Simple Inkor Shakli Haqida</title>
+    <title>Ispan tili interaktiv dars</title>
     <style>
         body {
-            margin-top: 50px; /* Adjust margin to prevent overlap */
-            padding: 20px;
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333; /* Standart matn rangi */
-            background-color: #fff; /* Standart fon rangi */
-            transition: color 0.3s ease, background-color 0.3s ease; /* Animatsiya */
-            position: relative; /* Bolalar elementlarini absolyut joylashtirish uchun */
+            background-color: black;
+            color: white;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.8;
+            margin: 2em;
         }
-        .back-button-container {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-        }
-        .back-button {
+
+        .sp-word {
+            color: white;
+            text-decoration: underline dotted #555;
+            cursor: pointer;
+            font-weight: bold;
             display: inline-block;
-            padding: 8px 15px;
-            text-decoration: none;
-            background-color: #f2f2f2;
-            color: #333;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+            transition: color 0.2s;
         }
-        .back-button:hover {
-            background-color: #e0e0e0;
+
+        .sp-word:hover {
+            color: white;
+            text-decoration: underline dotted #aaa;
         }
-        h1, h2, h3, h4, p, ul, ol {
-            color: #333;
-            transition: color 0.3s ease;
+
+        #popup {
+            display: none;
+            position: absolute;
+            background-color: #1a1a1a;
+            min-width: 120px;
+            max-width: 90vw;
+            padding: 12px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.7);
+            z-index: 1000;
+            border: 2px solid #444;
+            flex-direction: column;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            pointer-events: auto;
         }
-        h1 {
-            border-bottom: 2px solid #ccc;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
+
+        #popup.show {
+            display: flex !important;
+            opacity: 1;
+            transform: scale(1);
         }
-        h2 {
-            margin-top: 25px;
-        }
-        h3 {
-            margin-top: 20px;
-        }
-        ul, ol {
-            margin-bottom: 15px;
-            padding-left: 20px;
-        }
-        li {
+
+        .popup-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
             margin-bottom: 5px;
         }
 
-        /* Dark Mode uchun stillar */
-        @media (prefers-color-scheme: dark) {
-            body {
-                color: #fff;
-                background-color: #121212;
-            }
-            h1, h2, h3, h4, p, ul, ol {
-                color: #eee;
-            }
-            h1 {
-                border-bottom-color: #555;
-            }
-            .back-button {
-                background-color: #333;
-                color: #eee;
-                border-color: #555;
-            }
-            .back-button:hover {
-                background-color: #444;
-            }
-            a {
-                color: #add8e6; /* Ochiqroq ko'k rang */
-            }
-            a:hover {
-                color: #87ceeb; /* Yana ham ochiqroq ko'k rang */
-            }
+        #popup-main-word {
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+        }
+
+        #popup-translation {
+            font-size: 15px;
+            color: #ccc;
+        }
+
+        .audio-icon {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            fill: white;
+            transition: transform 0.1s;
+            flex-shrink: 0;
+        }
+
+        .audio-icon:hover {
+            fill: #ccc;
+            transform: scale(1.1);
+        }
+
+        strong {
+            color: white;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        
+        .sentence-row {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-bottom: 1px solid #333;
+        }
+        
+        .note {
+            color: #ccc;
+            font-style: italic;
+            margin-top: 5px;
+            font-size: 0.95em;
+            border-left: 3px solid #555;
+            padding-left: 10px;
+        }
+        
+        .grammar-box {
+            background-color: #111;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border: 1px solid #333;
+        }
+        
+        .article-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: white;
+        }
+        
+        .el-article, .los-article {
+            color: #6ab0f3;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        
+        .la-article, .las-article {
+            color: #f9a8d4;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        
+        .example-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .example-list li {
+            margin-bottom: 12px;
+            padding: 8px 12px;
+            background-color: #1a1a1a;
+            border-radius: 4px;
+        }
+        
+        .rule-icon {
+            font-size: 1.5em;
+            margin-right: 10px;
+        }
+        
+        .highlight {
+            color: white;
+            background-color: #333;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .explanation {
+            margin: 10px 0;
+            color: #ddd;
+        }
+        
+        .arrow {
+            color: #888;
+            font-size: 1.2em;
+            margin: 0 5px;
+        }
+        
+        .plural-rule {
+            background-color: #1a2a2a;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border-left: 4px solid #888;
         }
     </style>
 </head>
 <body>
-    <div class="back-button-container">
-        <p class="back-button"><a href="a1.html">&larr; Orqaga qaytish</a></p>
+
+    <div class="sentence-row">
+        <div style="text-align: center; margin-bottom: 20px; font-size: 1.4em;">
+            📖 Aniq artikllarning ko'plik shakllari: "Los" va "Las"
+        </div>
+        
+        <div class="note" style="margin-bottom: 20px;">
+            El va La artikllarining mantiqiy davomi — bu ularning ko'plik shakllari: Los va Las. 
+            Ispan tilida agar narsa bittadan ko'p bo'lsa, nafaqat so'zning o'zi, balki uning oldidagi artikl ham "ko'payishi" shart.
+        </div>
+        
+        <div class="grammar-box">
+            <div class="article-title">
+                <span class="rule-icon">👨‍👦</span> <span class="los-article">"Los"</span> – erkak jinsi (ko'plik)
+            </div>
+            <p class="explanation">
+                <strong>Los</strong> — bu <span class="el-article">El</span> artiklining ko'plik shakli.
+            </p>
+            
+            <div class="plural-rule">
+                <strong>Qachon ishlatiladi?</strong><br>
+                • Faqat erkak jinsidagi narsalar/shaxslar uchun:<br>
+                <span class="el-article">El</span> libro (Kitob) <span class="arrow">→</span> <span class="los-article">Los</span> libros (Kitoblar)<br>
+                <span class="el-article">El</span> chico (Bolakay) <span class="arrow">→</span> <span class="los-article">Los</span> chicos (Bolakaylar)<br><br>
+                
+                • <strong>Aralash guruhlar uchun (Oltin qoida):</strong><br>
+                Agar guruhda ham erkaklar, ham ayollar bo'lsa, har doim <strong>Los</strong> ishlatiladi.<br>
+                1 o'g'il + 10 qiz = <span class="los-article">Los</span> chicos.
+            </div>
+            
+            <ul class="example-list">
+                <li>
+                    <span class="sp-word" data-tr="Bolakaylar">Los chicos</span> 
+                    <span class="sp-word" data-tr="yeydilar">comen</span> 
+                    <span class="sp-word" data-tr="non">pan</span>. 
+                    – Bolakaylar non yeydilar.
+                </li>
+                <li>
+                    <span class="sp-word" data-tr="Itlar (erkak)">Los perros</span> 
+                    <span class="sp-word" data-tr="ichadilar">beben</span> 
+                    <span class="sp-word" data-tr="suv">agua</span>. 
+                    – Itlar suv ichadilar.
+                </li>
+                <li>
+                    <span class="sp-word" data-tr="Do'stlar (erkak)">Los amigos</span> 
+                    <span class="sp-word" data-tr="o'rganadilar">estudian</span> 
+                    <span class="sp-word" data-tr="ispan tili">español</span>. 
+                    – Do'stlar ispan tilini o'rganadilar.
+                </li>
+            </ul>
+        </div>
+
+        <div class="grammar-box">
+            <div class="article-title">
+                <span class="rule-icon">👩‍👧</span> <span class="las-article">"Las"</span> – ayol jinsi (ko'plik)
+            </div>
+            <p class="explanation">
+                <strong>Las</strong> — bu <span class="la-article">La</span> artiklining ko'plik shakli.
+            </p>
+            
+            <div class="plural-rule">
+                <strong>Qachon ishlatiladi?</strong><br>
+                • Faqat va faqat ayol jinsidagi narsalar/shaxslar uchun:<br>
+                <span class="la-article">La</span> mesa (Stol) <span class="arrow">→</span> <span class="las-article">Las</span> mesas (Stollar)<br>
+                <span class="la-article">La</span> chica (Qizaloq) <span class="arrow">→</span> <span class="las-article">Las</span> chicas (Qizaloqlar)<br><br>
+                
+                • <strong>Muhim shart:</strong> Agar guruhda bittagina erkak jinsidagi so'z aralashsa, bu artikl darrov <strong>Los</strong> ga o'zgaradi.
+            </div>
+            
+            <ul class="example-list">
+                <li>
+                    <span class="sp-word" data-tr="Qizaloqlar">Las chicas</span> 
+                    <span class="sp-word" data-tr="yeydilar">comen</span> 
+                    <span class="sp-word" data-tr="non">pan</span>. 
+                    – Qizaloqlar non yeydilar.
+                </li>
+                <li>
+                    <span class="sp-word" data-tr="Mushuklar (ayol)">Las gatas</span> 
+                    <span class="sp-word" data-tr="ichadilar">beben</span> 
+                    <span class="sp-word" data-tr="suv">agua</span>. 
+                    – Mushuklar suv ichadilar.
+                </li>
+                <li>
+                    <span class="sp-word" data-tr="Do'stlar (qiz)">Las amigas</span> 
+                    <span class="sp-word" data-tr="o'rganadilar">estudian</span> 
+                    <span class="sp-word" data-tr="ispan tili">español</span>. 
+                    – Do'stlar ispan tilini o'rganadilar.
+                </li>
+            </ul>
+        </div>
+        
+        <div class="grammar-box">
+            <div class="article-title">
+                <span class="rule-icon">📚</span> Ko'plikni qanday yasaymiz?
+            </div>
+            
+            <div class="plural-rule">
+                <strong>1. Unli bilan tugasa:</strong> Shunchaki <span class="highlight">-s</span> qo'shiladi.<br>
+                <span class="el-article">El</span> gato <span class="arrow">→</span> <span class="los-article">Los</span> gato<span class="highlight">s</span><br>
+                <span class="la-article">La</span> casa <span class="arrow">→</span> <span class="las-article">Las</span> casa<span class="highlight">s</span>
+            </div>
+            
+            <div class="plural-rule">
+                <strong>2. Undosh bilan tugasa:</strong> <span class="highlight">-es</span> qo'shiladi.<br>
+                <span class="el-article">El</span> profesor <span class="arrow">→</span> <span class="los-article">Los</span> profesor<span class="highlight">es</span><br>
+                <span class="la-article">La</span> ciudad <span class="arrow">→</span> <span class="las-article">Las</span> ciudad<span class="highlight">es</span>
+            </div>
+            
+            <div class="plural-rule">
+                <strong>3. -z bilan tugasa:</strong> -z harfi -c ga aylanadi va <span class="highlight">-es</span> qo'shiladi.<br>
+                <span class="el-article">El</span> pez (Baliq) <span class="arrow">→</span> <span class="los-article">Los</span> pe<span class="highlight">ces</span>
+            </div>
+        </div>
+        
+        <div class="grammar-box">
+            <div class="article-title">
+                <span class="rule-icon">🔍</span> Los/Las artikllarini qachon ishlatish shart?
+            </div>
+            
+            <div class="plural-rule">
+                <strong>• Umumiy tushunchalar haqida gapirganda:</strong><br>
+                Me gustan <span class="los-article">los</span> perros. (Menga kuchuklar yoqadi — ya'ni dunyodagi hamma kuchuklar).
+            </div>
+            
+            <div class="plural-rule">
+                <strong>• Hafta kunlari bilan:</strong><br>
+                O'zbekchada: "Shanba kunlari" → Ispanchada: <span class="los-article">Los</span> sábados.
+            </div>
+            
+            <div class="plural-rule">
+                <strong>• Aniq bir guruh haqida gapirganda:</strong><br>
+                <span class="las-article">Las</span> llaves están aquí. (Kalitlar shu yerda — aynan biz qidirayotgan kalitlar).
+            </div>
+        </div>
+        
+        <div class="fun-fact" style="margin-top: 20px; background-color: #111; padding: 15px; border-radius: 8px; border: 1px solid #444;">
+            <span style="font-size: 1.3em;">💡</span> <strong>Eslab qoling:</strong> Ispan tilida ko'plik yasash o'zbek tiliga o'xshaydi, lekin artikl ham o'zgaradi! 
+            "El" va "La" birlikda, "Los" va "Las" ko'plikda ishlatiladi.
+        </div>
     </div>
 
-    <h1>Present Simple Inkor Shakli Haqida Toʻliq Maʼlumot</h1>
+    <div id="popup">
+        <div class="popup-header">
+            <span id="popup-main-word"></span>
+            <svg class="audio-icon" id="speak-btn" viewBox="0 0 24 24">
+                <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+            </svg>
+        </div>
+        <div id="popup-translation"></div>
+    </div>
 
-    <p>Present simpleda inkor shaklini yasashning asosiy usullari va bu haqida nimalarni bilish kerakligi haqida toʻliq maʼlumot beraman:</p>
+    <script>
+        (function() {
+            const words = document.querySelectorAll('.sp-word');
+            const popup = document.getElementById('popup');
+            const popupMainWord = document.getElementById('popup-main-word');
+            const popupTranslation = document.getElementById('popup-translation');
+            const speakBtn = document.getElementById('speak-btn');
+            let textToSpeak = "";
 
-    <h2>Present Simple Inkor Shakli (Present Simple Negative)</h2>
+            function hidePopup() {
+                popup.classList.remove('show');
+                setTimeout(() => {
+                    if (!popup.classList.contains('show')) {
+                        popup.style.display = 'none';
+                    }
+                }, 200);
+            }
 
-    <p>Present simpleda inkor gaplarni yasash uchun "do not" va "does not" yordamchi feʼllaridan foydalanamiz. Odatda, bu feʼllarning qisqartirilgan shakllari ("don't" va "doesn't") koʻproq ishlatiladi.</p>
+            words.forEach(word => {
+                word.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    
+                    const rect = word.getBoundingClientRect();
+                    // So'zni tozalash (tinish belgilarini olib tashlash)
+                    textToSpeak = word.innerText.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").trim();
+                    const translation = word.getAttribute('data-tr');
 
-    <h3>Tuzilishi:</h3>
-    <ul>
-        <li>I / You / We / They + <b>do not</b> (don't) + feʼl (asosiy shakli)</li>
-        <li>He / She / It + <b>does not</b> (doesn't) + feʼl (asosiy shakli)</li>
-    </ul>
+                    popupMainWord.innerText = textToSpeak;
+                    popupTranslation.innerText = translation;
 
-    <p><b>Eʼtibor bering:</b> Inkor shaklida uchinchi shaxs birlik (he, she, it) uchun ishlatiladigan feʼlga "-s" yoki "-es" qoʻshimchasi qoʻshilmaydi. Yordamchi feʼl "does" bu vazifani oʻz zimmasiga oladi.</p>
+                    popup.style.display = 'flex';
+                    
+                    // Pozitsiyani hisoblash
+                    let left = rect.left + window.scrollX + (rect.width / 2) - (popup.offsetWidth / 2);
+                    let top = rect.top + window.scrollY - popup.offsetHeight - 15;
 
-    <h3>Misollar:</h3>
-    <ul>
-        <li>I <b>do not</b> like coffee. / I <b>don't</b> like coffee. (Men kofeni yoqtirmayman.)</li>
-        <li>You <b>do not</b> understand me. / You <b>don't</b> understand me. (Siz meni tushunmayapsiz.)</li>
-        <li>We <b>do not</b> go to the cinema every week. / We <b>don't</b> go to the cinema every week. (Biz har hafta kinoga bormaymiz.)</li>
-        <li>They <b>do not</b> play football on Mondays. / They <b>don't</b> play football on Mondays. (Ular dushanba kunlari futbol oʻynamaydilar.)</li>
-        <li>He <b>does not</b> work in a hospital. / He <b>doesn't</b> work in a hospital. (U kasalxonada ishlamaydi.)</li>
-        <li>She <b>does not</b> read newspapers. / She <b>doesn't</b> read newspapers. (U gazeta oʻqimaydi.)</li>
-        <li>It <b>does not</b> snow here in summer. / It <b>doesn't</b> snow here in summer. (Bu yerda yozda qor yogʻmaydi.)</li>
-    </ul>
+                    // Chegaralarni tekshirish
+                    if (left < 10) left = 10;
+                    if (left + popup.offsetWidth > window.innerWidth - 10) {
+                        left = window.innerWidth - popup.offsetWidth - 10;
+                    }
+                    
+                    if (top < window.scrollY + 10) {
+                        top = rect.bottom + window.scrollY + 15;
+                    }
 
-    <h2>Present Simple Inkor Shakli Haqida Nimalarni Bilish Kerak?</h2>
-    <ul>
-        <li><b>Yordamchi feʼllar:</b> Inkor gaplarni yasash uchun "do not" (don't) va "does not" (doesn't) yordamchi feʼllari ishlatiladi.</li>
-        <li><b>Uchinchi shaxs birlik:</b> Uchinchi shaxs birlikda (he, she, it) "does not" (doesn't) ishlatiladi.</li>
-        <li><b>Feʼlning shakli:</b> Inkor gapda asosiy feʼl oʻzining asosiy shaklida (infinitive without "to") qoladi. Uchinchi shaxs birlikda ham feʼlga "-s" yoki "-es" qoʻshilmaydi.</li>
-        <li><b>Qisqartmalar:</b> Odatda, "do not" "don't"ga, "does not" esa "doesn't"ga qisqartirilib ishlatiladi.</li>
-        <li><b>Vaqt belgilari:</b> Inkor gaplar ham present simple bilan ishlatiladigan vaqt belgilari (always, usually, often, sometimes, seldom, rarely, never, every day/week/month/year, on Mondays, at weekends va boshqalar) bilan kelishi mumkin.</li>
-    </ul>
+                    popup.style.left = Math.round(left) + 'px';
+                    popup.style.top = Math.round(top) + 'px';
 
-    <h2>Present Simple Inkor Shaklini Qanday Ishlatish Kerak?</h2>
-    <p>Present simple inkor shakli quyidagi hollarda ishlatiladi:</p>
-    <ul>
-        <li><b>Odatda qilinmaydigan harakatlar yoki mavjud boʻlmagan holatlar haqida aytish uchun:</b>
-            <ul>
-                <li>I <b>don't drink</b> tea in the evening. (Men kechqurun choy ichmayman.)</li>
-                <li>She <b>doesn't watch</b> television very often. (U televizorni juda kam koʻradi.)</li>
-                <li>They <b>don't like</b> spicy food. (Ular achchiq ovqatlarni yoqtirmaydilar.)</li>
-            </ul>
-        </li>
-        <li><b>Umumiy haqiqatlarni inkor qilish uchun:</b>
-            <ul>
-                <li>The sun <b>doesn't rise</b> in the west. (Quyosh gʻarbdan chiqmaydi.)</li>
-                <li>Fish <b>don't live</b> on land. (Baliqlar quruqlikda yashamaydilar.)</li>
-            </ul>
-        </li>
-        <li><b>Rejalashtirilgan voqealarning amalga oshmasligini bildirish uchun (kamroq ishlatiladi):</b>
-            <ul>
-                <li>The train <b>doesn't arrive</b> before 7 pm. (Poezd soat 7dan oldin kelmaydi.)</li>
-            </ul>
-        </li>
-        <li><b>Holatlar yoki fikrlarning mavjud emasligini bildirish uchun:</b>
-            <ul>
-                <li>He <b>doesn't know</b> the answer. (U javobni bilmaydi.)</li>
-                <li>We <b>don't agree</b> with you. (Biz siz bilan rozi emasmiz.)</li>
-            </ul>
-        </li>
-    </ul>
+                    // Animation for showing
+                    requestAnimationFrame(() => {
+                        popup.classList.add('show');
+                    });
+                });
+            });
 
-    <p><b>Misollar bilan tushuntirish:</b></p>
-    <ul>
-        <li>"I go to work every day." (Men har kuni ishga boraman.) - Bu tasdiq gap.</li>
-        <li>"I <b>don't go</b> to work on Sundays." (Men yakshanba kunlari ishga bormayman.) - Bu inkor gap, odatni inkor qilmoqda.</li>
-        <li>"She speaks English fluently." (U ingliz tilida ravon gapiradi.) - Tasdiq.</li>
-        <li>"She <b>doesn't speak</b> French." (U fransuz tilida gapirmaydi.) - Inkor, mavjud boʻlmagan holatni bildirmoqda.</li>
-    </ul>
+            speakBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (textToSpeak) {
+                    try {
+                        const utterance = new SpeechSynthesisUtterance(textToSpeak);
+                        utterance.lang = 'es-ES';
+                        utterance.rate = 0.8;
+                        // Cancel any ongoing speech
+                        window.speechSynthesis.cancel();
+                        window.speechSynthesis.speak(utterance);
+                    } catch (error) {
+                        console.log('Ovozli sintezda xatolik');
+                    }
+                }
+            });
 
-    <p>Present simple inkor shakli ingliz tilida juda muhim boʻlib, koʻp hollarda nima qilmasligimiz yoki nimaning mavjud emasligi haqida gapirish uchun ishlatiladi. Yordamchi feʼllarni toʻgʻri ishlatish va feʼlning shakliga eʼtibor berish inkor gaplarni toʻgʻri tuzish uchun zarurdir.</p>
+            document.addEventListener('click', (e) => {
+                if (!popup.contains(e.target)) {
+                    hidePopup();
+                }
+            });
 
+            window.addEventListener('scroll', hidePopup);
+            window.addEventListener('resize', hidePopup);
+            
+            // Popup ichida bosilganda yopilmasligi uchun
+            popup.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+        })();
+    </script>
 </body>
 </html>
