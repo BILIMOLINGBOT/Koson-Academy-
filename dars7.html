@@ -40,7 +40,7 @@
             margin: 20px 0;
         }
 
-        /* --- INTERAKTIV SO'ZLAR UCHUN STILLAR (Nosotros-dan olingan) --- */
+        /* --- INTERAKTIV SO'ZLAR UCHUN STILLAR --- */
         .sp-word {
             color: white;
             text-decoration: underline dotted #555;
@@ -128,8 +128,8 @@
     
     <h4>Masalan:</h4>
     <ul>
-        <li>Agar ot erkak jinsida bo‘lsa: <strong>El <span class="sp-word" data-tr="kitob">libro</span></strong> <span class="sp-word" data-tr="oq">blanco</span> (oq kitob).</li>
-        <li>Agar ot ayol jinsida bo‘lsa: <strong>La <span class="sp-word" data-tr="uy">casa</span></strong> <span class="sp-word" data-tr="oq">blanca</span> (oq uy).</li>
+        <li>Agar ot erkak jinsida bo‘lsa: <strong>El <span class="sp-word" data-tr="kitob">libro</span> <span class="sp-word" data-tr="oq">blanco</span></strong> (oq kitob).</li>
+        <li>Agar ot ayol jinsida bo‘lsa: <strong>La <span class="sp-word" data-tr="uy">casa</span> <span class="sp-word" data-tr="oq">blanca</span></strong> (oq uy).</li>
         <li>(Agar siz "<em>La libro blanco</em>" desangiz, bu xato bo‘ladi, chunki artikl va sifat otga mos kelmayapti.)</li>
     </ul>
     
@@ -224,7 +224,7 @@
             <li><span class="sp-word" data-tr="qo'l">la mano</span> (qo‘l)</li>
         </ul>
         
-        <p><strong>3. Qisqa so‘zlar:</strong></p>
+        <p><strong>3. Qisqa so‘zlar (Ayol artikli bilan ishlatiladigan erkak so'zlar):</strong></p>
         <ul>
             <li><span class="sp-word" data-tr="suv">el agua</span> (suv) - <em>El agua <span class="sp-word" data-tr="sovuq">fría</span></em> (sovuq suv).</li>
         </ul>
@@ -242,7 +242,7 @@
     
     <p>Agar so‘zni artikli bilan yodlasangiz, kelajakda sifat va olmoshlarni to‘g‘ri qo‘llash siz uchun oson bo‘ladi.</p>
 
-    <!-- QALQIB CHIQUVCHI OYNA (Nosotros-dan olingan) -->
+    <!-- QALQIB CHIQUVCHI OYNA -->
     <div id="popup">
         <div class="popup-header">
             <span id="popup-main-word"></span>
@@ -276,11 +276,25 @@
                     e.stopPropagation();
                     
                     const rect = word.getBoundingClientRect();
-                    // So'zni tozalash (tinish belgilarini olib tashlash)
-                    textToSpeak = word.innerText.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").trim();
+                    
+                    // MUHIM: So'zni to'g'ri olish
+                    // Ba'zi so'zlar ichida (el, la) bo'lishi mumkin, shuning uchun faqat asosiy so'zni olish kerak.
+                    // Agar so'z "el día" bo'lsa, "día"ni olish kerak.
+                    let fullText = word.innerText.trim();
+                    
+                    // "el ", "la " qismini olib tashlash
+                    if (fullText.startsWith('el ') || fullText.startsWith('la ')) {
+                        textToSpeak = fullText.substring(3); // "el " yoki "la " dan keyingi qism
+                    } else {
+                        textToSpeak = fullText;
+                    }
+                    
+                    // Tinish belgilarini olib tashlash (agar kerak bo'lsa)
+                    textToSpeak = textToSpeak.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").trim();
+                    
                     const translation = word.getAttribute('data-tr');
 
-                    popupMainWord.innerText = textToSpeak;
+                    popupMainWord.innerText = fullText; // Popupda to'liq matn ko'rinadi (masalan: "el día")
                     popupTranslation.innerText = translation;
 
                     popup.style.display = 'flex';
@@ -289,7 +303,6 @@
                     let left = rect.left + window.scrollX + (rect.width / 2) - (popup.offsetWidth / 2);
                     let top = rect.top + window.scrollY - popup.offsetHeight - 15;
 
-                    // Chegaralarni tekshirish
                     if (left < 10) left = 10;
                     if (left + popup.offsetWidth > window.innerWidth - 10) {
                         left = window.innerWidth - popup.offsetWidth - 10;
@@ -302,7 +315,6 @@
                     popup.style.left = Math.round(left) + 'px';
                     popup.style.top = Math.round(top) + 'px';
 
-                    // Animation for showing
                     requestAnimationFrame(() => {
                         popup.classList.add('show');
                     });
@@ -316,7 +328,6 @@
                         const utterance = new SpeechSynthesisUtterance(textToSpeak);
                         utterance.lang = 'es-ES';
                         utterance.rate = 0.8;
-                        // Cancel any ongoing speech
                         window.speechSynthesis.cancel();
                         window.speechSynthesis.speak(utterance);
                     } catch (error) {
@@ -334,7 +345,6 @@
             window.addEventListener('scroll', hidePopup);
             window.addEventListener('resize', hidePopup);
             
-            // Popup ichida bosilganda yopilmasligi uchun
             popup.addEventListener('click', (e) => {
                 e.stopPropagation();
             });
