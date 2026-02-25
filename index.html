@@ -2,7 +2,7 @@
 <html lang="uz">
 <head>
   <meta charset="UTF-8">
-  <title>Darslar</title>
+  <title>Darslar va Testlar</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <meta name="theme-color" content="#000000">
@@ -80,6 +80,18 @@
       border: 2px solid rgba(255,255,255,0.2);
     }
 
+    /* Lesson card style */
+    .card.lesson-card {
+      background: #000000;
+      border: 2px solid #ffffff;
+    }
+
+    /* Test card style */
+    .card.test-card {
+      background: #1a1a1a;
+      border: 2px solid #333333;
+    }
+
     .card::before {
       content: '';
       position: absolute;
@@ -95,7 +107,6 @@
       box-shadow: 0 12px 25px rgba(0,0,0,0.18);
     }
 
-    /* Lesson Title */
     .card h3 {
       margin: 0 0 20px 0;
       font-size: 26px;
@@ -132,17 +143,6 @@
       border-radius: 10px;
       background: white;
       transition: width 0.8s ease;
-    }
-
-    /* Card states */
-    .card.completed {
-      background: #000000;
-      border: 2px solid #ffffff;
-    }
-
-    .card.in-progress {
-      background: #1a1a1a;
-      border: 2px solid #333333;
     }
 
     /* Bottom Navigation */
@@ -203,7 +203,7 @@
 <body>
 
   <div class="header">
-    <h2><i class="fas fa-book-open"></i> Darslar</h2>
+    <h2><i class="fas fa-book-open"></i> Kurs</h2>
     <div class="stats">
       <div class="stat-item"><i class="fas fa-fire"></i> 20</div>
       <div class="stat-item"><i class="fas fa-coins"></i> 33</div>
@@ -214,7 +214,7 @@
     <div class="cards-grid" id="cardsContainer">
       </div>
     <div class="footer">
-      Barcha darslar siz uchun ochiq
+      Barcha darslar va testlar siz uchun ochiq
     </div>
   </div>
 
@@ -238,39 +238,53 @@
   </div>
 
   <script>
-    // 30 ta dars ma'lumotlari
-    const lessonsData = Array.from({ length: 30 }, (_, i) => ({
-      title: `${i + 1}-dars`,
-      percent: i === 0 ? 100 : (i === 1 ? 100 : (i === 2 ? 80 : (i === 3 ? 45 : (i === 4 ? 20 : 0)))),
-      completed: i < 2
-    }));
-
     const cardsContainer = document.getElementById('cardsContainer');
 
     function createCards() {
-      lessonsData.forEach((lesson, index) => {
-        const card = document.createElement('div');
-        card.className = `card ${lesson.completed ? 'completed' : 'in-progress'}`;
-        card.style.animationDelay = `${index * 0.05}s`;
+      // 30 marta takrorlanadi (30 ta dars + 30 ta test = 60 ta karta)
+      for (let i = 1; i <= 30; i++) {
         
-        card.onclick = () => {
-          window.location.href = `dars${index + 1}.html`;
+        // --- DARS KARTASI ---
+        const lessonCard = document.createElement('div');
+        lessonCard.className = 'card lesson-card';
+        // Animatsiya dars va test uchun farqli vaqtda chiqadi
+        lessonCard.style.animationDelay = `${(i * 2 - 2) * 0.05}s`;
+        
+        lessonCard.onclick = () => {
+          window.location.href = `dars${i}.html`;
         };
         
-        card.innerHTML = `
-          <h3>${lesson.title}</h3>
+        lessonCard.innerHTML = `
+          <h3>${i}-dars</h3>
           <div class="progress-container">
-            <div class="progress-info">
-              <span>Progress</span>
-            </div>
+            <div class="progress-info"><span>Progress</span></div>
             <div class="progress-bg">
-              <div class="progress-fill" style="width: ${lesson.percent}%;"></div>
+              <div class="progress-fill" style="width: ${i <= 2 ? 100 : (i === 3 ? 45 : 0)}%;"></div>
             </div>
           </div>
         `;
+        cardsContainer.appendChild(lessonCard);
+
+        // --- TEST KARTASI ---
+        const testCard = document.createElement('div');
+        testCard.className = 'card test-card';
+        testCard.style.animationDelay = `${(i * 2 - 1) * 0.05}s`;
         
-        cardsContainer.appendChild(card);
-      });
+        testCard.onclick = () => {
+          window.location.href = `test${i}.html`;
+        };
+        
+        testCard.innerHTML = `
+          <h3>${i}-test</h3>
+          <div class="progress-container">
+            <div class="progress-info"><span>Progress</span></div>
+            <div class="progress-bg">
+              <div class="progress-fill" style="width: ${i < 2 ? 100 : 0}%;"></div>
+            </div>
+          </div>
+        `;
+        cardsContainer.appendChild(testCard);
+      }
     }
 
     window.onload = createCards;
