@@ -40,7 +40,6 @@
       font-weight: 600;
     }
 
-    /* Stats */
     .stats {
       display: flex;
       gap: 15px;
@@ -61,7 +60,6 @@
       margin: 0 auto;
     }
 
-    /* Cards Grid */
     .cards-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -72,7 +70,7 @@
     /* Card Styles */
     .card {
       border-radius: 20px;
-      padding: 25px;
+      padding: 30px 25px;
       color: white;
       transition: all 0.4s ease;
       cursor: pointer;
@@ -97,65 +95,33 @@
       box-shadow: 0 12px 25px rgba(0,0,0,0.18);
     }
 
-    .card.active {
-      cursor: pointer;
-      opacity: 1;
-    }
-
-    /* Card content */
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 10px;
-    }
-
-    .card-number {
-      font-size: 14px;
-      opacity: 0.9;
-      background: rgba(255,255,255,0.2);
-      padding: 3px 10px;
-      border-radius: 12px;
-      display: inline-block;
-    }
-
+    /* Lesson Title */
     .card h3 {
-      margin: 0 0 15px 0;
-      font-size: 24px;
+      margin: 0 0 20px 0;
+      font-size: 26px;
       font-weight: 700;
-      line-height: 1.3;
-    }
-
-    .percent-text {
-      font-size: 28px;
-      font-weight: bold;
-      margin: 10px 0 15px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .status-icon {
-      font-size: 20px;
+      letter-spacing: 0.5px;
     }
 
     /* Progress bar */
     .progress-container {
-      margin-top: 15px;
+      margin-top: 10px;
     }
 
     .progress-info {
       display: flex;
       justify-content: space-between;
-      font-size: 14px;
-      margin-bottom: 5px;
-      opacity: 0.9;
+      font-size: 13px;
+      margin-bottom: 8px;
+      opacity: 0.8;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
 
     .progress-bg {
       width: 100%;
-      height: 10px;
-      background: rgba(255,255,255,0.3);
+      height: 8px;
+      background: rgba(255,255,255,0.2);
       border-radius: 10px;
       overflow: hidden;
     }
@@ -166,7 +132,6 @@
       border-radius: 10px;
       background: white;
       transition: width 0.8s ease;
-      box-shadow: 0 0 10px rgba(255,255,255,0.5);
     }
 
     /* Card states */
@@ -175,17 +140,9 @@
       border: 2px solid #ffffff;
     }
 
-    .card.completed::before {
-      background: #ffffff;
-    }
-
     .card.in-progress {
-      background: #333333;
-      border: 2px solid #666666;
-    }
-
-    .card.in-progress::before {
-      background: #666666;
+      background: #1a1a1a;
+      border: 2px solid #333333;
     }
 
     /* Bottom Navigation */
@@ -201,7 +158,6 @@
       padding: 15px 10px;
       border-top: 2px solid #333333;
       z-index: 1000;
-      box-shadow: 0 -4px 12px rgba(0,0,0,0.15);
     }
 
     .nav-item {
@@ -210,9 +166,7 @@
       align-items: center;
       color: #888888;
       text-decoration: none;
-      transition: all 0.3s ease;
       flex: 1;
-      max-width: 80px;
     }
 
     .nav-item.active {
@@ -226,7 +180,6 @@
 
     .nav-text {
       font-size: 12px;
-      font-weight: 500;
     }
 
     @keyframes fadeIn {
@@ -244,7 +197,6 @@
       color: #666;
       font-size: 14px;
       margin-top: 30px;
-      margin-bottom: 20px;
     }
   </style>
 </head>
@@ -286,12 +238,11 @@
   </div>
 
   <script>
-    // 30 ta dars uchun ma'lumotlar generatori
+    // 30 ta dars ma'lumotlari
     const lessonsData = Array.from({ length: 30 }, (_, i) => ({
       title: `${i + 1}-dars`,
       percent: i === 0 ? 100 : (i === 1 ? 100 : (i === 2 ? 80 : (i === 3 ? 45 : (i === 4 ? 20 : 0)))),
-      completed: i < 2,
-      unlocked: true
+      completed: i < 2
     }));
 
     const cardsContainer = document.getElementById('cardsContainer');
@@ -299,34 +250,18 @@
     function createCards() {
       lessonsData.forEach((lesson, index) => {
         const card = document.createElement('div');
-        card.className = 'card';
+        card.className = `card ${lesson.completed ? 'completed' : 'in-progress'}`;
         card.style.animationDelay = `${index * 0.05}s`;
-        
-        let cardClass = lesson.completed ? 'completed' : 'in-progress';
-        let statusIcon = lesson.completed ? 
-          '<i class="fas fa-check-circle status-icon"></i>' : 
-          (lesson.percent > 0 ? '<i class="fas fa-spinner status-icon"></i>' : '<i class="fas fa-play-circle status-icon"></i>');
-        
-        card.classList.add(cardClass);
-        card.classList.add('active');
         
         card.onclick = () => {
           window.location.href = `dars${index + 1}.html`;
         };
         
         card.innerHTML = `
-          <div class="card-header">
-            <div class="card-number">Modul ${Math.floor(index/5) + 1}</div>
-          </div>
           <h3>${lesson.title}</h3>
-          <div class="percent-text">
-            ${statusIcon}
-            ${lesson.percent}%
-          </div>
           <div class="progress-container">
             <div class="progress-info">
               <span>Progress</span>
-              <span>${lesson.percent}%</span>
             </div>
             <div class="progress-bg">
               <div class="progress-fill" style="width: ${lesson.percent}%;"></div>
