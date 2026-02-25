@@ -3,127 +3,321 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Duolingo UI Clone</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Topishmoq O'yini</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Segoe UI', Arial, sans-serif;
         }
-
+        
         body {
-            background-color: #0b111a; /* To'q ko'k/qora fon */
-            color: white;
-            height: 100vh;
+            background-color: #f5f5f5;
             display: flex;
-            flex-direction: column;
+            justify-content: center;
             align-items: center;
-            justify-content: space-between;
-            padding: 40px 20px;
+            min-height: 100vh;
+            padding: 20px;
         }
-
-        /* Yuqori matn */
-        .header {
-            width: 100%;
-            font-size: 24px;
-            font-weight: bold;
-            text-align: left;
-            margin-bottom: 20px;
-        }
-
-        /* Markaziy karta */
-        .phrase-container {
+        
+        .container {
             width: 100%;
             max-width: 400px;
-            border: 2px solid #30363d;
-            border-radius: 16px;
-            padding: 25px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            background-color: transparent;
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
         }
-
-        .phrase-container i {
-            color: #1cb0f6;
-            font-size: 24px;
-        }
-
-        .phrase-text {
-            font-size: 22px;
-            font-weight: 700;
-        }
-
-        /* Pastki tugmalar qismi */
-        .footer {
-            width: 100%;
-            max-width: 400px;
-            display: flex;
+        
+        .screen {
+            padding: 40px 30px;
+            display: none;
             flex-direction: column;
             align-items: center;
-            gap: 30px;
+            text-align: center;
         }
-
-        /* Asosiy ko'k tugma */
-        .mic-button {
-            width: 100%;
-            background-color: #1cb0f6;
-            color: white;
-            border: none;
-            padding: 16px;
-            border-radius: 16px;
-            font-size: 18px;
-            font-weight: bold;
-            text-transform: uppercase;
-            cursor: pointer;
+        
+        .screen.active {
             display: flex;
-            align-items: center;
+        }
+        
+        .question {
+            font-size: 72px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 40px;
+            letter-spacing: 5px;
+        }
+        
+        .word-display {
+            font-size: 28px;
+            letter-spacing: 10px;
+            color: #555;
+            margin-bottom: 50px;
+            font-weight: 500;
+        }
+        
+        .word-display span {
+            display: inline-block;
+            width: 30px;
+            text-align: center;
+        }
+        
+        .stage-indicator {
+            display: flex;
             justify-content: center;
             gap: 10px;
-            box-shadow: 0 4px 0 #1899d6; /* Tugma ostidagi soya effekt */
-            transition: all 0.1s;
+            margin-bottom: 40px;
         }
-
-        .mic-button:active {
-            transform: translateY(4px);
-            box-shadow: none;
+        
+        .stage-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #ddd;
         }
-
-        /* O'tkazib yuborish tugmasi */
-        .skip-link {
-            color: #1cb0f6;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 16px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
+        
+        .stage-dot.active {
+            background-color: #4CAF50;
         }
-
-        .skip-link:hover {
-            opacity: 0.8;
+        
+        .stage-number {
+            font-size: 18px;
+            color: #888;
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+        
+        .answer-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 20px;
+            text-align: center;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        
+        .answer-input:focus {
+            border-color: #4CAF50;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 18px;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .check-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .check-btn:hover {
+            background-color: #3d8b40;
+        }
+        
+        .continue-btn {
+            background-color: #2196F3;
+            color: white;
+        }
+        
+        .continue-btn:hover {
+            background-color: #0b7dda;
+        }
+        
+        .result-text {
+            font-size: 22px;
+            color: #333;
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+        
+        .hidden-digit {
+            display: inline-block;
+            width: 60px;
+            text-align: center;
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                max-width: 100%;
+            }
+            
+            .screen {
+                padding: 30px 20px;
+            }
+            
+            .question {
+                font-size: 60px;
+                margin-bottom: 30px;
+            }
+            
+            .word-display {
+                font-size: 24px;
+                margin-bottom: 40px;
+            }
         }
     </style>
 </head>
 <body>
-
-    <div class="header">
-        Tinglang va takrorlang.
+    <div class="container">
+        <!-- 1-ekran -->
+        <div class="screen active" id="screen1">
+            <div class="question">
+                2<span class="hidden-digit">?</span>
+            </div>
+            
+            <div class="word-display">
+                <span>t</span>
+                <span>o</span>
+                <span>o</span>
+            </div>
+            
+            <div class="stage-indicator">
+                <div class="stage-dot active"></div>
+                <div class="stage-dot"></div>
+                <div class="stage-dot"></div>
+            </div>
+            
+            <div class="stage-number">1</div>
+            
+            <input type="text" class="answer-input" id="answer1" placeholder="Javobingizni yozing" maxlength="1">
+            
+            <button class="btn check-btn" id="check1">Tekshirish</button>
+        </div>
+        
+        <!-- 2-ekran -->
+        <div class="screen" id="screen2">
+            <div class="question">
+                2<span class="hidden-digit">?</span>
+            </div>
+            
+            <div class="word-display">
+                <span>t</span>
+                <span>o</span>
+                <span>o</span>
+            </div>
+            
+            <div class="stage-indicator">
+                <div class="stage-dot"></div>
+                <div class="stage-dot active"></div>
+                <div class="stage-dot"></div>
+            </div>
+            
+            <div class="stage-number">2</div>
+            
+            <input type="text" class="answer-input" id="answer2" placeholder="Javobingizni yozing" maxlength="1">
+            
+            <button class="btn check-btn" id="check2">Tekshirish</button>
+        </div>
+        
+        <!-- 3-ekran -->
+        <div class="screen" id="screen3">
+            <div class="question">22</div>
+            
+            <div class="result-text">To'g'ri 3</div>
+            
+            <div class="stage-indicator">
+                <div class="stage-dot"></div>
+                <div class="stage-dot"></div>
+                <div class="stage-dot active"></div>
+            </div>
+            
+            <button class="btn continue-btn" id="continue">Davom etish</button>
+        </div>
     </div>
 
-    <div class="phrase-container">
-        <i class="fas fa-volume-up"></i>
-        <div class="phrase-text">Hello. How are you?</div>
-    </div>
-
-    <div class="footer">
-        <button class="mic-button">
-            <i class="fas fa-microphone"></i>
-            Bosib turib gapiring
-        </button>
-        <a href="#" class="skip-link">O'tkazib yuborish</a>
-    </div>
-
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elementlarni olish
+            const screen1 = document.getElementById('screen1');
+            const screen2 = document.getElementById('screen2');
+            const screen3 = document.getElementById('screen3');
+            
+            const checkBtn1 = document.getElementById('check1');
+            const checkBtn2 = document.getElementById('check2');
+            const continueBtn = document.getElementById('continue');
+            
+            const answerInput1 = document.getElementById('answer1');
+            const answerInput2 = document.getElementById('answer2');
+            
+            // To'g'ri javoblar
+            const correctAnswer = "2";
+            
+            // 1-ekranda Tekshirish tugmasi
+            checkBtn1.addEventListener('click', function() {
+                const userAnswer = answerInput1.value.trim();
+                
+                if (userAnswer === "") {
+                    alert("Iltimos, javobingizni kiriting!");
+                    answerInput1.focus();
+                    return;
+                }
+                
+                if (userAnswer === correctAnswer) {
+                    // 2-ekranga o'tish
+                    screen1.classList.remove('active');
+                    screen2.classList.add('active');
+                    answerInput2.focus();
+                } else {
+                    alert("Noto'g'ri javob! Qayta urinib ko'ring.");
+                    answerInput1.focus();
+                    answerInput1.select();
+                }
+            });
+            
+            // 2-ekranda Tekshirish tugmasi
+            checkBtn2.addEventListener('click', function() {
+                const userAnswer = answerInput2.value.trim();
+                
+                if (userAnswer === "") {
+                    alert("Iltimos, javobingizni kiriting!");
+                    answerInput2.focus();
+                    return;
+                }
+                
+                if (userAnswer === correctAnswer) {
+                    // 3-ekranga o'tish
+                    screen2.classList.remove('active');
+                    screen3.classList.add('active');
+                } else {
+                    alert("Noto'g'ri javob! Qayta urinib ko'ring.");
+                    answerInput2.focus();
+                    answerInput2.select();
+                }
+            });
+            
+            // 3-ekranda Davom etish tugmasi
+            continueBtn.addEventListener('click', function() {
+                alert("O'yin yakunlandi! Yangi o'yin boshlash uchun sahifani yangilang.");
+                // Bu yerda yangi o'yin boshlash logikasi qo'shilishi mumkin
+            });
+            
+            // Enter tugmasi bilan tekshirish
+            answerInput1.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    checkBtn1.click();
+                }
+            });
+            
+            answerInput2.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    checkBtn2.click();
+                }
+            });
+            
+            // Boshlang'ich fokus
+            answerInput1.focus();
+        });
+    </script>
 </body>
 </html>
