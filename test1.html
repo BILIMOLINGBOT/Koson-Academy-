@@ -3,23 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Ispan tili — Yakuniy natija</title>
+    <title>Ispan tili — Quiz</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #141414;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --border-light: #2a2a2a;
+            --border-dark: #333333;
+            --shadow-sm: rgba(255, 255, 255, 0.05);
+            --shadow-md: rgba(255, 255, 255, 0.1);
+            --shadow-lg: rgba(255, 255, 255, 0.15);
         }
 
-        body {
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body, html { height: 100%; background: var(--bg-primary); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: var(--text-primary); overflow: hidden; }
+
+        .app-container {
+            display: flex; flex-direction: column; height: 100vh;
+            padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom);
+            background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+        }
+
+        .question-section { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 80px; }
+
+        .question-number { font-size: 18px; color: var(--text-secondary); margin-bottom: 8px; font-weight: 500; }
+        .question-text { font-size: 24px; font-weight: 600; text-align: center; line-height: 1.35; max-width: 340px; margin-bottom: 40px; padding: 0 10px; }
+
+        .options-container { width: 100%; max-width: 340px; }
+
+        .option-btn {
+            width: 100%; height: 72px; margin-bottom: 14px;
+            border-radius: 16px; background: var(--bg-secondary);
+            border: 2px solid var(--border-light);
+            font-size: 19px; font-weight: 600; color: var(--text-primary);
+            display: flex; align-items: center; justify-content: center;
+            padding: 0 20px; text-align: center;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px var(--shadow-sm);
+        }
+
+        .option-btn:hover:not(:disabled) { transform: translateY(-2px); border-color: var(--text-primary); }
+        .option-btn:disabled { cursor: default; }
+
+        .option-btn.correct { border-color: #22c55e !important; background: rgba(34, 197, 94, 0.1) !important; color: #22c55e; }
+        .option-btn.wrong { border-color: #ef4444 !important; background: rgba(239, 68, 68, 0.1) !important; color: #ef4444; }
+
+        .result-panel {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: var(--text-primary); border-radius: 24px 24px 0 0;
+            padding: 30px 20px; transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 1000; color: var(--bg-primary);
+            box-shadow: 0 -4px 32px var(--shadow-lg);
+        }
+        .result-panel.active { transform: translateY(0); }
+
+        .result-panel h2 { font-size: 28px; margin-bottom: 12px; font-weight: 700; display: flex; align-items: center; gap: 12px; }
+        .result-icon { width: 32px; height: 32px; fill: currentColor; }
+        .result-panel p { font-size: 16px; opacity: 0.9; line-height: 1.5; }
+
+        .correct-answer {
+            margin-top: 20px; padding: 14px 16px;
+            background: var(--bg-secondary); border-radius: 12px;
+            border: 1px solid #22c55e; font-size: 17px; color: #22c55e;
+        }
+
+        .continue-btn {
+            width: 100%; height: 56px; border: none; border-radius: 16px;
+            background: var(--bg-primary); color: var(--text-primary);
+            font-size: 18px; font-weight: 600; margin-top: 24px;
+            cursor: pointer; transition: all 0.2s ease;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .continue-btn:active { transform: scale(0.98); }
+        .continue-icon { width: 20px; height: 20px; fill: currentColor; }
+
+        /* ==================== YANGI YAKUNIY NATIJA DIZAYNI ==================== */
+        .finish-screen {
+            position: fixed;
+            inset: 0;
             background: #0a0a0a;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            color: #ffffff;
-            min-height: 100vh;
-            display: flex;
+            display: none;
             align-items: center;
             justify-content: center;
             padding: 16px;
+            z-index: 2000;
         }
 
         .finish-card {
@@ -68,7 +138,7 @@
             background: #1e1e1e;
             border-radius: 28px;
             padding: 16px 20px;
-            margin-bottom: 40px;  /* pastdagi tugma bilan oraliq */
+            margin-bottom: 40px;
             border: 1px solid #2a2a2a;
         }
 
@@ -154,26 +224,48 @@
         .restart-btn:hover .btn-arrow {
             transform: translateX(4px);
         }
-
-        /* qo'shimcha: ikonkalar uchun */
-        .inline-icon {
-            width: 26px;
-            height: 26px;
-            vertical-align: middle;
-        }
     </style>
 </head>
 <body>
+
+<svg style="display: none;">
+    <symbol id="icon-celebration" viewBox="0 0 24 24">
+        <path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm-2-15l4.5 4.5L10 17l-4.5-4.5L10 7zm2 0l4.5 4.5L12 17l-4.5-4.5L12 7z"/>
+    </symbol>
+    <symbol id="icon-arrow" viewBox="0 0 24 24">
+        <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
+    </symbol>
+</svg>
+
+<div class="app-container">
+    <div class="question-section">
+        <div id="progress" class="question-number">1 / 8</div>
+        <div id="question" class="question-text"></div>
+        <div id="options-container" class="options-container"></div>
+    </div>
+
+    <div class="result-panel" id="resultPanel">
+        <div style="max-width: 500px; margin: 0 auto;">
+            <h2 id="resultH2"></h2>
+            <p id="resultMessage"></p>
+            <p id="correctAnswerText" class="correct-answer" style="display: none;"></p>
+            <button class="continue-btn" id="continueBtn">
+                Keyingi savol
+                <svg class="continue-icon"><use href="#icon-arrow"></use></svg>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== YANGI YAKUNIY NATIJA EKRANI ==================== -->
+<div id="finishScreen" class="finish-screen">
     <div class="finish-card" id="finishCard">
-        <!-- sarlavha qismi -->
         <div class="trophy-glow">🏆</div>
         <h1>Mashg‘ulot yakunlandi</h1>
         <div class="subhead">Ispan tili · Alifbo</div>
 
-        <!-- FAQAT statistika bloki qoldi (yutuq va motivatsiya olib tashlandi) -->
         <div class="stats-grid" id="statsGrid"></div>
 
-        <!-- Qayta boshlash tugmasi -->
         <button class="restart-btn" id="restartQuizBtn">
             <span>Qayta boshlash</span>
             <svg class="btn-arrow" viewBox="0 0 24 24">
@@ -181,48 +273,139 @@
             </svg>
         </button>
     </div>
+</div>
 
-    <script>
-        (function() {
-            // Sozlash: umumiy savollar va foydalanuvchi balli
-            const totalQuestions = 8;
-            const userScore = 8;      // <--- Natijani shu yerda o'zgartiring (masalan: 6, 4, ...)
+<script>
+    const questions = [
+        { text: "Nechta unli harf bor?", options: ["5 ta", "6 ta", "7 ta"], correct: 0 },
+        { text: "Ispan alifbosida nechta harf bor?", options: ["27 ta", "26 ta", "28 ta"], correct: 0 },
+        { text: "“H” harfi ispan tilida qanday o‘qiladi?", options: ["Har doim talaffuz qilinadi", "O‘qilmaydi (tovush bermaydi)", "“X” kabi o‘qiladi"], correct: 1 },
+        { text: "“C” harfi qachon “k” tovushi beradi?", options: ["E, I oldida", "A, O, U oldida", "Hamma joyda"], correct: 1 },
+        { text: "“G” harfi A, O, U oldida qanday talaffuz qilinadi?", options: ["Qattiq “g” (gato kabi)", "“X” kabi", "“S” kabi"], correct: 0 },
+        { text: "“G” harfi E, I oldida qanday talaffuz qilinadi?", options: ["Qattiq “g”", "“X”ga o‘xshash tovush", "“K” kabi"], correct: 1 },
+        { text: "“C” harfi E, I oldida qanday talaffuz qilinadi?", options: ["“S” kabi", "“K” kabi", "“G” kabi"], correct: 0 },
+        { text: "“C” harfi A, O, U oldida qanday talaffuz qilinadi?", options: ["“S” kabi", "“K” kabi", "“X” kabi"], correct: 1 }
+    ];
 
-            // aniqlik foizi
-            const accuracy = Math.round((userScore / totalQuestions) * 100);
+    let currentQuestion = 0;
+    let score = 0;
+    let answered = false;
 
-            // Statistik blokni yaratish (aniqlik va ball)
-            const statsGrid = document.getElementById('statsGrid');
-            statsGrid.innerHTML = `
-                <div class="stat-row">
-                    <span class="stat-label">
-                        <svg class="stat-icon" viewBox="0 0 24 24">
-                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/>
-                            <circle cx="12" cy="12" r="4" fill="currentColor" stroke="none"/>
-                        </svg>
-                        Aniqlik
-                    </span>
-                    <span class="stat-value">${accuracy}%</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">
-                        <svg class="stat-icon" viewBox="0 0 24 24">
-                            <polygon points="12,2 22,9 12,22 2,9" stroke="currentColor" stroke-width="2" fill="none"/>
-                        </svg>
-                        Ball
-                    </span>
-                    <span class="stat-value">${userScore} <small>/ ${totalQuestions}</small></span>
-                </div>
-            `;
+    const resultPanel = document.getElementById('resultPanel');
+    const continueBtn = document.getElementById('continueBtn');
+    const progressEl = document.getElementById('progress');
+    const questionEl = document.getElementById('question');
+    const optionsContainer = document.getElementById('options-container');
 
-            // restart tugmasi (quizni qayta yuklash)
-            document.getElementById('restartQuizBtn').addEventListener('click', function() {
-                location.reload();  // sahifani qayta yuklaydi (asl quiz boshidan boshlanadi)
-            });
+    function loadQuestion() {
+        const q = questions[currentQuestion];
+        progressEl.textContent = `${currentQuestion + 1} / ${questions.length}`;
+        questionEl.textContent = q.text;
+        optionsContainer.innerHTML = '';
+        answered = false;
 
-        })();
-    </script>
+        q.options.forEach((option, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.textContent = option;
+            btn.dataset.index = index;
+            btn.addEventListener('click', () => selectAnswer(index, btn));
+            optionsContainer.appendChild(btn);
+        });
 
-    <!-- Izoh: “Yutuq va motivatsiya” blogi butunlay olib tashlandi. Faqat statistika va tugma qoldi. -->
+        resultPanel.classList.remove('active');
+    }
+
+    function selectAnswer(selectedIndex, clickedBtn) {
+        if (answered) return;
+        answered = true;
+
+        const q = questions[currentQuestion];
+        const isCorrect = selectedIndex === q.correct;
+        if (isCorrect) score++;
+
+        const allBtns = optionsContainer.querySelectorAll('.option-btn');
+        allBtns.forEach((btn, i) => {
+            btn.disabled = true;
+            if (i === q.correct) btn.classList.add('correct');
+            if (i === selectedIndex && !isCorrect) btn.classList.add('wrong');
+        });
+
+        showResult(isCorrect, q);
+    }
+
+    function showResult(isCorrect, q) {
+        resultPanel.classList.add('active');
+
+        const h2 = document.getElementById('resultH2');
+        const message = document.getElementById('resultMessage');
+        const correctText = document.getElementById('correctAnswerText');
+
+        if (isCorrect) {
+            h2.innerHTML = `<svg class="result-icon"><use href="#icon-celebration"></use></svg> Ajoyib! 🎉`;
+            message.textContent = "To'g'ri javob! Davom eting!";
+            correctText.style.display = 'none';
+        } else {
+            h2.innerHTML = `😔 Noto'g'ri`;
+            message.textContent = "Bu safar o'tkazib yubordingiz.";
+            correctText.style.display = 'block';
+            correctText.innerHTML = `To'g'ri javob: <strong>${q.options[q.correct]}</strong>`;
+        }
+
+        if (currentQuestion === questions.length - 1) {
+            continueBtn.innerHTML = `Yakuniy natija <svg class="continue-icon"><use href="#icon-arrow"></use></svg>`;
+        }
+    }
+
+    continueBtn.addEventListener('click', () => {
+        resultPanel.classList.remove('active');
+        if (currentQuestion < questions.length - 1) {
+            currentQuestion++;
+            loadQuestion();
+        } else {
+            endQuiz();
+        }
+    });
+
+    function endQuiz() {
+        // Eski oddiy ekran o'rniga yangi dizaynni ko'rsatamiz
+        document.querySelector('.app-container').style.display = 'none';
+
+        const totalQuestions = questions.length;
+        const accuracy = Math.round((score / totalQuestions) * 100);
+
+        const statsGrid = document.getElementById('statsGrid');
+        statsGrid.innerHTML = `
+            <div class="stat-row">
+                <span class="stat-label">
+                    <svg class="stat-icon" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/>
+                        <circle cx="12" cy="12" r="4" fill="currentColor" stroke="none"/>
+                    </svg>
+                    Aniqlik
+                </span>
+                <span class="stat-value">${accuracy}%</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">
+                    <svg class="stat-icon" viewBox="0 0 24 24">
+                        <polygon points="12,2 22,9 12,22 2,9" stroke="currentColor" stroke-width="2" fill="none"/>
+                    </svg>
+                    Ball
+                </span>
+                <span class="stat-value">${score} <small>/ ${totalQuestions}</small></span>
+            </div>
+        `;
+
+        document.getElementById('finishScreen').style.display = 'flex';
+    }
+
+    // Qayta boshlash tugmasi
+    document.getElementById('restartQuizBtn').addEventListener('click', () => {
+        location.reload();
+    });
+
+    loadQuestion();
+</script>
 </body>
 </html>
