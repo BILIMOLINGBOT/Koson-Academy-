@@ -4,183 +4,197 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>Ispan tili — Premium Quiz</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         :root {
-            --bg-dark: #050505;
-            --card-bg: #121212;
-            --accent-green: #2ecc71;
-            --accent-red: #e74c3c;
-            --text-main: #ffffff;
-            --text-muted: #888888;
-            --glass-border: rgba(255, 255, 255, 0.1);
+            --bg-primary: #050505;
+            --bg-secondary: #121212;
+            --accent-color: #3b82f6; /* Moviy rang */
+            --success-color: #10b981;
+            --error-color: #ef4444;
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
         body, html { 
             height: 100%; 
-            background: var(--bg-dark); 
-            font-family: 'SF Pro Display', -apple-system, sans-serif; 
-            color: var(--text-main); 
+            background: var(--bg-primary); 
+            font-family: 'Inter', -apple-system, system-ui, sans-serif; 
+            color: var(--text-primary); 
             overflow: hidden; 
         }
 
         .app-container {
             display: flex; flex-direction: column; height: 100vh;
             padding: 20px;
-            background: radial-gradient(circle at top right, #1a1a1a, #050505);
+            background: radial-gradient(circle at top right, #1e1b4b, #050505);
         }
 
         /* Progress Bar */
-        .progress-container { margin-top: 40px; text-align: center; }
-        .progress-text { font-size: 14px; font-weight: 600; color: var(--text-muted); letter-spacing: 1px; margin-bottom: 10px; }
+        .progress-container {
+            width: 100%; height: 6px; background: var(--glass-border);
+            border-radius: 10px; margin-top: 10px; overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%; background: var(--accent-color);
+            width: 0%; transition: width 0.4s ease;
+            box-shadow: 0 0 15px var(--accent-color);
+        }
 
         .question-section { 
             flex: 1; display: flex; flex-direction: column; 
-            align-items: center; justify-content: center;
-            animation: fadeIn 0.5s ease;
+            align-items: center; justify-content: center; 
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .header-meta {
+            display: flex; justify-content: space-between; width: 100%;
+            max-width: 340px; margin-bottom: 30px; align-items: center;
         }
+
+        .question-number { font-size: 14px; color: var(--text-secondary); letter-spacing: 1px; text-transform: uppercase; }
 
         .question-text { 
             font-size: 26px; font-weight: 700; text-align: center; 
-            line-height: 1.2; max-width: 360px; margin-bottom: 50px; 
+            line-height: 1.2; max-width: 360px; margin-bottom: 40px; 
         }
 
-        .options-container { width: 100%; max-width: 360px; }
+        .options-container { width: 100%; max-width: 340px; }
 
         .option-btn {
-            width: 100%; height: 68px; margin-bottom: 16px;
-            border-radius: 20px; background: rgba(255, 255, 255, 0.03);
+            width: 100%; padding: 20px; margin-bottom: 12px;
+            border-radius: 20px; background: var(--glass);
             border: 1px solid var(--glass-border);
-            font-size: 18px; font-weight: 500; color: var(--text-main);
-            display: flex; align-items: center; justify-content: center;
-            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-            backdrop-filter: blur(10px);
+            font-size: 18px; font-weight: 500; color: var(--text-primary);
+            cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px); text-align: left;
+            display: flex; justify-content: space-between; align-items: center;
         }
 
-        .option-btn:active:not(:disabled) { transform: scale(0.96); background: rgba(255, 255, 255, 0.08); }
-
-        .option-btn.correct { 
-            border-color: var(--accent-green); 
-            background: rgba(46, 204, 113, 0.15); 
-            color: var(--accent-green);
-            box-shadow: 0 0 20px rgba(46, 204, 113, 0.1);
+        .option-btn:hover:not(:disabled) { 
+            background: rgba(255,255,255,0.07);
+            border-color: var(--accent-color);
+            transform: scale(1.02);
         }
 
-        .option-btn.wrong { 
-            border-color: var(--accent-red); 
-            background: rgba(231, 76, 60, 0.15); 
-            color: var(--accent-red); 
-        }
+        .option-btn.correct { background: rgba(16, 185, 129, 0.15) !important; border-color: var(--success-color) !important; color: var(--success-color); }
+        .option-btn.wrong { background: rgba(239, 68, 68, 0.15) !important; border-color: var(--error-color) !important; color: var(--error-color); }
 
-        /* Result Panel */
+        /* Result Bottom Sheet */
         .result-panel {
             position: fixed; bottom: 0; left: 0; right: 0;
-            background: #ffffff; border-radius: 32px 32px 0 0;
-            padding: 30px 24px 40px; transform: translateY(100%);
-            transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1);
-            z-index: 1000; color: #000;
+            background: #1a1a1a; border-radius: 32px 32px 0 0;
+            padding: 30px 24px calc(30px + env(safe-area-inset-bottom));
+            transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 1000; border-top: 1px solid var(--glass-border);
         }
         .result-panel.active { transform: translateY(0); }
 
-        .result-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-        .result-header h2 { font-size: 24px; font-weight: 800; }
+        .result-content h2 { font-size: 24px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+        .correct-answer-box {
+            margin-top: 15px; padding: 15px; background: rgba(16, 185, 129, 0.1);
+            border-radius: 12px; border-left: 4px solid var(--success-color);
+        }
 
         .continue-btn {
-            width: 100%; height: 60px; border: none; border-radius: 20px;
-            background: #000; color: #fff;
-            font-size: 18px; font-weight: 600; margin-top: 25px;
-            display: flex; align-items: center; justify-content: center; gap: 8px;
+            width: 100%; height: 60px; border: none; border-radius: 18px;
+            background: var(--text-primary); color: var(--bg-primary);
+            font-size: 18px; font-weight: 700; margin-top: 25px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
         }
 
         /* Finish Screen */
         .finish-screen {
-            position: fixed; inset: 0; background: var(--bg-dark);
-            display: none; align-items: center; justify-content: center; padding: 20px; z-index: 2000;
+            position: fixed; inset: 0; background: var(--bg-primary);
+            display: none; align-items: center; justify-content: center; z-index: 2000;
         }
 
         .finish-card {
-            background: var(--card-bg); border-radius: 40px;
-            padding: 40px 24px; width: 100%; max-width: 400px;
-            text-align: center; border: 1px solid var(--glass-border);
+            width: 90%; max-width: 400px; text-align: center;
+            background: linear-gradient(145deg, #161616, #0a0a0a);
+            padding: 40px 24px; border-radius: 40px; border: 1px solid var(--glass-border);
         }
 
-        .trophy-icon { font-size: 80px; margin-bottom: 20px; display: block; }
-
-        .stats-grid { margin: 30px 0; display: grid; gap: 12px; }
-        .stat-item {
-            background: rgba(255,255,255,0.03); padding: 16px;
-            border-radius: 20px; display: flex; justify-content: space-between; align-items: center;
+        .trophy-container {
+            width: 100px; height: 100px; background: rgba(59, 130, 246, 0.1);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px; color: #fbbf24;
         }
-        .stat-label { display: flex; align-items: center; gap: 10px; color: var(--text-muted); font-weight: 500; }
-        .stat-value { font-size: 20px; font-weight: 700; }
+
+        .stat-badge {
+            display: flex; align-items: center; justify-content: space-between;
+            background: var(--glass); padding: 16px 20px; border-radius: 20px;
+            margin-bottom: 12px; border: 1px solid var(--glass-border);
+        }
 
         .restart-btn {
-            background: #fff; color: #000; border: none;
-            width: 100%; height: 60px; border-radius: 20px;
-            font-size: 18px; font-weight: 700; display: flex;
-            align-items: center; justify-content: center; gap: 10px;
+            background: var(--accent-color); color: white; width: 100%;
+            padding: 18px; border-radius: 20px; border: none; font-size: 18px;
+            font-weight: 700; margin-top: 20px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
         }
-
-        /* Lucide-like Icons SVG */
-        .icon-svg { width: 24px; height: 24px; stroke: currentColor; stroke-width: 2; fill: none; }
     </style>
 </head>
 <body>
 
 <div class="app-container">
+    <div class="header-meta">
+        <div class="question-number" id="progressText">SAVOL 1/8</div>
+        <i data-lucide="help-circle" style="color: var(--text-secondary); width: 20px;"></i>
+    </div>
+    
     <div class="progress-container">
-        <div id="progress" class="progress-text">1 / 8</div>
+        <div id="progressFill" class="progress-fill"></div>
     </div>
 
-    <div class="question-section" id="qSection">
-        <div id="question" class="question-text"></div>
+    <div class="question-section">
+        <h1 id="question" class="question-text"></h1>
         <div id="options-container" class="options-container"></div>
     </div>
 
     <div class="result-panel" id="resultPanel">
-        <div class="result-header">
-            <div id="resIcon"></div>
-            <h2 id="resultH2"></h2>
+        <div class="result-content">
+            <h2 id="resultTitle"></h2>
+            <p id="resultMsg" style="color: var(--text-secondary);"></p>
+            <div id="correctAnswerBox" class="correct-answer-box" style="display: none;"></div>
+            <button class="continue-btn" id="continueBtn">
+                <span>Davom etish</span>
+                <i data-lucide="chevron-right"></i>
+            </button>
         </div>
-        <p id="resultMessage"></p>
-        <button class="continue-btn" id="continueBtn">
-            <span>Davom etish</span>
-            <svg class="icon-svg"><path d="m9 18 6-6-6-6"/></svg>
-        </button>
     </div>
 </div>
 
 <div id="finishScreen" class="finish-screen">
     <div class="finish-card">
-        <span class="trophy-icon">🏆</span>
-        <h1 style="font-size: 28px; margin-bottom: 8px;">Dars yakunlandi!</h1>
-        <p style="color: var(--text-muted); margin-bottom: 20px;">Ispan tili: Alifbo asoslari</p>
+        <div class="trophy-container">
+            <i data-lucide="trophy" style="width: 50px; height: 50px;"></i>
+        </div>
+        <h2 style="font-size: 28px; margin-bottom: 5px;">Ajoyib natija!</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 30px;">Ispan tili asoslarini o'rganishda davom eting.</p>
 
-        <div class="stats-grid">
-            <div class="stat-item">
-                <span class="stat-label">
-                    <svg class="icon-svg" style="stroke: #3498db;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                    Aniqlik
-                </span>
-                <span class="stat-value" id="finalAccuracy">0%</span>
+        <div class="stat-badge">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <i data-lucide="target" style="color: var(--accent-color);"></i>
+                <span>Aniqlik</span>
             </div>
-            <div class="stat-item">
-                <span class="stat-label">
-                    <svg class="icon-svg" style="stroke: #f1c40f;"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
-                    To'g'ri javob
-                </span>
-                <span class="stat-value" id="finalScore">0 / 0</span>
+            <strong id="accuracyVal">0%</strong>
+        </div>
+
+        <div class="stat-badge">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <i data-lucide="award" style="color: #fbbf24;"></i>
+                <span>To'g'ri javoblar</span>
             </div>
+            <strong id="scoreVal">0</strong>
         </div>
 
         <button class="restart-btn" onclick="location.reload()">
-            <svg class="icon-svg" style="width: 20px; height: 20px;"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg>
-            Qayta urinish
+            <i data-lucide="refresh-cw" style="width: 20px;"></i>
+            Qayta boshlash
         </button>
     </div>
 </div>
@@ -189,31 +203,30 @@
     const questions = [
         { text: "Nechta unli harf bor?", options: ["5 ta", "6 ta", "7 ta"], correct: 0 },
         { text: "Ispan alifbosida nechta harf bor?", options: ["27 ta", "26 ta", "28 ta"], correct: 0 },
-        { text: "“H” harfi ispan tilida qanday o‘qiladi?", options: ["Har doim talaffuz qilinadi", "O‘qilmaydi", "“X” kabi"], correct: 1 },
-        { text: "“C” harfi qachon “k” tovushi beradi?", options: ["E, I oldida", "A, O, U oldida", "Hamma joyda"], correct: 1 },
-        { text: "“G” harfi A, O, U oldida qanday talaffuz qilinadi?", options: ["Qattiq “g”", "“X” kabi", "“S” kabi"], correct: 0 },
-        { text: "“G” harfi E, I oldida qanday talaffuz qilinadi?", options: ["Qattiq “g”", "“X”ga o‘xshash", "“K” kabi"], correct: 1 },
-        { text: "“C” harfi E, I oldida qanday talaffuz qilinadi?", options: ["“S” kabi", "“K” kabi", "“G” kabi"], correct: 0 },
-        { text: "“C” harfi A, O, U oldida qanday talaffuz qilinadi?", options: ["“S” kabi", "“K” kabi", "“X” kabi"], correct: 1 }
+        { text: "“H” harfi ispan tilida qanday o‘qiladi?", options: ["Talaffuz qilinadi", "O‘qilmaydi", "“X” kabi"], correct: 1 },
+        { text: "“C” harfi qachon “k” tovushi beradi?", options: ["E, I oldida", "A, O, U oldida", "Doim"], correct: 1 },
+        { text: "“G” harfi A, O, U oldida qanday o'qiladi?", options: ["Qattiq “g”", "“X” kabi", "“S” kabi"], correct: 0 },
+        { text: "“G” harfi E, I oldida qanday o'qiladi?", options: ["Qattiq “g”", "“X” kabi", "“K” kabi"], correct: 1 },
+        { text: "“C” harfi E, I oldida qanday o'qiladi?", options: ["“S” kabi", "“K” kabi", "“G” kabi"], correct: 0 },
+        { text: "“C” harfi A, O, U oldida qanday o'qiladi?", options: ["“S” kabi", "“K” kabi", "“X” kabi"], correct: 1 }
     ];
 
-    let currentQuestion = 0;
+    let current = 0;
     let score = 0;
     let answered = false;
 
-    const resIconCorrect = `<svg class="icon-svg" style="stroke: #2ecc71; width: 32px; height: 32px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`;
-    const resIconWrong = `<svg class="icon-svg" style="stroke: #e74c3c; width: 32px; height: 32px;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`;
+    function init() {
+        lucide.createIcons();
+        loadQuestion();
+    }
 
     function loadQuestion() {
-        const q = questions[currentQuestion];
-        const qSection = document.getElementById('qSection');
+        answered = false;
+        const q = questions[current];
         
-        // Animatsiyani qayta ishga tushirish
-        qSection.style.animation = 'none';
-        qSection.offsetHeight; 
-        qSection.style.animation = 'fadeIn 0.5s ease';
-
-        document.getElementById('progress').textContent = `${currentQuestion + 1} / ${questions.length}`;
+        // Progress update
+        document.getElementById('progressText').textContent = `SAVOL ${current + 1}/${questions.length}`;
+        document.getElementById('progressFill').style.width = `${((current + 1) / questions.length) * 100}%`;
         document.getElementById('question').textContent = q.text;
         
         const container = document.getElementById('options-container');
@@ -222,42 +235,66 @@
         q.options.forEach((opt, i) => {
             const btn = document.createElement('button');
             btn.className = 'option-btn';
-            btn.textContent = opt;
-            btn.onclick = () => selectAnswer(i, btn);
+            btn.innerHTML = `<span>${opt}</span><i data-lucide="circle" style="width: 18px; opacity: 0.3"></i>`;
+            btn.onclick = () => handleSelect(i, btn);
             container.appendChild(btn);
         });
-        answered = false;
+        
         document.getElementById('resultPanel').classList.remove('active');
+        lucide.createIcons();
     }
 
-    function selectAnswer(idx, btn) {
+    function handleSelect(idx, btn) {
         if (answered) return;
         answered = true;
-        const q = questions[currentQuestion];
-        const isCorrect = idx === q.correct;
         
+        const q = questions[current];
+        const isCorrect = idx === q.correct;
         if (isCorrect) score++;
 
         const btns = document.querySelectorAll('.option-btn');
         btns.forEach((b, i) => {
             b.disabled = true;
-            if (i === q.correct) b.classList.add('correct');
-            else if (i === idx) b.classList.add('wrong');
+            if (i === q.correct) {
+                b.classList.add('correct');
+                b.querySelector('i').setAttribute('data-lucide', 'check-circle-2');
+            } else if (i === idx) {
+                b.classList.add('wrong');
+                b.querySelector('i').setAttribute('data-lucide', 'x-circle');
+            }
         });
 
-        setTimeout(() => {
-            document.getElementById('resultPanel').classList.add('active');
-            document.getElementById('resultH2').textContent = isCorrect ? "Ajoyib!" : "E'tiborli bo'ling";
-            document.getElementById('resIcon').innerHTML = isCorrect ? resIconCorrect : resIconWrong;
-            document.getElementById('resultMessage').textContent = isCorrect 
-                ? "Javobingiz to'g'ri, keyingisiga o'tamiz." 
-                : `To'g'ri javob: ${q.options[q.correct]}`;
-        }, 300);
+        showSheet(isCorrect, q);
+        lucide.createIcons();
+    }
+
+    function showSheet(isCorrect, q) {
+        const panel = document.getElementById('resultPanel');
+        const title = document.getElementById('resultTitle');
+        const msg = document.getElementById('resultMsg');
+        const box = document.getElementById('correctAnswerBox');
+
+        panel.classList.add('active');
+        
+        if (isCorrect) {
+            title.innerHTML = `<span style="color: var(--success-color)">Ajoyib!</span>`;
+            msg.textContent = "Bilimingiz mustahkamlanmoqda.";
+            box.style.display = 'none';
+        } else {
+            title.innerHTML = `<span style="color: var(--error-color)">Xato emas, dars!</span>`;
+            msg.textContent = "To'g'ri javobni eslab qoling:";
+            box.style.display = 'block';
+            box.innerHTML = `<strong>${q.options[q.correct]}</strong>`;
+        }
+
+        if (current === questions.length - 1) {
+            document.querySelector('#continueBtn span').textContent = "Natijani ko'rish";
+        }
     }
 
     document.getElementById('continueBtn').onclick = () => {
-        if (currentQuestion < questions.length - 1) {
-            currentQuestion++;
+        if (current < questions.length - 1) {
+            current++;
             loadQuestion();
         } else {
             showFinish();
@@ -267,11 +304,12 @@
     function showFinish() {
         document.querySelector('.app-container').style.display = 'none';
         document.getElementById('finishScreen').style.display = 'flex';
-        document.getElementById('finalAccuracy').textContent = Math.round((score/questions.length)*100) + "%";
-        document.getElementById('finalScore').textContent = `${score} / ${questions.length}`;
+        document.getElementById('scoreVal').textContent = `${score} / ${questions.length}`;
+        document.getElementById('accuracyVal').textContent = Math.round((score / questions.length) * 100) + '%';
+        lucide.createIcons();
     }
 
-    loadQuestion();
+    window.onload = init;
 </script>
 </body>
 </html>
