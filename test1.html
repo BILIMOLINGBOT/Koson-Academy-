@@ -3,275 +3,223 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Ispan tili — Quiz</title>
+    <title>Ispan tili — Quiz Pro</title>
     <style>
         :root {
             --bg-primary: #0a0a0a;
-            --bg-secondary: #141414;
+            --bg-secondary: #1a1a1a;
             --text-primary: #ffffff;
             --text-secondary: #a0a0a0;
-            --border-light: #2a2a2a;
-            --border-dark: #333333;
-            --shadow-sm: rgba(255, 255, 255, 0.05);
-            --shadow-md: rgba(255, 255, 255, 0.1);
-            --shadow-lg: rgba(255, 255, 255, 0.15);
+            --accent-green: #22c55e;
+            --accent-red: #ef4444;
+            --accent-blue: #3b82f6;
+            --accent-gold: #fbbf24;
+            --border-color: #2a2a2a;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body, html { height: 100%; background: var(--bg-primary); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: var(--text-primary); overflow: hidden; }
+        body, html { height: 100%; background: var(--bg-primary); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: var(--text-primary); overflow: hidden; }
 
         .app-container {
             display: flex; flex-direction: column; height: 100vh;
-            padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom);
-            background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+            background: radial-gradient(circle at top right, #1a1a1a, #0a0a0a);
         }
 
-        .question-section { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 80px; }
+        /* --- QULAY FUNKSIYA: PROGRESS BAR --- */
+        .header-progress {
+            padding: 15px 20px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .progress-track {
+            flex: 1;
+            height: 12px;
+            background: #2a2a2a;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #22c55e, #4ade80);
+            border-radius: 10px;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
-        .question-number { font-size: 18px; color: var(--text-secondary); margin-bottom: 8px; font-weight: 500; }
-        .question-text { font-size: 24px; font-weight: 600; text-align: center; line-height: 1.35; max-width: 340px; margin-bottom: 40px; padding: 0 10px; }
+        .question-section { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center;
+        }
 
-        .options-container { width: 100%; max-width: 340px; }
+        /* --- RASM JOYLASHTIRILISHI (CHAPDA VA KATTA) --- */
+        .question-content-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            width: 100%;
+            margin-bottom: 30px;
+            padding-left: 0;
+        }
+
+        .image-container {
+            position: relative;
+            margin-left: -15px;
+            flex-shrink: 0;
+        }
+
+        .quiz-image {
+            width: 230px; 
+            height: auto;
+            max-height: 270px;
+            object-fit: contain;
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.5));
+        }
+
+        .image-shadow {
+            position: absolute;
+            bottom: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 140px;
+            height: 15px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 50%;
+            filter: blur(10px);
+            z-index: -1;
+        }
+
+        .question-text { 
+            font-size: 26px; 
+            font-weight: 800; 
+            text-align: left;
+            line-height: 1.2; 
+            flex: 1;
+            padding-right: 20px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+
+        /* Variantlar */
+        .options-container { width: 100%; max-width: 380px; margin: 0 auto; padding: 0 20px; }
 
         .option-btn {
-            width: 100%; height: 72px; margin-bottom: 14px;
-            border-radius: 16px; background: var(--bg-secondary);
-            border: 2px solid var(--border-light);
-            font-size: 19px; font-weight: 600; color: var(--text-primary);
+            width: 100%; height: 72px; margin-bottom: 12px;
+            border-radius: 20px; background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            font-size: 20px; font-weight: 600; color: #fff;
             display: flex; align-items: center; justify-content: center;
-            padding: 0 20px; text-align: center;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 2px 8px var(--shadow-sm);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
         }
 
-        .option-btn:hover:not(:disabled) { transform: translateY(-2px); border-color: var(--text-primary); }
-        .option-btn:disabled { cursor: default; }
+        .option-btn:active { transform: scale(0.96); }
+        .option-btn.correct { border-color: var(--accent-green) !important; background: rgba(34, 197, 94, 0.1) !important; color: #4ade80; }
+        .option-btn.wrong { border-color: var(--accent-red) !important; background: rgba(239, 68, 68, 0.1) !important; color: #f87171; }
 
-        .option-btn.correct { border-color: #22c55e !important; background: rgba(34, 197, 94, 0.1) !important; color: #22c55e; }
-        .option-btn.wrong { border-color: #ef4444 !important; background: rgba(239, 68, 68, 0.1) !important; color: #ef4444; }
+        /* --- OLMOS EFFEKTI --- */
+        .diamond-effect {
+            position: absolute;
+            font-size: 35px;
+            pointer-events: none;
+            z-index: 1001;
+            animation: diamond-float 1s ease-out forwards;
+        }
+        @keyframes diamond-float {
+            0% { transform: scale(0) translateY(0); opacity: 1; }
+            50% { transform: scale(1.3) translateY(-60px); opacity: 1; }
+            100% { transform: scale(1) translateY(-120px) rotate(20deg); opacity: 0; }
+        }
 
+        /* Result Panel */
         .result-panel {
             position: fixed; bottom: 0; left: 0; right: 0;
-            background: var(--text-primary); border-radius: 24px 24px 0 0;
-            padding: 30px 20px; transform: translateY(100%);
-            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            z-index: 1000; color: var(--bg-primary);
-            box-shadow: 0 -4px 32px var(--shadow-lg);
+            background: white; border-radius: 35px 35px 0 0;
+            padding: 35px 25px; transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 1000; color: #000;
         }
         .result-panel.active { transform: translateY(0); }
-
-        .result-panel h2 { font-size: 28px; margin-bottom: 12px; font-weight: 700; display: flex; align-items: center; gap: 12px; }
-        .result-icon { width: 32px; height: 32px; fill: currentColor; }
-        .result-panel p { font-size: 16px; opacity: 0.9; line-height: 1.5; }
-
-        .correct-answer {
-            margin-top: 20px; padding: 14px 16px;
-            background: var(--bg-secondary); border-radius: 12px;
-            border: 1px solid #22c55e; font-size: 17px; color: #22c55e;
-        }
-
         .continue-btn {
-            width: 100%; height: 56px; border: none; border-radius: 16px;
-            background: var(--bg-primary); color: var(--text-primary);
-            font-size: 18px; font-weight: 600; margin-top: 24px;
-            cursor: pointer; transition: all 0.2s ease;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-        }
-        .continue-btn:active { transform: scale(0.98); }
-        .continue-icon { width: 20px; height: 20px; fill: currentColor; }
-
-        /* ==================== YANGI YAKUNIY NATIJA DIZAYNI ==================== */
-        .finish-screen {
-            position: fixed;
-            inset: 0;
-            background: #0a0a0a;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 16px;
-            z-index: 2000;
+            width: 100%; height: 65px; border: none; border-radius: 20px;
+            background: #000; color: #fff; font-size: 20px; font-weight: 700; margin-top: 20px;
         }
 
-        .finish-card {
-            background: #141414;
-            border-radius: 40px;
-            padding: 32px 24px 40px;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.03);
-            text-align: center;
+        /* --- FINISH SCREEN ZAMONAVIY --- */
+        .finish-screen { position: fixed; inset: 0; background: #0a0a0a; display: none; align-items: center; justify-content: center; z-index: 2000; }
+        .finish-card { background: #141414; border-radius: 40px; padding: 40px 25px; width: 90%; max-width: 400px; text-align: center; border: 1px solid #2a2a2a; }
+        
+        .stat-card {
+            background: #1e1e1e; border-radius: 25px; padding: 20px;
+            display: flex; justify-content: space-around; margin: 30px 0;
         }
+        .stat-item { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .stat-icon { width: 45px; height: 45px; margin-bottom: 5px; }
+        .stat-val { font-size: 24px; font-weight: 800; color: #fff; }
+        .stat-lbl { font-size: 14px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
 
-        .trophy-glow {
-            font-size: 88px;
-            line-height: 1;
-            margin-bottom: 16px;
-            filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.4));
-            animation: subtle-pulse 2.5s infinite ease-in-out;
-        }
-
-        @keyframes subtle-pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.06); }
-            100% { transform: scale(1); }
-        }
-
-        h1 {
-            font-size: 28px;
-            font-weight: 600;
-            letter-spacing: -0.3px;
-            margin-bottom: 8px;
-            background: linear-gradient(135deg, #ffffff 0%, #dddddd 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .subhead {
-            font-size: 16px;
-            color: #a0a0a0;
-            margin-bottom: 36px;
-            font-weight: 400;
-        }
-
-        .stats-grid {
-            background: #1e1e1e;
-            border-radius: 28px;
-            padding: 16px 20px;
-            margin-bottom: 40px;
-            border: 1px solid #2a2a2a;
-        }
-
-        .stat-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px 0;
-            border-bottom: 1px solid #2a2a2a;
-        }
-
-        .stat-row:last-child {
-            border-bottom: none;
-            padding-bottom: 8px;
-        }
-
-        .stat-label {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            font-size: 17px;
-            font-weight: 500;
-            color: #d4d4d4;
-        }
-
-        .stat-icon {
-            width: 26px;
-            height: 26px;
-            fill: none;
-            stroke: #22c55e;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-
-        .stat-value {
-            font-size: 24px;
-            font-weight: 700;
-            color: white;
-        }
-
-        .stat-value small {
-            font-size: 16px;
-            font-weight: 400;
-            color: #888;
-            margin-left: 4px;
-        }
-
-        .restart-btn {
-            background: white;
-            border: none;
-            border-radius: 60px;
-            padding: 18px 28px;
-            width: 100%;
-            font-size: 19px;
-            font-weight: 600;
-            color: #0a0a0a;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 10px 20px rgba(255, 255, 255, 0.05);
-        }
-
-        .restart-btn:hover {
-            background: #f0f0f0;
-            transform: scale(1.02);
-        }
-
-        .restart-btn:active {
-            transform: scale(0.98);
-        }
-
-        .btn-arrow {
-            width: 22px;
-            height: 22px;
-            fill: currentColor;
-            transition: transform 0.2s;
-        }
-
-        .restart-btn:hover .btn-arrow {
-            transform: translateX(4px);
-        }
+        .restart-btn { background: #fff; border: none; border-radius: 25px; padding: 20px; width: 100%; font-size: 20px; font-weight: 700; color: #000; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<svg style="display: none;">
-    <symbol id="icon-celebration" viewBox="0 0 24 24">
-        <path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm-2-15l4.5 4.5L10 17l-4.5-4.5L10 7zm2 0l4.5 4.5L12 17l-4.5-4.5L12 7z"/>
-    </symbol>
-    <symbol id="icon-arrow" viewBox="0 0 24 24">
-        <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
-    </symbol>
-</svg>
-
 <div class="app-container">
+    <div class="header-progress">
+        <div class="progress-track"><div id="progressFill" class="progress-fill"></div></div>
+        <div id="progressText" style="font-weight: 700; min-width: 40px;">1/8</div>
+    </div>
+
     <div class="question-section">
-        <div id="progress" class="question-number">1 / 8</div>
-        <div id="question" class="question-text"></div>
+        <div class="question-content-wrapper">
+            <div class="image-container">
+                <img src="https://image2url.com/r2/default/images/1772032403207-c823e235-37ef-402e-8b42-1b289caf5515.png" alt="Boy" class="quiz-image">
+                <div class="image-shadow"></div>
+            </div>
+            <div id="question" class="question-text"></div>
+        </div>
         <div id="options-container" class="options-container"></div>
     </div>
 
     <div class="result-panel" id="resultPanel">
         <div style="max-width: 500px; margin: 0 auto;">
-            <h2 id="resultH2"></h2>
-            <p id="resultMessage"></p>
-            <p id="correctAnswerText" class="correct-answer" style="display: none;"></p>
-            <button class="continue-btn" id="continueBtn">
-                Keyingi savol
-                <svg class="continue-icon"><use href="#icon-arrow"></use></svg>
-            </button>
+            <h2 id="resultH2" style="font-size: 28px; margin-bottom: 8px;"></h2>
+            <p id="resultMessage" style="color: #666; font-size: 18px;"></p>
+            <div id="correctAnswerText" style="display: none; margin-top: 15px; padding: 15px; background: #f0fdf4; border-radius: 15px; color: #166534; font-weight: 700;"></div>
+            <button class="continue-btn" id="continueBtn">Davom etish</button>
         </div>
     </div>
 </div>
 
-<!-- ==================== YANGI YAKUNIY NATIJA EKRANI ==================== -->
 <div id="finishScreen" class="finish-screen">
-    <div class="finish-card" id="finishCard">
-        <div class="trophy-glow">🏆</div>
-        <h1>Mashg‘ulot yakunlandi</h1>
-        <div class="subhead">Ispan tili · Alifbo</div>
+    <div class="finish-card">
+        <div style="font-size: 70px; margin-bottom: 10px;">🏆</div>
+        <h1 style="color: #fff; font-size: 30px;">Dars tugadi!</h1>
+        
+        <div class="stat-card">
+            <div class="stat-item">
+                <svg class="stat-icon" viewBox="0 0 24 24">
+                    <path fill="#3b82f6" d="M12,2L4.5,20.29L5.21,21L12,18L18.79,21L19.5,20.29L12,2Z" />
+                    <path fill="#60a5fa" d="M12,2L12,18L18.79,21L19.5,20.29L12,2Z" />
+                </svg>
+                <span id="finalScore" class="stat-val">0</span>
+                <span class="stat-lbl">Olmos</span>
+            </div>
+            <div class="stat-item">
+                <svg class="stat-icon" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" fill="none" stroke="#22c55e" stroke-width="2"/>
+                    <circle cx="12" cy="12" r="6" fill="#22c55e" opacity="0.3"/>
+                    <circle cx="12" cy="12" r="2" fill="#22c55e"/>
+                </svg>
+                <span id="finalAccuracy" class="stat-val">0%</span>
+                <span class="stat-lbl">Aniqlik</span>
+            </div>
+        </div>
 
-        <div class="stats-grid" id="statsGrid"></div>
-
-        <button class="restart-btn" id="restartQuizBtn">
-            <span>Qayta boshlash</span>
-            <svg class="btn-arrow" viewBox="0 0 24 24">
-                <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
-            </svg>
-        </button>
+        <button class="restart-btn" onclick="location.reload()">Yana boshlash</button>
     </div>
 </div>
 
@@ -279,131 +227,94 @@
     const questions = [
         { text: "Nechta unli harf bor?", options: ["5 ta", "6 ta", "7 ta"], correct: 0 },
         { text: "Ispan alifbosida nechta harf bor?", options: ["27 ta", "26 ta", "28 ta"], correct: 0 },
-        { text: "“H” harfi ispan tilida qanday o‘qiladi?", options: ["Har doim talaffuz qilinadi", "O‘qilmaydi (tovush bermaydi)", "“X” kabi o‘qiladi"], correct: 1 },
+        { text: "“H” harfi qanday o‘qiladi?", options: ["Talaffuz qilinadi", "O‘qilmaydi", "“X” kabi"], correct: 1 },
         { text: "“C” harfi qachon “k” tovushi beradi?", options: ["E, I oldida", "A, O, U oldida", "Hamma joyda"], correct: 1 },
-        { text: "“G” harfi A, O, U oldida qanday talaffuz qilinadi?", options: ["Qattiq “g” (gato kabi)", "“X” kabi", "“S” kabi"], correct: 0 },
-        { text: "“G” harfi E, I oldida qanday talaffuz qilinadi?", options: ["Qattiq “g”", "“X”ga o‘xshash tovush", "“K” kabi"], correct: 1 },
-        { text: "“C” harfi E, I oldida qanday talaffuz qilinadi?", options: ["“S” kabi", "“K” kabi", "“G” kabi"], correct: 0 },
-        { text: "“C” harfi A, O, U oldida qanday talaffuz qilinadi?", options: ["“S” kabi", "“K” kabi", "“X” kabi"], correct: 1 }
+        { text: "“G” harfi A, O, U oldida qanday?", options: ["Qattiq “g”", "“X” kabi", "“S” kabi"], correct: 0 },
+        { text: "“G” harfi E, I oldida qanday?", options: ["Qattiq “g”", "“X”ga o‘xshash", "“K” kabi"], correct: 1 },
+        { text: "“C” harfi E, I oldida qanday?", options: ["“S” kabi", "“K” kabi", "“G” kabi"], correct: 0 },
+        { text: "“C” harfi A, O, U oldida qanday?", options: ["“S” kabi", "“K” kabi", "“X” kabi"], correct: 1 }
     ];
 
     let currentQuestion = 0;
     let score = 0;
     let answered = false;
 
-    const resultPanel = document.getElementById('resultPanel');
-    const continueBtn = document.getElementById('continueBtn');
-    const progressEl = document.getElementById('progress');
-    const questionEl = document.getElementById('question');
-    const optionsContainer = document.getElementById('options-container');
-
     function loadQuestion() {
         const q = questions[currentQuestion];
-        progressEl.textContent = `${currentQuestion + 1} / ${questions.length}`;
-        questionEl.textContent = q.text;
-        optionsContainer.innerHTML = '';
+        // Progress update
+        const progressPercent = ((currentQuestion) / questions.length) * 100;
+        document.getElementById('progressFill').style.width = progressPercent + '%';
+        document.getElementById('progressText').textContent = `${currentQuestion + 1}/${questions.length}`;
+        
+        document.getElementById('question').textContent = q.text;
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
         answered = false;
 
         q.options.forEach((option, index) => {
             const btn = document.createElement('button');
             btn.className = 'option-btn';
             btn.textContent = option;
-            btn.dataset.index = index;
-            btn.addEventListener('click', () => selectAnswer(index, btn));
-            optionsContainer.appendChild(btn);
+            btn.onclick = (e) => selectAnswer(index, btn, e);
+            container.appendChild(btn);
         });
-
-        resultPanel.classList.remove('active');
+        document.getElementById('resultPanel').classList.remove('active');
     }
 
-    function selectAnswer(selectedIndex, clickedBtn) {
+    function spawnDiamond(e) {
+        for(let i=0; i<3; i++) {
+            const diamond = document.createElement('div');
+            diamond.className = 'diamond-effect';
+            diamond.innerHTML = '💎';
+            diamond.style.left = (e.clientX || window.innerWidth/2) + (Math.random()*40 - 20) + 'px';
+            diamond.style.top = (e.clientY || window.innerHeight/2) + 'px';
+            document.body.appendChild(diamond);
+            setTimeout(() => diamond.remove(), 1000);
+        }
+    }
+
+    function selectAnswer(selectedIndex, clickedBtn, e) {
         if (answered) return;
         answered = true;
-
         const q = questions[currentQuestion];
         const isCorrect = selectedIndex === q.correct;
-        if (isCorrect) score++;
+        
+        if (isCorrect) {
+            score++;
+            spawnDiamond(e);
+        }
 
-        const allBtns = optionsContainer.querySelectorAll('.option-btn');
-        allBtns.forEach((btn, i) => {
-            btn.disabled = true;
+        document.querySelectorAll('.option-btn').forEach((btn, i) => {
+            btn.style.pointerEvents = 'none';
             if (i === q.correct) btn.classList.add('correct');
             if (i === selectedIndex && !isCorrect) btn.classList.add('wrong');
         });
 
-        showResult(isCorrect, q);
+        setTimeout(() => {
+            document.getElementById('resultPanel').classList.add('active');
+            document.getElementById('resultH2').textContent = isCorrect ? "To'ppa-to'g'ri! ✨" : "Xato qilindi 💡";
+            document.getElementById('resultMessage').textContent = isCorrect ? "Siz olmos yutdingiz!" : "To'g'ri javobni eslab qoling.";
+            const ct = document.getElementById('correctAnswerText');
+            if(!isCorrect) {
+                ct.style.display = 'block';
+                ct.innerHTML = `Javob: ${q.options[q.correct]}`;
+            } else { ct.style.display = 'none'; }
+        }, 400);
     }
 
-    function showResult(isCorrect, q) {
-        resultPanel.classList.add('active');
-
-        const h2 = document.getElementById('resultH2');
-        const message = document.getElementById('resultMessage');
-        const correctText = document.getElementById('correctAnswerText');
-
-        if (isCorrect) {
-            h2.innerHTML = `<svg class="result-icon"><use href="#icon-celebration"></use></svg> Ajoyib! 🎉`;
-            message.textContent = "To'g'ri javob! Davom eting!";
-            correctText.style.display = 'none';
-        } else {
-            h2.innerHTML = `😔 Noto'g'ri`;
-            message.textContent = "Bu safar o'tkazib yubordingiz.";
-            correctText.style.display = 'block';
-            correctText.innerHTML = `To'g'ri javob: <strong>${q.options[q.correct]}</strong>`;
-        }
-
-        if (currentQuestion === questions.length - 1) {
-            continueBtn.innerHTML = `Yakuniy natija <svg class="continue-icon"><use href="#icon-arrow"></use></svg>`;
-        }
-    }
-
-    continueBtn.addEventListener('click', () => {
-        resultPanel.classList.remove('active');
+    document.getElementById('continueBtn').onclick = () => {
         if (currentQuestion < questions.length - 1) {
             currentQuestion++;
             loadQuestion();
         } else {
-            endQuiz();
+            // Finish
+            document.getElementById('progressFill').style.width = '100%';
+            document.querySelector('.app-container').style.display = 'none';
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('finalAccuracy').textContent = Math.round((score/questions.length)*100) + '%';
+            document.getElementById('finishScreen').style.display = 'flex';
         }
-    });
-
-    function endQuiz() {
-        // Eski oddiy ekran o'rniga yangi dizaynni ko'rsatamiz
-        document.querySelector('.app-container').style.display = 'none';
-
-        const totalQuestions = questions.length;
-        const accuracy = Math.round((score / totalQuestions) * 100);
-
-        const statsGrid = document.getElementById('statsGrid');
-        statsGrid.innerHTML = `
-            <div class="stat-row">
-                <span class="stat-label">
-                    <svg class="stat-icon" viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/>
-                        <circle cx="12" cy="12" r="4" fill="currentColor" stroke="none"/>
-                    </svg>
-                    Aniqlik
-                </span>
-                <span class="stat-value">${accuracy}%</span>
-            </div>
-            <div class="stat-row">
-                <span class="stat-label">
-                    <svg class="stat-icon" viewBox="0 0 24 24">
-                        <polygon points="12,2 22,9 12,22 2,9" stroke="currentColor" stroke-width="2" fill="none"/>
-                    </svg>
-                    Ball
-                </span>
-                <span class="stat-value">${score} <small>/ ${totalQuestions}</small></span>
-            </div>
-        `;
-
-        document.getElementById('finishScreen').style.display = 'flex';
-    }
-
-    // Qayta boshlash tugmasi
-    document.getElementById('restartQuizBtn').addEventListener('click', () => {
-        location.reload();
-    });
+    };
 
     loadQuestion();
 </script>
