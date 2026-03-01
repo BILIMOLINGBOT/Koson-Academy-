@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>Ispan tili Pro — Gap tuzish</title>
+    <style>
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --accent-green: #22c55e;
+            --accent-red: #ef4444;
+            --accent-blue: #3b82f6;
+            --border-color: #2a2a2a;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body, html { height: 100%; background: var(--bg-primary); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: var(--text-primary); overflow-x: hidden; }
+
+        .app-container {
+            display: flex; flex-direction: column; height: 100vh;
+            padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+            background: radial-gradient(circle at top right, #1a1a1a, #0a0a0a);
+        }
+
+        /* Progress Bar */
+        .header-progress { padding: 15px 20px; width: 100%; display: flex; align-items: center; gap: 15px; }
+        .progress-track { flex: 1; height: 12px; background: #2a2a2a; border-radius: 10px; overflow: hidden; }
+        .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #22c55e, #4ade80); transition: width 0.4s ease; }
+
+        .question-section { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+
+        .question-text { font-size: 24px; font-weight: 700; text-align: center; margin-bottom: 30px; line-height: 1.4; }
+
+        /* Gap tuzish maydoni */
+        .sentence-area {
+            width: 100%; max-width: 400px; min-height: 120px;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 30px; display: flex; flex-wrap: wrap;
+            align-content: flex-start; gap: 8px; padding: 10px;
+        }
+
+        /* So'zlar banki */
+        .word-bank {
+            display: flex; flex-wrap: wrap; justify-content: center;
+            gap: 10px; max-width: 400px;
+        }
+
+        .word-chip {
+            padding: 12px 20px; background: var(--bg-secondary);
+            border: 2px solid var(--border-color); border-radius: 15px;
+            cursor: pointer; font-size: 18px; font-weight: 600;
+            transition: all 0.2s;
+        }
+        .word-chip.used { opacity: 0.3; pointer-events: none; }
+
+        /* Variantlar */
+        .options-container { width: 100%; max-width: 380px; }
+        .option-btn {
+            width: 100%; padding: 18px; margin-bottom: 12px;
+            border-radius: 20px; background: var(--bg-secondary);
+            border: 2px solid var(--border-color); font-size: 18px;
+            color: #fff; cursor: pointer; transition: 0.2s;
+        }
+        .option-btn.correct { border-color: var(--accent-green); background: rgba(34, 197, 94, 0.1); }
+        .option-btn.wrong { border-color: var(--accent-red); background: rgba(239, 68, 68, 0.1); }
+
+        /* Result Panel */
+        .result-panel {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: white; border-radius: 30px 30px 0 0;
+            padding: 30px 20px; transform: translateY(100%);
+            transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 1000; color: #000;
+        }
+        .result-panel.active { transform: translateY(0); }
+        .continue-btn {
+            width: 100%; padding: 20px; border: none; border-radius: 18px;
+            background: #000; color: #fff; font-size: 18px; font-weight: 700; margin-top: 15px;
+        }
+
+        /* Finish Screen */
+        .finish-screen { position: fixed; inset: 0; background: #0a0a0a; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; }
+        .stat-card { background: #1a1a1a; padding: 30px; border-radius: 30px; text-align: center; width: 85%; }
+
+        .diamond-effect { position: absolute; font-size: 30px; pointer-events: none; animation: float 1s forwards; }
+        @keyframes float { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-100px); opacity: 0; } }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="header-progress">
+        <div class="progress-track"><div id="progressFill" class="progress-fill"></div></div>
+        <div id="progressText" style="font-weight: 700; min-width: 45px;">1/10</div>
+    </div>
+
+    <div class="question-section" id="gameArea">
+        <div id="question" class="question-text"></div>
+        
+        <div id="sentenceArea" class="sentence-area" style="display: none;"></div>
+        <div id="wordBank" class="word-bank" style="display: none;"></div>
+
+        <div id="optionsContainer" class="options-container" style="display: none;"></div>
+    </div>
+
+    <div class="result-panel" id="resultPanel">
+        <h2 id="resultH2" style="font-size: 24px; margin-bottom: 5px;"></h2>
+        <p id="resultMessage" style="color: #666;"></p>
+        <button class="continue-btn" id="continueBtn">Davom etish</button>
+    </div>
+</div>
+
+<div id="finishScreen" class="finish-screen">
+    <div class="stat-card">
+        <div style="font-size: 60px;">🏆</div>
+        <h1 style="margin: 15px 0;">Dars yakunlandi!</h1>
+        <p style="color: #888; font-size: 20px;">Siz <span id="finalScore" style="color: #fff; font-weight: 800;">0</span> ta olmos to'pladingiz!</p>
+        <button onclick="location.reload()" class="continue-btn" style="background: #fff; color: #000; margin-top: 30px;">Qayta urinish</button>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        // Fonetika (Multiple Choice)
+        { type: "choice", text: "“H” harfi qanday o‘qiladi?", options: ["Talaffuz qilinadi", "O‘qilmaydi", "“X” kabi"], correct: 1 },
+        { type: "choice", text: "“C” harfi E va I oldida qanday o‘qiladi?", options: ["“S” kabi", "“K” kabi", "“Ch” kabi"], correct: 0 },
+        
+        // Gap tuzish (Sentence Builder)
+        { type: "build", text: "Gapni tuzing: 'Men suv ichaman'", correct: "Yo bebo agua", words: ["bebo", "Yo", "agua", "comida", "hablo"] },
+        { type: "build", text: "Gapni tuzing: 'Sen suv ichasan'", correct: "Tú bebes agua", words: ["bebes", "Tú", "agua", "fruta", "comes"] },
+        { type: "build", text: "Gapni tuzing: 'Men meva yeyman'", correct: "Yo como fruta", words: ["Yo", "como", "fruta", "agua", "bebo"] },
+        
+        // Tarjima (Multiple Choice)
+        { type: "choice", text: "“Tú hablas español” tarjimasi nima?", options: ["Men ispancha gapiraman", "Sen ispancha gapirasan", "U ispancha gapiradi"], correct: 1 },
+        { type: "choice", text: "“Men ispancha gapiraman” ispanchada qanday bo'ladi?", options: ["Yo hablo español", "Tú hablas español", "Yo bebo agua"], correct: 0 }
+    ];
+
+    let currentIdx = 0;
+    let score = 0;
+    let userSentence = [];
+
+    function loadQuestion() {
+        const q = questions[currentIdx];
+        document.getElementById('progressFill').style.width = (currentIdx / questions.length * 100) + '%';
+        document.getElementById('progressText').textContent = `${currentIdx + 1}/${questions.length}`;
+        document.getElementById('question').textContent = q.text;
+        document.getElementById('resultPanel').classList.remove('active');
+
+        if (q.type === "choice") {
+            showChoiceMode(q);
+        } else {
+            showBuildMode(q);
+        }
+    }
+
+    function showChoiceMode(q) {
+        const container = document.getElementById('optionsContainer');
+        const bank = document.getElementById('wordBank');
+        const area = document.getElementById('sentenceArea');
+        
+        container.style.display = 'block';
+        bank.style.display = 'none';
+        area.style.display = 'none';
+        container.innerHTML = '';
+
+        q.options.forEach((opt, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.textContent = opt;
+            btn.onclick = () => checkChoice(i, q.correct);
+            container.appendChild(btn);
+        });
+    }
+
+    function showBuildMode(q) {
+        const container = document.getElementById('optionsContainer');
+        const bank = document.getElementById('wordBank');
+        const area = document.getElementById('sentenceArea');
+        
+        container.style.display = 'none';
+        bank.style.display = 'flex';
+        area.style.display = 'flex';
+        
+        area.innerHTML = '';
+        bank.innerHTML = '';
+        userSentence = [];
+
+        // So'zlarni tasodifiy tartibda chiqarish
+        const shuffledWords = [...q.words].sort(() => Math.random() - 0.5);
+        
+        shuffledWords.forEach(word => {
+            const chip = document.createElement('div');
+            chip.className = 'word-chip';
+            chip.textContent = word;
+            chip.onclick = () => {
+                if(!chip.classList.contains('used')) {
+                    addWord(word, chip);
+                }
+            };
+            bank.appendChild(chip);
+        });
+    }
+
+    function addWord(word, chip) {
+        userSentence.push(word);
+        chip.classList.add('used');
+        
+        const newChip = document.createElement('div');
+        newChip.className = 'word-chip';
+        newChip.textContent = word;
+        newChip.onclick = () => {
+            userSentence = userSentence.filter(w => w !== word);
+            newChip.remove();
+            chip.classList.remove('used');
+        };
+        document.getElementById('sentenceArea').appendChild(newChip);
+
+        // Agar so'zlar soni to'g'ri bo'lsa, tekshirish (ixtiyoriy: tekshirish tugmasi qo'shish mumkin)
+        if(userSentence.length === questions[currentIdx].correct.split(' ').length) {
+            checkBuild();
+        }
+    }
+
+    function checkChoice(idx, correct) {
+        const isCorrect = idx === correct;
+        showResult(isCorrect, questions[currentIdx].options[correct]);
+    }
+
+    function checkBuild() {
+        const q = questions[currentIdx];
+        const isCorrect = userSentence.join(' ') === q.correct;
+        showResult(isCorrect, q.correct);
+    }
+
+    function showResult(isCorrect, correctAns) {
+        if(isCorrect) score++;
+        
+        const panel = document.getElementById('resultPanel');
+        const h2 = document.getElementById('resultH2');
+        const msg = document.getElementById('resultMessage');
+        
+        panel.classList.add('active');
+        h2.textContent = isCorrect ? "Ajoyib! ✨" : "Xato qilindi 💡";
+        h2.style.color = isCorrect ? "#16a34a" : "#dc2626";
+        msg.textContent = isCorrect ? "To'ppa-to'g'ri javob." : `To'g'ri javob: ${correctAns}`;
+    }
+
+    document.getElementById('continueBtn').onclick = () => {
+        currentIdx++;
+        if(currentIdx < questions.length) {
+            loadQuestion();
+        } else {
+            showFinish();
+        }
+    };
+
+    function showFinish() {
+        document.querySelector('.app-container').style.display = 'none';
+        document.getElementById('finishScreen').style.display = 'flex';
+        document.getElementById('finalScore').textContent = score;
+    }
+
+    loadQuestion();
+</script>
+</body>
+</html>
