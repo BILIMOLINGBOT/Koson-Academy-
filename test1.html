@@ -3,409 +3,356 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Ispan tili — Quiz</title>
+    <title>Ispan tili — Quiz Pro</title>
     <style>
         :root {
-            --bg-primary: #0a0a0a;
-            --bg-secondary: #141414;
-            --text-primary: #ffffff;
-            --text-secondary: #a0a0a0;
-            --border-light: #2a2a2a;
-            --border-dark: #333333;
-            --shadow-sm: rgba(255, 255, 255, 0.05);
-            --shadow-md: rgba(255, 255, 255, 0.1);
-            --shadow-lg: rgba(255, 255, 255, 0.15);
+            --bg-primary: #09090b;
+            --bg-secondary: #18181b;
+            --accent: #3b82f6;
+            --success: #22c55e;
+            --error: #ef4444;
+            --text-primary: #fafafa;
+            --text-secondary: #a1a1aa;
+            --border: #27272a;
+            --glass: rgba(24, 24, 27, 0.8);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body, html { height: 100%; background: var(--bg-primary); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: var(--text-primary); overflow: hidden; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            background: var(--bg-primary); 
+            font-family: 'Inter', -apple-system, sans-serif; 
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            height: 6px;
+            background: var(--border);
+            position: fixed;
+            top: 0;
+            z-index: 100;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), #8b5cf6);
+            width: 0%;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
         .app-container {
-            display: flex; flex-direction: column; height: 100vh;
-            padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom);
-            background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 40px 24px;
+            max-width: 500px;
+            margin: 0 auto;
+            width: 100%;
         }
 
-        .question-section { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 80px; }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            margin-top: 20px;
+        }
 
-        .question-number { font-size: 18px; color: var(--text-secondary); margin-bottom: 8px; font-weight: 500; }
-        .question-text { font-size: 24px; font-weight: 600; text-align: center; line-height: 1.35; max-width: 340px; margin-bottom: 40px; padding: 0 10px; }
+        .question-number {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--accent);
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
 
-        .options-container { width: 100%; max-width: 340px; }
+        .question-text {
+            font-size: 26px;
+            font-weight: 700;
+            line-height: 1.3;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .options-grid {
+            display: grid;
+            gap: 12px;
+            margin-top: auto;
+            padding-bottom: 100px;
+        }
 
         .option-btn {
-            width: 100%; height: 72px; margin-bottom: 14px;
-            border-radius: 16px; background: var(--bg-secondary);
-            border: 2px solid var(--border-light);
-            font-size: 19px; font-weight: 600; color: var(--text-primary);
-            display: flex; align-items: center; justify-content: center;
-            padding: 0 20px; text-align: center;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 2px 8px var(--shadow-sm);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: 18px;
+            color: var(--text-primary);
+            font-size: 17px;
+            font-weight: 500;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .option-btn:hover:not(:disabled) { transform: translateY(-2px); border-color: var(--text-primary); }
-        .option-btn:disabled { cursor: default; }
+        .option-btn:active { transform: scale(0.98); }
+        
+        .option-btn.correct { 
+            background: rgba(34, 197, 94, 0.15); 
+            border-color: var(--success); 
+            color: var(--success);
+        }
 
-        .option-btn.correct { border-color: #22c55e !important; background: rgba(34, 197, 94, 0.1) !important; color: #22c55e; }
-        .option-btn.wrong { border-color: #ef4444 !important; background: rgba(239, 68, 68, 0.1) !important; color: #ef4444; }
+        .option-btn.wrong { 
+            background: rgba(239, 68, 68, 0.15); 
+            border-color: var(--error); 
+            color: var(--error);
+        }
 
+        /* Result Panel */
         .result-panel {
-            position: fixed; bottom: 0; left: 0; right: 0;
-            background: var(--text-primary); border-radius: 24px 24px 0 0;
-            padding: 30px 20px; transform: translateY(100%);
-            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            z-index: 1000; color: var(--bg-primary);
-            box-shadow: 0 -4px 32px var(--shadow-lg);
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border);
+            padding: 32px 24px calc(32px + env(safe-area-inset-bottom));
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+            z-index: 1000;
         }
         .result-panel.active { transform: translateY(0); }
 
-        .result-panel h2 { font-size: 28px; margin-bottom: 12px; font-weight: 700; display: flex; align-items: center; gap: 12px; }
-        .result-icon { width: 32px; height: 32px; fill: currentColor; }
-        .result-panel p { font-size: 16px; opacity: 0.9; line-height: 1.5; }
+        .result-content {
+            max-width: 450px;
+            margin: 0 auto;
+        }
 
-        .correct-answer {
-            margin-top: 20px; padding: 14px 16px;
-            background: var(--bg-secondary); border-radius: 12px;
-            border: 1px solid #22c55e; font-size: 17px; color: #22c55e;
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 8px;
         }
 
         .continue-btn {
-            width: 100%; height: 56px; border: none; border-radius: 16px;
-            background: var(--bg-primary); color: var(--text-primary);
-            font-size: 18px; font-weight: 600; margin-top: 24px;
-            cursor: pointer; transition: all 0.2s ease;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-        }
-        .continue-btn:active { transform: scale(0.98); }
-        .continue-icon { width: 20px; height: 20px; fill: currentColor; }
-
-        /* ==================== YANGI YAKUNIY NATIJA DIZAYNI ==================== */
-        .finish-screen {
-            position: fixed;
-            inset: 0;
-            background: #0a0a0a;
-            display: none;
+            background: var(--text-primary);
+            color: var(--bg-primary);
+            width: 100%;
+            padding: 18px;
+            border-radius: 16px;
+            border: none;
+            font-size: 17px;
+            font-weight: 700;
+            margin-top: 24px;
+            cursor: pointer;
+            display: flex;
             align-items: center;
             justify-content: center;
-            padding: 16px;
+            gap: 8px;
+        }
+
+        /* Finish Screen */
+        .finish-screen {
+            position: fixed; inset: 0;
+            background: var(--bg-primary);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
             z-index: 2000;
         }
 
-        .finish-card {
-            background: #141414;
-            border-radius: 40px;
-            padding: 32px 24px 40px;
+        .stat-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 24px;
             width: 100%;
-            max-width: 400px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.03);
-            text-align: center;
+            max-width: 360px;
+            margin: 24px 0;
         }
 
-        .trophy-glow {
-            font-size: 88px;
-            line-height: 1;
-            margin-bottom: 16px;
-            filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.4));
-            animation: subtle-pulse 2.5s infinite ease-in-out;
-        }
-
-        @keyframes subtle-pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.06); }
-            100% { transform: scale(1); }
-        }
-
-        h1 {
-            font-size: 28px;
-            font-weight: 600;
-            letter-spacing: -0.3px;
-            margin-bottom: 8px;
-            background: linear-gradient(135deg, #ffffff 0%, #dddddd 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .subhead {
-            font-size: 16px;
-            color: #a0a0a0;
-            margin-bottom: 36px;
-            font-weight: 400;
-        }
-
-        .stats-grid {
-            background: #1e1e1e;
-            border-radius: 28px;
-            padding: 16px 20px;
-            margin-bottom: 40px;
-            border: 1px solid #2a2a2a;
-        }
-
-        .stat-row {
+        .stat-item {
             display: flex;
-            align-items: center;
             justify-content: space-between;
             padding: 16px 0;
-            border-bottom: 1px solid #2a2a2a;
+            border-bottom: 1px solid var(--border);
+        }
+        .stat-item:last-child { border-bottom: none; }
+
+        .icon-box {
+            width: 40px; height: 40px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--accent);
         }
 
-        .stat-row:last-child {
-            border-bottom: none;
-            padding-bottom: 8px;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .stat-label {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            font-size: 17px;
-            font-weight: 500;
-            color: #d4d4d4;
-        }
-
-        .stat-icon {
-            width: 26px;
-            height: 26px;
-            fill: none;
-            stroke: #22c55e;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-
-        .stat-value {
-            font-size: 24px;
-            font-weight: 700;
-            color: white;
-        }
-
-        .stat-value small {
-            font-size: 16px;
-            font-weight: 400;
-            color: #888;
-            margin-left: 4px;
-        }
-
-        .restart-btn {
-            background: white;
-            border: none;
-            border-radius: 60px;
-            padding: 18px 28px;
-            width: 100%;
-            font-size: 19px;
-            font-weight: 600;
-            color: #0a0a0a;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 10px 20px rgba(255, 255, 255, 0.05);
-        }
-
-        .restart-btn:hover {
-            background: #f0f0f0;
-            transform: scale(1.02);
-        }
-
-        .restart-btn:active {
-            transform: scale(0.98);
-        }
-
-        .btn-arrow {
-            width: 22px;
-            height: 22px;
-            fill: currentColor;
-            transition: transform 0.2s;
-        }
-
-        .restart-btn:hover .btn-arrow {
-            transform: translateX(4px);
-        }
+        .icon { width: 24px; height: 24px; stroke: currentColor; stroke-width: 2; fill: none; }
     </style>
 </head>
 <body>
 
-<svg style="display: none;">
-    <symbol id="icon-celebration" viewBox="0 0 24 24">
-        <path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm-2-15l4.5 4.5L10 17l-4.5-4.5L10 7zm2 0l4.5 4.5L12 17l-4.5-4.5L12 7z"/>
-    </symbol>
-    <symbol id="icon-arrow" viewBox="0 0 24 24">
-        <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
-    </symbol>
-</svg>
+<div class="progress-container">
+    <div class="progress-bar" id="progressBar"></div>
+</div>
 
-<div class="app-container">
-    <div class="question-section">
-        <div id="progress" class="question-number">1 / 8</div>
-        <div id="question" class="question-text"></div>
-        <div id="options-container" class="options-container"></div>
+<div class="app-container" id="quizApp">
+    <div class="header">
+        <div id="progressText" class="question-number">Savol 1 / 8</div>
+        <div id="question" class="question-text">Ispan alifbosida nechta harf bor?</div>
     </div>
 
+    <div id="options-container" class="options-grid"></div>
+
     <div class="result-panel" id="resultPanel">
-        <div style="max-width: 500px; margin: 0 auto;">
-            <h2 id="resultH2"></h2>
-            <p id="resultMessage"></p>
-            <p id="correctAnswerText" class="correct-answer" style="display: none;"></p>
+        <div class="result-content">
+            <div class="result-header" id="resultTitle"></div>
+            <p id="resultMsg" style="color: var(--text-secondary)"></p>
             <button class="continue-btn" id="continueBtn">
-                Keyingi savol
-                <svg class="continue-icon"><use href="#icon-arrow"></use></svg>
+                Davom etish
+                <svg class="icon"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </button>
         </div>
     </div>
 </div>
 
-<!-- ==================== YANGI YAKUNIY NATIJA EKRANI ==================== -->
 <div id="finishScreen" class="finish-screen">
-    <div class="finish-card" id="finishCard">
-        <div class="trophy-glow">🏆</div>
-        <h1>Mashg‘ulot yakunlandi</h1>
-        <div class="subhead">Ispan tili · Alifbo</div>
+    <div style="font-size: 64px; margin-bottom: 16px;">🏆</div>
+    <h1 style="font-size: 28px; margin-bottom: 8px;">Ajoyib natija!</h1>
+    <p style="color: var(--text-secondary)">Mashg‘ulot muvaffaqiyatli yakunlandi.</p>
 
-        <div class="stats-grid" id="statsGrid"></div>
-
-        <button class="restart-btn" id="restartQuizBtn">
-            <span>Qayta boshlash</span>
-            <svg class="btn-arrow" viewBox="0 0 24 24">
-                <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
-            </svg>
-        </button>
+    <div class="stat-card">
+        <div class="stat-item">
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <div class="icon-box"><svg class="icon"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg></div>
+                <span>Aniqlik</span>
+            </div>
+            <b id="finalAccuracy" style="font-size: 18px;">0%</b>
+        </div>
+        <div class="stat-item">
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <div class="icon-box" style="color: #eab308; background: rgba(234, 179, 8, 0.1);"><svg class="icon"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22h10c0-1.76-.85-3.25-2.03-3.79-.5-.23-.97-.66-.97-1.21v-2.34c0-3.13 2.15-5.91 5.3-6.42A7.1 7.1 0 0 0 12 2a7.1 7.1 0 0 0-7.3 6.24c3.15.51 5.3 3.29 5.3 6.42Z"/></svg></div>
+                <span>To'g'ri javoblar</span>
+            </div>
+            <b id="finalScore" style="font-size: 18px;">0 / 8</b>
+        </div>
     </div>
+
+    <button class="continue-btn" onclick="location.reload()" style="max-width: 360px; background: var(--bg-secondary); color: white; border: 1px solid var(--border);">
+        Qayta urinish
+    </button>
 </div>
 
 <script>
     const questions = [
         { text: "Nechta unli harf bor?", options: ["5 ta", "6 ta", "7 ta"], correct: 0 },
         { text: "Ispan alifbosida nechta harf bor?", options: ["27 ta", "26 ta", "28 ta"], correct: 0 },
-        { text: "“H” harfi ispan tilida qanday o‘qiladi?", options: ["Har doim talaffuz qilinadi", "O‘qilmaydi (tovush bermaydi)", "“X” kabi o‘qiladi"], correct: 1 },
+        { text: "“H” harfi ispan tilida qanday o‘qiladi?", options: ["Har doim talaffuz qilinadi", "O‘qilmaydi", "“X” kabi o‘qiladi"], correct: 1 },
         { text: "“C” harfi qachon “k” tovushi beradi?", options: ["E, I oldida", "A, O, U oldida", "Hamma joyda"], correct: 1 },
-        { text: "“G” harfi A, O, U oldida qanday talaffuz qilinadi?", options: ["Qattiq “g” (gato kabi)", "“X” kabi", "“S” kabi"], correct: 0 },
+        { text: "“G” harfi A, O, U oldida qanday talaffuz qilinadi?", options: ["Qattiq “g”", "“X” kabi", "“S” kabi"], correct: 0 },
         { text: "“G” harfi E, I oldida qanday talaffuz qilinadi?", options: ["Qattiq “g”", "“X”ga o‘xshash tovush", "“K” kabi"], correct: 1 },
         { text: "“C” harfi E, I oldida qanday talaffuz qilinadi?", options: ["“S” kabi", "“K” kabi", "“G” kabi"], correct: 0 },
         { text: "“C” harfi A, O, U oldida qanday talaffuz qilinadi?", options: ["“S” kabi", "“K” kabi", "“X” kabi"], correct: 1 }
     ];
 
-    let currentQuestion = 0;
+    let currentIdx = 0;
     let score = 0;
     let answered = false;
 
-    const resultPanel = document.getElementById('resultPanel');
-    const continueBtn = document.getElementById('continueBtn');
-    const progressEl = document.getElementById('progress');
-    const questionEl = document.getElementById('question');
-    const optionsContainer = document.getElementById('options-container');
-
-    function loadQuestion() {
-        const q = questions[currentQuestion];
-        progressEl.textContent = `${currentQuestion + 1} / ${questions.length}`;
-        questionEl.textContent = q.text;
-        optionsContainer.innerHTML = '';
-        answered = false;
-
-        q.options.forEach((option, index) => {
+    function init() {
+        const q = questions[currentIdx];
+        document.getElementById('question').textContent = q.text;
+        document.getElementById('progressText').textContent = `Savol ${currentIdx + 1} / ${questions.length}`;
+        document.getElementById('progressBar').style.width = `${((currentIdx) / questions.length) * 100}%`;
+        
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+        
+        q.options.forEach((opt, i) => {
             const btn = document.createElement('button');
             btn.className = 'option-btn';
-            btn.textContent = option;
-            btn.dataset.index = index;
-            btn.addEventListener('click', () => selectAnswer(index, btn));
-            optionsContainer.appendChild(btn);
+            btn.innerHTML = `<span>${opt}</span><svg class="icon" style="opacity:0"><path d="M20 6 9 17l-5-5"/></svg>`;
+            btn.onclick = () => checkAnswer(i, btn);
+            container.appendChild(btn);
         });
-
-        resultPanel.classList.remove('active');
+        
+        document.getElementById('resultPanel').classList.remove('active');
+        answered = false;
     }
 
-    function selectAnswer(selectedIndex, clickedBtn) {
-        if (answered) return;
+    function checkAnswer(idx, btn) {
+        if(answered) return;
         answered = true;
-
-        const q = questions[currentQuestion];
-        const isCorrect = selectedIndex === q.correct;
-        if (isCorrect) score++;
-
-        const allBtns = optionsContainer.querySelectorAll('.option-btn');
-        allBtns.forEach((btn, i) => {
-            btn.disabled = true;
-            if (i === q.correct) btn.classList.add('correct');
-            if (i === selectedIndex && !isCorrect) btn.classList.add('wrong');
-        });
-
-        showResult(isCorrect, q);
-    }
-
-    function showResult(isCorrect, q) {
-        resultPanel.classList.add('active');
-
-        const h2 = document.getElementById('resultH2');
-        const message = document.getElementById('resultMessage');
-        const correctText = document.getElementById('correctAnswerText');
-
-        if (isCorrect) {
-            h2.innerHTML = `<svg class="result-icon"><use href="#icon-celebration"></use></svg> Ajoyib! 🎉`;
-            message.textContent = "To'g'ri javob! Davom eting!";
-            correctText.style.display = 'none';
+        
+        const correct = questions[currentIdx].correct;
+        const btns = document.querySelectorAll('.option-btn');
+        
+        if(idx === correct) {
+            score++;
+            btn.classList.add('correct');
+            btn.querySelector('svg').style.opacity = 1;
+            showResult(true);
         } else {
-            h2.innerHTML = `😔 Noto'g'ri`;
-            message.textContent = "Bu safar o'tkazib yubordingiz.";
-            correctText.style.display = 'block';
-            correctText.innerHTML = `To'g'ri javob: <strong>${q.options[q.correct]}</strong>`;
-        }
-
-        if (currentQuestion === questions.length - 1) {
-            continueBtn.innerHTML = `Yakuniy natija <svg class="continue-icon"><use href="#icon-arrow"></use></svg>`;
+            btn.classList.add('wrong');
+            btns[correct].classList.add('correct');
+            showResult(false);
         }
     }
 
-    continueBtn.addEventListener('click', () => {
-        resultPanel.classList.remove('active');
-        if (currentQuestion < questions.length - 1) {
-            currentQuestion++;
-            loadQuestion();
+    function showResult(isCorrect) {
+        const panel = document.getElementById('resultPanel');
+        const title = document.getElementById('resultTitle');
+        const msg = document.getElementById('resultMsg');
+        
+        panel.classList.add('active');
+        if(isCorrect) {
+            title.innerHTML = `<span style="color:var(--success)">Juda yaxshi!</span>`;
+            msg.textContent = "Barakalla, to'g'ri topdingiz.";
         } else {
-            endQuiz();
+            title.innerHTML = `<span style="color:var(--error)">Xato javob</span>`;
+            msg.textContent = `To'g'ri javob: ${questions[currentIdx].options[questions[currentIdx].correct]}`;
         }
-    });
+        
+        if(currentIdx === questions.length - 1) {
+            document.getElementById('continueBtn').textContent = "Natijalarni ko'rish";
+        }
+    }
 
-    function endQuiz() {
-        // Eski oddiy ekran o'rniga yangi dizaynni ko'rsatamiz
-        document.querySelector('.app-container').style.display = 'none';
+    document.getElementById('continueBtn').onclick = () => {
+        if(currentIdx < questions.length - 1) {
+            currentIdx++;
+            init();
+        } else {
+            showFinish();
+        }
+    };
 
-        const totalQuestions = questions.length;
-        const accuracy = Math.round((score / totalQuestions) * 100);
-
-        const statsGrid = document.getElementById('statsGrid');
-        statsGrid.innerHTML = `
-            <div class="stat-row">
-                <span class="stat-label">
-                    <svg class="stat-icon" viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/>
-                        <circle cx="12" cy="12" r="4" fill="currentColor" stroke="none"/>
-                    </svg>
-                    Aniqlik
-                </span>
-                <span class="stat-value">${accuracy}%</span>
-            </div>
-            <div class="stat-row">
-                <span class="stat-label">
-                    <svg class="stat-icon" viewBox="0 0 24 24">
-                        <polygon points="12,2 22,9 12,22 2,9" stroke="currentColor" stroke-width="2" fill="none"/>
-                    </svg>
-                    Ball
-                </span>
-                <span class="stat-value">${score} <small>/ ${totalQuestions}</small></span>
-            </div>
-        `;
-
+    function showFinish() {
+        document.getElementById('quizApp').style.display = 'none';
         document.getElementById('finishScreen').style.display = 'flex';
+        document.getElementById('progressBar').style.width = '100%';
+        document.getElementById('finalScore').textContent = `${score} / ${questions.length}`;
+        document.getElementById('finalAccuracy').textContent = Math.round((score/questions.length)*100) + '%';
     }
 
-    // Qayta boshlash tugmasi
-    document.getElementById('restartQuizBtn').addEventListener('click', () => {
-        location.reload();
-    });
-
-    loadQuestion();
+    init();
 </script>
+
 </body>
 </html>
