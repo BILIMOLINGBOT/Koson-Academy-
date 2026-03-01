@@ -3,199 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Ispan tili — Quiz Pro</title>
+    <title>Ispan tili — Premium Quiz</title>
     <style>
         :root {
-            --bg-primary: #09090b;
-            --bg-secondary: #18181b;
-            --accent: #3b82f6;
-            --success: #22c55e;
-            --error: #ef4444;
-            --text-primary: #fafafa;
-            --text-secondary: #a1a1aa;
-            --border: #27272a;
-            --glass: rgba(24, 24, 27, 0.8);
+            --bg-dark: #050505;
+            --card-bg: #121212;
+            --accent-green: #2ecc71;
+            --accent-red: #e74c3c;
+            --text-main: #ffffff;
+            --text-muted: #888888;
+            --glass-border: rgba(255, 255, 255, 0.1);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        
-        body { 
-            background: var(--bg-primary); 
-            font-family: 'Inter', -apple-system, sans-serif; 
-            color: var(--text-primary);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        /* Progress Bar */
-        .progress-container {
-            width: 100%;
-            height: 6px;
-            background: var(--border);
-            position: fixed;
-            top: 0;
-            z-index: 100;
-        }
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, var(--accent), #8b5cf6);
-            width: 0%;
-            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        body, html { 
+            height: 100%; 
+            background: var(--bg-dark); 
+            font-family: 'SF Pro Display', -apple-system, sans-serif; 
+            color: var(--text-main); 
+            overflow: hidden; 
         }
 
         .app-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            padding: 40px 24px;
-            max-width: 500px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 40px;
-            margin-top: 20px;
-        }
-
-        .question-number {
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: var(--accent);
-            font-weight: 700;
-            margin-bottom: 12px;
-        }
-
-        .question-text {
-            font-size: 26px;
-            font-weight: 700;
-            line-height: 1.3;
-            animation: fadeIn 0.5s ease;
-        }
-
-        .options-grid {
-            display: grid;
-            gap: 12px;
-            margin-top: auto;
-            padding-bottom: 100px;
-        }
-
-        .option-btn {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
+            display: flex; flex-direction: column; height: 100vh;
             padding: 20px;
-            border-radius: 18px;
-            color: var(--text-primary);
-            font-size: 17px;
-            font-weight: 500;
-            text-align: left;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            background: radial-gradient(circle at top right, #1a1a1a, #050505);
         }
 
-        .option-btn:active { transform: scale(0.98); }
-        
-        .option-btn.correct { 
-            background: rgba(34, 197, 94, 0.15); 
-            border-color: var(--success); 
-            color: var(--success);
-        }
+        /* Progress Bar */
+        .progress-container { margin-top: 40px; text-align: center; }
+        .progress-text { font-size: 14px; font-weight: 600; color: var(--text-muted); letter-spacing: 1px; margin-bottom: 10px; }
 
-        .option-btn.wrong { 
-            background: rgba(239, 68, 68, 0.15); 
-            border-color: var(--error); 
-            color: var(--error);
-        }
-
-        /* Result Panel */
-        .result-panel {
-            position: fixed;
-            bottom: 0; left: 0; right: 0;
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-top: 1px solid var(--border);
-            padding: 32px 24px calc(32px + env(safe-area-inset-bottom));
-            transform: translateY(100%);
-            transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
-            z-index: 1000;
-        }
-        .result-panel.active { transform: translateY(0); }
-
-        .result-content {
-            max-width: 450px;
-            margin: 0 auto;
-        }
-
-        .result-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 22px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .continue-btn {
-            background: var(--text-primary);
-            color: var(--bg-primary);
-            width: 100%;
-            padding: 18px;
-            border-radius: 16px;
-            border: none;
-            font-size: 17px;
-            font-weight: 700;
-            margin-top: 24px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        /* Finish Screen */
-        .finish-screen {
-            position: fixed; inset: 0;
-            background: var(--bg-primary);
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 24px;
-            z-index: 2000;
-        }
-
-        .stat-card {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            padding: 24px;
-            width: 100%;
-            max-width: 360px;
-            margin: 24px 0;
-        }
-
-        .stat-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 16px 0;
-            border-bottom: 1px solid var(--border);
-        }
-        .stat-item:last-child { border-bottom: none; }
-
-        .icon-box {
-            width: 40px; height: 40px;
-            background: rgba(59, 130, 246, 0.1);
-            border-radius: 12px;
-            display: flex; align-items: center; justify-content: center;
-            color: var(--accent);
+        .question-section { 
+            flex: 1; display: flex; flex-direction: column; 
+            align-items: center; justify-content: center;
+            animation: fadeIn 0.5s ease;
         }
 
         @keyframes fadeIn {
@@ -203,83 +45,176 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .icon { width: 24px; height: 24px; stroke: currentColor; stroke-width: 2; fill: none; }
+        .question-text { 
+            font-size: 26px; font-weight: 700; text-align: center; 
+            line-height: 1.2; max-width: 360px; margin-bottom: 50px; 
+        }
+
+        .options-container { width: 100%; max-width: 360px; }
+
+        .option-btn {
+            width: 100%; height: 68px; margin-bottom: 16px;
+            border-radius: 20px; background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            font-size: 18px; font-weight: 500; color: var(--text-main);
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            backdrop-filter: blur(10px);
+        }
+
+        .option-btn:active:not(:disabled) { transform: scale(0.96); background: rgba(255, 255, 255, 0.08); }
+
+        .option-btn.correct { 
+            border-color: var(--accent-green); 
+            background: rgba(46, 204, 113, 0.15); 
+            color: var(--accent-green);
+            box-shadow: 0 0 20px rgba(46, 204, 113, 0.1);
+        }
+
+        .option-btn.wrong { 
+            border-color: var(--accent-red); 
+            background: rgba(231, 76, 60, 0.15); 
+            color: var(--accent-red); 
+        }
+
+        /* Result Panel */
+        .result-panel {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: #ffffff; border-radius: 32px 32px 0 0;
+            padding: 30px 24px 40px; transform: translateY(100%);
+            transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+            z-index: 1000; color: #000;
+        }
+        .result-panel.active { transform: translateY(0); }
+
+        .result-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .result-header h2 { font-size: 24px; font-weight: 800; }
+
+        .continue-btn {
+            width: 100%; height: 60px; border: none; border-radius: 20px;
+            background: #000; color: #fff;
+            font-size: 18px; font-weight: 600; margin-top: 25px;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+
+        /* Finish Screen */
+        .finish-screen {
+            position: fixed; inset: 0; background: var(--bg-dark);
+            display: none; align-items: center; justify-content: center; padding: 20px; z-index: 2000;
+        }
+
+        .finish-card {
+            background: var(--card-bg); border-radius: 40px;
+            padding: 40px 24px; width: 100%; max-width: 400px;
+            text-align: center; border: 1px solid var(--glass-border);
+        }
+
+        .trophy-icon { font-size: 80px; margin-bottom: 20px; display: block; }
+
+        .stats-grid { margin: 30px 0; display: grid; gap: 12px; }
+        .stat-item {
+            background: rgba(255,255,255,0.03); padding: 16px;
+            border-radius: 20px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .stat-label { display: flex; align-items: center; gap: 10px; color: var(--text-muted); font-weight: 500; }
+        .stat-value { font-size: 20px; font-weight: 700; }
+
+        .restart-btn {
+            background: #fff; color: #000; border: none;
+            width: 100%; height: 60px; border-radius: 20px;
+            font-size: 18px; font-weight: 700; display: flex;
+            align-items: center; justify-content: center; gap: 10px;
+        }
+
+        /* Lucide-like Icons SVG */
+        .icon-svg { width: 24px; height: 24px; stroke: currentColor; stroke-width: 2; fill: none; }
     </style>
 </head>
 <body>
 
-<div class="progress-container">
-    <div class="progress-bar" id="progressBar"></div>
-</div>
-
-<div class="app-container" id="quizApp">
-    <div class="header">
-        <div id="progressText" class="question-number">Savol 1 / 8</div>
-        <div id="question" class="question-text">Ispan alifbosida nechta harf bor?</div>
+<div class="app-container">
+    <div class="progress-container">
+        <div id="progress" class="progress-text">1 / 8</div>
     </div>
 
-    <div id="options-container" class="options-grid"></div>
+    <div class="question-section" id="qSection">
+        <div id="question" class="question-text"></div>
+        <div id="options-container" class="options-container"></div>
+    </div>
 
     <div class="result-panel" id="resultPanel">
-        <div class="result-content">
-            <div class="result-header" id="resultTitle"></div>
-            <p id="resultMsg" style="color: var(--text-secondary)"></p>
-            <button class="continue-btn" id="continueBtn">
-                Davom etish
-                <svg class="icon"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-            </button>
+        <div class="result-header">
+            <div id="resIcon"></div>
+            <h2 id="resultH2"></h2>
         </div>
+        <p id="resultMessage"></p>
+        <button class="continue-btn" id="continueBtn">
+            <span>Davom etish</span>
+            <svg class="icon-svg"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
     </div>
 </div>
 
 <div id="finishScreen" class="finish-screen">
-    <div style="font-size: 64px; margin-bottom: 16px;">🏆</div>
-    <h1 style="font-size: 28px; margin-bottom: 8px;">Ajoyib natija!</h1>
-    <p style="color: var(--text-secondary)">Mashg‘ulot muvaffaqiyatli yakunlandi.</p>
+    <div class="finish-card">
+        <span class="trophy-icon">🏆</span>
+        <h1 style="font-size: 28px; margin-bottom: 8px;">Dars yakunlandi!</h1>
+        <p style="color: var(--text-muted); margin-bottom: 20px;">Ispan tili: Alifbo asoslari</p>
 
-    <div class="stat-card">
-        <div class="stat-item">
-            <div style="display: flex; gap: 12px; align-items: center;">
-                <div class="icon-box"><svg class="icon"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg></div>
-                <span>Aniqlik</span>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <span class="stat-label">
+                    <svg class="icon-svg" style="stroke: #3498db;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    Aniqlik
+                </span>
+                <span class="stat-value" id="finalAccuracy">0%</span>
             </div>
-            <b id="finalAccuracy" style="font-size: 18px;">0%</b>
-        </div>
-        <div class="stat-item">
-            <div style="display: flex; gap: 12px; align-items: center;">
-                <div class="icon-box" style="color: #eab308; background: rgba(234, 179, 8, 0.1);"><svg class="icon"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22h10c0-1.76-.85-3.25-2.03-3.79-.5-.23-.97-.66-.97-1.21v-2.34c0-3.13 2.15-5.91 5.3-6.42A7.1 7.1 0 0 0 12 2a7.1 7.1 0 0 0-7.3 6.24c3.15.51 5.3 3.29 5.3 6.42Z"/></svg></div>
-                <span>To'g'ri javoblar</span>
+            <div class="stat-item">
+                <span class="stat-label">
+                    <svg class="icon-svg" style="stroke: #f1c40f;"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+                    To'g'ri javob
+                </span>
+                <span class="stat-value" id="finalScore">0 / 0</span>
             </div>
-            <b id="finalScore" style="font-size: 18px;">0 / 8</b>
         </div>
+
+        <button class="restart-btn" onclick="location.reload()">
+            <svg class="icon-svg" style="width: 20px; height: 20px;"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg>
+            Qayta urinish
+        </button>
     </div>
-
-    <button class="continue-btn" onclick="location.reload()" style="max-width: 360px; background: var(--bg-secondary); color: white; border: 1px solid var(--border);">
-        Qayta urinish
-    </button>
 </div>
 
 <script>
     const questions = [
         { text: "Nechta unli harf bor?", options: ["5 ta", "6 ta", "7 ta"], correct: 0 },
         { text: "Ispan alifbosida nechta harf bor?", options: ["27 ta", "26 ta", "28 ta"], correct: 0 },
-        { text: "“H” harfi ispan tilida qanday o‘qiladi?", options: ["Har doim talaffuz qilinadi", "O‘qilmaydi", "“X” kabi o‘qiladi"], correct: 1 },
+        { text: "“H” harfi ispan tilida qanday o‘qiladi?", options: ["Har doim talaffuz qilinadi", "O‘qilmaydi", "“X” kabi"], correct: 1 },
         { text: "“C” harfi qachon “k” tovushi beradi?", options: ["E, I oldida", "A, O, U oldida", "Hamma joyda"], correct: 1 },
         { text: "“G” harfi A, O, U oldida qanday talaffuz qilinadi?", options: ["Qattiq “g”", "“X” kabi", "“S” kabi"], correct: 0 },
-        { text: "“G” harfi E, I oldida qanday talaffuz qilinadi?", options: ["Qattiq “g”", "“X”ga o‘xshash tovush", "“K” kabi"], correct: 1 },
+        { text: "“G” harfi E, I oldida qanday talaffuz qilinadi?", options: ["Qattiq “g”", "“X”ga o‘xshash", "“K” kabi"], correct: 1 },
         { text: "“C” harfi E, I oldida qanday talaffuz qilinadi?", options: ["“S” kabi", "“K” kabi", "“G” kabi"], correct: 0 },
         { text: "“C” harfi A, O, U oldida qanday talaffuz qilinadi?", options: ["“S” kabi", "“K” kabi", "“X” kabi"], correct: 1 }
     ];
 
-    let currentIdx = 0;
+    let currentQuestion = 0;
     let score = 0;
     let answered = false;
 
-    function init() {
-        const q = questions[currentIdx];
+    const resIconCorrect = `<svg class="icon-svg" style="stroke: #2ecc71; width: 32px; height: 32px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`;
+    const resIconWrong = `<svg class="icon-svg" style="stroke: #e74c3c; width: 32px; height: 32px;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`;
+
+    function loadQuestion() {
+        const q = questions[currentQuestion];
+        const qSection = document.getElementById('qSection');
+        
+        // Animatsiyani qayta ishga tushirish
+        qSection.style.animation = 'none';
+        qSection.offsetHeight; 
+        qSection.style.animation = 'fadeIn 0.5s ease';
+
+        document.getElementById('progress').textContent = `${currentQuestion + 1} / ${questions.length}`;
         document.getElementById('question').textContent = q.text;
-        document.getElementById('progressText').textContent = `Savol ${currentIdx + 1} / ${questions.length}`;
-        document.getElementById('progressBar').style.width = `${((currentIdx) / questions.length) * 100}%`;
         
         const container = document.getElementById('options-container');
         container.innerHTML = '';
@@ -287,72 +222,56 @@
         q.options.forEach((opt, i) => {
             const btn = document.createElement('button');
             btn.className = 'option-btn';
-            btn.innerHTML = `<span>${opt}</span><svg class="icon" style="opacity:0"><path d="M20 6 9 17l-5-5"/></svg>`;
-            btn.onclick = () => checkAnswer(i, btn);
+            btn.textContent = opt;
+            btn.onclick = () => selectAnswer(i, btn);
             container.appendChild(btn);
         });
-        
-        document.getElementById('resultPanel').classList.remove('active');
         answered = false;
+        document.getElementById('resultPanel').classList.remove('active');
     }
 
-    function checkAnswer(idx, btn) {
-        if(answered) return;
+    function selectAnswer(idx, btn) {
+        if (answered) return;
         answered = true;
+        const q = questions[currentQuestion];
+        const isCorrect = idx === q.correct;
         
-        const correct = questions[currentIdx].correct;
-        const btns = document.querySelectorAll('.option-btn');
-        
-        if(idx === correct) {
-            score++;
-            btn.classList.add('correct');
-            btn.querySelector('svg').style.opacity = 1;
-            showResult(true);
-        } else {
-            btn.classList.add('wrong');
-            btns[correct].classList.add('correct');
-            showResult(false);
-        }
-    }
+        if (isCorrect) score++;
 
-    function showResult(isCorrect) {
-        const panel = document.getElementById('resultPanel');
-        const title = document.getElementById('resultTitle');
-        const msg = document.getElementById('resultMsg');
-        
-        panel.classList.add('active');
-        if(isCorrect) {
-            title.innerHTML = `<span style="color:var(--success)">Juda yaxshi!</span>`;
-            msg.textContent = "Barakalla, to'g'ri topdingiz.";
-        } else {
-            title.innerHTML = `<span style="color:var(--error)">Xato javob</span>`;
-            msg.textContent = `To'g'ri javob: ${questions[currentIdx].options[questions[currentIdx].correct]}`;
-        }
-        
-        if(currentIdx === questions.length - 1) {
-            document.getElementById('continueBtn').textContent = "Natijalarni ko'rish";
-        }
+        const btns = document.querySelectorAll('.option-btn');
+        btns.forEach((b, i) => {
+            b.disabled = true;
+            if (i === q.correct) b.classList.add('correct');
+            else if (i === idx) b.classList.add('wrong');
+        });
+
+        setTimeout(() => {
+            document.getElementById('resultPanel').classList.add('active');
+            document.getElementById('resultH2').textContent = isCorrect ? "Ajoyib!" : "E'tiborli bo'ling";
+            document.getElementById('resIcon').innerHTML = isCorrect ? resIconCorrect : resIconWrong;
+            document.getElementById('resultMessage').textContent = isCorrect 
+                ? "Javobingiz to'g'ri, keyingisiga o'tamiz." 
+                : `To'g'ri javob: ${q.options[q.correct]}`;
+        }, 300);
     }
 
     document.getElementById('continueBtn').onclick = () => {
-        if(currentIdx < questions.length - 1) {
-            currentIdx++;
-            init();
+        if (currentQuestion < questions.length - 1) {
+            currentQuestion++;
+            loadQuestion();
         } else {
             showFinish();
         }
     };
 
     function showFinish() {
-        document.getElementById('quizApp').style.display = 'none';
+        document.querySelector('.app-container').style.display = 'none';
         document.getElementById('finishScreen').style.display = 'flex';
-        document.getElementById('progressBar').style.width = '100%';
+        document.getElementById('finalAccuracy').textContent = Math.round((score/questions.length)*100) + "%";
         document.getElementById('finalScore').textContent = `${score} / ${questions.length}`;
-        document.getElementById('finalAccuracy').textContent = Math.round((score/questions.length)*100) + '%';
     }
 
-    init();
+    loadQuestion();
 </script>
-
 </body>
 </html>
