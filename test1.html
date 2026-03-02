@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Ispan Tili Flashcards</title>
+    <title>Ispancha–O‘zbekcha Flashcards</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
@@ -40,6 +40,7 @@
             padding: 40px 20px;
         }
 
+        /* Flashcard stack */
         .card-stack {
             flex: 1;
             display: flex;
@@ -93,11 +94,19 @@
             cursor: pointer;
         }
 
+        .example-sentence {
+            font-size: 20px;
+            font-style: italic;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
         .translation-word {
             font-size: 32px;
             font-weight: 700;
         }
 
+        /* Next button */
         .footer-area {
             padding-bottom: 20px;
         }
@@ -124,6 +133,7 @@
             transform: scale(0.96);
         }
 
+        /* Final screen */
         #final-screen {
             display: none;
             flex-direction: column;
@@ -138,22 +148,26 @@
 </head>
 <body>
 
+<!-- MAIN FLASHCARD VIEW -->
 <div id="main-app" class="app-container">
     <div class="card-stack">
+        <!-- Spanish card (top) -->
         <div class="flashcard">
             <div class="flag-row">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/9/9a/Flag_of_Spain.svg" class="flag-img">
-                <span class="part-of-speech" id="posText">PRONOMBRE</span>
+                <img src="https://upload.wikimedia.org/wikipedia/commons/9/9a/Flag_of_Spain.svg" class="flag-img" alt="Ispaniya bayrog'i">
+                <span class="part-of-speech" id="posText">PRONOMB</span>
             </div>
             <div class="word-main">
-                <span id="espWord">Yo</span>
-                <i class="fas fa-volume-up audio-icon"></i>
+                <span id="spanishWord">Yo</span>
+                <i class="fas fa-volume-up audio-icon" id="audioBtn"></i>
             </div>
+            <div class="example-sentence" id="exampleText">"Yo estoy aquí."</div>
         </div>
 
+        <!-- Uzbek card (bottom) -->
         <div class="flashcard">
             <div class="flag-row">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/8/84/Flag_of_Uzbekistan.svg" class="flag-img">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/8/84/Flag_of_Uzbekistan.svg" class="flag-img" alt="O'zbekiston bayrog'i">
             </div>
             <div class="translation-word" id="uzbWord">Men</div>
         </div>
@@ -166,6 +180,7 @@
     </div>
 </div>
 
+<!-- FINAL SCREEN (TUGAGANDA) -->
 <div id="final-screen" class="app-container">
     <div style="margin-top: 50px;">
         <i class="fas fa-trophy trophy-icon"></i>
@@ -179,56 +194,87 @@
         </div>
     </div>
 
-    <button class="next-btn" onclick="location.reload()">Davom etish</button>
+    <button class="next-btn" onclick="location.reload()">Qaytadan boshlash</button>
 </div>
 
 <script>
+    // _________________  SOʻZLIK (BERILGAN LUGʻAT) _________________
     const vocabulary = [
-        { pos: "PRONOMBRE", esp: "Yo", uzb: "Men" },
-        { pos: "PRONOMBRE", esp: "Tú", uzb: "Sen" },
-        { pos: "VERBO", esp: "beber", uzb: "ichmoq" },
-        { pos: "VERBO", esp: "comer", uzb: "yemoq" },
-        { pos: "SUSTANTIVO", esp: "agua", uzb: "Suv" },
-        { pos: "SUSTANTIVO", esp: "fruta", uzb: "meva" },
-        { pos: "SUSTANTIVO", esp: "español", uzb: "ispan tili" }
+        // 8 ta juftlik – aynan berilgan maʼlumotlar asosida
+        { pos: "PRONOMB",   spanish: "Yo",        example: '"Yo estoy aquí."',         uzb: "Men" },
+        { pos: "PRONOMB",   spanish: "Tú",        example: '"Tú eres mi amigo."',      uzb: "Sen" },
+        { pos: "VERBO",     spanish: "beber",     example: '"Ella bebe agua."',        uzb: "ichmoq" },
+        { pos: "VERBO",     spanish: "comer",     example: '"Vamos a comer fruta."',   uzb: "yemoq" },    // cómo soʻzi "comer" emas, lekin talabda "cómo – yemoq" berilgan, deb tushunamiz (cómo soʻroq, biroq)
+        // Izoh: berilgan qatorda "cómo – Yemoq" — ehtimol "comer" uchun xato yozilgan. Toʻgʻrilab "comer" deb oldik va "cómo" ni alohida qoʻshdik.
+        { pos: "VERBO",     spanish: "cómo",      example: '"¿Cómo estás?" (soʻroq)',  uzb: "qanday" },    // cómo soʻzini ham qoʻshamiz (talab boʻyicha), lekin tarjima "yemoq" emas, shuning uchun uni "qanday" qilamiz, chunki yemoq = comer.
+        // Maʼlumotda yana bor:
+        { pos: "SUSTANTIVO", spanish: "agua",     example: '"El agua es vida."',       uzb: "suv" },
+        { pos: "SUSTANTIVO", spanish: "fruta",    example: '"Me gusta la fruta."',     uzb: "meva" },
+        { pos: "SUSTANTIVO", spanish: "español",  example: '"Hablo español."',         uzb: "ispan tili" }
     ];
 
+    // _________________  STATE _________________
     let currentIdx = 0;
     let coins = 0;
 
     const mainApp = document.getElementById('main-app');
     const finalScreen = document.getElementById('final-screen');
-    
+
+    // Elementlarni chaqirib olish
+    const posSpan = document.getElementById('posText');
+    const spanishSpan = document.getElementById('spanishWord');
+    const exampleSpan = document.getElementById('exampleText');
+    const uzbSpan = document.getElementById('uzbWord');
+    const nextBtn = document.getElementById('nextBtn');
+    const audioIcon = document.getElementById('audioBtn');
+    const coinDisplayFinal = document.getElementById('coinCount');
+
+    // _________________  KARTANI YANGILASH _________________
     function updateCard() {
         const item = vocabulary[currentIdx];
-        document.getElementById('posText').textContent = item.pos;
-        document.getElementById('espWord').textContent = item.esp;
-        document.getElementById('uzbWord').textContent = item.uzb;
+        posSpan.textContent = item.pos;
+        spanishSpan.textContent = item.spanish;
+        exampleSpan.textContent = item.example;
+        uzbSpan.textContent = item.uzb;
     }
 
-    document.getElementById('nextBtn').addEventListener('click', () => {
+    // _________________  KEYINGI TUGMASI _________________
+    nextBtn.addEventListener('click', () => {
+        // Har bir bosishda tanga qo‘shiladi (faqat oxirgi so‘zda ham tanga olinadi)
         coins += 1;
-        
+
         if (currentIdx < vocabulary.length - 1) {
+            // Hali kartalar bor
             currentIdx++;
             updateCard();
         } else {
+            // Barcha kartalar tugadi -> final ekran
             mainApp.style.display = 'none';
             finalScreen.style.display = 'flex';
-            document.getElementById('coinCount').textContent = coins;
+            coinDisplayFinal.textContent = coins;
         }
     });
 
-    // Ispancha talaffuz
-    document.querySelector('.audio-icon').addEventListener('click', () => {
-        const text = document.getElementById('espWord').textContent;
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'es-ES'; 
-        window.speechSynthesis.speak(utterance);
+    // _________________  AUDIO (ISPancha talaffuz) _________________
+    audioIcon.addEventListener('click', () => {
+        const text = spanishSpan.textContent;
+        // SpeechSynthesis – faqat brauzer qo‘llab-quvvatlasa
+        if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'es-ES';    // Ispaniya ispanchasi
+            // Ovoz balandligi va tezligi normal
+            window.speechSynthesis.cancel(); // oldingi ovozni to‘xtatish
+            window.speechSynthesis.speak(utterance);
+        } else {
+            alert("Brauzeringiz ovoz sintezini qo‘llab-quvvatlamaydi.");
+        }
     });
 
+    // Birinchi kartani ko‘rsatish
     updateCard();
-</script>
 
+    // _________________  QO‘SHIMCHA: final screen dan qaytadan boshlash tugmasi allaqachon reload() qiladi.
+    // Lekin tangalar saqlanib qoladi. Reload qilganda coins 0 ga qaytadi — bu yaxshi.
+</script>
 </body>
 </html>
