@@ -2,156 +2,312 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mashg'ulot Yakunlandi - Ball</title>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>Ispan Tili Testi - Interactive Learning</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
     <style>
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #141414;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --border-light: #2a2a2a;
+            --border-dark: #333333;
+            --accent-dark: #ffffff;
+            --shadow-sm: rgba(255, 255, 255, 0.05);
+            --shadow-md: rgba(255, 255, 255, 0.1);
+            --shadow-lg: rgba(255, 255, 255, 0.15);
+            --correct-color: #4ade80;
+            --wrong-color: #f87171;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
 
-        body {
-            background-color: #000000; /* Qora fon */
+        body, html {
+            height: 100%;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow: hidden;
+        }
+
+        /* Quiz Container */
+        .app-container {
             display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            color: #ffffff; /* Oq matn */
+            flex-direction: column;
+            height: 100vh;
+            padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom);
+            background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
         }
 
-        .mobile-container {
+        .question-header {
+            padding: 20px 0;
+            text-align: center;
+            border-bottom: 1px solid var(--border-light);
+            margin-bottom: 20px;
+        }
+
+        .question-number {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .question-title {
+            font-size: 24px;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+
+        .options-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .option-card {
             width: 100%;
             max-width: 400px;
-            height: 90vh;
+            padding: 20px 24px;
+            border-radius: 16px;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-light);
+            font-size: 18px;
+            font-weight: 500;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .option-card.selected { border-color: var(--text-primary); background: var(--border-dark); }
+        .option-card.correct-answer { border-color: var(--correct-color); background: rgba(74, 222, 128, 0.1); }
+        .option-card.wrong-answer { border-color: var(--wrong-color); background: rgba(248, 113, 113, 0.1); }
+
+        .action-btn {
+            width: 100%;
+            height: 56px;
+            border: none;
+            border-radius: 16px;
+            background: var(--border-dark);
+            color: var(--text-secondary);
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 40px;
             display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: not-allowed;
+        }
+
+        .action-btn.active { background: var(--text-primary); color: var(--bg-primary); cursor: pointer; }
+
+        /* Result Panel (Bottom Sheet) */
+        .result-panel {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: var(--text-primary);
+            border-radius: 24px 24px 0 0;
+            padding: 30px 20px;
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 1000;
+            color: var(--bg-primary);
+        }
+
+        .result-panel.active { transform: translateY(0); }
+
+        /* Final Results Screen Styles */
+        #final-screen {
+            display: none;
+            height: 100vh;
             flex-direction: column;
             align-items: center;
             justify-content: space-between;
-            padding: 40px 20px;
+            padding: 60px 20px;
             text-align: center;
+            background: #000;
         }
 
-        /* Yuqori qism: Kubok */
-        .trophy-section {
-            margin-top: 50px;
-        }
-
-        .trophy-icon {
-            font-size: 100px;
-            margin-bottom: 20px;
-            color: white;
-        }
-
-        h1 {
-            font-size: 28px;
-            font-weight: 700;
-            margin-top: 20px;
-        }
-
-        /* O'rta qism: Statistika */
-        .stats-container {
-            display: flex;
-            gap: 15px;
-            width: 100%;
-            justify-content: center;
-            margin-top: -50px;
-        }
-
+        .trophy-icon { font-size: 100px; color: white; margin-bottom: 20px; }
+        .stats-container { display: flex; gap: 15px; width: 100%; max-width: 400px; }
         .stat-card {
-            flex: 1;
-            border-radius: 20px;
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            border: 3px solid white; /* Oq chegara */
-            background-color: black;
+            flex: 1; border-radius: 20px; padding: 10px;
+            display: flex; flex-direction: column; align-items: center;
+            border: 3px solid white; background: black;
         }
-
-        .label {
-            font-weight: bold;
-            padding: 4px 20px;
-            border-radius: 12px;
-            margin-top: -28px;
-            margin-bottom: 15px;
-            font-size: 15px;
-            background-color: white; /* Label foni oq */
-            color: black; /* Label yozuvi qora */
-            text-transform: uppercase;
-            letter-spacing: 1px;
+        .stat-label {
+            font-weight: bold; padding: 4px 15px; border-radius: 12px;
+            margin-top: -28px; margin-bottom: 15px; font-size: 14px;
+            background: white; color: black; text-transform: uppercase;
         }
-
-        .value-box {
-            display: flex;
-            align-items: center;
-            font-size: 24px;
-            font-weight: bold;
-            padding: 10px 0;
-        }
-
-        .icon-small {
-            margin-right: 10px;
-            font-size: 24px;
-            color: white;
-        }
-
-        /* Pastki tugma */
         .footer-btn {
-            width: 100%;
-            background-color: white; /* Oq tugma */
-            color: black; /* Qora yozuv */
-            border: none;
-            padding: 20px;
-            border-radius: 20px;
-            font-size: 18px;
-            font-weight: 800;
+            width: 100%; max-width: 400px; background: white; color: black;
+            border: none; padding: 20px; border-radius: 20px;
+            font-size: 18px; font-weight: 800; text-transform: uppercase;
             cursor: pointer;
-            box-shadow: 0 6px 0px rgba(255, 255, 255, 0.2);
-            transition: 0.1s;
-            text-transform: uppercase;
-        }
-
-        .footer-btn:active {
-            box-shadow: none;
-            transform: translateY(4px);
         }
     </style>
 </head>
 <body>
 
-    <div class="mobile-container">
-        
-        <div class="trophy-section">
-            <i class="fas fa-trophy trophy-icon"></i>
-            <h1>Mashg'ulot yakunlandi</h1>
-        </div>
+<svg style="display: none;">
+    <symbol id="icon-check" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></symbol>
+    <symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></symbol>
+</svg>
 
-        <div class="stats-container">
-            <div class="stat-card">
-                <div class="label">Aniqlik</div>
-                <div class="value-box">
-                    <i class="fas fa-bullseye icon-small"></i>
-                    <span>83%</span>
-                </div>
-            </div>
-
-            <div class="stat-card">
-                <div class="label">Ball</div>
-                <div class="value-box">
-                    <i class="fas fa-coins icon-small"></i>
-                    <span>1,250</span>
-                </div>
-            </div>
-        </div>
-
-        <button class="footer-btn">Davom etish</button>
-
+<div id="quiz-screen" class="app-container">
+    <div class="question-header">
+        <div class="question-number" id="questionCounter">1 / 8</div>
+        <div class="question-title" id="questionText">Yuklanmoqda...</div>
     </div>
+
+    <div class="options-section" id="optionsContainer"></div>
+
+    <button class="action-btn" id="checkBtn" disabled>
+        <svg style="width:20px; height:20px; fill:currentColor;"><use href="#icon-check"></use></svg>
+        <span id="checkBtnText">Javobni tekshirish</span>
+    </button>
+
+    <div class="result-panel" id="resultPanel">
+        <h2 id="resultTitle" style="margin-bottom:10px">Ajoyib! 🎉</h2>
+        <p id="resultMessage" style="margin-bottom:20px">Javobingiz to'g'ri!</p>
+        <button class="footer-btn" id="continueBtn" style="border-radius:16px; background:black; color:white">
+            <span id="continueBtnText">Keyingi savol</span>
+        </button>
+    </div>
+</div>
+
+<div id="final-screen">
+    <div class="trophy-section">
+        <i class="fas fa-trophy trophy-icon"></i>
+        <h1 style="font-size: 28px; margin-top: 20px;">Mashg'ulot yakunlandi</h1>
+    </div>
+
+    <div class="stats-container">
+        <div class="stat-card">
+            <div class="stat-label">Aniqlik</div>
+            <div style="display:flex; align-items:center; font-size:24px; font-weight:bold;">
+                <i class="fas fa-bullseye" style="margin-right:8px"></i>
+                <span id="finalAccuracy">0%</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Ball</div>
+            <div style="display:flex; align-items:center; font-size:24px; font-weight:bold;">
+                <i class="fas fa-coins" style="margin-right:8px"></i>
+                <span id="finalScore">0</span>
+            </div>
+        </div>
+    </div>
+
+    <button class="footer-btn" onclick="location.reload()">Qaytadan boshlash</button>
+</div>
+
+<script>
+    const questions = [
+        { question: "Nechta unli harf bor?", options: ["5 ta", "6 ta", "7 ta"], correct: 0 },
+        { question: "Ispan alifbosida nechta harf bor?", options: ["27 ta", "26 ta", "28 ta"], correct: 0 },
+        { question: "“H” harfi ispan tilida qanday o‘qiladi?", options: ["Talaffuz qilinadi", "O‘qilmaydi", "“X” kabi"], correct: 1 },
+        { question: "“C” harfi qachon “k” tovushi beradi?", options: ["E, I oldida", "A, O, U oldida", "Hamma joyda"], correct: 1 },
+        { question: "“G” harfi A, O, U oldida qanday talaffuz qilinadi?", options: ["Qattiq “g”", "“X” kabi", "“S” kabi"], correct: 0 },
+        { question: "“G” harfi E, I oldida qanday talaffuz qilinadi?", options: ["Qattiq “g”", "“X”ga o‘xshash", "“K” kabi"], correct: 1 },
+        { question: "“C” harfi E, I oldida qanday talaffuz qilinadi?", options: ["“S” kabi", "“K” kabi", "“G” kabi"], correct: 0 },
+        { question: "“C” harfi A, O, U oldida qanday talaffuz qilinadi?", options: ["“S” kabi", "“K” kabi", "“X” kabi"], correct: 1 }
+    ];
+
+    let currentIdx = 0;
+    let selectedOpt = null;
+    let isAnswered = false;
+    let score = 0;
+
+    function loadQuestion() {
+        const q = questions[currentIdx];
+        document.getElementById('questionCounter').textContent = `${currentIdx + 1} / ${questions.length}`;
+        document.getElementById('questionText').textContent = q.question;
+        
+        const container = document.getElementById('optionsContainer');
+        container.innerHTML = '';
+        q.options.forEach((opt, i) => {
+            const card = document.createElement('div');
+            card.className = 'option-card';
+            card.textContent = opt;
+            card.onclick = () => !isAnswered && selectOption(i);
+            container.appendChild(card);
+        });
+
+        selectedOpt = null;
+        isAnswered = false;
+        updateBtn();
+    }
+
+    function selectOption(i) {
+        selectedOpt = i;
+        document.querySelectorAll('.option-card').forEach((c, idx) => {
+            c.classList.toggle('selected', idx === i);
+        });
+        updateBtn();
+    }
+
+    function updateBtn() {
+        const btn = document.getElementById('checkBtn');
+        btn.disabled = selectedOpt === null;
+        btn.classList.toggle('active', selectedOpt !== null);
+    }
+
+    document.getElementById('checkBtn').onclick = () => {
+        if (selectedOpt === null || isAnswered) return;
+        isAnswered = true;
+        const correct = questions[currentIdx].correct;
+        const cards = document.querySelectorAll('.option-card');
+        
+        cards[correct].classList.add('correct-answer');
+        if (selectedOpt !== correct) {
+            cards[selectedOpt].classList.add('wrong-answer');
+            document.getElementById('resultTitle').textContent = "E'tiborli bo'ling 📚";
+            document.getElementById('resultMessage').textContent = `To'g'ri javob: ${questions[currentIdx].options[correct]}`;
+        } else {
+            score++;
+            document.getElementById('resultTitle').textContent = "Ajoyib! 🎉";
+            document.getElementById('resultMessage').textContent = "Javobingiz to'g'ri!";
+        }
+
+        document.getElementById('continueBtnText').textContent = 
+            currentIdx === questions.length - 1 ? "Natijani ko'rish" : "Keyingi savol";
+        
+        document.getElementById('resultPanel').classList.add('active');
+    };
+
+    document.getElementById('continueBtn').onclick = () => {
+        document.getElementById('resultPanel').classList.remove('active');
+        if (currentIdx < questions.length - 1) {
+            currentIdx++;
+            loadQuestion();
+        } else {
+            showFinalResults();
+        }
+    };
+
+    function showFinalResults() {
+        document.getElementById('quiz-screen').style.display = 'none';
+        document.getElementById('final-screen').style.display = 'flex';
+        
+        const accuracy = Math.round((score / questions.length) * 100);
+        document.getElementById('finalAccuracy').textContent = accuracy + "%";
+        document.getElementById('finalScore').textContent = (score * 150).toLocaleString(); // Har bir savol 150 ball
+    }
+
+    loadQuestion();
+</script>
 
 </body>
 </html>
