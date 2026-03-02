@@ -2,128 +2,346 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Duolingo UI Clone</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>Language UI - Interactive Learning</title>
     <style>
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #141414;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --border-light: #2a2a2a;
+            --border-dark: #333333;
+            --accent-dark: #ffffff;
+            --shadow-sm: rgba(255, 255, 255, 0.05);
+            --shadow-md: rgba(255, 255, 255, 0.1);
+            --shadow-lg: rgba(255, 255, 255, 0.15);
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
 
-        body {
-            background-color: #0b111a; /* To'q ko'k/qora fon */
-            color: white;
+        body, html {
+            height: 100%;
+            background: var(--bg-primary);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            color: var(--text-primary);
+            -webkit-tap-highlight-color: transparent;
+            overflow: hidden;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
             height: 100vh;
+            padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom);
+            background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+        }
+
+        /* Markaziy qism */
+        .question-section {
+            flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: space-between;
-            padding: 40px 20px;
+            justify-content: flex-end;
+            padding-bottom: 80px;
         }
 
-        /* Yuqori matn */
-        .header {
+        .input-container {
+            position: relative;
             width: 100%;
-            font-size: 24px;
-            font-weight: bold;
-            text-align: left;
-            margin-bottom: 20px;
+            max-width: 300px;
+            margin-bottom: 30px;
         }
 
-        /* Markaziy karta */
-        .phrase-container {
+        .single-input {
             width: 100%;
-            max-width: 400px;
-            border: 2px solid #30363d;
+            height: 85px;
             border-radius: 16px;
-            padding: 25px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            background-color: transparent;
-        }
-
-        .phrase-container i {
-            color: #1cb0f6;
-            font-size: 24px;
-        }
-
-        .phrase-text {
-            font-size: 22px;
-            font-weight: 700;
-        }
-
-        /* Pastki tugmalar qismi */
-        .footer {
-            width: 100%;
-            max-width: 400px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 30px;
-        }
-
-        /* Asosiy ko'k tugma */
-        .mic-button {
-            width: 100%;
-            background-color: #1cb0f6;
-            color: white;
-            border: none;
-            padding: 16px;
-            border-radius: 16px;
-            font-size: 18px;
-            font-weight: bold;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-light);
+            font-size: 40px;
+            font-weight: 600;
+            color: var(--text-primary);
+            text-align: center;
             text-transform: uppercase;
-            cursor: pointer;
+            box-shadow: 0 2px 8px var(--shadow-sm);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            outline: none;
+            padding: 0 20px;
+            letter-spacing: 10px;
+        }
+
+        .single-input:focus {
+            border-color: var(--text-primary);
+            background: var(--bg-secondary);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px var(--shadow-md);
+        }
+
+        .single-input::placeholder {
+            color: var(--text-secondary);
+            letter-spacing: normal;
+        }
+
+        /* Tugma qismi */
+        .check-btn-area {
+            padding: 0 0 40px 0;
+        }
+
+        .check-btn {
+            width: 100%;
+            height: 56px;
+            border: none;
+            border-radius: 16px;
+            background: var(--border-dark);
+            color: var(--text-secondary);
+            font-size: 18px;
+            font-weight: 600;
+            cursor: not-allowed;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px var(--shadow-sm);
+            letter-spacing: 0.3px;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
-            box-shadow: 0 4px 0 #1899d6; /* Tugma ostidagi soya effekt */
-            transition: all 0.1s;
         }
 
-        .mic-button:active {
-            transform: translateY(4px);
-            box-shadow: none;
+        .check-btn.active {
+            background: var(--text-primary);
+            color: var(--bg-primary);
+            cursor: pointer;
+            box-shadow: 0 8px 24px var(--shadow-lg);
+            transform: translateY(-1px);
         }
 
-        /* O'tkazib yuborish tugmasi */
-        .skip-link {
-            color: #1cb0f6;
-            text-decoration: none;
-            font-weight: bold;
+        .check-btn.active:active {
+            transform: translateY(0px);
+            box-shadow: 0 4px 12px var(--shadow-md);
+        }
+
+        .check-icon {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        /* Natija paneli */
+        .result-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--text-primary);
+            border-radius: 24px 24px 0 0;
+            padding: 30px 20px;
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 1000;
+            color: var(--bg-primary);
+            box-shadow: 0 -4px 32px var(--shadow-lg);
+        }
+
+        .result-panel.active { 
+            transform: translateY(0); 
+        }
+
+        .result-panel h2 {
+            font-size: 28px;
+            margin-bottom: 12px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .result-icon {
+            width: 32px;
+            height: 32px;
+            fill: currentColor;
+        }
+
+        .result-panel p {
             font-size: 16px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
+            opacity: 0.9;
+            line-height: 1.5;
         }
 
-        .skip-link:hover {
-            opacity: 0.8;
+        .continue-btn {
+            width: 100%;
+            height: 56px;
+            border: none;
+            border-radius: 16px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 24px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .continue-btn:active {
+            transform: scale(0.98);
+        }
+
+        .continue-icon {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        .sr-only { 
+            position: absolute; 
+            width: 1px; 
+            height: 1px; 
+            padding: 0; 
+            margin: -1px; 
+            overflow: hidden; 
+            clip: rect(0,0,0,0); 
+            border: 0; 
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1) translateY(-3px); }
+            50% { transform: scale(1.05) translateY(-3px); }
+            100% { transform: scale(1) translateY(-3px); }
+        }
+        
+        .pulse { 
+            animation: pulse 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
         }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        Tinglang va takrorlang.
+<!-- SVG Sprite Container -->
+<svg style="display: none;">
+    <symbol id="icon-check" viewBox="0 0 24 24">
+        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+    </symbol>
+    <symbol id="icon-arrow" viewBox="0 0 24 24">
+        <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
+    </symbol>
+    <symbol id="icon-celebration" viewBox="0 0 24 24">
+        <path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm-2-15l4.5 4.5L10 17l-4.5-4.5L10 7zm2 0l4.5 4.5L12 17l-4.5-4.5L12 7z"/>
+    </symbol>
+</svg>
+
+<div class="app-container">
+    <div class="question-section">
+        <div class="input-container">
+            <input 
+                type="text" 
+                class="single-input" 
+                id="mainInput" 
+                maxlength="3" 
+                autocomplete="off" 
+                placeholder="?"
+                autofocus
+            >
+        </div>
     </div>
 
-    <div class="phrase-container">
-        <i class="fas fa-volume-up"></i>
-        <div class="phrase-text">Hello. How are you?</div>
-    </div>
-
-    <div class="footer">
-        <button class="mic-button">
-            <i class="fas fa-microphone"></i>
-            Bosib turib gapiring
+    <div class="check-btn-area">
+        <button class="check-btn" id="checkBtn" disabled>
+            <svg class="check-icon">
+                <use href="#icon-check"></use>
+            </svg>
+            Tekshirish
         </button>
-        <a href="#" class="skip-link">O'tkazib yuborish</a>
     </div>
+
+    <div class="result-panel" id="resultPanel">
+        <div style="max-width: 500px; margin: 0 auto;">
+            <h2>
+                <svg class="result-icon">
+                    <use href="#icon-celebration"></use>
+                </svg>
+                Ajoyib! 🎉
+            </h2>
+            <p>Javobingiz to'g'ri qabul qilindi. Davom eting!</p>
+            <button class="continue-btn" id="continueBtn">
+                Keyingi savol
+                <svg class="continue-icon">
+                    <use href="#icon-arrow"></use>
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const mainInput = document.getElementById('mainInput');
+    const checkBtn = document.getElementById('checkBtn');
+    const resultPanel = document.getElementById('resultPanel');
+
+    // Avtomatik fokus
+    mainInput.focus();
+
+    mainInput.addEventListener('input', (e) => {
+        const val = e.target.value.toUpperCase().slice(0, 3);
+        mainInput.value = val;
+        
+        const isReady = val.length === 3;
+        checkBtn.disabled = !isReady;
+        checkBtn.classList.toggle('active', isReady);
+        
+        if (val.length === 3) {
+            mainInput.classList.add('pulse');
+            setTimeout(() => mainInput.classList.remove('pulse'), 300);
+        }
+    });
+
+    mainInput.addEventListener('keypress', (e) => {
+        // Faqat harflar va raqamlarga ruxsat berish
+        const charCode = e.keyCode || e.which;
+        const charStr = String.fromCharCode(charCode);
+        
+        if (!/^[A-Za-z0-9]$/.test(charStr)) {
+            e.preventDefault();
+        }
+    });
+
+    mainInput.addEventListener('keyup', (e) => {
+        // Enter tugmasi bilan tekshirish
+        if (e.key === 'Enter' && mainInput.value.length === 3) {
+            checkBtn.click();
+        }
+    });
+
+    checkBtn.addEventListener('click', () => {
+        if (mainInput.value.length === 3) {
+            resultPanel.classList.add('active');
+        }
+    });
+
+    document.getElementById('continueBtn').addEventListener('click', () => {
+        resultPanel.classList.remove('active');
+        mainInput.value = '';
+        checkBtn.disabled = true;
+        checkBtn.classList.remove('active');
+        mainInput.focus();
+    });
+
+    // Ekranning istalgan joyiga bosganda inputga fokus qilish
+    document.addEventListener('click', (e) => {
+        if (e.target !== mainInput && !e.target.closest('.result-panel')) {
+            mainInput.focus();
+        }
+    });
+</script>
 
 </body>
 </html>
