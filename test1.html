@@ -3,19 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Ispan Tili Testi - Interactive Learning</title>
+    <title>Ispan Tili Flashcards</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
             --bg-primary: #0a0a0a;
-            --bg-secondary: #141414;
+            --card-bg: #1a1a1a;
             --text-primary: #ffffff;
             --text-secondary: #a0a0a0;
-            --border-light: #2a2a2a;
-            --border-dark: #333333;
-            --accent-dark: #ffffff;
-            --correct-color: #4ade80;
-            --wrong-color: #f87171;
+            --border-color: #333333;
         }
 
         * {
@@ -25,282 +21,236 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
 
-        body, html {
-            height: 100%;
-            background: var(--bg-primary);
+        body {
+            background-color: var(--bg-primary);
             color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             overflow: hidden;
         }
 
-        /* Quiz Container */
         .app-container {
+            width: 100%;
+            max-width: 400px;
+            height: 100vh;
             display: flex;
             flex-direction: column;
-            height: 100vh;
-            padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom);
-            background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            padding: 40px 20px;
         }
 
-        .question-header {
-            padding: 20px 0;
-            text-align: center;
-            border-bottom: 1px solid var(--border-light);
-            margin-bottom: 20px;
-        }
-
-        .question-number {
-            font-size: 16px;
-            color: var(--text-secondary);
-            margin-bottom: 8px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
-
-        .question-title {
-            font-size: 24px;
-            font-weight: 600;
-            line-height: 1.4;
-        }
-
-        .options-section {
+        /* Flashcard Dizayni */
+        .card-stack {
             flex: 1;
             display: flex;
             flex-direction: column;
-            align-items: center;
+            gap: 20px;
             justify-content: center;
-            gap: 16px;
         }
 
-        .option-card {
+        .flashcard {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 32px;
+            padding: 25px;
             width: 100%;
-            max-width: 400px;
-            padding: 20px 24px;
-            border-radius: 16px;
-            background: var(--bg-secondary);
-            border: 2px solid var(--border-light);
-            font-size: 18px;
-            font-weight: 500;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
         }
 
-        .option-card.selected { border-color: var(--text-primary); background: var(--border-dark); }
-        .option-card.correct-answer { border-color: var(--correct-color); background: rgba(74, 222, 128, 0.1); }
-        .option-card.wrong-answer { border-color: var(--wrong-color); background: rgba(248, 113, 113, 0.1); }
+        .flag-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
 
-        .action-btn {
-            width: 100%;
-            height: 56px;
-            border: none;
-            border-radius: 16px;
-            background: var(--border-dark);
+        .flag-img {
+            width: 45px;
+            height: 30px;
+            border-radius: 4px;
+            object-fit: cover;
+        }
+
+        .part-of-speech {
             color: var(--text-secondary);
+            font-weight: 700;
+            letter-spacing: 1px;
             font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 40px;
+            text-transform: uppercase;
+        }
+
+        .word-main {
+            font-size: 42px;
+            font-weight: 800;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .audio-icon {
+            color: #3b82f6;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .example-sentence {
+            font-size: 20px;
+            font-style: italic;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .translation-word {
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        /* Tugma qismi */
+        .footer-area {
+            padding-bottom: 20px;
+        }
+
+        .next-btn {
+            width: 100%;
+            height: 65px;
+            background: white;
+            color: black;
+            border: none;
+            border-radius: 24px;
+            font-size: 20px;
+            font-weight: 800;
+            cursor: pointer;
+            text-transform: uppercase;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
-            cursor: not-allowed;
+            transition: 0.2s;
         }
 
-        .action-btn.active { background: var(--text-primary); color: var(--bg-primary); cursor: pointer; }
-
-        /* Result Panel */
-        .result-panel {
-            position: fixed;
-            bottom: 0; left: 0; right: 0;
-            background: var(--text-primary);
-            border-radius: 24px 24px 0 0;
-            padding: 30px 20px;
-            transform: translateY(100%);
-            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            z-index: 1000;
-            color: var(--bg-primary);
+        .next-btn:active {
+            transform: scale(0.96);
         }
 
-        .result-panel.active { transform: translateY(0); }
-
-        /* Final Results Screen */
+        /* Yakuniy Sahifa */
         #final-screen {
             display: none;
-            height: 100vh;
             flex-direction: column;
             align-items: center;
             justify-content: space-between;
-            padding: 60px 20px;
+            height: 100%;
             text-align: center;
-            background: #000;
         }
 
         .trophy-icon { font-size: 100px; color: white; margin-bottom: 20px; }
-        .stats-container { display: flex; gap: 15px; width: 100%; max-width: 400px; margin-top: -50px; }
-        .stat-card {
-            flex: 1; border-radius: 20px; padding: 10px;
-            display: flex; flex-direction: column; align-items: center;
-            border: 3px solid white; background: black;
-        }
-        .stat-label {
-            font-weight: bold; padding: 4px 15px; border-radius: 12px;
-            margin-top: -28px; margin-bottom: 15px; font-size: 14px;
-            background: white; color: black; text-transform: uppercase;
-        }
-        .footer-btn {
-            width: 100%; max-width: 400px; background: white; color: black;
-            border: none; padding: 20px; border-radius: 20px;
-            font-size: 18px; font-weight: 800; text-transform: uppercase;
-            cursor: pointer; box-shadow: 0 6px 0px rgba(255, 255, 255, 0.2);
-            transition: 0.1s;
-        }
-        .footer-btn:active { transform: translateY(4px); box-shadow: none; }
     </style>
 </head>
 <body>
 
-<div id="quiz-screen" class="app-container">
-    <div class="question-header">
-        <div class="question-number" id="questionCounter">1 / 8</div>
-        <div class="question-title" id="questionText">Yuklanmoqda...</div>
+<div id="main-app" class="app-container">
+    <div class="card-stack">
+        <div class="flashcard">
+            <div class="flag-row">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Flag_of_the_United_Kingdom_%283-2_aspect_ratio%29.svg" class="flag-img">
+                <span class="part-of-speech" id="posText">VERB</span>
+            </div>
+            <div class="word-main">
+                <span id="engWord">am</span>
+                <i class="fas fa-volume-up audio-icon"></i>
+            </div>
+            <div class="example-sentence" id="exampleText">"I am here on holiday."</div>
+        </div>
+
+        <div class="flashcard">
+            <div class="flag-row">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/8/84/Flag_of_Uzbekistan.svg" class="flag-img">
+            </div>
+            <div class="translation-word" id="uzbWord">...ekanman</div>
+        </div>
     </div>
 
-    <div class="options-section" id="optionsContainer"></div>
-
-    <button class="action-btn" id="checkBtn" disabled>
-        <i class="fas fa-check"></i>
-        <span id="checkBtnText">Javobni tekshirish</span>
-    </button>
-
-    <div class="result-panel" id="resultPanel">
-        <h2 id="resultTitle" style="margin-bottom:10px">Ajoyib! 🎉</h2>
-        <p id="resultMessage" style="margin-bottom:20px">Javobingiz to'g'ri!</p>
-        <button class="footer-btn" id="continueBtn" style="background:black; color:white; box-shadow:none">
-            <span id="continueBtnText">Keyingi savol</span>
+    <div class="footer-area">
+        <button class="next-btn" id="nextBtn">
+            Keyingi <i class="fas fa-arrow-right"></i>
         </button>
     </div>
 </div>
 
-<div id="final-screen">
-    <div class="trophy-section">
+<div id="final-screen" class="app-container">
+    <div style="margin-top: 50px;">
         <i class="fas fa-trophy trophy-icon"></i>
-        <h1 style="font-size: 28px; margin-top: 20px;">Mashg'ulot yakunlandi</h1>
+        <h1 style="font-size: 28px;">Mashg'ulot yakunlandi</h1>
     </div>
-
-    <div class="stats-container">
-        <div class="stat-card">
-            <div class="stat-label">Aniqlik</div>
-            <div style="display:flex; align-items:center; font-size:24px; font-weight:bold;">
-                <i class="fas fa-bullseye" style="margin-right:8px"></i>
-                <span id="finalAccuracy">0%</span>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-label">Tanga</div>
-            <div style="display:flex; align-items:center; font-size:24px; font-weight:bold;">
-                <i class="fas fa-coins" style="margin-right:8px"></i>
-                <span id="finalScore">0</span>
-            </div>
+    
+    <div style="display: flex; gap: 15px; width: 100%; margin-top: -50px;">
+        <div style="flex: 1; border: 3px solid white; border-radius: 20px; padding: 20px; background: black;">
+            <div style="background: white; color: black; padding: 4px 10px; border-radius: 10px; font-weight: 800; font-size: 12px; margin-top: -35px; margin-bottom: 10px;">TANGA</div>
+            <div style="font-size: 24px; font-weight: bold;"><i class="fas fa-coins"></i> <span id="coinCount">0</span></div>
         </div>
     </div>
 
-    <button class="footer-btn" onclick="location.reload()">Davom etish</button>
+    <button class="next-btn" onclick="location.reload()">Davom etish</button>
 </div>
 
 <script>
-    const questions = [
-        { question: "Nechta unli harf bor?", options: ["5 ta", "6 ta", "7 ta"], correct: 0 },
-        { question: "Ispan alifbosida nechta harf bor?", options: ["27 ta", "26 ta", "28 ta"], correct: 0 },
-        { question: "“H” harfi ispan tilida qanday o‘qiladi?", options: ["Talaffuz qilinadi", "O‘qilmaydi", "“X” kabi"], correct: 1 },
-        { question: "“C” harfi qachon “k” tovushi beradi?", options: ["E, I oldida", "A, O, U oldida", "Hamma joyda"], correct: 1 },
-        { question: "“G” harfi A, O, U oldida qanday talaffuz qilinadi?", options: ["Qattiq “g”", "“X” kabi", "“S” kabi"], correct: 0 },
-        { question: "“G” harfi E, I oldida qanday talaffuz qilinadi?", options: ["Qattiq “g”", "“X”ga o‘xshash", "“K” kabi"], correct: 1 },
-        { question: "“C” harfi E, I oldida qanday talaffuz qilinadi?", options: ["“S” kabi", "“K” kabi", "“G” kabi"], correct: 0 },
-        { question: "“C” harfi A, O, U oldida qanday talaffuz qilinadi?", options: ["“S” kabi", "“K” kabi", "“X” kabi"], correct: 1 }
+    const vocabulary = [
+        {
+            pos: "VERB",
+            eng: "am",
+            example: '"I am here on holiday."',
+            uzb: "...ekanman"
+        },
+        {
+            pos: "NOUN",
+            eng: "Book",
+            example: '"I am reading a good book."',
+            uzb: "Kitob"
+        },
+        {
+            pos: "ADJECTIVE",
+            eng: "Happy",
+            example: '"She is very happy today."',
+            uzb: "Baxtli"
+        }
     ];
 
     let currentIdx = 0;
-    let selectedOpt = null;
-    let isAnswered = false;
     let coins = 0;
 
-    function loadQuestion() {
-        const q = questions[currentIdx];
-        document.getElementById('questionCounter').textContent = `${currentIdx + 1} / ${questions.length}`;
-        document.getElementById('questionText').textContent = q.question;
-        
-        const container = document.getElementById('optionsContainer');
-        container.innerHTML = '';
-        q.options.forEach((opt, i) => {
-            const card = document.createElement('div');
-            card.className = 'option-card';
-            card.textContent = opt;
-            card.onclick = () => !isAnswered && selectOption(i);
-            container.appendChild(card);
-        });
-
-        selectedOpt = null;
-        isAnswered = false;
-        updateBtn();
+    const mainApp = document.getElementById('main-app');
+    const finalScreen = document.getElementById('final-screen');
+    
+    function updateCard() {
+        const item = vocabulary[currentIdx];
+        document.getElementById('posText').textContent = item.pos;
+        document.getElementById('engWord').textContent = item.eng;
+        document.getElementById('exampleText').textContent = item.example;
+        document.getElementById('uzbWord').textContent = item.uzb;
     }
 
-    function selectOption(i) {
-        selectedOpt = i;
-        document.querySelectorAll('.option-card').forEach((c, idx) => {
-            c.classList.toggle('selected', idx === i);
-        });
-        updateBtn();
-    }
-
-    function updateBtn() {
-        const btn = document.getElementById('checkBtn');
-        btn.disabled = selectedOpt === null;
-        btn.classList.toggle('active', selectedOpt !== null);
-    }
-
-    document.getElementById('checkBtn').onclick = () => {
-        if (selectedOpt === null || isAnswered) return;
-        isAnswered = true;
-        const correct = questions[currentIdx].correct;
-        const cards = document.querySelectorAll('.option-card');
+    document.getElementById('nextBtn').addEventListener('click', () => {
+        coins += 1; // Har bir ko'rilgan so'z uchun 1 tanga
         
-        cards[correct].classList.add('correct-answer');
-        if (selectedOpt !== correct) {
-            cards[selectedOpt].classList.add('wrong-answer');
-            document.getElementById('resultTitle').textContent = "E'tiborli bo'ling 📚";
-            document.getElementById('resultMessage').textContent = `To'g'ri javob: ${questions[currentIdx].options[correct]}`;
-        } else {
-            coins++; // 1 ta to'g'ri javob = 1 tanga
-            document.getElementById('resultTitle').textContent = "Ajoyib! 🎉";
-            document.getElementById('resultMessage').textContent = "Javobingiz to'g'ri!";
-        }
-
-        document.getElementById('continueBtnText').textContent = 
-            currentIdx === questions.length - 1 ? "Natijani ko'rish" : "Keyingi savol";
-        
-        document.getElementById('resultPanel').classList.add('active');
-    };
-
-    document.getElementById('continueBtn').onclick = () => {
-        document.getElementById('resultPanel').classList.remove('active');
-        if (currentIdx < questions.length - 1) {
+        if (currentIdx < vocabulary.length - 1) {
             currentIdx++;
-            loadQuestion();
+            updateCard();
         } else {
-            showFinalResults();
+            mainApp.style.display = 'none';
+            finalScreen.style.display = 'flex';
+            document.getElementById('coinCount').textContent = coins;
         }
-    };
+    });
 
-    function showFinalResults() {
-        document.getElementById('quiz-screen').style.display = 'none';
-        document.getElementById('final-screen').style.display = 'flex';
-        
-        const accuracy = Math.round((coins / questions.length) * 100);
-        document.getElementById('finalAccuracy').textContent = accuracy + "%";
-        document.getElementById('finalScore').textContent = coins; // Tangalar soni
-    }
+    // Audio effekt (simulyatsiya)
+    document.querySelector('.audio-icon').addEventListener('click', () => {
+        const text = document.getElementById('engWord').textContent;
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-GB';
+        window.speechSynthesis.speak(utterance);
+    });
 
-    loadQuestion();
+    updateCard();
 </script>
 
 </body>
