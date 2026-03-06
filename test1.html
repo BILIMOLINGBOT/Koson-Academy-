@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Ingliz Tili Flashcards</title>
+    <title>Ingliz Tili Flashcards - Testlar bilan</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- QUnit CSS -->
+    <link rel="stylesheet" href="https://code.jquery.com/qunit/qunit-2.19.4.css">
     <style>
         :root {
             --bg-primary: #0a0a0a;
@@ -135,10 +137,33 @@
         }
 
         .trophy-icon { font-size: 100px; color: white; margin-bottom: 20px; }
+
+        /* QUnit testlar sahifasini yashirish (huddi dasturdek) */
+        #qunit {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            color: black;
+            z-index: 1000;
+            padding: 20px;
+            max-height: 300px;
+            overflow: auto;
+            border-bottom: 5px solid #333;
+        }
+        #qunit * {
+            color: black;
+        }
     </style>
 </head>
 <body>
 
+<!-- QUnit test qismi -->
+<div id="qunit"></div>
+<div id="qunit-fixture"></div>
+
+<!-- Asosiy ilova -->
 <div id="main-app" class="app-container">
     <div class="card-stack">
         <div class="flashcard">
@@ -183,7 +208,10 @@
     <button class="next-btn" onclick="location.reload()">Qaytadan boshlash</button>
 </div>
 
+<!-- QUnit va test skriptlari -->
+<script src="https://code.jquery.com/qunit/qunit-2.19.4.js"></script>
 <script>
+    // Asosiy ilova kodi
     const vocabulary = [
         { pos: "DETERMINER", eng: "My", uzb: "mening" },
         { pos: "NOUN", eng: "name", uzb: "ism" },
@@ -234,7 +262,45 @@
     });
 
     updateCard();
-</script>
 
+    // ---------- TESTLAR ----------
+    QUnit.module('Flashcard Testlari', function() {
+        QUnit.test('Dastlabki holat: birinchi karta va tanga 0', function(assert) {
+            assert.equal(document.getElementById('posText').textContent, 'DETERMINER', 'POS to\'g\'ri');
+            assert.equal(document.getElementById('engWord').textContent, 'My', 'Ingliz so\'z to\'g\'ri');
+            assert.equal(document.getElementById('uzbWord').textContent, 'mening', 'O\'zbek so\'z to\'g\'ri');
+            assert.equal(coins, 0, 'Boshida tanga 0');
+        });
+
+        QUnit.test('Keyingi tugma bosilganda tanga ortadi va indeks oshadi', function(assert) {
+            let oldIdx = currentIdx;
+            let oldCoins = coins;
+            document.getElementById('nextBtn').click();
+            assert.equal(coins, oldCoins + 5, 'Tanga 5 ga oshdi');
+            assert.equal(currentIdx, oldIdx + 1, 'Indeks 1 ga oshdi');
+        });
+
+        QUnit.test('Karta yangilanishi: ikkinchi element', function(assert) {
+            // Hozirgi indeks 1 bo'lishi kerak (oldingi test bosgan)
+            assert.equal(document.getElementById('posText').textContent, vocabulary[1].pos, 'POS: name');
+            assert.equal(document.getElementById('engWord').textContent, vocabulary[1].eng, 'Eng: name');
+            assert.equal(document.getElementById('uzbWord').textContent, vocabulary[1].uzb, 'Uzb: ism');
+        });
+
+        QUnit.test('Oxirgi kartaga yetganda yakuniy ekran ko\'rinadi', function(assert) {
+            // 2..oxirgigacha bosamiz
+            while (currentIdx < vocabulary.length - 1) {
+                document.getElementById('nextBtn').click();
+            }
+            // Endi oxirgi karta
+            assert.equal(currentIdx, vocabulary.length - 1, 'Oxirgi indeks');
+            let lastCoins = coins;
+            document.getElementById('nextBtn').click();
+            assert.equal(mainApp.style.display, 'none', 'Asosiy ekran yashirindi');
+            assert.equal(finalScreen.style.display, 'flex', 'Final ekran ko\'rinadi');
+            assert.equal(document.getElementById('coinCount').textContent, String(lastCoins), 'Tanga miqdori ko\'rsatilgan');
+        });
+    });
+</script>
 </body>
 </html>
