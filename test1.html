@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Inglizcha so'z o'yini</title>
+    <title>Inglizcha so'z o'yini PRO</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * {
@@ -39,7 +39,7 @@
             margin-bottom: 15px;
         }
         .uzbek-sentence {
-            font-size: 28px;
+            font-size: 32px;
             font-weight: 700;
             color: #eee;
         }
@@ -49,53 +49,56 @@
             flex-direction: column;
             justify-content: center;
         }
+        /* Tanlangan so'z maydoni */
         .sentence-builder {
             min-height: 80px;
             display: flex;
-            flex-wrap: wrap;
             justify-content: center;
             align-items: center;
-            gap: 8px;
             margin-bottom: 50px;
         }
         .word-chip {
+            background: #222;
+            padding: 15px 25px;
+            border-radius: 18px;
+            font-size: 24px;
+            font-weight: 600;
+            color: #00d4ff;
+            border: 2px solid #00d4ff;
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
+        }
+        /* Variantlar banki */
+        .word-bank {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+        .bank-token {
             background: #1a1a1a;
-            padding: 12px 20px;
-            border-radius: 14px;
-            font-size: 22px;
+            padding: 18px;
+            border-radius: 15px;
+            font-size: 20px;
             font-weight: 500;
             color: #fff;
             border: 1px solid #333;
             cursor: pointer;
-            transition: 0.1s;
+            text-align: center;
+            transition: 0.2s;
         }
-        .word-bank {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 40px;
-        }
-        .bank-token {
-            background: #111;
-            padding: 12px 20px;
-            border-radius: 14px;
-            font-size: 22px;
-            font-weight: 500;
-            color: #fff;
-            border: 1px solid #222;
-            cursor: pointer;
+        .bank-token:active {
+            transform: scale(0.95);
         }
         .bank-token.disabled {
-            opacity: 0.1;
+            opacity: 0.3;
             pointer-events: none;
+            border-color: #111;
         }
         .action-btn {
             width: 100%;
             height: 65px;
             border: none;
-            border-radius: 25px;
+            border-radius: 20px;
             background: #1e1e1e;
             color: #444;
             font-size: 19px;
@@ -104,10 +107,10 @@
             align-items: center;
             justify-content: center;
             gap: 12px;
-            transition: 0.2s;
+            transition: 0.3s;
         }
         .action-btn.active {
-            background: #ffffff;
+            background: #00d4ff;
             color: #000;
             cursor: pointer;
         }
@@ -118,7 +121,7 @@
             border-radius: 30px 30px 0 0;
             padding: 40px 25px;
             transform: translateY(100%);
-            transition: 0.3s ease;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             color: #000;
             z-index: 1000;
         }
@@ -145,11 +148,16 @@
     </div>
 
     <div class="builder-area">
-        <div class="sentence-builder" id="buildingZone"></div>
-        <div class="word-bank" id="wordBank"></div>
+        <div class="sentence-builder" id="buildingZone">
+            <!-- Bu yerda tanlangan so'z chiqadi -->
+        </div>
+
+        <div class="word-bank" id="wordBank">
+            <!-- Bu yerda 4 ta variant chiqadi -->
+        </div>
         
         <button class="action-btn" id="checkBuilderBtn" disabled>
-            <i class="fas fa-check"></i> Tekshirish
+            <i class="fas fa-paper-plane"></i> Tekshirish
         </button>
     </div>
 
@@ -161,22 +169,24 @@
 </div>
 
 <script>
-    // Yangi so'zlar ro'yxati
     const levels = [
-        { uz: "Nima?", correct: ["What"] },
-        { uz: "Vaqt", correct: ["Time"] },
-        { uz: "Kim?", correct: ["Who"] },
-        { uz: "Sana", correct: ["Date"] },
-        { uz: "Yil", correct: ["Year"] }
+        { uz: "Nima?", correct: "What" },
+        { uz: "Vaqt", correct: "Time" },
+        { uz: "Kim?", correct: "Who" },
+        { uz: "Sana", correct: "Date" },
+        { uz: "Yil", correct: "Year" }
     ];
 
-    // Bankni qiziqarli qilish uchun qo'shimcha "chalkashtiruvchi" so'zlar
-    const distractors = ["Where", "Day", "Month", "How", "When"];
+    // Chalkashtiruvchi so'zlar jamlanmasi
+    const distractorPool = [
+        "Where", "When", "How", "Day", "Month", 
+        "Week", "Hour", "Minute", "Second", "Which", 
+        "Whose", "Name", "Place", "Age", "Clock"
+    ];
 
     let currentIdx = 0;
-    let builtSequence = [];
+    let selectedWord = null;
     let bankWords = [];
-    let usedFlags = [];
     let score = 0;
 
     function initLevel() {
@@ -184,13 +194,18 @@
         document.getElementById('uzbekPrompt').textContent = current.uz;
         document.getElementById('levelCounter').textContent = `${currentIdx + 1} / ${levels.length}`;
         
-        // Asosiy so'z va bitta tasodifiy noto'g'ri so'zni bankka qo'shamiz
-        let words = [...current.correct];
-        words.push(distractors[Math.floor(Math.random() * distractors.length)]);
+        // 1 ta to'g'ri + 3 ta tasodifiy noto'g'ri so'zni olish
+        let choices = [current.correct];
         
-        bankWords = words.sort(() => Math.random() - 0.5);
-        usedFlags = new Array(bankWords.length).fill(false);
-        builtSequence = [];
+        // Noto'g'ri so'zlarni tanlash (to'g'ri so'z takrorlanmasligi kerak)
+        let filteredDistractors = distractorPool.filter(w => w !== current.correct);
+        let shuffledDistractors = filteredDistractors.sort(() => Math.random() - 0.5);
+        
+        choices.push(...shuffledDistractors.slice(0, 3));
+        
+        // Variantlarni aralashtirish
+        bankWords = choices.sort(() => Math.random() - 0.5);
+        selectedWord = null;
         render();
     }
 
@@ -199,43 +214,40 @@
         const bank = document.getElementById('wordBank');
         const btn = document.getElementById('checkBuilderBtn');
 
+        // Tanlangan so'zni ko'rsatish
         zone.innerHTML = '';
-        builtSequence.forEach((item, idx) => {
+        if (selectedWord) {
             const chip = document.createElement('div');
             chip.className = 'word-chip';
-            chip.textContent = item.word;
+            chip.textContent = selectedWord;
             chip.onclick = () => {
-                usedFlags[item.bankIdx] = false;
-                builtSequence.splice(idx, 1);
+                selectedWord = null;
                 render();
             };
             zone.appendChild(chip);
-        });
+        }
 
+        // Bankni chiqarish
         bank.innerHTML = '';
-        bankWords.forEach((word, idx) => {
+        bankWords.forEach((word) => {
             const token = document.createElement('div');
-            token.className = `bank-token ${usedFlags[idx] ? 'disabled' : ''}`;
+            token.className = `bank-token ${selectedWord === word ? 'disabled' : ''}`;
             token.textContent = word;
             token.onclick = () => {
-                if (!usedFlags[idx]) {
-                    usedFlags[idx] = true;
-                    builtSequence.push({ word, bankIdx: idx });
-                    render();
-                }
+                selectedWord = word;
+                render();
             };
             bank.appendChild(token);
         });
 
-        const isReady = (builtSequence.length > 0);
-        btn.disabled = !isReady;
-        btn.classList.toggle('active', isReady);
+        // Tugma holati
+        btn.disabled = !selectedWord;
+        btn.classList.toggle('active', !!selectedWord);
     }
 
     document.getElementById('checkBuilderBtn').onclick = () => {
         const correct = levels[currentIdx].correct;
-        const isCorrect = builtSequence.length === correct.length && 
-                          builtSequence.every((val, i) => val.word === correct[i]);
+        const isCorrect = selectedWord === correct;
         
         const panel = document.getElementById('resultPanel');
         const title = document.getElementById('resultTitle');
@@ -243,11 +255,13 @@
 
         if (isCorrect) {
             score++;
-            title.textContent = "Barakalla! 🌟";
-            msg.textContent = "To'g'ri tarjima!";
+            title.textContent = "Ajoyib! ✨";
+            title.style.color = "#27ae60";
+            msg.textContent = "To'ppa-to'g'ri topdingiz!";
         } else {
-            title.textContent = "Xato 😕";
-            msg.textContent = "To'g'ri javob: " + correct.join(' ');
+            title.textContent = "Xato! ❌";
+            title.style.color = "#e74c3c";
+            msg.textContent = `To'g'ri javob: ${correct}`;
         }
         panel.classList.add('active');
     };
@@ -258,7 +272,7 @@
             currentIdx++;
             initLevel();
         } else {
-            alert(`Mashq tugadi! Natijangiz: ${score} / ${levels.length}`);
+            alert(`O'yin tugadi! \nNatijangiz: ${score} / ${levels.length}`);
             currentIdx = 0; score = 0; initLevel();
         }
     };
