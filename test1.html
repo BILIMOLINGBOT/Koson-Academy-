@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uz">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
@@ -17,73 +17,80 @@
             background: #0a0a0a;
             color: #ffffff;
             overflow: hidden;
+            display: flex;
+            justify-content: center;
         }
         .app-container {
+            width: 100%;
+            max-width: 500px;
             display: flex;
             flex-direction: column;
             height: 100vh;
-            padding: 40px 20px;
+            padding: 50px 20px 30px;
         }
         .header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
         }
         .question-number {
             font-size: 14px;
-            color: #666;
-            text-transform: uppercase;
-            margin-bottom: 10px;
+            color: #555;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
         }
         .uzbek-sentence {
-            font-size: 26px;
+            font-size: 28px;
             font-weight: 700;
+            color: #eee;
         }
         .builder-area {
             flex: 1;
             display: flex;
             flex-direction: column;
+            justify-content: center; /* Tarkibni o'rtaga yig'adi */
         }
-        /* Yig'ilayotgan joy - Tekis va fonsiz */
+        /* Yig'ilayotgan so'zlar joyi - Markazda va tekis */
         .sentence-builder {
-            min-height: 100px;
+            min-height: 80px;
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            align-content: flex-start;
+            align-items: center;
             gap: 10px;
-            padding: 20px 0;
+            margin-bottom: 50px;
         }
         .word-chip {
-            background: #1e1e1e;
-            padding: 12px 22px;
-            border-radius: 12px;
-            font-size: 19px;
+            background: #1a1a1a;
+            padding: 12px 20px;
+            border-radius: 14px;
+            font-size: 20px;
             font-weight: 500;
-            color: white;
+            color: #fff;
             border: 1px solid #333;
             cursor: pointer;
-            user-select: none;
+            transition: transform 0.1s;
         }
-        /* Pastki bank qismi - Chiziqsiz va tekis */
+        /* Pastki so'zlar banki - Markazda va tekis */
         .word-bank {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 10px;
-            margin-top: auto;
-            padding-bottom: 30px;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 40px;
         }
         .bank-token {
-            background: #1a1a1a;
-            padding: 14px 24px;
-            border-radius: 12px;
-            font-size: 19px;
+            background: #111;
+            padding: 14px 22px;
+            border-radius: 14px;
+            font-size: 20px;
             font-weight: 500;
-            border: 1px solid #2a2a2a;
+            color: #fff;
+            border: 1px solid #222;
             cursor: pointer;
         }
         .bank-token.disabled {
-            opacity: 0.05;
+            opacity: 0.1;
             pointer-events: none;
         }
         /* Tekshirish tugmasi */
@@ -91,34 +98,34 @@
             width: 100%;
             height: 65px;
             border: none;
-            border-radius: 24px;
-            background: #222;
-            color: #555;
-            font-size: 18px;
+            border-radius: 25px;
+            background: #1e1e1e;
+            color: #444;
+            font-size: 19px;
             font-weight: 700;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
+            gap: 12px;
+            transition: 0.2s;
         }
         .action-btn.active {
-            background: #e0e0e0;
+            background: #ffffff;
             color: #000;
             cursor: pointer;
         }
 
-        /* Natija oynasi */
+        /* Natija paneli */
         .result-panel {
             position: fixed;
             bottom: 0; left: 0; right: 0;
-            background: #ffffff;
+            background: #fff;
             border-radius: 30px 30px 0 0;
-            padding: 35px 25px;
+            padding: 40px 25px;
             transform: translateY(100%);
-            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: 0.3s ease;
             color: #000;
-            z-index: 100;
+            z-index: 1000;
         }
         .result-panel.active { transform: translateY(0); }
         .footer-btn {
@@ -130,6 +137,7 @@
             color: #fff;
             font-size: 18px;
             font-weight: 700;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -142,7 +150,10 @@
     </div>
 
     <div class="builder-area">
+        <!-- Gap yig'iladigan joy (Markazda) -->
         <div class="sentence-builder" id="buildingZone"></div>
+
+        <!-- Pastki so'zlar banki (Markazda) -->
         <div class="word-bank" id="wordBank"></div>
         
         <button class="action-btn" id="checkBuilderBtn" disabled>
@@ -151,8 +162,8 @@
     </div>
 
     <div class="result-panel" id="resultPanel">
-        <h2 id="resultTitle">...</h2>
-        <p id="resultMessage" style="margin: 15px 0 25px; font-size: 18px;"></p>
+        <h2 id="resultTitle" style="font-size: 24px;">...</h2>
+        <p id="resultMessage" style="margin: 15px 0 30px; font-size: 18px; color: #333;"></p>
         <button class="footer-btn" id="continueBtn">Davom etish</button>
     </div>
 </div>
@@ -193,7 +204,7 @@
         builtSequence.forEach((item, idx) => {
             const chip = document.createElement('div');
             chip.className = 'word-chip';
-            chip.textContent = item.word; // Faqat so'z matni, 'x'siz
+            chip.textContent = item.word;
             chip.onclick = () => {
                 usedFlags[item.bankIdx] = false;
                 builtSequence.splice(idx, 1);
@@ -217,14 +228,15 @@
             bank.appendChild(token);
         });
 
-        const isReady = builtSequence.length === bankWords.length;
+        const isReady = (builtSequence.length > 0);
         btn.disabled = !isReady;
         btn.classList.toggle('active', isReady);
     }
 
     document.getElementById('checkBuilderBtn').onclick = () => {
         const correct = sentences[currentIdx].correct;
-        const isCorrect = builtSequence.every((val, i) => val.word === correct[i]);
+        const isCorrect = builtSequence.length === correct.length && 
+                          builtSequence.every((val, i) => val.word === correct[i]);
         
         const panel = document.getElementById('resultPanel');
         const title = document.getElementById('resultTitle');
@@ -233,9 +245,9 @@
         if (isCorrect) {
             score++;
             title.textContent = "Ajoyib! 🎉";
-            msg.textContent = "Gap to'g'ri yig'ildi.";
+            msg.textContent = "To'g'ri topdingiz!";
         } else {
-            title.textContent = "E'tibor bering 💡";
+            title.textContent = "E'tiborli bo'ling 💡";
             msg.textContent = "To'g'ri tartib: " + correct.join(' ');
         }
         panel.classList.add('active');
@@ -247,7 +259,7 @@
             currentIdx++;
             initLevel();
         } else {
-            alert(`Mashq tugadi! To'g'ri javoblar: ${score} / ${sentences.length}`);
+            alert(`Mashq tugadi! Natijangiz: ${score} / ${sentences.length}`);
             currentIdx = 0; score = 0; initLevel();
         }
     };
