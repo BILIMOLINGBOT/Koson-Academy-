@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Ingliz Tili - Sentence Builder</title>
+    <title>Ingliz Tili Flashcards</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
@@ -12,11 +12,14 @@
             --text-primary: #ffffff;
             --text-secondary: #a0a0a0;
             --border-color: #333333;
-            --accent: #3b82f6;
-            --success: #22c55e;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, sans-serif; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
 
         body {
             background-color: var(--bg-primary);
@@ -34,63 +37,104 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
-            padding: 30px 20px;
+            padding: 40px 20px;
         }
 
-        /* Flashcard Styles */
-        .card-stack { flex: 1; display: flex; flex-direction: column; gap: 15px; justify-content: center; }
-        .flashcard { background: var(--card-bg); border: 2px solid var(--border-color); border-radius: 25px; padding: 20px; }
-        .flag-img { width: 40px; height: 25px; border-radius: 4px; }
-        .word-main { font-size: 36px; font-weight: 800; margin: 10px 0; display: flex; align-items: center; gap: 10px; }
-        
-        /* Sentence Quiz Styles */
-        #sentence-app { display: none; flex-direction: column; height: 100%; }
-        .sentence-q { font-size: 22px; font-weight: 600; text-align: center; margin-bottom: 30px; padding: 20px; background: #111; border-radius: 15px; }
-        
-        .result-area {
-            min-height: 100px;
-            border-bottom: 2px solid var(--border-color);
-            margin-bottom: 30px;
+        .card-stack {
+            flex: 1;
             display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            align-content: flex-start;
-            padding: 10px;
-        }
-
-        .word-bank {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
+            flex-direction: column;
+            gap: 20px;
             justify-content: center;
         }
 
-        .word-tile {
+        .flashcard {
             background: var(--card-bg);
             border: 2px solid var(--border-color);
-            padding: 12px 18px;
-            border-radius: 12px;
-            cursor: pointer;
+            border-radius: 32px;
+            padding: 25px;
+            width: 100%;
+        }
+
+        .flag-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .flag-img {
+            width: 45px;
+            height: 30px;
+            border-radius: 4px;
+            object-fit: cover;
+        }
+
+        .part-of-speech {
+            color: var(--text-secondary);
+            font-weight: 700;
+            letter-spacing: 1px;
             font-size: 18px;
-            font-weight: 500;
-            transition: 0.2s;
-            user-select: none;
+            text-transform: uppercase;
         }
 
-        .word-tile:active { transform: scale(0.9); }
-        .word-tile.used { opacity: 0.2; pointer-events: none; }
-        .word-tile.selected { background: var(--accent); border-color: var(--accent); }
+        .word-main {
+            font-size: 42px;
+            font-weight: 800;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
 
-        /* General Buttons */
-        .footer-area { margin-top: auto; padding-bottom: 20px; }
+        .audio-icon {
+            color: #3b82f6;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .translation-word {
+            font-size: 28px;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+
+        .footer-area {
+            padding-bottom: 20px;
+        }
+
         .next-btn {
-            width: 100%; height: 60px; background: white; color: black; border: none;
-            border-radius: 20px; font-size: 18px; font-weight: 800; cursor: pointer;
-            text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 10px;
+            width: 100%;
+            height: 65px;
+            background: white;
+            color: black;
+            border: none;
+            border-radius: 24px;
+            font-size: 20px;
+            font-weight: 800;
+            cursor: pointer;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: 0.2s;
         }
 
-        #final-screen { display: none; text-align: center; justify-content: center; }
-        .trophy-icon { font-size: 80px; margin-bottom: 20px; color: gold; }
+        .next-btn:active {
+            transform: scale(0.96);
+        }
+
+        #final-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            height: 100%;
+            text-align: center;
+        }
+
+        .trophy-icon { font-size: 100px; color: white; margin-bottom: 20px; }
     </style>
 </head>
 <body>
@@ -98,168 +142,98 @@
 <div id="main-app" class="app-container">
     <div class="card-stack">
         <div class="flashcard">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="flag-row">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Flag_of_the_United_Kingdom_%283-5%29.svg" class="flag-img">
-                <span id="posText" style="color: var(--text-secondary); font-weight: bold;">PRONOUN</span>
+                <span class="part-of-speech" id="posText">PRONOUN</span>
             </div>
             <div class="word-main">
                 <span id="engWord">My</span>
-                <i class="fas fa-volume-up" style="color:var(--accent); cursor:pointer;" onclick="speak()"></i>
+                <i class="fas fa-volume-up audio-icon"></i>
             </div>
         </div>
+
         <div class="flashcard">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/8/84/Flag_of_Uzbekistan.svg" class="flag-img">
-            <div style="font-size: 24px; font-weight: 700; margin-top: 10px;" id="uzbWord">mening</div>
+            <div class="flag-row">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/8/84/Flag_of_Uzbekistan.svg" class="flag-img">
+            </div>
+            <div class="translation-word" id="uzbWord">mening</div>
         </div>
     </div>
-    <div class="footer-area">
-        <button class="next-btn" id="nextBtn">Keyingi <i class="fas fa-arrow-right"></i></button>
-    </div>
-</div>
-
-<div id="sentence-app" class="app-container">
-    <h3 style="text-align: center; color: var(--text-secondary); margin-bottom: 10px;">Gapni tarjima qiling:</h3>
-    <div class="sentence-q" id="targetSentenceUz">Men Toshkentdanman</div>
-    
-    <div class="result-area" id="resultArea"></div>
-
-    <div class="word-bank" id="wordBank"></div>
 
     <div class="footer-area">
-        <button class="next-btn" id="checkBtn" style="background: var(--accent); color: white;">Tekshirish</button>
+        <button class="next-btn" id="nextBtn">
+            Keyingi <i class="fas fa-arrow-right"></i>
+        </button>
     </div>
 </div>
 
 <div id="final-screen" class="app-container">
-    <i class="fas fa-trophy trophy-icon"></i>
-    <h1>Ajoyib!</h1>
-    <p style="margin: 20px 0; color: var(--text-secondary);">Siz barcha so'zlarni va gaplarni muvaffaqiyatli o'rgandingiz.</p>
-    <div style="font-size: 24px; font-weight: bold; margin-bottom: 30px;"><i class="fas fa-coins" style="color:gold"></i> <span id="coinCount">0</span></div>
+    <div style="margin-top: 50px;">
+        <i class="fas fa-trophy trophy-icon"></i>
+        <h1 style="font-size: 28px;">Mashg'ulot yakunlandi</h1>
+    </div>
+    
+    <div style="display: flex; gap: 15px; width: 100%; margin-top: -50px;">
+        <div style="flex: 1; border: 3px solid white; border-radius: 20px; padding: 20px; background: black;">
+            <div style="background: white; color: black; padding: 4px 10px; border-radius: 10px; font-weight: 800; font-size: 12px; margin-top: -35px; margin-bottom: 10px;">TANGA</div>
+            <div style="font-size: 24px; font-weight: bold;"><i class="fas fa-coins"></i> <span id="coinCount">0</span></div>
+        </div>
+    </div>
+
     <button class="next-btn" onclick="location.reload()">Qaytadan boshlash</button>
 </div>
 
 <script>
     const vocabulary = [
-        { pos: "PRONOUN", eng: "I", uzb: "men" },
-        { pos: "VERB", eng: "am", uzb: "bo'lmoq (am)" },
-        { pos: "PREPOSITION", eng: "from", uzb: "dan" },
-        { pos: "NOUN", eng: "Tashkent", uzb: "Toshkent" },
         { pos: "DETERMINER", eng: "My", uzb: "mening" },
         { pos: "NOUN", eng: "name", uzb: "ism" },
-        { pos: "VERB", eng: "is", uzb: "bo'lmoq (is)" },
-        { pos: "NOUN", eng: "Javlon", uzb: "Javlon" },
+        { pos: "VERB", eng: "is", uzb: "“bo‘lmoq” fe’li (to be)" },
+        { pos: "PRONOUN", eng: "I", uzb: "men" },
+        { pos: "VERB", eng: "am", uzb: "“bo‘lmoq” fe’li (to be)" },
+        { pos: "PREPOSITION", eng: "from", uzb: "dan" },
         { pos: "VERB", eng: "live", uzb: "yashaymoq" },
         { pos: "PREPOSITION", eng: "in", uzb: "da" },
-        { pos: "ARTICLE", eng: "a", uzb: "bir (artikl)" },
+        { pos: "ARTICLE", eng: "a", uzb: "artikl (bir)" },
         { pos: "NOUN", eng: "student", uzb: "talaba" },
-        { pos: "VERB", eng: "have", uzb: "bor / ega bo'lmoq" },
+        { pos: "VERB", eng: "have", uzb: "ega bo‘lmoq / bor" },
         { pos: "NOUN", eng: "family", uzb: "oila" }
     ];
 
-    const sentences = [
-        { uz: "Men Toshkentdanman", en: ["I", "am", "from", "Tashkent"], extra: ["live", "is"] },
-        { uz: "Mening ismim Javlon.", en: ["My", "name", "is", "Javlon"], extra: ["am", "a"] },
-        { uz: "Men Toshkentda yashayman.", en: ["I", "live", "in", "Tashkent"], extra: ["from", "have"] },
-        { uz: "Men talabaman", en: ["I", "am", "a", "student"], extra: ["is", "name"] },
-        { uz: "Mening oilam bor.", en: ["I", "have", "a", "family"], extra: ["in", "is"] }
-    ];
-
-    let currentVocabIdx = 0;
-    let currentSentIdx = 0;
+    let currentIdx = 0;
     let coins = 0;
-    let selectedWords = [];
 
-    // --- Flashcard Logic ---
-    function updateVocab() {
-        const item = vocabulary[currentVocabIdx];
+    const mainApp = document.getElementById('main-app');
+    const finalScreen = document.getElementById('final-screen');
+    
+    function updateCard() {
+        const item = vocabulary[currentIdx];
         document.getElementById('posText').textContent = item.pos;
         document.getElementById('engWord').textContent = item.eng;
         document.getElementById('uzbWord').textContent = item.uzb;
     }
 
     document.getElementById('nextBtn').addEventListener('click', () => {
-        coins += 5;
-        if (currentVocabIdx < vocabulary.length - 1) {
-            currentVocabIdx++;
-            updateVocab();
+        coins += 5; // Har bir so'z uchun 5 tanga
+        
+        if (currentIdx < vocabulary.length - 1) {
+            currentIdx++;
+            updateCard();
         } else {
-            document.getElementById('main-app').style.display = 'none';
-            document.getElementById('sentence-app').style.display = 'flex';
-            loadSentence();
+            mainApp.style.display = 'none';
+            finalScreen.style.display = 'flex';
+            document.getElementById('coinCount').textContent = coins;
         }
     });
 
-    function speak() {
+    // Inglizcha talaffuz (UK English)
+    document.querySelector('.audio-icon').addEventListener('click', () => {
         const text = document.getElementById('engWord').textContent;
-        const ut = new SpeechSynthesisUtterance(text);
-        ut.lang = 'en-GB';
-        window.speechSynthesis.speak(ut);
-    }
-
-    // --- Sentence Builder Logic ---
-    function loadSentence() {
-        const data = sentences[currentSentIdx];
-        document.getElementById('targetSentenceUz').textContent = data.uz;
-        document.getElementById('resultArea').innerHTML = '';
-        selectedWords = [];
-        
-        // Combine correct words with extra words and shuffle
-        let pool = [...data.en, ...data.extra].sort(() => Math.random() - 0.5);
-        
-        const bank = document.getElementById('wordBank');
-        bank.innerHTML = '';
-        pool.forEach((word, index) => {
-            const btn = document.createElement('div');
-            btn.className = 'word-tile';
-            btn.textContent = word;
-            btn.onclick = () => selectWord(word, btn);
-            bank.appendChild(btn);
-        });
-    }
-
-    function selectWord(word, btn) {
-        if (btn.classList.contains('used')) return;
-        
-        btn.classList.add('used');
-        selectedWords.push(word);
-        
-        const resBtn = document.createElement('div');
-        resBtn.className = 'word-tile selected';
-        resBtn.textContent = word;
-        resBtn.onclick = () => {
-            resBtn.remove();
-            selectedWords = selectedWords.filter(w => w !== word);
-            btn.classList.remove('used');
-        };
-        document.getElementById('resultArea').appendChild(resBtn);
-    }
-
-    document.getElementById('checkBtn').addEventListener('click', () => {
-        const correct = sentences[currentSentIdx].en;
-        const isCorrect = JSON.stringify(selectedWords) === JSON.stringify(correct);
-
-        if (isCorrect) {
-            coins += 20;
-            alert("To'g'ri! +20 tanga");
-            if (currentSentIdx < sentences.length - 1) {
-                currentSentIdx++;
-                loadSentence();
-            } else {
-                showFinal();
-            }
-        } else {
-            alert("Xato, qaytadan urinib ko'ring.");
-            loadSentence();
-        }
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-GB'; 
+        window.speechSynthesis.speak(utterance);
     });
 
-    function showFinal() {
-        document.getElementById('sentence-app').style.display = 'none';
-        document.getElementById('final-screen').style.display = 'flex';
-        document.getElementById('coinCount').textContent = coins;
-    }
-
-    updateVocab();
+    updateCard();
 </script>
 
 </body>
