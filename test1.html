@@ -1,462 +1,379 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Inglizcha gap quramiz · Sentence Builder</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sentence Builder | English Uzbek</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --bg-color: #0f172a;
+            --surface-color: #1e293b;
+            --accent-color: #6366f1;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
-        body, html {
-            height: 100%;
-            background: #0a0a0a;
-            color: #ffffff;
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            height: 100vh;
             overflow: hidden;
+            display: flex;
+            justify-content: center;
         }
-        /* main quiz screen (builder) */
+
         .app-container {
+            width: 100%;
+            max-width: 500px;
+            height: 100%;
             display: flex;
             flex-direction: column;
-            height: 100vh;
-            padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom);
-            background: linear-gradient(180deg, #0a0a0a 0%, #141414 100%);
+            padding: 20px;
+            position: relative;
         }
-        .header {
-            padding: 20px 0;
+
+        /* Progress Bar */
+        .progress-container {
+            padding: 10px 0 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .progress-bar {
+            flex: 1;
+            height: 12px;
+            background: #334155;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #6366f1, #a855f7);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        /* Header Area */
+        .question-header {
+            margin-bottom: 25px;
+        }
+        .uzbek-card {
+            background: var(--surface-color);
+            padding: 24px;
+            border-radius: 24px;
+            border: 1px solid #334155;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            font-size: 22px;
+            font-weight: 600;
             text-align: center;
-            border-bottom: 1px solid #2a2a2a;
-            margin-bottom: 20px;
+            position: relative;
         }
-        .question-number {
-            font-size: 16px;
-            color: #a0a0a0;
-            margin-bottom: 8px;
-            letter-spacing: 1px;
+        .uzbek-card::after {
+            content: "O'zbekcha";
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            background: var(--accent-color);
+            font-size: 10px;
+            padding: 2px 10px;
+            border-radius: 10px;
             text-transform: uppercase;
         }
-        .uzbek-sentence {
-            font-size: 26px;
-            font-weight: 600;
-            line-height: 1.4;
-            color: #fff;
-            background: #1e1e1e;
-            padding: 20px 16px;
-            border-radius: 28px;
-            margin: 8px 0 16px;
-            border: 1px solid #333;
-            box-shadow: 0 8px 0 #0b0b0b;
-        }
-        .builder-area {
+
+        /* Builder Zone */
+        .builder-section {
             flex: 1;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            gap: 20px;
         }
-        .sentence-builder {
-            background: #1a1a1a;
-            border-radius: 30px;
-            padding: 24px 16px;
-            min-height: 140px;
-            border: 2px dashed #3a3a3a;
+
+        .sentence-display {
+            min-height: 120px;
+            background: rgba(30, 41, 59, 0.5);
+            border: 2px dashed #475569;
+            border-radius: 24px;
             display: flex;
             flex-wrap: wrap;
-            align-items: center;
-            justify-content: center;
-            gap: 12px 8px;
-            margin-bottom: 24px;
+            align-content: flex-start;
+            gap: 10px;
+            padding: 15px;
+            transition: var(--transition);
         }
+
         .word-chip {
-            background: #2a2a2a;
-            padding: 14px 22px;
-            border-radius: 60px;
-            font-size: 20px;
-            font-weight: 500;
-            color: white;
-            border: 2px solid #444;
-            box-shadow: 0 4px 0 #1a1a1a;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
+            background: var(--accent-color);
+            padding: 10px 18px;
+            border-radius: 14px;
+            font-weight: 600;
+            font-size: 18px;
             cursor: pointer;
-            transition: 0.1s ease;
-            user-select: none;
+            animation: popIn 0.3s ease;
+            box-shadow: 0 4px 0 #4338ca;
         }
-        .word-chip.placed {
-            background: #000;
-            border-color: #fff;
-            color: white;
-            box-shadow: 0 4px 0 #333;
-        }
-        .word-chip i {
-            font-size: 16px;
-            color: #aaa;
-            pointer-events: none;
-        }
+        .word-chip:active { transform: translateY(2px); box-shadow: 0 2px 0 #4338ca; }
+
+        /* Word Bank */
         .word-bank {
             display: flex;
             flex-wrap: wrap;
-            align-items: center;
-            justify-content: center;
-            gap: 14px 10px;
-            background: #0f0f0f;
-            padding: 30px 16px;
-            border-radius: 60px 60px 30px 30px;
-            border: 1px solid #2c2c2c;
-            margin-top: 10px;
-        }
-        .bank-token {
-            background: #222;
-            padding: 16px 26px;
-            border-radius: 50px;
-            font-size: 22px;
-            font-weight: 600;
-            color: #fff;
-            border: 2px solid #4a4a4a;
-            box-shadow: 0 5px 0 #0f0f0f;
-            cursor: pointer;
-            transition: 0.08s linear;
-            user-select: none;
-        }
-        .bank-token:active { transform: translateY(4px); box-shadow: none; }
-        .bank-token.disabled {
-            opacity: 0.25;
-            pointer-events: none;
-            filter: grayscale(1);
-        }
-        .action-btn {
-            width: 100%;
-            height: 60px;
-            border: none;
-            border-radius: 30px;
-            background: #2a2a2a;
-            color: #a0a0a0;
-            font-size: 20px;
-            font-weight: 700;
-            margin: 16px 0 30px;
-            display: flex;
-            align-items: center;
             justify-content: center;
             gap: 12px;
-            cursor: not-allowed;
+            padding: 20px 0;
         }
-        .action-btn.active {
-            background: #ffffff;
-            color: #0a0a0a;
-            cursor: pointer;
-            box-shadow: 0 7px 0 #bebebe;
-        }
-        .action-btn.active:active { transform: translateY(5px); box-shadow: none; }
 
-        /* result panel (success/error) */
+        .bank-token {
+            background: #334155;
+            padding: 12px 20px;
+            border-radius: 16px;
+            font-size: 18px;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid #475569;
+            transition: var(--transition);
+            user-select: none;
+        }
+        .bank-token:active { scale: 0.95; }
+        .bank-token.used {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.8);
+        }
+
+        /* Check Button */
+        .check-btn {
+            background: #334155;
+            color: var(--text-dim);
+            border: none;
+            padding: 18px;
+            border-radius: 20px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: not-allowed;
+            transition: var(--transition);
+            margin-bottom: 20px;
+        }
+        .check-btn.ready {
+            background: var(--text-main);
+            color: var(--bg-color);
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255,255,255,0.2);
+        }
+
+        /* Bottom Result Panel */
         .result-panel {
-            position: fixed;
+            position: absolute;
             bottom: 0; left: 0; right: 0;
-            background: white;
-            border-radius: 30px 30px 0 0;
-            padding: 30px 20px;
+            background: var(--surface-color);
+            padding: 30px 20px 40px;
+            border-top: 4px solid var(--success-color);
             transform: translateY(100%);
-            transition: transform 0.3s cubic-bezier(0.2, 1, 0.3, 1);
-            z-index: 1000;
-            color: black;
+            transition: var(--transition);
+            z-index: 100;
+            border-radius: 30px 30px 0 0;
         }
         .result-panel.active { transform: translateY(0); }
-        .result-panel h2 { margin-bottom: 8px; }
-        .result-panel p { margin-bottom: 24px; font-size: 18px; }
-        .footer-btn {
+        .result-panel.error { border-top-color: var(--error-color); }
+
+        .result-content h2 { font-size: 24px; margin-bottom: 10px; }
+        .result-content p { color: var(--text-dim); margin-bottom: 20px; }
+
+        .next-btn {
             width: 100%;
-            background: black; color: white; border: none;
-            padding: 18px; border-radius: 30px;
-            font-size: 18px; font-weight: 700; text-transform: uppercase;
+            padding: 16px;
+            border-radius: 16px;
+            border: none;
+            background: var(--success-color);
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
             cursor: pointer;
         }
+        .error .next-btn { background: var(--error-color); }
 
-        /* final screen (trophy) */
+        /* Final Screen */
         #final-screen {
             display: none;
-            height: 100vh;
             flex-direction: column;
             align-items: center;
-            justify-content: space-between;
-            padding: 60px 20px;
+            justify-content: center;
             text-align: center;
-            background: #000;
+            gap: 30px;
         }
-        .trophy-icon { font-size: 100px; color: white; }
-        .stats-container { display: flex; gap: 15px; width: 100%; max-width: 400px; margin-top: -30px; }
-        .stat-card {
-            flex: 1; border-radius: 20px; padding: 10px;
-            display: flex; flex-direction: column; align-items: center;
-            border: 3px solid white; background: black;
+        .trophy { font-size: 80px; color: #fbbf24; }
+
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
         }
-        .stat-label {
-            font-weight: bold; padding: 4px 15px; border-radius: 12px;
-            margin-top: -28px; margin-bottom: 15px; font-size: 14px;
-            background: white; color: black; text-transform: uppercase;
-        }
-        .footer-btn.end {
-            background: white; color: black; box-shadow: 0 6px 0 rgba(255,255,255,0.2);
-        }
-        .footer-btn.end:active { transform: translateY(4px); box-shadow: none; }
     </style>
 </head>
 <body>
 
-<!-- asosiy oyna: builder -->
 <div id="quiz-screen" class="app-container">
-    <div class="header">
-        <div class="question-number" id="levelCounter">1 / 6 · so'z yig'ish</div>
-        <div class="uzbek-sentence" id="uzbekPrompt">... yuklanmoqda</div>
+    <div class="progress-container">
+        <div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
+        <span id="levelText" style="font-weight: bold; color: var(--accent-color)">1/6</span>
     </div>
 
-    <div class="builder-area">
-        <!-- qurilayotgan gap (bosiladigan so‘zlar) -->
-        <div class="sentence-builder" id="buildingZone"></div>
+    <div class="question-header">
+        <div class="uzbek-card" id="uzbekPrompt">Yuklanmoqda...</div>
+    </div>
 
-        <!-- so‘zlar ombori (bank) -->
+    <div class="builder-section">
+        <div class="sentence-display" id="buildingZone"></div>
         <div class="word-bank" id="wordBank"></div>
-
-        <!-- tekshirish tugmasi -->
-        <button class="action-btn" id="checkBuilderBtn" disabled>
-            <i class="fas fa-arrow-right"></i> Javobni tekshirish
-        </button>
     </div>
 
-    <!-- natija paneli (to‘g‘ri / noto‘g‘ri) -->
+    <button class="check-btn" id="checkBtn" disabled>TEKSHIRISH</button>
+
     <div class="result-panel" id="resultPanel">
-        <h2 id="resultTitle">Bajarildi</h2>
-        <p id="resultMessage"></p>
-        <button class="footer-btn" id="continueBtn">Davom etish</button>
+        <div class="result-content">
+            <h2 id="resTitle">Barakalla!</h2>
+            <p id="resMsg"></p>
+            <button class="next-btn" id="nextBtn">DAVOM ETISH</button>
+        </div>
     </div>
 </div>
 
-<!-- yakuniy ekran -->
-<div id="final-screen">
-    <div class="trophy-section">
-        <i class="fas fa-trophy trophy-icon"></i>
-        <h1 style="font-size: 28px; margin-top: 20px;">Mashg'ulot yakunlandi</h1>
+<div id="final-screen" class="app-container">
+    <i class="fas fa-crown trophy"></i>
+    <h1>Mashg'ulot tugadi!</h1>
+    <div style="font-size: 1.2rem; color: var(--text-dim)">
+        To'g'ri javoblar: <span id="finalScore" style="color: var(--success-color); font-weight: bold">0</span>
     </div>
-    <div class="stats-container">
-        <div class="stat-card">
-            <div class="stat-label">Aniqlik</div>
-            <div style="display:flex; align-items:center; font-size:24px; font-weight:bold;">
-                <i class="fas fa-bullseye" style="margin-right:8px"></i>
-                <span id="finalAccuracy">0%</span>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-label">Tanga</div>
-            <div style="display:flex; align-items:center; font-size:24px; font-weight:bold;">
-                <i class="fas fa-coins" style="margin-right:8px"></i>
-                <span id="finalScore">0</span>
-            </div>
-        </div>
-    </div>
-    <button class="footer-btn end" onclick="location.reload()">Qaytadan boshlash</button>
+    <button class="next-btn" style="background: var(--accent-color)" onclick="location.reload()">QAYTADAN BOSHLASH</button>
 </div>
 
 <script>
-    (function() {
-        // ----- MA’LUMOTLAR (o‘zbekcha gap, to‘g‘ri inglizcha so‘zlar) -----
-        const sentences = [
-            { 
-                uz: "Mening ismim Aziz.",
-                correctWords: ["My", "name", "is", "Aziz."]
-            },
-            { 
-                uz: "Ular maktabga borishadi.",
-                correctWords: ["They", "go", "to", "school."]
-            },
-            { 
-                uz: "Men olma yeyman.",
-                correctWords: ["I", "eat", "an", "apple."]
-            },
-            { 
-                uz: "Sizning uyingiz katta.",
-                correctWords: ["Your", "house", "is", "big."]
-            },
-            { 
-                uz: "Bugun havo issiq.",
-                correctWords: ["Today", "the", "weather", "is", "hot."]
-            },
-            { 
-                uz: "Biz yangi mashina sotib oldik.",
-                correctWords: ["We", "bought", "a", "new", "car."]
+    const data = [
+        { uz: "Mening ismim Aziz.", en: ["My", "name", "is", "Aziz."] },
+        { uz: "Ular maktabga borishadi.", en: ["They", "go", "to", "school."] },
+        { uz: "Men olma yeyman.", en: ["I", "eat", "an", "apple."] },
+        { uz: "Sizning uyingiz katta.", en: ["Your", "house", "is", "big."] },
+        { uz: "Bugun havo issiq.", en: ["Today", "the", "weather", "is", "hot."] },
+        { uz: "Biz yangi mashina oldik.", en: ["We", "bought", "a", "new", "car."] }
+    ];
+
+    let current = 0;
+    let score = 0;
+    let selectedWords = [];
+    let bankWords = [];
+
+    const buildingZone = document.getElementById('buildingZone');
+    const wordBank = document.getElementById('wordBank');
+    const checkBtn = document.getElementById('checkBtn');
+    const resultPanel = document.getElementById('resultPanel');
+
+    function initLevel() {
+        selectedWords = [];
+        const correct = data[current].en;
+        bankWords = [...correct].sort(() => Math.random() - 0.5);
+        
+        document.getElementById('uzbekPrompt').innerText = data[current].uz;
+        document.getElementById('levelText').innerText = `${current + 1}/${data.length}`;
+        document.getElementById('progressFill').style.width = `${((current) / data.length) * 100}%`;
+        
+        render();
+    }
+
+    function render() {
+        buildingZone.innerHTML = '';
+        selectedWords.forEach((word, idx) => {
+            const div = document.createElement('div');
+            div.className = 'word-chip';
+            div.innerText = word;
+            div.onclick = () => removeWord(idx);
+            buildingZone.appendChild(div);
+        });
+
+        wordBank.innerHTML = '';
+        bankWords.forEach((word, idx) => {
+            const div = document.createElement('div');
+            div.className = 'bank-token';
+            if (selectedWords.includes(word) && isDuplicate(word, idx)) {
+                div.classList.add('used');
             }
-        ];
+            div.innerText = word;
+            div.onclick = () => addWord(word, idx);
+            wordBank.appendChild(div);
+        });
 
-        // current index
-        let currentIdx = 0;
-        // foydalanuvchi tanlagan so‘zlar (yig‘ilgan)
-        let builtSequence = [];        // har bir element -> { word: "My", bankIndex: 2 }
-        // bankdagi so‘zlar (aralashtirilgan)
-        let bankWords = [];
-        // har bir bank so‘zining ishlatilganlik holati
-        let usedFlags = [];
-        // to‘g‘ri javoblar soni (tanga)
-        let coins = 0;
-        // jami savol (6)
-        const totalQuestions = sentences.length;
+        const isReady = selectedWords.length === data[current].en.length;
+        checkBtn.disabled = !isReady;
+        checkBtn.classList.toggle('ready', isReady);
+    }
 
-        // ----- random tartibli bank yaratish (to‘g‘ri so‘zlar asosida) -----
-        function shuffleArray(arr) {
-            for (let i = arr.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [arr[i], arr[j]] = [arr[j], arr[i]];
-            }
-            return arr;
+    // Bir xil so'zlar bo'lsa (masalan "the", "the") indeks bo'yicha tekshirish
+    let usedIndices = [];
+
+    function addWord(word, index) {
+        selectedWords.push(word);
+        usedIndices.push(index);
+        render();
+    }
+
+    function removeWord(index) {
+        selectedWords.splice(index, 1);
+        usedIndices.splice(index, 1);
+        render();
+    }
+
+    function isDuplicate(word, bankIdx) {
+        return usedIndices.includes(bankIdx);
+    }
+
+    checkBtn.onclick = () => {
+        const isCorrect = JSON.stringify(selectedWords) === JSON.stringify(data[current].en);
+        const resTitle = document.getElementById('resTitle');
+        const resMsg = document.getElementById('resMsg');
+        
+        if (isCorrect) {
+            score++;
+            resTitle.innerText = "Ajoyib! 🎉";
+            resTitle.style.color = "var(--success-color)";
+            resMsg.innerText = "Gapni to'g'ri tuzdingiz.";
+            resultPanel.classList.remove('error');
+        } else {
+            resTitle.innerText = "Xato 📚";
+            resTitle.style.color = "var(--error-color)";
+            resMsg.innerText = `To'g'ri javob: ${data[current].en.join(' ')}`;
+            resultPanel.classList.add('error');
         }
+        
+        resultPanel.classList.add('active');
+    };
 
-        function initBankForCurrent() {
-            const correct = sentences[currentIdx].correctWords;
-            // bank = to‘liq correct array, lekin random tartibda
-            bankWords = shuffleArray([...correct]);   // nusxa olib aralashtiramiz
-            usedFlags = new Array(bankWords.length).fill(false);
-            builtSequence = [];   // yangi boshlangan
+    document.getElementById('nextBtn').onclick = () => {
+        resultPanel.classList.remove('active');
+        if (current < data.length - 1) {
+            current++;
+            initLevel();
+        } else {
+            showFinal();
         }
+    };
 
-        // ----- UI ni to‘liq qayta chizish -----
-        function renderBuilder() {
-            const buildingZone = document.getElementById('buildingZone');
-            const wordBankDiv = document.getElementById('wordBank');
+    function showFinal() {
+        document.getElementById('quiz-screen').style.display = 'none';
+        document.getElementById('final-screen').style.display = 'flex';
+        document.getElementById('finalScore').innerText = `${score} / ${data.length}`;
+        document.getElementById('progressFill').style.width = `100%`;
+    }
 
-            // 1. qurilayotgan so‘zlar (builtSequence)
-            buildingZone.innerHTML = '';
-            builtSequence.forEach((item, idx) => {
-                const chip = document.createElement('div');
-                chip.className = 'word-chip placed';
-                chip.textContent = item.word;
-                // chipni bosish -> uni bankka qaytarish (o‘chirish)
-                chip.onclick = (e) => {
-                    e.stopPropagation();
-                    // builtSequence dan item ni olib tashlash
-                    const bankIdx = item.bankIndex;   // bankdagi original indeks
-                    usedFlags[bankIdx] = false;       // bank so‘zi yana bo‘sh
-                    builtSequence = builtSequence.filter((_, i) => i !== idx);
-                    renderBuilder();
-                    updateCheckButtonState();
-                };
-                // o‘chirish ikonkasi
-                const delIcon = document.createElement('i');
-                delIcon.className = 'fas fa-times-circle';
-                chip.appendChild(delIcon);
-                buildingZone.appendChild(chip);
-            });
-
-            // 2. so‘zlar banki (faqat ishlatilmaganlar)
-            wordBankDiv.innerHTML = '';
-            bankWords.forEach((word, idx) => {
-                if (usedFlags[idx]) return; // ishlatilgan -> ko‘rinmaydi
-                const token = document.createElement('div');
-                token.className = 'bank-token';
-                token.textContent = word;
-                token.onclick = () => {
-                    // bank so‘zini builtSequence ga qo‘shish
-                    builtSequence.push({ word: word, bankIndex: idx });
-                    usedFlags[idx] = true;
-                    renderBuilder();
-                    updateCheckButtonState();
-                };
-                wordBankDiv.appendChild(token);
-            });
-
-            // agar bank bo‘sh bo‘lsa (barcha so‘zlar ishlatilgan) bo‘sh qator qoldiramiz
-        }
-
-        // Tekshirish tugmasi holati: builtSequence da barcha correct so‘zlar bormi?
-        function isAllWordsUsed() {
-            const totalCorrect = sentences[currentIdx].correctWords.length;
-            return builtSequence.length === totalCorrect;
-        }
-
-        function updateCheckButtonState() {
-            const btn = document.getElementById('checkBuilderBtn');
-            const allUsed = isAllWordsUsed();
-            btn.disabled = !allUsed;
-            btn.classList.toggle('active', allUsed);
-        }
-
-        // Yangi savolni yuklash
-        function loadSentence() {
-            document.getElementById('levelCounter').textContent = 
-                `${currentIdx + 1} / ${totalQuestions} · so‘z yig‘ish`;
-            document.getElementById('uzbekPrompt').textContent = sentences[currentIdx].uz;
-
-            initBankForCurrent();    // bankWords va usedFlags ni tayyorlaydi
-            renderBuilder();
-            // natija panelini yopish (agar ochiq bo‘lsa)
-            document.getElementById('resultPanel').classList.remove('active');
-            updateCheckButtonState();
-        }
-
-        // ----- Javobni tekshirish -----
-        document.getElementById('checkBuilderBtn').onclick = () => {
-            if (!isAllWordsUsed()) return;
-
-            const correctArray = sentences[currentIdx].correctWords;
-            // builtSequence dagi so‘zlarni ketma-ketligi bo‘yicha tekshiramiz
-            const userWords = builtSequence.map(item => item.word);
-            let isCorrect = true;
-            if (userWords.length !== correctArray.length) {
-                isCorrect = false;
-            } else {
-                for (let i = 0; i < correctArray.length; i++) {
-                    if (userWords[i] !== correctArray[i]) {
-                        isCorrect = false;
-                        break;
-                    }
-                }
-            }
-
-            // natija panelini to‘ldirish
-            const resultTitle = document.getElementById('resultTitle');
-            const resultMsg = document.getElementById('resultMessage');
-            if (isCorrect) {
-                coins++;   // har to‘g‘ri yig‘ish uchun 1 tanga
-                resultTitle.innerHTML = 'Ajoyib! 🎉';
-                resultMsg.innerHTML = 'Gap to‘g‘ri tuzildi.';
-            } else {
-                resultTitle.innerHTML = 'E’tiborli bo‘ling 📚';
-                resultMsg.innerHTML = `To‘g‘ri tartib: ${correctArray.join(' ')}`;
-            }
-
-            // continue button matni (agar oxirgi bo‘lsa)
-            const continueBtn = document.getElementById('continueBtn');
-            continueBtn.textContent = (currentIdx === totalQuestions - 1) ? 'Natijani ko‘rish' : 'Keyingi savol';
-
-            // panelni ochish
-            document.getElementById('resultPanel').classList.add('active');
-        };
-
-        // Davom etish (continue)
-        document.getElementById('continueBtn').onclick = () => {
-            document.getElementById('resultPanel').classList.remove('active');
-
-            if (currentIdx < totalQuestions - 1) {
-                currentIdx++;
-                loadSentence();
-            } else {
-                // final ekran
-                showFinalResults();
-            }
-        };
-
-        function showFinalResults() {
-            document.getElementById('quiz-screen').style.display = 'none';
-            document.getElementById('final-screen').style.display = 'flex';
-
-            const accuracy = Math.round((coins / totalQuestions) * 100);
-            document.getElementById('finalAccuracy').textContent = accuracy + '%';
-            document.getElementById('finalScore').textContent = coins;   // tangalar soni
-        }
-
-        // ilk yuklash
-        loadSentence();
-    })();
+    initLevel();
 </script>
 </body>
 </html>
