@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Inglizcha so'zlar - Mashq</title>
+    <title>Inglizcha so'z o'yini</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * {
@@ -39,15 +39,9 @@
             margin-bottom: 15px;
         }
         .uzbek-sentence {
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 700;
             color: #eee;
-            margin-bottom: 10px;
-        }
-        .english-hint {
-            font-size: 20px;
-            color: #aaa;
-            font-style: italic;
         }
         .builder-area {
             flex: 1;
@@ -66,38 +60,32 @@
         }
         .word-chip {
             background: #1a1a1a;
-            padding: 12px 16px;
+            padding: 12px 20px;
             border-radius: 14px;
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 500;
             color: #fff;
             border: 1px solid #333;
             cursor: pointer;
-            transition: transform 0.1s;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
+            transition: 0.1s;
         }
         .word-bank {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
             margin-bottom: 40px;
         }
         .bank-token {
             background: #111;
-            padding: 12px 16px;
+            padding: 12px 20px;
             border-radius: 14px;
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 500;
             color: #fff;
             border: 1px solid #222;
             cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
         }
         .bank-token.disabled {
             opacity: 0.1;
@@ -146,19 +134,14 @@
             font-weight: 700;
             cursor: pointer;
         }
-        .highlight {
-            color: #4CAF50;
-            font-weight: bold;
-        }
     </style>
 </head>
 <body>
 
 <div id="quiz-screen" class="app-container">
     <div class="header">
-        <div class="question-number" id="levelCounter">1 / 7</div>
+        <div class="question-number" id="levelCounter">1 / 5</div>
         <div class="uzbek-sentence" id="uzbekPrompt">...</div>
-        <div class="english-hint" id="englishHint">Inglizcha so'zni toping</div>
     </div>
 
     <div class="builder-area">
@@ -166,7 +149,7 @@
         <div class="word-bank" id="wordBank"></div>
         
         <button class="action-btn" id="checkBuilderBtn" disabled>
-            <i class="fas fa-check"></i> Javobni tekshirish
+            <i class="fas fa-check"></i> Tekshirish
         </button>
     </div>
 
@@ -178,50 +161,17 @@
 </div>
 
 <script>
-    const exercises = [
-        { 
-            uz: "what", 
-            translation: "nima",
-            hint: "So'roq so'zi - nima?",
-            correct: ["what"] 
-        },
-        { 
-            uz: "nima", 
-            translation: "what",
-            hint: "What is this?",
-            correct: ["what"] 
-        },
-        { 
-            uz: "vaqt", 
-            translation: "time",
-            hint: "Time - vaqt",
-            correct: ["time"] 
-        },
-        { 
-            uz: "kim", 
-            translation: "who",
-            hint: "Who are you?",
-            correct: ["who"] 
-        },
-        { 
-            uz: "Time", 
-            translation: "vaqt",
-            hint: "Vaqt so'zi",
-            correct: ["time"] 
-        },
-        { 
-            uz: "sana", 
-            translation: "date",
-            hint: "Date - sana",
-            correct: ["date"] 
-        },
-        { 
-            uz: "yil", 
-            translation: "year",
-            hint: "Year - yil",
-            correct: ["year"] 
-        }
+    // Yangi so'zlar ro'yxati
+    const levels = [
+        { uz: "Nima?", correct: ["What"] },
+        { uz: "Vaqt", correct: ["Time"] },
+        { uz: "Kim?", correct: ["Who"] },
+        { uz: "Sana", correct: ["Date"] },
+        { uz: "Yil", correct: ["Year"] }
     ];
+
+    // Bankni qiziqarli qilish uchun qo'shimcha "chalkashtiruvchi" so'zlar
+    const distractors = ["Where", "Day", "Month", "How", "When"];
 
     let currentIdx = 0;
     let builtSequence = [];
@@ -230,12 +180,15 @@
     let score = 0;
 
     function initLevel() {
-        const current = exercises[currentIdx];
+        const current = levels[currentIdx];
         document.getElementById('uzbekPrompt').textContent = current.uz;
-        document.getElementById('englishHint').textContent = current.hint || `Inglizcha: ${current.translation}`;
-        document.getElementById('levelCounter').textContent = `${currentIdx + 1} / ${exercises.length}`;
+        document.getElementById('levelCounter').textContent = `${currentIdx + 1} / ${levels.length}`;
         
-        bankWords = [...current.correct].sort(() => Math.random() - 0.5);
+        // Asosiy so'z va bitta tasodifiy noto'g'ri so'zni bankka qo'shamiz
+        let words = [...current.correct];
+        words.push(distractors[Math.floor(Math.random() * distractors.length)]);
+        
+        bankWords = words.sort(() => Math.random() - 0.5);
         usedFlags = new Array(bankWords.length).fill(false);
         builtSequence = [];
         render();
@@ -280,8 +233,7 @@
     }
 
     document.getElementById('checkBuilderBtn').onclick = () => {
-        const current = exercises[currentIdx];
-        const correct = current.correct;
+        const correct = levels[currentIdx].correct;
         const isCorrect = builtSequence.length === correct.length && 
                           builtSequence.every((val, i) => val.word === correct[i]);
         
@@ -291,25 +243,23 @@
 
         if (isCorrect) {
             score++;
-            title.textContent = "To'g'ri! ✅";
-            msg.innerHTML = `<span class="highlight">${current.uz}</span> so'zining inglizchasi <strong>${current.translation}</strong>`;
+            title.textContent = "Barakalla! 🌟";
+            msg.textContent = "To'g'ri tarjima!";
         } else {
-            title.textContent = "Qayta urining 🔄";
-            msg.innerHTML = `To'g'ri javob: <strong>${current.translation}</strong><br>Siz tanlagan: <strong>${builtSequence.map(w => w.word).join(' ') || 'bo\'sh'}</strong>`;
+            title.textContent = "Xato 😕";
+            msg.textContent = "To'g'ri javob: " + correct.join(' ');
         }
         panel.classList.add('active');
     };
 
     document.getElementById('continueBtn').onclick = () => {
         document.getElementById('resultPanel').classList.remove('active');
-        if (currentIdx < exercises.length - 1) {
+        if (currentIdx < levels.length - 1) {
             currentIdx++;
             initLevel();
         } else {
-            alert(`Mashq tugadi! Natijangiz: ${score} / ${exercises.length} ta to'g'ri`);
-            currentIdx = 0; 
-            score = 0; 
-            initLevel();
+            alert(`Mashq tugadi! Natijangiz: ${score} / ${levels.length}`);
+            currentIdx = 0; score = 0; initLevel();
         }
     };
 
