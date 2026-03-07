@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Ingliz Tilini O'rganish - Yangi so'zlar</title>
+    <title>Ingliz Tilini O'rganish - Yangi to'plam</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
@@ -151,7 +151,7 @@
                 <span class="part-of-speech" id="f-pos">OLMOSH</span>
             </div>
             <div class="word-main">
-                <span id="f-eng">You</span>
+                <span id="f-eng">I</span>
                 <i class="fas fa-volume-up audio-icon" onclick="speak()"></i>
             </div>
         </div>
@@ -159,7 +159,7 @@
             <div class="flag-row">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/8/84/Flag_of_Uzbekistan.svg" class="flag-img">
             </div>
-            <div class="translation-word" id="f-uzb">sen</div>
+            <div class="translation-word" id="f-uzb">men</div>
         </div>
     </div>
     <button class="next-btn" onclick="nextFlashcard()">
@@ -170,7 +170,7 @@
 <!-- 2. WORD GAME SCREEN -->
 <div id="screen2" class="app-container">
     <div class="header">
-        <div class="prompt-text" id="g1-prompt">sen</div>
+        <div class="prompt-text" id="g1-prompt">men</div>
     </div>
     <div class="game-content">
         <div class="zone" id="g1-zone"></div>
@@ -182,7 +182,7 @@
 <!-- 3. SENTENCE BUILDER SCREEN -->
 <div id="screen3" class="app-container">
     <div class="header">
-        <div class="prompt-text" id="g2-prompt">You are tired.</div>
+        <div class="prompt-text" id="g2-prompt">I am a student.</div>
     </div>
     <div class="game-content">
         <div class="zone" id="g2-zone"></div>
@@ -206,54 +206,52 @@
 </div>
 
 <script>
-    // --- YANGI DATA (siz bergan ma'lumotlar asosida) ---
+    // --- YANGI MA'LUMOTLAR (siz bergan ro'yxat asosida) ---
     let vocabData = [
-        { pos: "OLMOSH", eng: "You", uzb: "sen" },
-        { pos: "FE'L (to be)", eng: "are", uzb: "bo‘lmoq" },
-        { pos: "SIFAT", eng: "tired", uzb: "charchagan" },
         { pos: "OLMOSH", eng: "I", uzb: "men" },
         { pos: "FE'L (to be)", eng: "am", uzb: "bo‘lmoq" },
-        { pos: "SIFAT", eng: "happy", uzb: "xursand" },
+        { pos: "ARTIKL", eng: "a", uzb: "artikl (bir)" },
+        { pos: "OT", eng: "student", uzb: "talaba" },
         { pos: "OLMOSH", eng: "He", uzb: "u (erkak)" },
         { pos: "FE'L (to be)", eng: "is", uzb: "bo‘lmoq" },
-        { pos: "PREDLOG", eng: "at", uzb: "da / joyni bildiradi" },
-        { pos: "OT", eng: "home", uzb: "uy" },
+        { pos: "OT", eng: "driver", uzb: "haydovchi" },
         { pos: "OLMOSH", eng: "She", uzb: "u (ayol)" },
-        { pos: "FE'L (to be)", eng: "is", uzb: "bo‘lmoq" },
-        { pos: "ARTIKL", eng: "a", uzb: "artikl (bir degan ma'noga yaqin)" },
-        { pos: "OT", eng: "teacher", uzb: "o‘qituvchi" },
+        { pos: "OT", eng: "student", uzb: "talaba" },
         { pos: "OLMOSH", eng: "We", uzb: "biz" },
         { pos: "FE'L (to be)", eng: "are", uzb: "bo‘lmoq" },
-        { pos: "OT", eng: "friends", uzb: "do‘stlar" }
+        { pos: "OT", eng: "students", uzb: "talabalar" },
+        { pos: "OLMOSH", eng: "They", uzb: "ular" },
+        { pos: "FE'L (to be)", eng: "are", uzb: "bo‘lmoq" },
+        { pos: "OT", eng: "teachers", uzb: "o‘qituvchilar" }
     ];
 
+    // SO'Z O'YINI (word game) – o'zbekcha so'z va to'g'ri inglizcha javob
     let wordGameData = [
-        { uz: "sen", correct: ["You"] },
-        { uz: "bo‘lmoq (you uchun)", correct: ["are"] },
-        { uz: "charchagan", correct: ["tired"] },
         { uz: "men", correct: ["I"] },
-        { uz: "bo‘lmoq (I uchun)", correct: ["am"] },
-        { uz: "xursand", correct: ["happy"] },
+        { uz: "bo‘lmoq (1-shaxs)", correct: ["am"] },
+        { uz: "artikl", correct: ["a"] },
+        { uz: "talaba", correct: ["student"] },
         { uz: "u (erkak)", correct: ["He"] },
-        { uz: "bo‘lmoq (he/she/it uchun)", correct: ["is"] },
-        { uz: "da / joyni bildiradi", correct: ["at"] },
-        { uz: "uy", correct: ["home"] },
+        { uz: "bo‘lmoq (3-shaxs)", correct: ["is"] },
+        { uz: "haydovchi", correct: ["driver"] },
         { uz: "u (ayol)", correct: ["She"] },
-        { uz: "artikl (bir degan ma'noga yaqin)", correct: ["a"] },
-        { uz: "o‘qituvchi", correct: ["teacher"] },
         { uz: "biz", correct: ["We"] },
-        { uz: "do‘stlar", correct: ["friends"] }
+        { uz: "bo‘lmoq (ko‘plik)", correct: ["are"] },
+        { uz: "talabalar", correct: ["students"] },
+        { uz: "ular", correct: ["They"] },
+        { uz: "o‘qituvchilar", correct: ["teachers"] }
     ];
 
+    // GAP TUZISH (sentence builder) – 5 ta gap
     let sentenceData = [
-        { uz: "Sen charchagansan.", correct: ["You", "are", "tired."] },
-        { uz: "Men xursandman.", correct: ["I", "am", "happy."] },
-        { uz: "U (erkak) uyda.", correct: ["He", "is", "at", "home."] },
-        { uz: "U (ayol) o'qituvchi.", correct: ["She", "is", "a", "teacher."] },
-        { uz: "Biz do'stmiz.", correct: ["We", "are", "friends."] }
+        { uz: "I am a student.", correct: ["I", "am", "a", "student."] },
+        { uz: "He is a driver.", correct: ["He", "is", "a", "driver."] },
+        { uz: "She is a student.", correct: ["She", "is", "a", "student."] },
+        { uz: "We are students.", correct: ["We", "are", "students."] },
+        { uz: "They are teachers.", correct: ["They", "are", "teachers."] }
     ];
 
-    const distractors = ["You", "are", "tired", "I", "am", "happy", "He", "is", "at", "home", "She", "a", "teacher", "We", "friends", "they", "it", "from", "in"];
+    const distractors = ["You", "It", "the", "an", "doctor", "pilot", "engineer", "at", "in", "on", "from", "book", "car"];
 
     let currentFlash = 0, g1Idx = 0, g2Idx = 0, builtSeq = [], usedFlags = [];
 
@@ -300,7 +298,7 @@
         document.getElementById('g1-prompt').textContent = curr.uz;
         let words = [curr.correct[0]];
         let availD = distractors.filter(d => d !== curr.correct[0]);
-        // 2 ta noto'g'ri so'z qo'shamiz
+        // 2 ta chalg'ituvchi qo'shamiz
         for (let i = 0; i < 2; i++) {
             if (availD.length > 0) {
                 const rIdx = Math.floor(Math.random() * availD.length);
@@ -308,7 +306,7 @@
                 availD.splice(rIdx, 1);
             }
         }
-        // Aralashtirish
+        // random tartiblash
         words.sort(() => Math.random() - 0.5);
         builtSeq = []; usedFlags = new Array(words.length).fill(false);
         window.currentBank = words;
@@ -323,8 +321,8 @@
         togglePanel(true, isCorrect ? "Barakalla!" : "Xato!", 
                    isCorrect ? "To'g'ri topdingiz." : "To'g'ri javob: " + correct[0], () => {
             if (!isCorrect) {
-                // Xato bo'lsa savolni massiv oxiriga 3 marta qo'shish (takrorlash)
-                wordGameData.push(currentItem, currentItem, currentItem);
+                // Xato bo'lsa savolni massiv oxiriga 3 marta qo'shish (3 marta takrorlash)
+                for(let i=0; i<3; i++) wordGameData.push(currentItem);
             }
             if (g1Idx < wordGameData.length - 1) {
                 g1Idx++; initWordGame();
@@ -352,7 +350,7 @@
                    isCorrect ? "Gap to'g'ri tuzildi." : "To'g'ri tartib: " + correct.join(' '), () => {
             if (!isCorrect) {
                 // Xato bo'lsa gapni massiv oxiriga 3 marta qo'shish
-                sentenceData.push(currentItem, currentItem, currentItem);
+                for(let i=0; i<3; i++) sentenceData.push(currentItem);
             }
             if (g2Idx < sentenceData.length - 1) {
                 g2Idx++; initSentenceGame();
@@ -384,7 +382,7 @@
         btn.style.opacity = btn.disabled ? '0.5' : '1';
     }
 
-    // Birinchi flashcardni o'rnatish (You / sen)
+    // Boshqa o'zgarishlar: birinchi kartani o'rnatish (endi "I" dan boshlanadi)
     const firstItem = vocabData[0];
     document.getElementById('f-pos').textContent = firstItem.pos;
     document.getElementById('f-eng').textContent = firstItem.eng;
