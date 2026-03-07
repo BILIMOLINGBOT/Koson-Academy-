@@ -2,239 +2,402 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ispan tili interaktiv dars</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>Ingliz Tilini O'rganish - Yangi so'zlar</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        :root {
+            --bg-primary: #0a0a0a;
+            --card-bg: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --border-color: #333333;
+            --accent-black: #000000;
+            --chip-bg: #2a2a2a;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, sans-serif; }
+
         body {
-            background-color: black;
-            color: white;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            line-height: 1.8;
-            margin: 2em;
-        }
-
-        .sp-word {
-            color: white;
-            text-decoration: underline dotted #555;
-            cursor: pointer;
-            font-weight: bold;
-            display: inline-block;
-            transition: color 0.2s;
-        }
-
-        .sp-word:hover {
-            color: white;
-            text-decoration: underline dotted #aaa;
-        }
-
-        #popup {
-            display: none;
-            position: absolute;
-            background-color: #1a1a1a;
-            min-width: 120px;
-            max-width: 90vw;
-            padding: 12px;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.7);
-            z-index: 1000;
-            border: 2px solid #444;
-            flex-direction: column;
-            opacity: 0;
-            transform: scale(0.8);
-            transition: opacity 0.2s ease, transform 0.2s ease;
-            pointer-events: auto;
-        }
-
-        #popup.show {
-            display: flex !important;
-            opacity: 1;
-            transform: scale(1);
-        }
-
-        .popup-header {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
             display: flex;
+            justify-content: center;
             align-items: center;
-            justify-content: space-between;
-            gap: 15px;
-            margin-bottom: 5px;
+            overflow: hidden;
         }
 
-        #popup-main-word {
-            font-size: 20px;
-            font-weight: bold;
-            color: white;
+        .app-container {
+            width: 100%;
+            max-width: 450px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 40px 20px;
+            display: none;
         }
 
-        #popup-translation {
-            font-size: 15px;
-            color: #ccc;
-        }
+        .app-container.active { display: flex; }
 
-        .audio-icon {
-            width: 24px;
-            height: 24px;
+        /* --- FLASHCARDS STYLE --- */
+        .card-stack { flex: 1; display: flex; flex-direction: column; gap: 20px; justify-content: center; }
+        .flashcard { background: var(--card-bg); border: 2px solid var(--border-color); border-radius: 32px; padding: 25px; }
+        .flag-row { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+        .flag-img { width: 45px; height: 30px; border-radius: 4px; object-fit: cover; }
+        .part-of-speech { color: var(--text-secondary); font-weight: 700; letter-spacing: 1px; font-size: 16px; text-transform: uppercase; }
+        .word-main { font-size: 38px; font-weight: 800; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; }
+        .audio-icon { color: var(--text-secondary); cursor: pointer; }
+        .audio-icon:hover { color: var(--text-primary); }
+        .translation-word { font-size: 26px; font-weight: 700; line-height: 1.3; }
+
+        /* --- SHARED BUTTONS --- */
+        .next-btn, .check-btn {
+            width: 100%; 
+            height: 65px; 
+            background: white; 
+            color: black; 
+            border: none;
+            border-radius: 24px; 
+            font-size: 18px; 
+            font-weight: 800; 
             cursor: pointer;
-            fill: white;
-            transition: transform 0.1s;
-            flex-shrink: 0;
+            text-transform: uppercase; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 10px; 
+            transition: 0.2s;
+            margin-top: 20px;
+        }
+        .next-btn:active, .check-btn:active { transform: scale(0.96); }
+        .next-btn:disabled, .check-btn:disabled { 
+            background: #333; 
+            color: #666; 
+            cursor: not-allowed;
+            pointer-events: none;
         }
 
-        .audio-icon:hover {
-            fill: #ccc;
-            transform: scale(1.1);
-        }
-
-        strong {
-            color: white;
-            font-size: 1.2em;
-            font-weight: bold;
+        .header { text-align: center; margin-bottom: 30px; }
+        .prompt-text { font-size: 28px; font-weight: 700; }
+        
+        .game-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
         
-        .sentence-row {
-            margin-bottom: 15px;
-            padding: 10px;
-            border-bottom: 1px solid #333;
+        .zone { 
+            min-height: 80px; 
+            display: flex; 
+            flex-wrap: wrap; 
+            justify-content: center; 
+            gap: 8px; 
+            margin-bottom: 30px; 
+            background: rgba(255,255,255,0.03);
+            border-radius: 20px;
+            padding: 15px;
         }
+        
+        .bank { 
+            display: flex; 
+            flex-wrap: wrap; 
+            justify-content: center; 
+            gap: 10px; 
+            margin-bottom: 20px;
+        }
+        
+        .chip, .token {
+            background: var(--chip-bg); 
+            padding: 12px 18px; 
+            border-radius: 15px; 
+            border: 1px solid var(--border-color);
+            font-size: 18px; 
+            cursor: pointer; 
+            transition: 0.2s;
+            color: var(--text-primary);
+        }
+        
+        .token { background: var(--card-bg); }
+
+        .result-panel {
+            position: fixed; 
+            bottom: 0; left: 0; right: 0; 
+            background: white; color: black;
+            border-radius: 30px 30px 0 0; 
+            padding: 40px 25px; 
+            transform: translateY(100%);
+            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+            z-index: 1000;
+        }
+        .result-panel.active { transform: translateY(0); }
+        .res-title { font-size: 24px; font-weight: 800; margin-bottom: 10px; }
+        .res-msg { font-size: 18px; margin-bottom: 25px; color: #444; }
+        #res-btn { background: black !important; color: white !important; }
+
+        .trophy-icon { font-size: 80px; color: gold; margin-bottom: 20px; }
     </style>
 </head>
 <body>
 
-    <div class="sentence-row">
-        <strong>Yo (Men)</strong><br>
-        Ispan tilida "men" — bu Yo. Uni talaffuz qilishda "Yo" yoki ba'zi hududlarda (masalan, Argentina) "Jo" kabi eshitilishi mumkin, lekin standart holatda yumshoq "Yo".<br>
-        
-        <span class="sp-word" data-tr="Men">Yo</span> 
-        <span class="sp-word" data-tr="ichaman">bebo</span> 
-        <span class="sp-word" data-tr="suv">agua</span>. 
-        – Men suv ichaman.<br>
-
-        <span class="sp-word" data-tr="Men">Yo</span> 
-        <span class="sp-word" data-tr="gapiriman">hablo</span> 
-        <span class="sp-word" data-tr="ispan tili">español</span>. 
-        – Men ispancha gapiraman.<br>
-
-        <span class="sp-word" data-tr="Men">Yo</span> 
-        <span class="sp-word" data-tr="yeyman">como</span> 
-        <span class="sp-word" data-tr="meva">fruta</span>. 
-        – Men meva yeyman.
-    </div>
-
-    <div class="sentence-row">
-        <strong>Tú (Sen)</strong><br>
-        Tú — bu "sen", ya'ni yaqin do'stlar, oila a'zolari yoki tengqurlar bilan muloqotda ishlatiladigan norasmiy shakl.<br>
-
-        <span class="sp-word" data-tr="Sen">Tú</span> 
-        <span class="sp-word" data-tr="ichasan">bebes</span> 
-        <span class="sp-word" data-tr="suv">agua</span>. 
-        – Sen suv ichasan.<br>
-
-        <span class="sp-word" data-tr="Sen">Tú</span> 
-        <span class="sp-word" data-tr="gapirasan">hablas</span> 
-        <span class="sp-word" data-tr="ispan tili">español</span>. 
-        – Sen ispancha gapirasan.<br>
-
-        <span class="sp-word" data-tr="Sen">Tú</span> 
-        <span class="sp-word" data-tr="yeysan">comes</span> 
-        <span class="sp-word" data-tr="meva">fruta</span>. 
-        – Sen meva yeysan.
-    </div>
-
-    <div id="popup">
-        <div class="popup-header">
-            <span id="popup-main-word"></span>
-            <svg class="audio-icon" id="speak-btn" viewBox="0 0 24 24">
-                <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
-            </svg>
+<!-- 1. FLASHCARDS SCREEN -->
+<div id="screen1" class="app-container active">
+    <div class="header"></div>
+    <div class="card-stack">
+        <div class="flashcard">
+            <div class="flag-row">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Flag_of_the_United_Kingdom_%283-5%29.svg" class="flag-img">
+                <span class="part-of-speech" id="f-pos">SIFAT</span>
+            </div>
+            <div class="word-main">
+                <span id="f-eng">favorite</span>
+                <i class="fas fa-volume-up audio-icon" onclick="speak()"></i>
+            </div>
         </div>
-        <div id="popup-translation"></div>
+        <div class="flashcard">
+            <div class="flag-row">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/8/84/Flag_of_Uzbekistan.svg" class="flag-img">
+            </div>
+            <div class="translation-word" id="f-uzb">sevimli</div>
+        </div>
     </div>
+    <button class="next-btn" onclick="nextFlashcard()">
+        Keyingi <i class="fas fa-arrow-right"></i>
+    </button>
+</div>
 
-    <script>
-        (function() {
-            const words = document.querySelectorAll('.sp-word');
-            const popup = document.getElementById('popup');
-            const popupMainWord = document.getElementById('popup-main-word');
-            const popupTranslation = document.getElementById('popup-translation');
-            const speakBtn = document.getElementById('speak-btn');
-            let textToSpeak = "";
+<!-- 2. WORD GAME SCREEN -->
+<div id="screen2" class="app-container">
+    <div class="header">
+        <div class="prompt-text" id="g1-prompt">ko'k</div>
+    </div>
+    <div class="game-content">
+        <div class="zone" id="g1-zone"></div>
+        <div class="bank" id="g1-bank"></div>
+    </div>
+    <button class="check-btn" id="g1-check" onclick="checkWordGame()" disabled>Tekshirish</button>
+</div>
 
-            function hidePopup() {
-                popup.classList.remove('show');
-                setTimeout(() => {
-                    if (!popup.classList.contains('show')) {
-                        popup.style.display = 'none';
-                    }
-                }, 200);
+<!-- 3. SENTENCE BUILDER SCREEN -->
+<div id="screen3" class="app-container">
+    <div class="header">
+        <div class="prompt-text" id="g2-prompt">Men musiqani tinglashni yoqtiraman.</div>
+    </div>
+    <div class="game-content">
+        <div class="zone" id="g2-zone"></div>
+        <div class="bank" id="g2-bank"></div>
+    </div>
+    <button class="check-btn" id="g2-check" onclick="checkSentenceGame()" disabled>Tekshirish</button>
+</div>
+
+<!-- FINAL SCREEN -->
+<div id="screen-final" class="app-container" style="text-align: center; justify-content: center;">
+    <i class="fas fa-trophy trophy-icon"></i>
+    <h1 style="font-size: 32px; margin-bottom: 10px;">Tabriklaymiz!</h1>
+    <p style="color: var(--text-secondary); margin-bottom: 40px;">Barcha bosqichlarni muvaffaqiyatli yakunladingiz.</p>
+    <button class="next-btn" onclick="location.reload()">Qaytadan boshlash</button>
+</div>
+
+<div class="result-panel" id="res-panel">
+    <div id="res-title" class="res-title">Ajoyib!</div>
+    <div id="res-msg" class="res-msg">To'g'ri javob topildi.</div>
+    <button class="next-btn" id="res-btn">Davom etish</button>
+</div>
+
+<script>
+    // --- YANGI MA'LUMOTLAR (siz bergan so'zlar asosida) ---
+    const vocabData = [
+        { pos: "OLMOSH", eng: "My", uzb: "mening" },
+        { pos: "SIFAT", eng: "favorite", uzb: "sevimli" },
+        { pos: "OT", eng: "color", uzb: "rang" },
+        { pos: "FE'L (to be)", eng: "is", uzb: "bo‘lmoq" },
+        { pos: "SIFAT", eng: "blue", uzb: "ko‘k" },
+        { pos: "QISQARTMA", eng: "I'm", uzb: "men" },        // I'm = I am
+        { pos: "OT", eng: "years", uzb: "yil" },
+        { pos: "SIFAT", eng: "old", uzb: "yosh" },
+        { pos: "OLMOSH", eng: "I", uzb: "men" },
+        { pos: "FE'L", eng: "learn", uzb: "o‘rganmoq" },
+        { pos: "OT", eng: "English", uzb: "ingliz tili" },
+        { pos: "FE'L", eng: "study", uzb: "o‘qimoq" },
+        { pos: "RB", eng: "every day", uzb: "har kuni" },    // RB = adverb
+        { pos: "FE'L", eng: "like", uzb: "yoqtirmoq" },
+        { pos: "FE'L", eng: "listen", uzb: "tinglamoq" },
+        { pos: "PREDLOG", eng: "to", uzb: "...ga / ...ni" },
+        { pos: "OT", eng: "music", uzb: "musiqa" }
+    ];
+
+    // WORD GAME: faqat birinchi 12 ta so'z uchun (ixtiyoriy, lekin siz bergan ro'yxatdan moslashtirdik)
+    const wordGameData = [
+        { uz: "mening", correct: ["My"] },
+        { uz: "sevimli", correct: ["favorite"] },
+        { uz: "rang", correct: ["color"] },
+        { uz: "bo‘lmoq", correct: ["is"] },
+        { uz: "ko‘k", correct: ["blue"] },
+        { uz: "men (I'm)", correct: ["I'm"] },
+        { uz: "yil", correct: ["years"] },
+        { uz: "yosh", correct: ["old"] },
+        { uz: "men", correct: ["I"] },
+        { uz: "o‘rganmoq", correct: ["learn"] },
+        { uz: "ingliz tili", correct: ["English"] },
+        { uz: "o‘qimoq", correct: ["study"] }
+    ];
+
+    // SENTENCE DATA: siz bergan jumlalar va ularning to'g'ri ketma-ketligi
+    const sentenceData = [
+        { uz: "Mening sevimli rangim ko'k.", correct: ["My", "favorite", "color", "is", "blue."] },
+        { uz: "Men 20 yoshdaman.", correct: ["I'm", "20", "years", "old."] },              // 20 ni alohida qo'shdik, son o'zgarmas
+        { uz: "Men ingliz tilini o'rganaman.", correct: ["I", "learn", "English."] },
+        { uz: "Men har kuni o'qiyman.", correct: ["I", "study", "every", "day."] },
+        { uz: "Men musiqani tinglashni yoqtiraman.", correct: ["I", "like", "to", "listen", "to", "music."] }
+    ];
+
+    const distractors = ["You", "He", "She", "It", "We", "They", "the", "at", "on", "book", "car", "red", "green", "yellow"];
+
+    let currentFlash = 0, g1Idx = 0, g2Idx = 0, builtSeq = [], usedFlags = [];
+
+    function showScreen(id) {
+        document.querySelectorAll('.app-container').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+
+    function togglePanel(show, title = "", msg = "", callback = null) {
+        const panel = document.getElementById('res-panel');
+        if (show) {
+            document.getElementById('res-title').textContent = title;
+            document.getElementById('res-msg').textContent = msg;
+            panel.classList.add('active');
+            document.getElementById('res-btn').onclick = () => {
+                panel.classList.remove('active');
+                if (callback) callback();
+            };
+        } else { panel.classList.remove('active'); }
+    }
+
+    function nextFlashcard() {
+        if (currentFlash < vocabData.length - 1) {
+            currentFlash++;
+            const item = vocabData[currentFlash];
+            document.getElementById('f-pos').textContent = item.pos;
+            document.getElementById('f-eng').textContent = item.eng;
+            document.getElementById('f-uzb').textContent = item.uzb;
+        } else {
+            showScreen('screen2');
+            initWordGame();
+        }
+    }
+
+    function speak() {
+        const text = document.getElementById('f-eng').textContent;
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'en-GB';
+        window.speechSynthesis.speak(u);
+    }
+
+    function initWordGame() {
+        const curr = wordGameData[g1Idx];
+        document.getElementById('g1-prompt').textContent = curr.uz;
+        let words = [curr.correct[0]];
+        let availD = distractors.filter(d => d !== curr.correct[0]);
+        for (let i = 0; i < 2; i++) {
+            if (availD.length > 0) {
+                const rIdx = Math.floor(Math.random() * availD.length);
+                words.push(availD[rIdx]);
+                availD.splice(rIdx, 1);
             }
+        }
+        // Shuffle
+        for (let i = words.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [words[i], words[j]] = [words[j], words[i]];
+        }
+        builtSeq = []; usedFlags = new Array(words.length).fill(false);
+        window.currentBank = words;
+        renderGame('g1');
+    }
 
-            words.forEach(word => {
-                word.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    
-                    const rect = word.getBoundingClientRect();
-                    // So'zni tozalash (tinish belgilarini olib tashlash)
-                    textToSpeak = word.innerText.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").trim();
-                    const translation = word.getAttribute('data-tr');
+    function checkWordGame() {
+        const currentItem = wordGameData[g1Idx];
+        const correct = currentItem.correct;
+        const isCorrect = builtSeq.length === correct.length && builtSeq[0].word === correct[0];
+        
+        togglePanel(true, isCorrect ? "Barakalla!" : "Xato!", 
+                   isCorrect ? "To'g'ri topdingiz." : "To'g'ri javob: " + correct[0], () => {
+            if (!isCorrect) {
+                // Xato bo'lsa savolni massiv oxiriga 3 marta qo'shish
+                for (let i = 0; i < 3; i++) wordGameData.push(currentItem);
+            }
+            if (g1Idx < wordGameData.length - 1) {
+                g1Idx++; initWordGame();
+            } else {
+                showScreen('screen3'); initSentenceGame();
+            }
+        });
+    }
 
-                    popupMainWord.innerText = textToSpeak;
-                    popupTranslation.innerText = translation;
+    function initSentenceGame() {
+        const curr = sentenceData[g2Idx];
+        document.getElementById('g2-prompt').textContent = curr.uz;
+        let words = [...curr.correct];
+        // Shuffle
+        for (let i = words.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [words[i], words[j]] = [words[j], words[i]];
+        }
+        builtSeq = []; usedFlags = new Array(words.length).fill(false);
+        window.currentBank = words;
+        renderGame('g2');
+    }
 
-                    popup.style.display = 'flex';
-                    
-                    // Pozitsiyani hisoblash
-                    let left = rect.left + window.scrollX + (rect.width / 2) - (popup.offsetWidth / 2);
-                    let top = rect.top + window.scrollY - popup.offsetHeight - 15;
+    function checkSentenceGame() {
+        const currentItem = sentenceData[g2Idx];
+        const correct = currentItem.correct;
+        const isCorrect = builtSeq.length === correct.length && builtSeq.every((v, i) => v.word === correct[i]);
 
-                    // Chegaralarni tekshirish
-                    if (left < 10) left = 10;
-                    if (left + popup.offsetWidth > window.innerWidth - 10) {
-                        left = window.innerWidth - popup.offsetWidth - 10;
-                    }
-                    
-                    if (top < window.scrollY + 10) {
-                        top = rect.bottom + window.scrollY + 15;
-                    }
+        togglePanel(true, isCorrect ? "Zo'r!" : "E'tiborli bo'ling!", 
+                   isCorrect ? "Gap to'g'ri tuzildi." : "To'g'ri tartib: " + correct.join(' '), () => {
+            if (!isCorrect) {
+                // Xato bo'lsa gapni massiv oxiriga 3 marta qo'shish
+                for (let i = 0; i < 3; i++) sentenceData.push(currentItem);
+            }
+            if (g2Idx < sentenceData.length - 1) {
+                g2Idx++; initSentenceGame();
+            } else { showScreen('screen-final'); }
+        });
+    }
 
-                    popup.style.left = Math.round(left) + 'px';
-                    popup.style.top = Math.round(top) + 'px';
+    function renderGame(prefix) {
+        const zone = document.getElementById(`${prefix}-zone`);
+        const bank = document.getElementById(`${prefix}-bank`);
+        const btn = document.getElementById(`${prefix}-check`);
+        zone.innerHTML = '';
+        builtSeq.forEach((item, i) => {
+            const d = document.createElement('div');
+            d.className = 'chip'; d.textContent = item.word;
+            d.onclick = () => { usedFlags[item.idx] = false; builtSeq.splice(i, 1); renderGame(prefix); };
+            zone.appendChild(d);
+        });
+        bank.innerHTML = '';
+        window.currentBank.forEach((word, i) => {
+            if (!usedFlags[i]) {
+                const t = document.createElement('div');
+                t.className = 'token'; t.textContent = word;
+                t.onclick = () => { usedFlags[i] = true; builtSeq.push({word, idx: i}); renderGame(prefix); };
+                bank.appendChild(t);
+            }
+        });
+        btn.disabled = builtSeq.length === 0;
+        btn.style.opacity = btn.disabled ? '0.5' : '1';
+    }
 
-                    // Animation for showing
-                    requestAnimationFrame(() => {
-                        popup.classList.add('show');
-                    });
-                });
-            });
+    // Boshlang'ich so'z favorite qilib qo'yildi (yuqorida HTML da ko'rinadi)
+    const firstItem = vocabData[1]; // favorite
+    document.getElementById('f-pos').textContent = firstItem.pos;
+    document.getElementById('f-eng').textContent = firstItem.eng;
+    document.getElementById('f-uzb').textContent = firstItem.uzb;
+    // Ammo currentFlash 0 da turibdi, nextFlashcard da 1 dan boshlab o'tadi
+    currentFlash = 1; // chunki 0-index "My" lekin biz favorite ni ko'rsatyapmiz, keyingi "color" bo'ladi
+</script>
 
-            speakBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (textToSpeak) {
-                    try {
-                        const utterance = new SpeechSynthesisUtterance(textToSpeak);
-                        utterance.lang = 'es-ES';
-                        utterance.rate = 0.8;
-                        // Cancel any ongoing speech
-                        window.speechSynthesis.cancel();
-                        window.speechSynthesis.speak(utterance);
-                    } catch (error) {
-                        console.log('Ovozli sintezda xatolik');
-                    }
-                }
-            });
-
-            document.addEventListener('click', (e) => {
-                if (!popup.contains(e.target)) {
-                    hidePopup();
-                }
-            });
-
-            window.addEventListener('scroll', hidePopup);
-            window.addEventListener('resize', hidePopup);
-            
-            // Popup ichida bosilganda yopilmasligi uchun
-            popup.addEventListener('click', (e) => {
-                e.stopPropagation();
-            });
-        })();
-    </script>
 </body>
 </html>
