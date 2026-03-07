@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Ingliz Tilini O'rganish - 3 urinish</title>
+    <title>Ingliz Tilini O'rganish - All-in-One</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
@@ -78,7 +78,6 @@
             pointer-events: none;
         }
 
-        /* --- GAME & BUILDER STYLE --- */
         .header { text-align: center; margin-bottom: 30px; }
         .prompt-text { font-size: 28px; font-weight: 700; }
         
@@ -109,7 +108,7 @@
             margin-bottom: 20px;
         }
         
-        .chip {
+        .chip, .token {
             background: var(--chip-bg); 
             padding: 12px 18px; 
             border-radius: 15px; 
@@ -118,55 +117,14 @@
             cursor: pointer; 
             transition: 0.2s;
             color: var(--text-primary);
-            font-weight: 500;
         }
-        .chip:active { transform: scale(0.95); background: #3a3a3a; }
         
-        .token {
-            background: var(--card-bg); 
-            padding: 12px 18px; 
-            border-radius: 15px; 
-            border: 1px solid var(--border-color);
-            font-size: 18px; 
-            cursor: pointer;
-            transition: 0.2s;
-            color: var(--text-primary);
-        }
-        .token:active { transform: scale(0.95); background: #2a2a2a; }
-        .token.disabled { 
-            opacity: 0.1; 
-            pointer-events: none;
-        }
+        .token { background: var(--card-bg); }
 
-        /* --- URINISH LAMPOCHKA (3 marta) --- */
-        .attempt-badge {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            margin-bottom: 15px;
-        }
-        .attempt-dot {
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            background: #2a2a2a;
-            border: 2px solid #444;
-            transition: 0.2s;
-        }
-        .attempt-dot.active {
-            background: #4caf50;
-            border-color: #8bc34a;
-            box-shadow: 0 0 10px #4caf50;
-        }
-
-        /* --- RESULT PANEL --- */
         .result-panel {
             position: fixed; 
-            bottom: 0; 
-            left: 0; 
-            right: 0; 
-            background: white; 
-            color: black;
+            bottom: 0; left: 0; right: 0; 
+            background: white; color: black;
             border-radius: 30px 30px 0 0; 
             padding: 40px 25px; 
             transform: translateY(100%);
@@ -176,12 +134,8 @@
         .result-panel.active { transform: translateY(0); }
         .res-title { font-size: 24px; font-weight: 800; margin-bottom: 10px; }
         .res-msg { font-size: 18px; margin-bottom: 25px; color: #444; }
-        #res-btn {
-            background: black !important;
-            color: white !important;
-        }
+        #res-btn { background: black !important; color: white !important; }
 
-        /* --- FINAL SCREEN --- */
         .trophy-icon { font-size: 80px; color: gold; margin-bottom: 20px; }
     </style>
 </head>
@@ -213,40 +167,28 @@
     </button>
 </div>
 
-<!-- 2. WORD GAME SCREEN (3 urinish) -->
+<!-- 2. WORD GAME SCREEN -->
 <div id="screen2" class="app-container">
     <div class="header">
         <div class="prompt-text" id="g1-prompt">mening</div>
-        <!-- 3 urinish indikatori -->
-        <div class="attempt-badge" id="g1-attempts">
-            <span class="attempt-dot"></span>
-            <span class="attempt-dot"></span>
-            <span class="attempt-dot"></span>
-        </div>
     </div>
     <div class="game-content">
         <div class="zone" id="g1-zone"></div>
         <div class="bank" id="g1-bank"></div>
     </div>
-    <button class="check-btn" id="g1-check" onclick="handleWordGameCheck()" disabled>Tekshirish</button>
+    <button class="check-btn" id="g1-check" onclick="checkWordGame()" disabled>Tekshirish</button>
 </div>
 
-<!-- 3. SENTENCE BUILDER SCREEN (3 urinish) -->
+<!-- 3. SENTENCE BUILDER SCREEN -->
 <div id="screen3" class="app-container">
     <div class="header">
         <div class="prompt-text" id="g2-prompt">Mening ismim Aziz.</div>
-        <!-- 3 urinish indikatori -->
-        <div class="attempt-badge" id="g2-attempts">
-            <span class="attempt-dot"></span>
-            <span class="attempt-dot"></span>
-            <span class="attempt-dot"></span>
-        </div>
     </div>
     <div class="game-content">
         <div class="zone" id="g2-zone"></div>
         <div class="bank" id="g2-bank"></div>
     </div>
-    <button class="check-btn" id="g2-check" onclick="handleSentenceGameCheck()" disabled>Tekshirish</button>
+    <button class="check-btn" id="g2-check" onclick="checkSentenceGame()" disabled>Tekshirish</button>
 </div>
 
 <!-- FINAL SCREEN -->
@@ -257,7 +199,6 @@
     <button class="next-btn" onclick="location.reload()">Qaytadan boshlash</button>
 </div>
 
-<!-- GLOBAL RESULT PANEL -->
 <div class="result-panel" id="res-panel">
     <div id="res-title" class="res-title">Ajoyib!</div>
     <div id="res-msg" class="res-msg">To'g'ri javob topildi.</div>
@@ -265,8 +206,8 @@
 </div>
 
 <script>
-    // --- DATA (o'zgarishsiz) ---
-    const vocabData = [
+    // --- DATA ---
+    let vocabData = [
         { pos: "OLMOSH", eng: "My", uzb: "mening" },
         { pos: "OT", eng: "Name", uzb: "ism" },
         { pos: "FE'L (to be)", eng: "is", uzb: "bo‘lmoq" },
@@ -281,7 +222,7 @@
         { pos: "OT", eng: "family", uzb: "oila" }
     ];
 
-    const wordGameData = [
+    let wordGameData = [
         { uz: "mening", correct: ["My"] },
         { uz: "ism", correct: ["Name"] },
         { uz: "bo‘lmoq (3-shaxs)", correct: ["is"] },
@@ -296,7 +237,7 @@
         { uz: "oila", correct: ["family"] }
     ];
 
-    const sentenceData = [
+    let sentenceData = [
         { uz: "Mening ismim Aziz.", correct: ["My", "name", "is", "Aziz."] },
         { uz: "Men talabaman.", correct: ["I", "am", "a", "student."] },
         { uz: "Men Toshkentdanman.", correct: ["I", "am", "from", "Tashkent."] },
@@ -304,20 +245,10 @@
         { uz: "Mening oilam bor.", correct: ["I", "have", "a", "family."] }
     ];
 
-    const distractors = ["You", "He", "She", "It", "We", "They", "the", "at", "on", "book", "car", "house", "city", "country"];
+    const distractors = ["You", "He", "She", "It", "We", "They", "the", "at", "on", "book", "car"];
 
-    // --- STATE ---
-    let currentFlash = 0;
-    let g1Idx = 0;
-    let g2Idx = 0;
-    let builtSeq = [];
-    let usedFlags = [];
+    let currentFlash = 0, g1Idx = 0, g2Idx = 0, builtSeq = [], usedFlags = [];
 
-    // URINISHLAR UCHUN QO'SHIMCHA STATE
-    let currentAttempts = 0;          // 0,1,2 (3 - maksimal)
-    const MAX_ATTEMPTS = 3;
-
-    // --- UI HELPERS ---
     function showScreen(id) {
         document.querySelectorAll('.app-container').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
@@ -333,24 +264,9 @@
                 panel.classList.remove('active');
                 if (callback) callback();
             };
-        } else {
-            panel.classList.remove('active');
-        }
+        } else { panel.classList.remove('active'); }
     }
 
-    // Urinishlarni yangilash (screen2 yoki screen3)
-    function updateAttemptsDisplay(screenPrefix) {
-        const dots = document.querySelectorAll(`#${screenPrefix}-attempts .attempt-dot`);
-        dots.forEach((dot, idx) => {
-            if (idx < currentAttempts) {
-                dot.classList.add('active');
-            } else {
-                dot.classList.remove('active');
-            }
-        });
-    }
-
-    // --- 1. FLASHCARDS ---
     function nextFlashcard() {
         if (currentFlash < vocabData.length - 1) {
             currentFlash++;
@@ -371,182 +287,95 @@
         window.speechSynthesis.speak(u);
     }
 
-    // --- 2. WORD GAME (3 urinish) ---
     function initWordGame() {
         const curr = wordGameData[g1Idx];
         document.getElementById('g1-prompt').textContent = curr.uz;
-        
-        // Urinishlarni nolga qaytarish
-        currentAttempts = 0;
-        updateAttemptsDisplay('g1');
-
         let words = [curr.correct[0]];
-        let availableDistractors = distractors.filter(d => d !== curr.correct[0]);
-        
+        let availD = distractors.filter(d => d !== curr.correct[0]);
         for (let i = 0; i < 2; i++) {
-            if (availableDistractors.length > 0) {
-                const randomIndex = Math.floor(Math.random() * availableDistractors.length);
-                words.push(availableDistractors[randomIndex]);
-                availableDistractors.splice(randomIndex, 1);
-            }
+            const rIdx = Math.floor(Math.random() * availD.length);
+            words.push(availD[rIdx]);
+            availD.splice(rIdx, 1);
         }
-        
-        // Shuffle
-        for (let i = words.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [words[i], words[j]] = [words[j], words[i]];
-        }
-        
-        builtSeq = [];
-        usedFlags = new Array(words.length).fill(false);
+        words.sort(() => Math.random() - 0.5);
+        builtSeq = []; usedFlags = new Array(words.length).fill(false);
         window.currentBank = words;
         renderGame('g1');
+    }
+
+    function checkWordGame() {
+        const currentItem = wordGameData[g1Idx];
+        const correct = currentItem.correct;
+        const isCorrect = builtSeq.length === correct.length && builtSeq[0].word === correct[0];
+        
+        togglePanel(true, isCorrect ? "Barakalla!" : "Xato!", 
+                   isCorrect ? "To'g'ri topdingiz." : "To'g'ri javob: " + correct[0], () => {
+            if (!isCorrect) {
+                // Xato bo'lsa savolni massiv oxiriga 3 marta qo'shish
+                wordGameData.push(currentItem, currentItem, currentItem);
+            }
+            if (g1Idx < wordGameData.length - 1) {
+                g1Idx++; initWordGame();
+            } else {
+                showScreen('screen3'); initSentenceGame();
+            }
+        });
+    }
+
+    function initSentenceGame() {
+        const curr = sentenceData[g2Idx];
+        document.getElementById('g2-prompt').textContent = curr.uz;
+        let words = [...curr.correct].sort(() => Math.random() - 0.5);
+        builtSeq = []; usedFlags = new Array(words.length).fill(false);
+        window.currentBank = words;
+        renderGame('g2');
+    }
+
+    function checkSentenceGame() {
+        const currentItem = sentenceData[g2Idx];
+        const correct = currentItem.correct;
+        const isCorrect = builtSeq.length === correct.length && builtSeq.every((v, i) => v.word === correct[i]);
+
+        togglePanel(true, isCorrect ? "Zo'r!" : "E'tiborli bo'ling!", 
+                   isCorrect ? "Gap to'g'ri tuzildi." : "To'g'ri tartib: " + correct.join(' '), () => {
+            if (!isCorrect) {
+                // Xato bo'lsa gapni massiv oxiriga 3 marta qo'shish
+                sentenceData.push(currentItem, currentItem, currentItem);
+            }
+            if (g2Idx < sentenceData.length - 1) {
+                g2Idx++; initSentenceGame();
+            } else { showScreen('screen-final'); }
+        });
     }
 
     function renderGame(prefix) {
         const zone = document.getElementById(`${prefix}-zone`);
         const bank = document.getElementById(`${prefix}-bank`);
         const btn = document.getElementById(`${prefix}-check`);
-        
         zone.innerHTML = '';
         builtSeq.forEach((item, i) => {
             const d = document.createElement('div');
-            d.className = 'chip';
-            d.textContent = item.word;
-            d.onclick = () => {
-                usedFlags[item.idx] = false;
-                builtSeq.splice(i, 1);
-                renderGame(prefix);
-            };
+            d.className = 'chip'; d.textContent = item.word;
+            d.onclick = () => { usedFlags[item.idx] = false; builtSeq.splice(i, 1); renderGame(prefix); };
             zone.appendChild(d);
         });
-
         bank.innerHTML = '';
         window.currentBank.forEach((word, i) => {
             if (!usedFlags[i]) {
                 const t = document.createElement('div');
-                t.className = 'token';
-                t.textContent = word;
-                t.onclick = () => {
-                    usedFlags[i] = true;
-                    builtSeq.push({word, idx: i});
-                    renderGame(prefix);
-                };
+                t.className = 'token'; t.textContent = word;
+                t.onclick = () => { usedFlags[i] = true; builtSeq.push({word, idx: i}); renderGame(prefix); };
                 bank.appendChild(t);
             }
         });
-
-        const isComplete = builtSeq.length > 0;
-        btn.disabled = !isComplete;
-        btn.style.opacity = isComplete ? '1' : '0.5';
+        btn.disabled = builtSeq.length === 0;
+        btn.style.opacity = btn.disabled ? '0.5' : '1';
     }
 
-    // Maxsus handler word game uchun (3 urinish)
-    function handleWordGameCheck() {
-        const correct = wordGameData[g1Idx].correct;
-        const isCorrect = builtSeq.length === correct.length && builtSeq[0].word === correct[0];
-
-        if (isCorrect) {
-            // To'g'ri bo'lsa darhol keyingi bosqichga o'tish
-            togglePanel(true, "Barakalla!", "To'g'ri topdingiz.", () => {
-                if (g1Idx < wordGameData.length - 1) {
-                    g1Idx++; 
-                    initWordGame();
-                } else {
-                    showScreen('screen3');
-                    initSentenceGame();
-                }
-            });
-        } else {
-            // Xato: urinishlarni oshirish
-            currentAttempts++;
-            updateAttemptsDisplay('g1');
-
-            if (currentAttempts >= MAX_ATTEMPTS) {
-                // 3 marta xato - to'g'ri javobni ko'rsatib, keyingi savolga o'tish
-                togglePanel(true, "Xato", "To'g'ri javob: " + correct[0], () => {
-                    if (g1Idx < wordGameData.length - 1) {
-                        g1Idx++; 
-                        initWordGame();
-                    } else {
-                        showScreen('screen3');
-                        initSentenceGame();
-                    }
-                });
-            } else {
-                // Urinish hali bor: qayta urinish (panel xato haqida, davom etsa tozalaymiz)
-                togglePanel(true, "Xato", `Qayta urinib ko'ring (${currentAttempts}/${MAX_ATTEMPTS})`, () => {
-                    // panel yopilganda hech qanday o'zgarishsiz o'yin davom etadi
-                    // faqat bank va zone tozalanmaydi — foydalanuvchi qayta tuzadi
-                    // Lekin biz builtSeq ni tozalab, qayta boshlashni taklif qilamiz? 
-                    // Yaxshi tajriba uchun maydonni tozalab, yangidan boshlatamiz.
-                    initWordGame(); // qayta urinish uchun so'zlami qayta aralashtiramiz
-                });
-            }
-        }
-    }
-
-    // --- 3. SENTENCE GAME (3 urinish) ---
-    function initSentenceGame() {
-        const curr = sentenceData[g2Idx];
-        document.getElementById('g2-prompt').textContent = curr.uz;
-        
-        currentAttempts = 0;
-        updateAttemptsDisplay('g2');
-
-        let words = [...curr.correct];
-        for (let i = words.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [words[i], words[j]] = [words[j], words[i]];
-        }
-        
-        builtSeq = [];
-        usedFlags = new Array(words.length).fill(false);
-        window.currentBank = words;
-        renderGame('g2');
-    }
-
-    function handleSentenceGameCheck() {
-        const correct = sentenceData[g2Idx].correct;
-        const isCorrect = builtSeq.length === correct.length && 
-                         builtSeq.every((v, i) => v.word === correct[i]);
-
-        if (isCorrect) {
-            togglePanel(true, "Zo'r!", "Gap to'g'ri tuzildi.", () => {
-                if (g2Idx < sentenceData.length - 1) {
-                    g2Idx++; 
-                    initSentenceGame();
-                } else {
-                    showScreen('screen-final');
-                }
-            });
-        } else {
-            currentAttempts++;
-            updateAttemptsDisplay('g2');
-
-            if (currentAttempts >= MAX_ATTEMPTS) {
-                togglePanel(true, "E'tiborli bo'ling!", "To'g'ri tartib: " + correct.join(' '), () => {
-                    if (g2Idx < sentenceData.length - 1) {
-                        g2Idx++; 
-                        initSentenceGame();
-                    } else {
-                        showScreen('screen-final');
-                    }
-                });
-            } else {
-                togglePanel(true, "Xato", `Qayta urinib ko'ring (${currentAttempts}/${MAX_ATTEMPTS})`, () => {
-                    initSentenceGame(); // qayta boshlash
-                });
-            }
-        }
-    }
-
-    // --- START ---
     const firstItem = vocabData[0];
     document.getElementById('f-pos').textContent = firstItem.pos;
     document.getElementById('f-eng').textContent = firstItem.eng;
     document.getElementById('f-uzb').textContent = firstItem.uzb;
 </script>
-
 </body>
 </html>
