@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Ingliz Tilini O'rganish - Yangi to'plam</title>
+    <title>Yosh mavzusi - Ingliz tili</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
@@ -182,7 +182,7 @@
 <!-- 3. SENTENCE BUILDER SCREEN -->
 <div id="screen3" class="app-container">
     <div class="header">
-        <div class="prompt-text" id="g2-prompt">I am a student.</div>
+        <div class="prompt-text" id="g2-prompt">Men 18 yoshdaman.</div>
     </div>
     <div class="game-content">
         <div class="zone" id="g2-zone"></div>
@@ -206,52 +206,48 @@
 </div>
 
 <script>
-    // --- YANGI MA'LUMOTLAR (siz bergan ro'yxat asosida) ---
+    // --- YANGI MA'LUMOTLAR (YOSH MAVZUSI) ---
     let vocabData = [
         { pos: "OLMOSH", eng: "I", uzb: "men" },
         { pos: "FE'L (to be)", eng: "am", uzb: "bo‘lmoq" },
-        { pos: "ARTIKL", eng: "a", uzb: "artikl (bir)" },
-        { pos: "OT", eng: "student", uzb: "talaba" },
+        { pos: "SON", eng: "18", uzb: "18" },
+        { pos: "OT", eng: "years", uzb: "yil" },
+        { pos: "SIFAT", eng: "old", uzb: "yosh" },
         { pos: "OLMOSH", eng: "He", uzb: "u (erkak)" },
         { pos: "FE'L (to be)", eng: "is", uzb: "bo‘lmoq" },
-        { pos: "OT", eng: "driver", uzb: "haydovchi" },
+        { pos: "SON", eng: "25", uzb: "25" },
         { pos: "OLMOSH", eng: "She", uzb: "u (ayol)" },
-        { pos: "OT", eng: "student", uzb: "talaba" },
-        { pos: "OLMOSH", eng: "We", uzb: "biz" },
-        { pos: "FE'L (to be)", eng: "are", uzb: "bo‘lmoq" },
-        { pos: "OT", eng: "students", uzb: "talabalar" },
+        { pos: "SON", eng: "22", uzb: "22" },
         { pos: "OLMOSH", eng: "They", uzb: "ular" },
         { pos: "FE'L (to be)", eng: "are", uzb: "bo‘lmoq" },
-        { pos: "OT", eng: "teachers", uzb: "o‘qituvchilar" }
+        { pos: "SON", eng: "19", uzb: "19" }
     ];
 
-    // SO'Z O'YINI (word game) – o'zbekcha so'z va to'g'ri inglizcha javob
     let wordGameData = [
         { uz: "men", correct: ["I"] },
         { uz: "bo‘lmoq (1-shaxs)", correct: ["am"] },
-        { uz: "artikl", correct: ["a"] },
-        { uz: "talaba", correct: ["student"] },
+        { uz: "18", correct: ["18"] },
+        { uz: "yil (ko'plik)", correct: ["years"] },
+        { uz: "yosh", correct: ["old"] },
         { uz: "u (erkak)", correct: ["He"] },
         { uz: "bo‘lmoq (3-shaxs)", correct: ["is"] },
-        { uz: "haydovchi", correct: ["driver"] },
+        { uz: "25", correct: ["25"] },
         { uz: "u (ayol)", correct: ["She"] },
-        { uz: "biz", correct: ["We"] },
-        { uz: "bo‘lmoq (ko‘plik)", correct: ["are"] },
-        { uz: "talabalar", correct: ["students"] },
+        { uz: "22", correct: ["22"] },
         { uz: "ular", correct: ["They"] },
-        { uz: "o‘qituvchilar", correct: ["teachers"] }
+        { uz: "bo‘lmoq (3-shaxs ko'plik)", correct: ["are"] },
+        { uz: "19", correct: ["19"] }
     ];
 
-    // GAP TUZISH (sentence builder) – 5 ta gap
     let sentenceData = [
-        { uz: "I am a student.", correct: ["I", "am", "a", "student."] },
-        { uz: "He is a driver.", correct: ["He", "is", "a", "driver."] },
-        { uz: "She is a student.", correct: ["She", "is", "a", "student."] },
-        { uz: "We are students.", correct: ["We", "are", "students."] },
-        { uz: "They are teachers.", correct: ["They", "are", "teachers."] }
+        { uz: "Men 18 yoshdaman.", correct: ["I", "am", "18", "years", "old."] },
+        { uz: "Men 20 yoshdaman.", correct: ["I", "am", "20", "years", "old."] },
+        { uz: "U (erkak) 25 yoshda.", correct: ["He", "is", "25", "years", "old."] },
+        { uz: "U (ayol) 22 yoshda.", correct: ["She", "is", "22", "years", "old."] },
+        { uz: "Ular 19 yoshda.", correct: ["They", "are", "19", "years", "old."] }
     ];
 
-    const distractors = ["You", "It", "the", "an", "doctor", "pilot", "engineer", "at", "in", "on", "from", "book", "car"];
+    const distractors = ["You", "We", "It", "were", "was", "17", "21", "23", "26", "years", "young", "child"];
 
     let currentFlash = 0, g1Idx = 0, g2Idx = 0, builtSeq = [], usedFlags = [];
 
@@ -298,17 +294,20 @@
         document.getElementById('g1-prompt').textContent = curr.uz;
         let words = [curr.correct[0]];
         let availD = distractors.filter(d => d !== curr.correct[0]);
-        // 2 ta chalg'ituvchi qo'shamiz
+        // 2 ta noto'g'ri variant qo'shamiz
         for (let i = 0; i < 2; i++) {
             if (availD.length > 0) {
                 const rIdx = Math.floor(Math.random() * availD.length);
                 words.push(availD[rIdx]);
                 availD.splice(rIdx, 1);
+            } else {
+                words.push("?"); // agar distractors kam bo'lsa
             }
         }
-        // random tartiblash
+        // Tasodifiy tartiblash
         words.sort(() => Math.random() - 0.5);
-        builtSeq = []; usedFlags = new Array(words.length).fill(false);
+        builtSeq = []; 
+        usedFlags = new Array(words.length).fill(false);
         window.currentBank = words;
         renderGame('g1');
     }
@@ -321,13 +320,15 @@
         togglePanel(true, isCorrect ? "Barakalla!" : "Xato!", 
                    isCorrect ? "To'g'ri topdingiz." : "To'g'ri javob: " + correct[0], () => {
             if (!isCorrect) {
-                // Xato bo'lsa savolni massiv oxiriga 3 marta qo'shish (3 marta takrorlash)
-                for(let i=0; i<3; i++) wordGameData.push(currentItem);
+                // Xato bo'lsa savolni massiv oxiriga 3 marta qo'shish
+                for (let i = 0; i < 3; i++) wordGameData.push(currentItem);
             }
             if (g1Idx < wordGameData.length - 1) {
-                g1Idx++; initWordGame();
+                g1Idx++; 
+                initWordGame();
             } else {
-                showScreen('screen3'); initSentenceGame();
+                showScreen('screen3'); 
+                initSentenceGame();
             }
         });
     }
@@ -335,8 +336,10 @@
     function initSentenceGame() {
         const curr = sentenceData[g2Idx];
         document.getElementById('g2-prompt').textContent = curr.uz;
+        // So'zlarni aralashtiramiz
         let words = [...curr.correct].sort(() => Math.random() - 0.5);
-        builtSeq = []; usedFlags = new Array(words.length).fill(false);
+        builtSeq = []; 
+        usedFlags = new Array(words.length).fill(false);
         window.currentBank = words;
         renderGame('g2');
     }
@@ -350,11 +353,14 @@
                    isCorrect ? "Gap to'g'ri tuzildi." : "To'g'ri tartib: " + correct.join(' '), () => {
             if (!isCorrect) {
                 // Xato bo'lsa gapni massiv oxiriga 3 marta qo'shish
-                for(let i=0; i<3; i++) sentenceData.push(currentItem);
+                for (let i = 0; i < 3; i++) sentenceData.push(currentItem);
             }
             if (g2Idx < sentenceData.length - 1) {
-                g2Idx++; initSentenceGame();
-            } else { showScreen('screen-final'); }
+                g2Idx++; 
+                initSentenceGame();
+            } else { 
+                showScreen('screen-final'); 
+            }
         });
     }
 
@@ -365,16 +371,26 @@
         zone.innerHTML = '';
         builtSeq.forEach((item, i) => {
             const d = document.createElement('div');
-            d.className = 'chip'; d.textContent = item.word;
-            d.onclick = () => { usedFlags[item.idx] = false; builtSeq.splice(i, 1); renderGame(prefix); };
+            d.className = 'chip'; 
+            d.textContent = item.word;
+            d.onclick = () => { 
+                usedFlags[item.idx] = false; 
+                builtSeq.splice(i, 1); 
+                renderGame(prefix); 
+            };
             zone.appendChild(d);
         });
         bank.innerHTML = '';
         window.currentBank.forEach((word, i) => {
             if (!usedFlags[i]) {
                 const t = document.createElement('div');
-                t.className = 'token'; t.textContent = word;
-                t.onclick = () => { usedFlags[i] = true; builtSeq.push({word, idx: i}); renderGame(prefix); };
+                t.className = 'token'; 
+                t.textContent = word;
+                t.onclick = () => { 
+                    usedFlags[i] = true; 
+                    builtSeq.push({word, idx: i}); 
+                    renderGame(prefix); 
+                };
                 bank.appendChild(t);
             }
         });
@@ -382,7 +398,7 @@
         btn.style.opacity = btn.disabled ? '0.5' : '1';
     }
 
-    // Boshqa o'zgarishlar: birinchi kartani o'rnatish (endi "I" dan boshlanadi)
+    // Dastlabki sozlash: flashcard birinchi so'z
     const firstItem = vocabData[0];
     document.getElementById('f-pos').textContent = firstItem.pos;
     document.getElementById('f-eng').textContent = firstItem.eng;
