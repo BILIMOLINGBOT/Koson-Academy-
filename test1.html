@@ -182,7 +182,7 @@
 <!-- 3. SENTENCE BUILDER SCREEN -->
 <div id="screen3" class="app-container">
     <div class="header">
-        <div class="prompt-text" id="g2-prompt">Mening ismim Aziz.</div>
+        <div class="prompt-text" id="g2-prompt">Mening sevimli rangim ko'k.</div>
     </div>
     <div class="game-content">
         <div class="zone" id="g2-zone"></div>
@@ -206,46 +206,60 @@
 </div>
 
 <script>
-    // --- DATA ---
+    // --- YANGI DATA (Siz bergan ro'yxat asosida) ---
     let vocabData = [
         { pos: "OLMOSH", eng: "My", uzb: "mening" },
-        { pos: "OT", eng: "Name", uzb: "ism" },
+        { pos: "SIFAT", eng: "favorite", uzb: "sevimli" },
+        { pos: "OT", eng: "color", uzb: "rang" },
         { pos: "FE'L (to be)", eng: "is", uzb: "bo‘lmoq" },
+        { pos: "SIFAT", eng: "blue", uzb: "ko‘k" },
+        { pos: "OLMOSH + FE'L", eng: "I'm", uzb: "men" },
+        { pos: "OT", eng: "years", uzb: "yil" },
+        { pos: "SIFAT", eng: "old", uzb: "yosh" },
         { pos: "OLMOSH", eng: "I", uzb: "men" },
-        { pos: "FE'L (to be)", eng: "am", uzb: "bo‘lmoq" },
-        { pos: "PREDLOG", eng: "from", uzb: "dan" },
-        { pos: "FE'L", eng: "live", uzb: "yashaymoq" },
-        { pos: "PREDLOG", eng: "in", uzb: "da" },
-        { pos: "ARTIKL", eng: "a", uzb: "artikl (bir)" },
-        { pos: "OT", eng: "student", uzb: "talaba" },
-        { pos: "FE'L", eng: "have", uzb: "ega bo‘lmoq / bor" },
-        { pos: "OT", eng: "family", uzb: "oila" }
+        { pos: "FE'L", eng: "learn", uzb: "o‘rganmoq" },
+        { pos: "OT", eng: "English", uzb: "ingliz tili" },
+        { pos: "OLMOSH", eng: "I", uzb: "men" },
+        { pos: "FE'L", eng: "study", uzb: "o‘qimoq" },
+        { pos: "R AVSH", eng: "every day", uzb: "har kuni" },
+        { pos: "OLMOSH", eng: "I", uzb: "men" },
+        { pos: "FE'L", eng: "like", uzb: "yoqtirmoq" },
+        { pos: "FE'L", eng: "listen", uzb: "tinglamoq" },
+        { pos: "PREDLOG", eng: "to", uzb: "…ga / …ni" },
+        { pos: "OT", eng: "music", uzb: "musiqa" }
     ];
 
     let wordGameData = [
         { uz: "mening", correct: ["My"] },
-        { uz: "ism", correct: ["Name"] },
-        { uz: "bo‘lmoq (3-shaxs)", correct: ["is"] },
+        { uz: "sevimli", correct: ["favorite"] },
+        { uz: "rang", correct: ["color"] },
+        { uz: "bo‘lmoq", correct: ["is"] },
+        { uz: "ko‘k", correct: ["blue"] },
+        { uz: "men (I'm)", correct: ["I'm"] },
+        { uz: "yil", correct: ["years"] },
+        { uz: "yosh", correct: ["old"] },
         { uz: "men", correct: ["I"] },
-        { uz: "bo‘lmoq (1-shaxs)", correct: ["am"] },
-        { uz: "dan", correct: ["from"] },
-        { uz: "yashaymoq", correct: ["live"] },
-        { uz: "da", correct: ["in"] },
-        { uz: "artikl", correct: ["a"] },
-        { uz: "talaba", correct: ["student"] },
-        { uz: "ega bo‘lmoq / bor", correct: ["have"] },
-        { uz: "oila", correct: ["family"] }
+        { uz: "o‘rganmoq", correct: ["learn"] },
+        { uz: "ingliz tili", correct: ["English"] },
+        { uz: "men (2)", correct: ["I"] },
+        { uz: "o‘qimoq", correct: ["study"] },
+        { uz: "har kuni", correct: ["every day"] },
+        { uz: "men (3)", correct: ["I"] },
+        { uz: "yoqtirmoq", correct: ["like"] },
+        { uz: "tinglamoq", correct: ["listen"] },
+        { uz: "…ga / …ni", correct: ["to"] },
+        { uz: "musiqa", correct: ["music"] }
     ];
 
     let sentenceData = [
-        { uz: "Mening ismim Aziz.", correct: ["My", "name", "is", "Aziz."] },
-        { uz: "Men talabaman.", correct: ["I", "am", "a", "student."] },
-        { uz: "Men Toshkentdanman.", correct: ["I", "am", "from", "Tashkent."] },
-        { uz: "Men Toshkentda yashayman.", correct: ["I", "live", "in", "Tashkent."] },
-        { uz: "Mening oilam bor.", correct: ["I", "have", "a", "family."] }
+        { uz: "Mening sevimli rangim ko'k.", correct: ["My", "favorite", "color", "is", "blue."] },
+        { uz: "Men 25 yoshdaman.", correct: ["I'm", "25", "years", "old."] },
+        { uz: "Men ingliz tilini o‘rganaman.", correct: ["I", "learn", "English."] },
+        { uz: "Men har kuni o‘qiyman.", correct: ["I", "study", "every", "day."] },
+        { uz: "Men musiqa tinglashni yoqtiraman.", correct: ["I", "like", "to", "listen", "to", "music."] }
     ];
 
-    const distractors = ["You", "He", "She", "It", "We", "They", "the", "at", "on", "book", "car"];
+    const distractors = ["You", "He", "She", "It", "We", "They", "the", "at", "on", "book", "car", "red", "green", "eat", "drink"];
 
     let currentFlash = 0, g1Idx = 0, g2Idx = 0, builtSeq = [], usedFlags = [];
 
@@ -293,9 +307,11 @@
         let words = [curr.correct[0]];
         let availD = distractors.filter(d => d !== curr.correct[0]);
         for (let i = 0; i < 2; i++) {
-            const rIdx = Math.floor(Math.random() * availD.length);
-            words.push(availD[rIdx]);
-            availD.splice(rIdx, 1);
+            if (availD.length > 0) {
+                const rIdx = Math.floor(Math.random() * availD.length);
+                words.push(availD[rIdx]);
+                availD.splice(rIdx, 1);
+            }
         }
         words.sort(() => Math.random() - 0.5);
         builtSeq = []; usedFlags = new Array(words.length).fill(false);
@@ -311,7 +327,6 @@
         togglePanel(true, isCorrect ? "Barakalla!" : "Xato!", 
                    isCorrect ? "To'g'ri topdingiz." : "To'g'ri javob: " + correct[0], () => {
             if (!isCorrect) {
-                // Xato bo'lsa savolni massiv oxiriga 3 marta qo'shish
                 wordGameData.push(currentItem, currentItem, currentItem);
             }
             if (g1Idx < wordGameData.length - 1) {
@@ -339,7 +354,6 @@
         togglePanel(true, isCorrect ? "Zo'r!" : "E'tiborli bo'ling!", 
                    isCorrect ? "Gap to'g'ri tuzildi." : "To'g'ri tartib: " + correct.join(' '), () => {
             if (!isCorrect) {
-                // Xato bo'lsa gapni massiv oxiriga 3 marta qo'shish
                 sentenceData.push(currentItem, currentItem, currentItem);
             }
             if (g2Idx < sentenceData.length - 1) {
