@@ -77,7 +77,6 @@
             cursor: not-allowed;
             pointer-events: none;
         }
-        .check-btn:disabled { background: #333; color: #666; }
 
         /* --- GAME & BUILDER STYLE --- */
         .header { text-align: center; margin-bottom: 30px; }
@@ -122,7 +121,6 @@
             color: var(--text-primary);
             font-weight: 500;
         }
-        .chip:active { transform: scale(0.95); background: #3a3a3a; }
         
         .token {
             background: var(--card-bg); 
@@ -133,12 +131,6 @@
             cursor: pointer;
             transition: 0.2s;
             color: var(--text-primary);
-        }
-        .token:active { transform: scale(0.95); background: #2a2a2a; }
-        .token.disabled { 
-            opacity: 0.1; 
-            pointer-events: none;
-            cursor: not-allowed;
         }
 
         /* --- RESULT PANEL --- */
@@ -158,10 +150,7 @@
         .result-panel.active { transform: translateY(0); }
         .res-title { font-size: 24px; font-weight: 800; margin-bottom: 10px; }
         .res-msg { font-size: 18px; margin-bottom: 25px; color: #444; }
-        #res-btn {
-            background: black !important;
-            color: white !important;
-        }
+        #res-btn { background: black !important; color: white !important; }
 
         /* --- FINAL SCREEN --- */
         .trophy-icon { font-size: 80px; color: gold; margin-bottom: 20px; }
@@ -171,12 +160,12 @@
 
 <!-- 1. FLASHCARDS SCREEN -->
 <div id="screen1" class="app-container active">
-    <div class="header"><div class="q-num">LUG'AT BOYITISH</div></div>
+    <div class="header"><div class="q-num" id="f-count">1 / 12</div><div class="prompt-text">LUG'AT</div></div>
     <div class="card-stack">
         <div class="flashcard">
             <div class="flag-row">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Flag_of_the_United_Kingdom_%283-5%29.svg" class="flag-img">
-                <span class="part-of-speech" id="f-pos">OLMOSH</span>
+                <span class="part-of-speech" id="f-pos">PRONOUN</span>
             </div>
             <div class="word-main">
                 <span id="f-eng">My</span>
@@ -198,8 +187,8 @@
 <!-- 2. WORD GAME SCREEN -->
 <div id="screen2" class="app-container">
     <div class="header">
-        <div class="q-num" id="g1-count">1 / 13</div>
-        <div class="prompt-text" id="g1-prompt">mening</div>
+        <div class="q-num" id="g1-count">1 / 5</div>
+        <div class="prompt-text" id="g1-prompt">Tarjimasini toping</div>
     </div>
     <div class="game-content">
         <div class="zone" id="g1-zone"></div>
@@ -212,7 +201,7 @@
 <div id="screen3" class="app-container">
     <div class="header">
         <div class="q-num" id="g2-count">1 / 5</div>
-        <div class="prompt-text" id="g2-prompt">Mening ismim Aziz.</div>
+        <div class="prompt-text" id="g2-prompt">Gapni tuzing</div>
     </div>
     <div class="game-content">
         <div class="zone" id="g2-zone"></div>
@@ -225,11 +214,10 @@
 <div id="screen-final" class="app-container" style="text-align: center; justify-content: center;">
     <i class="fas fa-trophy trophy-icon"></i>
     <h1 style="font-size: 32px; margin-bottom: 10px;">Tabriklaymiz!</h1>
-    <p style="color: var(--text-secondary); margin-bottom: 40px;">Barcha bosqichlarni muvaffaqiyatli yakunladingiz.</p>
+    <p style="color: var(--text-secondary); margin-bottom: 40px;">Barcha darslarni o'zlashtirdingiz.</p>
     <button class="next-btn" onclick="location.reload()">Qaytadan boshlash</button>
 </div>
 
-<!-- GLOBAL RESULT PANEL -->
 <div class="result-panel" id="res-panel">
     <div id="res-title" class="res-title">Ajoyib!</div>
     <div id="res-msg" class="res-msg">To'g'ri javob topildi.</div>
@@ -237,55 +225,65 @@
 </div>
 
 <script>
-    // --- DATA (faqat ma'lumotlar o'zgartirildi) ---
+    // --- YANGILANGAN MA'LUMOTLAR ---
     const vocabData = [
-        { pos: "OLMOSH", eng: "My", uzb: "mening" },
-        { pos: "OT", eng: "Name", uzb: "ism" },
-        { pos: "FE'L (to be)", eng: "is", uzb: "bo‘lmoq" },
-        { pos: "OLMOSH", eng: "I", uzb: "men" },
-        { pos: "FE'L (to be)", eng: "am", uzb: "bo‘lmoq" },
-        { pos: "PREDLOG", eng: "from", uzb: "dan" },
-        { pos: "FE'L", eng: "live", uzb: "yashaymoq" },
-        { pos: "PREDLOG", eng: "in", uzb: "da" },
-        { pos: "ARTIKL", eng: "a", uzb: "artikl (bir)" },
-        { pos: "OT", eng: "student", uzb: "talaba" },
-        { pos: "FE'L", eng: "have", uzb: "ega bo‘lmoq / bor" },
-        { pos: "OT", eng: "family", uzb: "oila" }
+        { pos: "PRONOUN", eng: "My", uzb: "mening" },
+        { pos: "NOUN", eng: "Name", uzb: "ism" },
+        { pos: "VERB", eng: "Is", uzb: "“bo‘lmoq” fe’li (to be)" },
+        { pos: "PRONOUN", eng: "I", uzb: "men" },
+        { pos: "VERB", eng: "Am", uzb: "“boʻlmoq” feʼli (to be)" },
+        { pos: "PREPOSITION", eng: "From", uzb: "dan" },
+        { pos: "VERB", eng: "Live", uzb: "yashaymoq" },
+        { pos: "PREPOSITION", eng: "In", uzb: "da" },
+        { pos: "ARTICLE", eng: "A", uzb: "artikl (bir)" },
+        { pos: "NOUN", eng: "Student", uzb: "talaba" },
+        { pos: "VERB", eng: "Have", uzb: "ega bo‘lmoq / bor" },
+        { pos: "NOUN", eng: "Family", uzb: "oila" }
     ];
 
     const wordGameData = [
-        { uz: "mening", correct: ["My"] },
-        { uz: "ism", correct: ["Name"] },
-        { uz: "bo‘lmoq (3-shaxs)", correct: ["is"] },
-        { uz: "men", correct: ["I"] },
-        { uz: "bo‘lmoq (1-shaxs)", correct: ["am"] },
-        { uz: "dan", correct: ["from"] },
-        { uz: "yashaymoq", correct: ["live"] },
-        { uz: "da", correct: ["in"] },
-        { uz: "artikl", correct: ["a"] },
-        { uz: "talaba", correct: ["student"] },
-        { uz: "ega bo‘lmoq / bor", correct: ["have"] },
-        { uz: "oila", correct: ["family"] }
+        { uz: "Mening?", correct: ["My"] },
+        { uz: "Ism?", correct: ["Name"] },
+        { uz: "Men?", correct: ["I"] },
+        { uz: "Talaba?", correct: ["Student"] },
+        { uz: "Oila?", correct: ["Family"] }
     ];
 
     const sentenceData = [
-        { uz: "Mening ismim Aziz.", correct: ["My", "name", "is", "Aziz."] },
-        { uz: "Men talabaman.", correct: ["I", "am", "a", "student."] },
-        { uz: "Men Toshkentdanman.", correct: ["I", "am", "from", "Tashkent."] },
-        { uz: "Men Toshkentda yashayman.", correct: ["I", "live", "in", "Tashkent."] },
-        { uz: "Mening oilam bor.", correct: ["I", "have", "a", "family."] }
+        { uz: "Mening ismim...", correct: ["My", "name", "is"] },
+        { uz: "Men talabaman.", correct: ["I", "am", "a", "student"] },
+        { uz: "Mening oilam bor.", correct: ["I", "have", "a", "family"] },
+        { uz: "Men yashayman.", correct: ["I", "live"] },
+        { uz: "Men ... dan (kelganman).", correct: ["I", "am", "from"] }
     ];
 
-    const distractors = ["You", "He", "She", "It", "We", "They", "the", "at", "on", "book", "car", "house", "city", "country"];
+    const distractors = ["Where", "Go", "Apple", "Big", "They", "You", "She"];
 
-    // --- STATE (o'zgarishsiz) ---
+    // --- LOGIKA ---
     let currentFlash = 0;
     let g1Idx = 0;
     let g2Idx = 0;
     let builtSeq = [];
     let usedFlags = [];
 
-    // --- UI HELPERS (o'zgarishsiz) ---
+    function updateFlashcardUI() {
+        const item = vocabData[currentFlash];
+        document.getElementById('f-count').textContent = `${currentFlash + 1} / ${vocabData.length}`;
+        document.getElementById('f-pos').textContent = item.pos;
+        document.getElementById('f-eng').textContent = item.eng;
+        document.getElementById('f-uzb').textContent = item.uzb;
+    }
+
+    function nextFlashcard() {
+        if (currentFlash < vocabData.length - 1) {
+            currentFlash++;
+            updateFlashcardUI();
+        } else {
+            showScreen('screen2');
+            initWordGame();
+        }
+    }
+
     function showScreen(id) {
         document.querySelectorAll('.app-container').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
@@ -306,66 +304,41 @@
         }
     }
 
-    // --- 1. FLASHCARDS LOGIC (o'zgarishsiz, faqat ma'lumotlar yangi) ---
-    function nextFlashcard() {
-        if (currentFlash < vocabData.length - 1) {
-            currentFlash++;
-            const item = vocabData[currentFlash];
-            document.getElementById('f-pos').textContent = item.pos;
-            document.getElementById('f-eng').textContent = item.eng;
-            document.getElementById('f-uzb').textContent = item.uzb;
-            
-            // Update counter in header
-            document.querySelector('#screen1 .q-num').textContent = `LUG'AT BOYITISH (${currentFlash + 1}/${vocabData.length})`;
-        } else {
-            showScreen('screen2');
-            initWordGame();
-        }
-    }
-
     function speak() {
         const text = document.getElementById('f-eng').textContent;
         const u = new SpeechSynthesisUtterance(text);
-        u.lang = 'en-GB';
+        u.lang = 'en-US';
         window.speechSynthesis.speak(u);
     }
 
-    // --- 2. WORD GAME LOGIC (o'zgarishsiz, faqat ma'lumotlar yangi) ---
     function initWordGame() {
         const curr = wordGameData[g1Idx];
         document.getElementById('g1-count').textContent = `${g1Idx + 1} / ${wordGameData.length}`;
         document.getElementById('g1-prompt').textContent = curr.uz;
-        
-        let words = [curr.correct[0]];
-        let availableDistractors = distractors.filter(d => d !== curr.correct[0]);
-        
-        // Add 2 random distractors
-        for (let i = 0; i < 2; i++) {
-            if (availableDistractors.length > 0) {
-                const randomIndex = Math.floor(Math.random() * availableDistractors.length);
-                words.push(availableDistractors[randomIndex]);
-                availableDistractors.splice(randomIndex, 1);
-            }
-        }
-        
-        // Shuffle array
-        for (let i = words.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [words[i], words[j]] = [words[j], words[i]];
-        }
-        
+        let words = [...curr.correct, distractors[Math.floor(Math.random() * distractors.length)]];
+        words.sort(() => Math.random() - 0.5);
         builtSeq = [];
         usedFlags = new Array(words.length).fill(false);
         window.currentBank = words;
         renderGame('g1');
     }
 
+    function initSentenceGame() {
+        const curr = sentenceData[g2Idx];
+        document.getElementById('g2-count').textContent = `${g2Idx + 1} / ${sentenceData.length}`;
+        document.getElementById('g2-prompt').textContent = curr.uz;
+        let words = [...curr.correct];
+        words.sort(() => Math.random() - 0.5);
+        builtSeq = [];
+        usedFlags = new Array(words.length).fill(false);
+        window.currentBank = words;
+        renderGame('g2');
+    }
+
     function renderGame(prefix) {
         const zone = document.getElementById(`${prefix}-zone`);
         const bank = document.getElementById(`${prefix}-bank`);
         const btn = document.getElementById(`${prefix}-check`);
-        
-        // Render zone (built sequence)
         zone.innerHTML = '';
         builtSeq.forEach((item, i) => {
             const d = document.createElement('div');
@@ -378,8 +351,6 @@
             };
             zone.appendChild(d);
         });
-
-        // Render bank (available words)
         bank.innerHTML = '';
         window.currentBank.forEach((word, i) => {
             if (!usedFlags[i]) {
@@ -394,71 +365,29 @@
                 bank.appendChild(t);
             }
         });
-
-        // Update check button state
-        const isComplete = builtSeq.length > 0;
-        btn.disabled = !isComplete;
-        btn.style.opacity = isComplete ? '1' : '0.5';
+        btn.disabled = builtSeq.length === 0;
     }
 
     function checkWordGame() {
         const correct = wordGameData[g1Idx].correct;
-        const isCorrect = builtSeq.length === correct.length && builtSeq[0].word === correct[0];
-        
-        togglePanel(true, isCorrect ? "Barakalla!" : "Xato!", 
-                   isCorrect ? "To'g'ri topdingiz." : "To'g'ri javob: " + correct[0], () => {
-            if (g1Idx < wordGameData.length - 1) {
-                g1Idx++; 
-                initWordGame();
-            } else {
-                showScreen('screen3');
-                initSentenceGame();
-            }
+        const isCorrect = builtSeq.length === correct.length && builtSeq.every((v, i) => v.word === correct[i]);
+        togglePanel(true, isCorrect ? "To'g'ri!" : "Xato!", isCorrect ? "Keyingisiga o'tamiz." : "To'g'ri javob: " + correct.join(' '), () => {
+            if (g1Idx < wordGameData.length - 1) { g1Idx++; initWordGame(); }
+            else { showScreen('screen3'); initSentenceGame(); }
         });
-    }
-
-    // --- 3. SENTENCE GAME LOGIC (o'zgarishsiz, faqat ma'lumotlar yangi) ---
-    function initSentenceGame() {
-        const curr = sentenceData[g2Idx];
-        document.getElementById('g2-count').textContent = `${g2Idx + 1} / ${sentenceData.length}`;
-        document.getElementById('g2-prompt').textContent = curr.uz;
-        
-        // Shuffle the correct words
-        let words = [...curr.correct];
-        for (let i = words.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [words[i], words[j]] = [words[j], words[i]];
-        }
-        
-        builtSeq = [];
-        usedFlags = new Array(words.length).fill(false);
-        window.currentBank = words;
-        renderGame('g2');
     }
 
     function checkSentenceGame() {
         const correct = sentenceData[g2Idx].correct;
-        const isCorrect = builtSeq.length === correct.length && 
-                         builtSeq.every((v, i) => v.word === correct[i]);
-
-        togglePanel(true, isCorrect ? "Zo'r!" : "E'tiborli bo'ling!", 
-                   isCorrect ? "Gap to'g'ri tuzildi." : "To'g'ri tartib: " + correct.join(' '), () => {
-            if (g2Idx < sentenceData.length - 1) {
-                g2Idx++; 
-                initSentenceGame();
-            } else {
-                showScreen('screen-final');
-            }
+        const isCorrect = builtSeq.length === correct.length && builtSeq.every((v, i) => v.word === correct[i]);
+        togglePanel(true, isCorrect ? "Barakalla!" : "Xato!", isCorrect ? "Gap to'g'ri." : "To'g'ri tartib: " + correct.join(' '), () => {
+            if (g2Idx < sentenceData.length - 1) { g2Idx++; initSentenceGame(); }
+            else { showScreen('screen-final'); }
         });
     }
 
-    // Start initialization (o'zgarishsiz)
-    const firstItem = vocabData[0];
-    document.getElementById('f-pos').textContent = firstItem.pos;
-    document.getElementById('f-eng').textContent = firstItem.eng;
-    document.getElementById('f-uzb').textContent = firstItem.uzb;
-    document.querySelector('#screen1 .q-num').textContent = `LUG'AT BOYITISH (1/${vocabData.length})`;
+    // Start
+    updateFlashcardUI();
 </script>
-
 </body>
 </html>
