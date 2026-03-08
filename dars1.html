@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>LearnU · mobile concept</title>
+  <title>LearnU · island card</title>
   <style>
     * {
       margin: 0;
@@ -13,7 +13,7 @@
     }
 
     body {
-      background: #c2d9e8; /* soft background to highlight the mobile card */
+      background: #d4e0e9;  /* soft background to highlight the mobile card */
       display: flex;
       align-items: center;
       justify-content: center;
@@ -21,30 +21,31 @@
       padding: 12px;
     }
 
-    /* mobile frame – exactly 375px wide, clean white background */
+    /* mobile frame – exactly 375px wide, clean white */
     .phone {
       max-width: 375px;
       width: 100%;
       background-color: #ffffff;
-      border-radius: 40px 40px 28px 28px;
-      box-shadow: 0 30px 50px -20px rgba(0,0,0,0.3), 0 0 0 8px #f0f3f7;
+      border-radius: 44px 44px 32px 32px;
+      box-shadow: 0 30px 50px -20px rgba(0,0,0,0.3), 0 0 0 8px #eef3f8;
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      height: 700px;                /* fixed ratio to keep header / sky / nav proportions */
+      height: 740px;          /* fixed to show perfect spacing */
     }
 
-    /* ----- ORANGE HEADER (#FFA500) ----- */
+    /* ----- ORANGE HEADER (no touching card) ----- */
     .header-orange {
       background-color: #FFA500;
-      padding: 14px 18px 12px 18px;
+      padding: 16px 20px 16px 20px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       flex-shrink: 0;
+      /* margin-bottom comes from gap in flex column, but we use gap later */
     }
 
-    /* left side: gray circle + name */
+    /* left: gray circle + name */
     .user-block {
       display: flex;
       align-items: center;
@@ -52,20 +53,19 @@
     }
 
     .avatar-circle {
-      width: 44px;
-      height: 44px;
-      background-color: #a0a0a0;    /* medium gray */
+      width: 46px;
+      height: 46px;
+      background-color: #9b9b9b;    /* medium gray */
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      overflow: hidden;
     }
 
     .avatar-circle svg {
-      width: 66%;
-      height: 66%;
-      fill: #e6e6e6;                /* light silhouette */
+      width: 68%;
+      height: 68%;
+      fill: #dfdfdf;                /* light silhouette */
     }
 
     .user-name {
@@ -76,9 +76,9 @@
       white-space: nowrap;
     }
 
-    /* right: black rounded rectangle with lightning & 359 */
+    /* right black rounded rectangle */
     .score-pill {
-      background-color: #1e1e1e;     /* near black */
+      background-color: #1a1a1a;
       border-radius: 40px;
       padding: 8px 16px 8px 14px;
       display: flex;
@@ -90,8 +90,8 @@
     .lightning-icon {
       display: flex;
       align-items: center;
-      justify-content: center;
-      color: white;
+      font-size: 1.5rem;      /* unicode fallback, but we'll use SVG */
+      line-height: 1;
     }
 
     .lightning-icon svg {
@@ -105,34 +105,106 @@
       color: white;
       font-weight: 600;
       font-size: 1.1rem;
-      letter-spacing: 0.3px;
     }
 
-    /* ----- MAIN SKY-BLUE AREA (plain #ADD8E6, approx 80% height, no dots) ----- */
-    .sky-area {
-      background-color: #ADD8E6;      /* light blue, like a calm sky */
-      flex: 1;                         /* takes all leftover space between header & nav */
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;       /* push label row to bottom */
-      padding: 0 24px 24px 24px;       /* bottom padding for the three labels */
-      min-height: 0;                   /* flex limitation */
+    /* main container uses flex column with gap for separation */
+    .phone {
+      gap: 16px;                /* creates air between header / card / labels / nav */
+    }
+
+    /* ----- blue card (rounded, light blue, with scattered islands) ----- */
+    .blue-card {
+      background-color: #ADD8E6;        /* sky blue */
+      border-radius: 32px;              /* large rounded corners = card style */
+      margin: 0 16px;                   /* horizontal margin, still full-width-ish */
+      flex: 1;                          /* takes available space, approx 70-80% height */
+      min-height: 0;                    /* flex contraint */
+      position: relative;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.1);
+      /* scattered islands: absolute positioned dots / lines / tiny labels */
+    }
+
+    /* inner wrapper to hold absolute islands, fills card */
+    .map-islands {
+      position: relative;
       width: 100%;
-      /* absolutely plain – no dots, no lines, no extra elements */
+      height: 100%;
+      overflow: hidden;          /* keep islands inside rounded border */
+      border-radius: 32px;
     }
 
-    /* three small black labels, placed horizontally near bottom of sky */
-    .bottom-labels {
+    /* common style for all scattered elements */
+    .island-dot, .island-line, .island-label {
+      position: absolute;
+      color: #111;               /* near black */
+    }
+
+    .island-dot {
+      width: 8px;
+      height: 8px;
+      background-color: #1e1e1e;
+      border-radius: 50%;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+
+    .island-line {
+      width: 32px;
+      height: 2px;
+      background-color: #222;
+      border-radius: 2px;
+      transform-origin: left center;
+    }
+
+    .island-label {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: #1a1a1a;
+      background: rgba(255,255,240,0.3); /* barely visible for legibility */
+      padding: 2px 4px;
+      border-radius: 8px;
+      white-space: nowrap;
+      backdrop-filter: blur(1px);
+    }
+
+    /* various scattered positions – irregular like islands / map notes */
+    .island-dot:nth-child(1) { top: 12%; left: 15%; }
+    .island-dot:nth-child(2) { top: 28%; left: 68%; width: 12px; height: 12px; }
+    .island-dot:nth-child(3) { top: 47%; left: 33%; width: 6px; height: 6px; }
+    .island-dot:nth-child(4) { top: 65%; left: 72%; width: 10px; height: 10px; }
+    .island-dot:nth-child(5) { top: 82%; left: 19%; width: 8px; height: 8px; }
+
+    .island-line:nth-child(6) { top: 18%; left: 42%; width: 45px; transform: rotate(10deg); }
+    .island-line:nth-child(7) { top: 58%; left: 52%; width: 38px; transform: rotate(-8deg); }
+    .island-line:nth-child(8) { top: 76%; left: 10%; width: 28px; transform: rotate(25deg); }
+
+    /* tiny labels like '..', '1:', '4:', '11:' */
+    .island-label:nth-child(9) { top: 8%; left: 73%; content: '..'; }
+    .island-label:nth-child(10) { top: 24%; left: 23%; content: '1:'; }
+    .island-label:nth-child(11) { top: 41%; left: 84%; content: '4:'; }
+    .island-label:nth-child(12) { top: 63%; left: 44%; content: '11:'; }
+    .island-label:nth-child(13) { top: 79%; left: 88%; content: '..'; }
+    .island-label:nth-child(14) { top: 91%; left: 6%; content: '1:'; }
+
+    /* we insert the text via content but need to set for each */
+    .island-label:nth-child(9)::after { content: '..'; }
+    .island-label:nth-child(10)::after { content: '1:'; }
+    .island-label:nth-child(11)::after { content: '4:'; }
+    .island-label:nth-child(12)::after { content: '11:'; }
+    .island-label:nth-child(13)::after { content: '..'; }
+    .island-label:nth-child(14)::after { content: '1:'; }
+
+    /* ----- small labels below card (Darslar, Resurslar, Ko'proq) ----- */
+    .label-row {
       display: flex;
       justify-content: space-around;
       align-items: center;
-      background-color: transparent;
-      padding: 8px 0 2px 0;
-      margin-bottom: 6px;               /* tiny gap before nav */
+      padding: 0 36px;            /* spacing from edges */
+      margin: 8px 0 12px 0;        /* vertical separation: above nav & below card */
+      flex-shrink: 0;
     }
 
     .label {
-      color: #000000;
+      color: #000;
       font-size: 0.9rem;
       font-weight: 500;
       opacity: 0.85;
@@ -143,16 +215,16 @@
       text-transform: uppercase;
     }
 
-    /* ----- BOTTOM NAVIGATION (dark #333) fixed to bottom of phone ----- */
+    /* ----- BOTTOM NAVIGATION (fixed to bottom, dark #333) ----- */
     .bottom-nav {
-      background-color: #333333;        /* dark gray */
+      background-color: #333333;
       display: flex;
       justify-content: space-around;
       align-items: center;
-      padding: 12px 12px 10px 12px;
+      padding: 12px 12px 14px 12px;
       flex-shrink: 0;
       width: 100%;
-      box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.15);
     }
 
     .nav-item {
@@ -160,10 +232,10 @@
       flex-direction: column;
       align-items: center;
       gap: 6px;
-      width: 64px;                      /* stable width for alignment */
+      width: 64px;
     }
 
-    /* icon container – circle or transparent */
+    /* icon circle base */
     .icon-circle {
       width: 48px;
       height: 48px;
@@ -173,47 +245,41 @@
       justify-content: center;
     }
 
-    /* first item: blue circle + white house + label "Darslar" */
+    /* first: blue circle + house */
     .nav-item:nth-child(1) .icon-circle {
-      background-color: #3b82f6;        /* vibrant blue */
+      background-color: #3b82f6;
     }
-
     .nav-item:nth-child(1) svg {
       fill: white;
       width: 28px;
       height: 28px;
     }
 
-    /* second item: white circle with '°' symbol and '0' stacked inside */
+    /* second: white circle with ° and 0 stacked */
     .nav-item:nth-child(2) .icon-circle {
-      background-color: #ffffff;         /* pure white */
+      background-color: white;
     }
-
     .degree-block {
       display: flex;
       flex-direction: column;
       align-items: center;
       line-height: 1;
-      color: #222;                       /* dark symbol */
+      color: #222;
       font-weight: 600;
-      margin-top: 2px;
+      margin-top: 4px;
     }
-
     .degree-big {
       font-size: 2rem;
-      margin-bottom: -8px;
+      margin-bottom: -10px;
     }
-
     .zero-small {
       font-size: 1rem;
-      font-weight: 600;
     }
 
-    /* third item: book icon (transparent background) */
+    /* third: book icon (transparent bg) */
     .nav-item:nth-child(3) .icon-circle {
       background-color: transparent;
     }
-
     .nav-item:nth-child(3) svg {
       stroke: white;
       stroke-width: 2;
@@ -222,11 +288,10 @@
       height: 32px;
     }
 
-    /* fourth item: grid (dots) icon */
+    /* fourth: grid / dots */
     .nav-item:nth-child(4) .icon-circle {
       background-color: transparent;
     }
-
     .grid-dots svg {
       fill: white;
       width: 32px;
@@ -240,36 +305,34 @@
       letter-spacing: 0.2px;
       text-transform: lowercase;
     }
-
     .nav-label:first-letter {
       text-transform: uppercase;
     }
 
-    /* spacing assurance: header & nav never touch the sky labels */
-    .sky-area {
-      border-top: 1px solid transparent;  /* invisible separation */
-      border-bottom: 1px solid transparent;
+    /* For the second nav item we keep an invisible label to keep alignment,
+       but the spec says '0' below it, which we already show inside circle.
+       However we also need to show nothing? we use a blank placeholder. */
+    .nav-item:nth-child(2) .nav-label {
+      opacity: 0;
+      pointer-events: none;
     }
 
-    /* responsive touch: if width < 375px, everything shrinks gracefully */
+    /* ensure everything is spaced – phone gap handles it */
+    .phone {
+      gap: 14px;
+    }
+
+    /* adjustments for very small screens */
     @media (max-width: 350px) {
-      .user-name {
-        font-size: 0.9rem;
-      }
-      .score-pill {
-        padding: 6px 12px;
-      }
+      .user-name { font-size: 0.9rem; }
+      .score-pill { padding: 6px 12px; }
     }
 
-    /* ensure no black dots anywhere (nothing extra in sky) */
-    .sky-area * {
-      border: none;
-      outline: none;
-    }
-
-    /* just to make the bottom labels a bit more visible */
-    .label {
-      text-shadow: 0 1px 2px rgba(255,255,255,0.3);
+    /* tiny fix for island labels to show content */
+    .island-label {
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(2px);
+      font-size: 0.8rem;
     }
   </style>
 </head>
@@ -280,7 +343,6 @@
     <div class="header-orange">
       <div class="user-block">
         <div class="avatar-circle">
-          <!-- simple silhouette (head & shoulders) -->
           <svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor">
             <path d="M12 4a4 4 0 1 1 0 8 4 4 0 0 1 0-8zm0 10c4.42 0 8 2.69 8 6v2H4v-2c0-3.31 3.58-6 8-6z"/>
           </svg>
@@ -289,7 +351,6 @@
       </div>
       <div class="score-pill">
         <span class="lightning-icon">
-          <!-- white lightning bolt -->
           <svg viewBox="0 0 24 24" width="22" height="22" fill="white">
             <path d="M7 2v11h3v9l7-12h-4l4-8z"/>
           </svg>
@@ -298,19 +359,41 @@
       </div>
     </div>
 
-    <!-- large light blue area (plain, with only three labels near bottom) -->
-    <div class="sky-area">
-      <!-- label row sits at bottom of sky -->
-      <div class="bottom-labels">
-        <span class="label">Darslar</span>
-        <span class="label">Resurslar</span>
-        <span class="label">Ko'proq</span>
+    <!-- blue card (rounded, with scattered islands) -->
+    <div class="blue-card">
+      <div class="map-islands">
+        <!-- black dots -->
+        <div class="island-dot" style="top:12%; left:15%;"></div>
+        <div class="island-dot" style="top:28%; left:68%; width:12px; height:12px;"></div>
+        <div class="island-dot" style="top:47%; left:33%; width:6px; height:6px;"></div>
+        <div class="island-dot" style="top:65%; left:72%; width:10px; height:10px;"></div>
+        <div class="island-dot" style="top:82%; left:19%;"></div>
+
+        <!-- lines (black) -->
+        <div class="island-line" style="top:18%; left:42%; width:45px; transform:rotate(10deg);"></div>
+        <div class="island-line" style="top:58%; left:52%; width:38px; transform:rotate(-8deg);"></div>
+        <div class="island-line" style="top:76%; left:10%; width:28px; transform:rotate(25deg);"></div>
+
+        <!-- tiny labels like '..', '1:', '4:', '11:' -->
+        <div class="island-label" style="top:8%; left:73%;">..</div>
+        <div class="island-label" style="top:24%; left:23%;">1:</div>
+        <div class="island-label" style="top:41%; left:84%;">4:</div>
+        <div class="island-label" style="top:63%; left:44%;">11:</div>
+        <div class="island-label" style="top:79%; left:88%;">..</div>
+        <div class="island-label" style="top:91%; left:6%;">1:</div>
       </div>
     </div>
 
-    <!-- bottom navigation bar (dark #333) -->
+    <!-- three small black labels below card (Darslar, Resurslar, Ko'proq) -->
+    <div class="label-row">
+      <span class="label">Darslar</span>
+      <span class="label">Resurslar</span>
+      <span class="label">Ko'proq</span>
+    </div>
+
+    <!-- bottom navigation (dark) -->
     <div class="bottom-nav">
-      <!-- item 1: blue circle, house, Darslar -->
+      <!-- 1: blue circle + house + Darslar -->
       <div class="nav-item">
         <div class="icon-circle">
           <svg viewBox="0 0 24 24" width="28" height="28" fill="white">
@@ -320,7 +403,7 @@
         <span class="nav-label">Darslar</span>
       </div>
 
-      <!-- item 2: white circle with ° and 0 (progress) -->
+      <!-- 2: white circle with ° and 0 (progress) - label hidden for clean look -->
       <div class="nav-item">
         <div class="icon-circle">
           <div class="degree-block">
@@ -328,13 +411,10 @@
             <span class="zero-small">0</span>
           </div>
         </div>
-        <!-- hidden label to keep consistent structure? we keep an empty string for spacing, but better to put a blank? 
-        According to spec: below the icon there is text? Actually second icon says "below it '0' maybe for progress" but we already show '0' inside.
-        To keep parity we use the same nav-label as others but invisible? but we need no extra text; instead I'll make it a transparent placeholder to maintain alignment -->
-        <span class="nav-label" style="opacity:0; pointer-events:none;"> </span>
+        <span class="nav-label" style="opacity:0;"> </span>
       </div>
 
-      <!-- item 3: book icon + Resurslar -->
+      <!-- 3: book icon + Resurslar -->
       <div class="nav-item">
         <div class="icon-circle">
           <svg viewBox="0 0 24 24" width="32" height="32" stroke="white" fill="none">
@@ -345,7 +425,7 @@
         <span class="nav-label">Resurslar</span>
       </div>
 
-      <!-- item 4: grid (dots) + Ko'proq -->
+      <!-- 4: grid (dots) + Ko'proq -->
       <div class="nav-item">
         <div class="icon-circle grid-dots">
           <svg viewBox="0 0 24 24" width="32" height="32" fill="white">
