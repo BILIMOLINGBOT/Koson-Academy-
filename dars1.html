@@ -2,42 +2,39 @@
 <html lang="uz">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ingliz tili o'yini</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>Ingliz tili + Darslar</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: 'Segoe UI', sans-serif;
     }
 
     body {
       background: #0a0a0a;
       color: white;
       min-height: 100vh;
-      padding-bottom: 80px;
     }
 
-    /* Header */
+    /* Header (Darslar sahifasidagi) */
     .header {
       background: #000000;
       padding: 15px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 2px solid #333;
+      border-bottom: 3px solid #333;
       position: sticky;
       top: 0;
       z-index: 100;
     }
 
     .header h2 {
+      margin: 0;
       font-size: 22px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
     }
 
     .stats {
@@ -49,23 +46,70 @@
       display: flex;
       align-items: center;
       gap: 5px;
-      background: #1a1a1a;
-      padding: 5px 12px;
-      border-radius: 20px;
-      border: 1px solid #333;
     }
 
-    .coin-icon {
-      color: gold;
-    }
-
-    /* Game container */
-    .game-container {
+    /* Cards grid */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
       padding: 20px;
+    }
+
+    .card {
+      border-radius: 20px;
+      padding: 25px;
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card.completed { background: #000000; border: 2px solid #fff; }
+    .card.in-progress { background: #333333; }
+    .card.locked-state { background: #1a1a1a; opacity: 0.7; }
+
+    .card-number {
+      font-size: 14px;
+      opacity: 0.9;
+      background: rgba(255,255,255,0.2);
+      padding: 3px 10px;
+      border-radius: 12px;
+      display: inline-block;
+    }
+
+    .progress-bg {
+      width: 100%;
+      height: 8px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 10px;
+      margin-top: 10px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: white;
+      border-radius: 10px;
+      width: 0%;
+    }
+
+    /* O'yin sahifalari */
+    .app-container {
+      display: none;
+      width: 100%;
       max-width: 450px;
       margin: 0 auto;
+      padding: 20px;
+      height: 100vh;
+      flex-direction: column;
     }
 
+    .app-container.active {
+      display: flex;
+    }
+
+    /* Flashcard */
     .flashcard {
       background: #1a1a1a;
       border: 2px solid #333;
@@ -85,11 +129,10 @@
       width: 45px;
       height: 30px;
       border-radius: 4px;
-      object-fit: cover;
     }
 
     .part-of-speech {
-      color: #aaa;
+      color: #a0a0a0;
       font-weight: 700;
       letter-spacing: 1px;
     }
@@ -103,13 +146,8 @@
     }
 
     .audio-icon {
-      color: #aaa;
       cursor: pointer;
-      font-size: 24px;
-    }
-
-    .audio-icon:hover {
-      color: white;
+      color: #a0a0a0;
     }
 
     .translation-word {
@@ -117,8 +155,12 @@
       font-weight: 700;
     }
 
+    /* O'yin elementlari */
     .game-content {
-      margin-top: 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
 
     .prompt-text {
@@ -126,47 +168,30 @@
       font-weight: 700;
       text-align: center;
       margin-bottom: 30px;
-      padding: 20px;
-      background: #1a1a1a;
-      border-radius: 20px;
-      border: 2px solid #333;
+    }
+
+    .zone, .bank {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 20px;
+      min-height: 80px;
     }
 
     .zone {
-      min-height: 80px;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 8px;
       background: rgba(255,255,255,0.03);
       border-radius: 20px;
       padding: 15px;
-      margin-bottom: 20px;
-      border: 2px dashed #444;
-    }
-
-    .bank {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 20px;
     }
 
     .chip, .token {
       background: #2a2a2a;
       padding: 12px 18px;
       border-radius: 15px;
-      border: 1px solid #444;
+      border: 1px solid #333;
       font-size: 18px;
       cursor: pointer;
-      color: white;
-      transition: 0.2s;
-    }
-
-    .chip:hover, .token:hover {
-      background: #3a3a3a;
-      transform: scale(1.05);
     }
 
     .next-btn, .check-btn {
@@ -179,10 +204,6 @@
       font-size: 18px;
       font-weight: 800;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
       margin-top: 20px;
     }
 
@@ -192,7 +213,35 @@
       cursor: not-allowed;
     }
 
-    /* Result Panel */
+    /* Bottom Navigation */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #000;
+      display: flex;
+      justify-content: space-around;
+      padding: 15px 10px;
+      border-top: 2px solid #333;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #888;
+      text-decoration: none;
+    }
+
+    .nav-item.active {
+      color: white;
+    }
+
+    .nav-icon { font-size: 22px; }
+    .nav-text { font-size: 12px; }
+
+    /* Result panel */
     .result-panel {
       position: fixed;
       bottom: 0;
@@ -211,407 +260,401 @@
       transform: translateY(0);
     }
 
-    .res-title {
-      font-size: 24px;
-      font-weight: 800;
-      margin-bottom: 10px;
-    }
-
-    .res-msg {
-      font-size: 18px;
-      margin-bottom: 20px;
-      color: #444;
-    }
-
-    .coin-reward {
-      background: #f0f0f0;
-      padding: 15px;
-      border-radius: 15px;
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 18px;
-      font-weight: 600;
-    }
-
     #res-btn {
       background: black !important;
       color: white !important;
-      border: none;
     }
 
-    /* Bottom Navigation */
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: #000000;
-      display: flex;
-      justify-content: space-around;
-      padding: 15px 10px;
-      border-top: 2px solid #333;
-      z-index: 100;
-    }
-
-    .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      color: #888;
-      text-decoration: none;
-      flex: 1;
-    }
-
-    .nav-item.active {
-      color: white;
-    }
-
-    .nav-icon {
-      font-size: 22px;
-      margin-bottom: 5px;
-    }
-
-    .nav-text {
-      font-size: 12px;
+    .trophy-icon {
+      font-size: 80px;
+      color: gold;
+      margin-bottom: 20px;
     }
   </style>
 </head>
 <body>
 
-  <!-- Header with stats -->
+<!-- DARSLAR SAHIFASI -->
+<div id="lessons-screen" style="display: block;">
   <div class="header">
-    <h2><i class="fas fa-gamepad"></i> O'yin</h2>
+    <h2><i class="fas fa-book-open"></i> Darslar</h2>
     <div class="stats">
-      <div class="stat-item"><i class="fas fa-fire"></i> <span id="streakCount">20</span></div>
-      <div class="stat-item"><i class="fas fa-coins coin-icon"></i> <span id="coinCount">33</span></div>
+      <div class="stat-item"><i class="fas fa-fire"></i> 0</div>
+      <div class="stat-item"><i class="fas fa-coins" style="color: gold;"></i> <span id="coin-display">0</span></div>
     </div>
   </div>
 
-  <!-- Game Container -->
-  <div class="game-container">
-    <!-- Flashcard qismi -->
-    <div id="flashcardSection">
-      <div class="flashcard">
-        <div class="flag-row">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Flag_of_the_United_Kingdom_%283-5%29.svg" class="flag-img">
-          <span class="part-of-speech" id="f-pos">OLMOSH</span>
-        </div>
-        <div class="word-main">
-          <span id="f-eng">My</span>
-          <i class="fas fa-volume-up audio-icon" onclick="speak()"></i>
-        </div>
-      </div>
-      <div class="flashcard">
-        <div class="flag-row">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/8/84/Flag_of_Uzbekistan.svg" class="flag-img">
-        </div>
-        <div class="translation-word" id="f-uzb">mening</div>
-      </div>
-      <button class="next-btn" onclick="nextFlashcard()">
-        Keyingi <i class="fas fa-arrow-right"></i>
-      </button>
-    </div>
-
-    <!-- Word Game qismi -->
-    <div id="wordGameSection" style="display: none;">
-      <div class="prompt-text" id="g1-prompt"></div>
-      <div class="game-content">
-        <div class="zone" id="g1-zone"></div>
-        <div class="bank" id="g1-bank"></div>
-      </div>
-      <button class="check-btn" id="g1-check" onclick="checkWordGame()" disabled>Tekshirish</button>
-    </div>
-
-    <!-- Sentence Game qismi -->
-    <div id="sentenceGameSection" style="display: none;">
-      <div class="prompt-text" id="g2-prompt"></div>
-      <div class="game-content">
-        <div class="zone" id="g2-zone"></div>
-        <div class="bank" id="g2-bank"></div>
-      </div>
-      <button class="check-btn" id="g2-check" onclick="checkSentenceGame()" disabled>Tekshirish</button>
-    </div>
-
-    <!-- Final Screen -->
-    <div id="finalSection" style="display: none; text-align: center;">
-      <i class="fas fa-trophy" style="font-size: 80px; color: gold; margin: 40px 0 20px;"></i>
-      <h2 style="margin-bottom: 10px;">Tabriklaymiz!</h2>
-      <p style="color: #aaa; margin-bottom: 40px;">Barcha bosqichlar yakunlandi</p>
-      <button class="next-btn" onclick="restartGame()">Qaytadan boshlash</button>
-    </div>
-  </div>
+  <div class="cards-grid" id="cardsContainer"></div>
 
   <!-- Bottom Navigation -->
   <div class="bottom-nav">
-    <a href="darslar.html" class="nav-item">
+    <a href="#" class="nav-item active" onclick="showLessonScreen(); return false;">
       <i class="fas fa-home nav-icon"></i>
-      <span class="nav-text">Darslar</span>
+      <span class="nav-text">Uy</span>
     </a>
-    <a href="oyin.html" class="nav-item active">
+    <a href="#" class="nav-item" onclick="showGameScreen(); return false;">
       <i class="fas fa-gamepad nav-icon"></i>
       <span class="nav-text">O'yin</span>
     </a>
   </div>
+</div>
 
-  <!-- Result Panel -->
-  <div class="result-panel" id="res-panel">
-    <div id="res-title" class="res-title"></div>
-    <div id="res-msg" class="res-msg"></div>
-    <div id="coinReward" class="coin-reward" style="display: none;">
-      <i class="fas fa-coins" style="color: gold; font-size: 24px;"></i>
-      <span id="rewardAmount">+1 tanga</span>
+<!-- O'YIN SAHIFALARI (FLASHCARDS + GAMES) -->
+<div id="flashcard-screen" class="app-container">
+  <div class="flashcard">
+    <div class="flag-row">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Flag_of_the_United_Kingdom_%283-5%29.svg" class="flag-img">
+      <span class="part-of-speech" id="f-pos"></span>
     </div>
-    <button class="next-btn" id="res-btn">Davom etish</button>
+    <div class="word-main">
+      <span id="f-eng"></span>
+      <i class="fas fa-volume-up audio-icon" onclick="speakWord()"></i>
+    </div>
   </div>
+  <div class="flashcard">
+    <div class="flag-row">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/8/84/Flag_of_Uzbekistan.svg" class="flag-img">
+    </div>
+    <div class="translation-word" id="f-uzb"></div>
+  </div>
+  <button class="next-btn" onclick="nextFlashcard()">Keyingi <i class="fas fa-arrow-right"></i></button>
+</div>
 
-  <script>
-    // Tangalarni localStorage dan o'qish va saqlash
-    let coins = localStorage.getItem('coins') ? parseInt(localStorage.getItem('coins')) : 33;
-    let streak = 20;
+<div id="wordgame-screen" class="app-container">
+  <div class="prompt-text" id="g1-prompt"></div>
+  <div class="game-content">
+    <div class="zone" id="g1-zone"></div>
+    <div class="bank" id="g1-bank"></div>
+  </div>
+  <button class="check-btn" id="g1-check" onclick="checkWordGame()" disabled>Tekshirish</button>
+</div>
+
+<div id="sentence-screen" class="app-container">
+  <div class="prompt-text" id="g2-prompt"></div>
+  <div class="game-content">
+    <div class="zone" id="g2-zone"></div>
+    <div class="bank" id="g2-bank"></div>
+  </div>
+  <button class="check-btn" id="g2-check" onclick="checkSentenceGame()" disabled>Tekshirish</button>
+</div>
+
+<div id="final-screen" class="app-container" style="justify-content: center; text-align: center;">
+  <i class="fas fa-trophy trophy-icon"></i>
+  <h2>Tabriklaymiz!</h2>
+  <p style="margin: 20px 0;">Barcha bosqichlarni yakunladingiz</p>
+  <button class="next-btn" onclick="restartGame()">Qaytadan boshlash</button>
+</div>
+
+<div class="result-panel" id="res-panel">
+  <div id="res-title" class="res-title"></div>
+  <div id="res-msg" class="res-msg"></div>
+  <button class="next-btn" id="res-btn">Davom etish</button>
+</div>
+
+<script>
+  // ========== TANGA TIZIMI ==========
+  let coins = parseInt(localStorage.getItem('english_coins')) || 0;
+  
+  function updateCoinDisplay() {
+    document.getElementById('coin-display').textContent = coins;
+    localStorage.setItem('english_coins', coins);
+  }
+  
+  function addCoin(amount = 1) {
+    coins += amount;
+    updateCoinDisplay();
+  }
+  
+  // ========== DARSLAR MA'LUMOTLARI ==========
+  const lessonsData = [
+    { title: "Kirish va asosiy tushunchalar", percent: 0, completed: false },
+    { title: "Dasturlash asoslari", percent: 0, completed: false },
+    { title: "O'zgaruvchilar va ma'lumot turlari", percent: 0, completed: false },
+    { title: "Operatorlar va ifodalar", percent: 0, completed: false },
+    { title: "Shartli operatorlar", percent: 0, completed: false },
+    { title: "Sikllar va takrorlash", percent: 0, completed: false },
+    { title: "Funksiyalar va metodlar", percent: 0, completed: false },
+    { title: "Massivlar va kolleksiyalar", percent: 0, completed: false },
+    { title: "Ob'ektga yo'naltirilgan dasturlash", percent: 0, completed: false },
+    { title: "Xatolarni boshqarish", percent: 0, completed: false }
+  ];
+
+  // ========== O'YIN MA'LUMOTLARI ==========
+  const vocabData = [
+    { pos: "OLMOSH", eng: "My", uzb: "mening" },
+    { pos: "OT", eng: "Name", uzb: "ism" },
+    { pos: "FE'L", eng: "is", uzb: "bo'lmoq" },
+    { pos: "OLMOSH", eng: "I", uzb: "men" },
+    { pos: "FE'L", eng: "am", uzb: "bo'lmoq" },
+    { pos: "PREDLOG", eng: "from", uzb: "dan" },
+    { pos: "FE'L", eng: "live", uzb: "yashaymoq" },
+    { pos: "PREDLOG", eng: "in", uzb: "da" },
+    { pos: "ARTIKL", eng: "a", uzb: "bir" },
+    { pos: "OT", eng: "student", uzb: "talaba" }
+  ];
+
+  let wordGameData = vocabData.map(v => ({
+    uz: v.uzb,
+    correct: [v.eng]
+  }));
+
+  const sentenceData = [
+    { uz: "Mening ismim Aziz.", correct: ["My", "name", "is", "Aziz."] },
+    { uz: "Men talabaman.", correct: ["I", "am", "a", "student."] },
+    { uz: "Men Toshkentdanman.", correct: ["I", "am", "from", "Tashkent."] }
+  ];
+
+  const distractors = ["You", "He", "She", "It", "We", "They", "the", "at", "on", "book"];
+
+  // ========== O'YIN HOLATI ==========
+  let currentFlash = 0;
+  let g1Idx = 0;
+  let g2Idx = 0;
+  let builtSeq = [];
+  let usedFlags = [];
+  let currentBank = [];
+
+  // ========== SAHIFALARNI KO'RSATISH ==========
+  function showLessonScreen() {
+    document.getElementById('lessons-screen').style.display = 'block';
+    document.querySelectorAll('.app-container').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-item')[0].classList.add('active');
+    document.querySelectorAll('.nav-item')[1].classList.remove('active');
+    createLessonCards();
+  }
+
+  function showGameScreen() {
+    document.getElementById('lessons-screen').style.display = 'none';
+    document.querySelectorAll('.app-container').forEach(s => s.classList.remove('active'));
+    document.getElementById('flashcard-screen').classList.add('active');
+    document.querySelectorAll('.nav-item')[0].classList.remove('active');
+    document.querySelectorAll('.nav-item')[1].classList.add('active');
     
-    document.getElementById('coinCount').textContent = coins;
-    document.getElementById('streakCount').textContent = streak;
+    // O'yinni qayta boshlash
+    currentFlash = 0;
+    g1Idx = 0;
+    g2Idx = 0;
+    loadFlashcard(0);
+  }
 
-    // Tanga qo'shish funksiyasi
-    function addCoins(amount) {
-      coins += amount;
-      localStorage.setItem('coins', coins);
-      document.getElementById('coinCount').textContent = coins;
-    }
-
-    // O'yin ma'lumotlari
-    const vocabData = [
-      { pos: "OLMOSH", eng: "My", uzb: "mening" },
-      { pos: "OT", eng: "Name", uzb: "ism" },
-      { pos: "FE'L", eng: "is", uzb: "bo‘lmoq" },
-      { pos: "OLMOSH", eng: "I", uzb: "men" },
-      { pos: "FE'L", eng: "am", uzb: "bo‘lmoq" },
-      { pos: "PREDLOG", eng: "from", uzb: "dan" },
-      { pos: "FE'L", eng: "live", uzb: "yashaymoq" },
-      { pos: "PREDLOG", eng: "in", uzb: "da" },
-      { pos: "ARTIKL", eng: "a", uzb: "bir" },
-      { pos: "OT", eng: "student", uzb: "talaba" },
-      { pos: "FE'L", eng: "have", uzb: "ega bo‘lmoq" },
-      { pos: "OT", eng: "family", uzb: "oila" }
-    ];
-
-    let wordGameData = [
-      { uz: "mening", correct: ["My"] },
-      { uz: "ism", correct: ["Name"] },
-      { uz: "bo‘lmoq (3-shaxs)", correct: ["is"] },
-      { uz: "men", correct: ["I"] },
-      { uz: "bo‘lmoq (1-shaxs)", correct: ["am"] },
-      { uz: "dan", correct: ["from"] },
-      { uz: "yashaymoq", correct: ["live"] },
-      { uz: "da", correct: ["in"] },
-      { uz: "bir", correct: ["a"] },
-      { uz: "talaba", correct: ["student"] },
-      { uz: "ega bo‘lmoq", correct: ["have"] },
-      { uz: "oila", correct: ["family"] }
-    ];
-
-    const sentenceData = [
-      { uz: "Mening ismim Aziz.", correct: ["My", "name", "is", "Aziz."] },
-      { uz: "Men talabaman.", correct: ["I", "am", "a", "student."] },
-      { uz: "Men Toshkentdanman.", correct: ["I", "am", "from", "Tashkent."] },
-      { uz: "Men Toshkentda yashayman.", correct: ["I", "live", "in", "Tashkent."] }
-    ];
-
-    const distractors = ["You", "He", "She", "We", "They", "the", "at", "on", "book", "car"];
-
-    // O'yin state
-    let currentFlash = 0;
-    let g1Idx = 0;
-    let g2Idx = 0;
-    let builtSeq = [];
-    let usedFlags = [];
-    let currentBank = [];
-
-    // Result panel
-    function showResult(title, msg, isCorrect, callback) {
-      const panel = document.getElementById('res-panel');
-      document.getElementById('res-title').textContent = title;
-      document.getElementById('res-msg').textContent = msg;
-      
-      const rewardDiv = document.getElementById('coinReward');
-      if (isCorrect) {
-        addCoins(1);
-        rewardDiv.style.display = 'flex';
-        document.getElementById('rewardAmount').textContent = '+1 tanga';
-      } else {
-        rewardDiv.style.display = 'none';
-      }
-      
-      panel.classList.add('active');
-      document.getElementById('res-btn').onclick = () => {
-        panel.classList.remove('active');
-        if (callback) callback();
+  // ========== DARSLAR KARTALARINI YARATISH ==========
+  function createLessonCards() {
+    const container = document.getElementById('cardsContainer');
+    container.innerHTML = '';
+    
+    lessonsData.forEach((lesson, index) => {
+      const card = document.createElement('div');
+      card.className = `card ${lesson.completed ? 'completed' : 'in-progress'}`;
+      card.innerHTML = `
+        <div class="card-number">${index + 1}-dars</div>
+        <h3 style="margin: 15px 0;">${lesson.title}</h3>
+        <div style="font-size: 28px; font-weight: bold;">% ${lesson.percent}</div>
+        <div class="progress-bg">
+          <div class="progress-fill" style="width: ${lesson.percent}%;"></div>
+        </div>
+      `;
+      card.onclick = () => {
+        if (!lesson.completed) {
+          showGameScreen();
+        }
       };
-    }
+      container.appendChild(card);
+    });
+  }
 
-    // O'yin funksiyalari
-    function nextFlashcard() {
-      if (currentFlash < vocabData.length - 1) {
-        currentFlash++;
-        const item = vocabData[currentFlash];
-        document.getElementById('f-pos').textContent = item.pos;
-        document.getElementById('f-eng').textContent = item.eng;
-        document.getElementById('f-uzb').textContent = item.uzb;
-      } else {
-        document.getElementById('flashcardSection').style.display = 'none';
-        document.getElementById('wordGameSection').style.display = 'block';
-        initWordGame();
+  // ========== FLASHCARD FUNKSIYALARI ==========
+  function loadFlashcard(index) {
+    const item = vocabData[index];
+    document.getElementById('f-pos').textContent = item.pos;
+    document.getElementById('f-eng').textContent = item.eng;
+    document.getElementById('f-uzb').textContent = item.uzb;
+  }
+
+  function nextFlashcard() {
+    if (currentFlash < vocabData.length - 1) {
+      currentFlash++;
+      loadFlashcard(currentFlash);
+    } else {
+      // Flashcard tugadi, word game ga o'tish
+      document.querySelectorAll('.app-container').forEach(s => s.classList.remove('active'));
+      document.getElementById('wordgame-screen').classList.add('active');
+      initWordGame();
+    }
+  }
+
+  function speakWord() {
+    const text = document.getElementById('f-eng').textContent;
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = 'en-US';
+    speechSynthesis.speak(utter);
+  }
+
+  // ========== SO'Z O'YINI ==========
+  function initWordGame() {
+    const curr = wordGameData[g1Idx];
+    document.getElementById('g1-prompt').textContent = curr.uz;
+    
+    let words = [curr.correct[0]];
+    let availD = distractors.filter(d => d !== curr.correct[0]);
+    for (let i = 0; i < 2; i++) {
+      if (availD.length > 0) {
+        const rIdx = Math.floor(Math.random() * availD.length);
+        words.push(availD[rIdx]);
+        availD.splice(rIdx, 1);
       }
     }
+    words.sort(() => Math.random() - 0.5);
+    
+    builtSeq = [];
+    usedFlags = new Array(words.length).fill(false);
+    currentBank = words;
+    renderGame('g1');
+  }
 
-    function speak() {
-      const text = document.getElementById('f-eng').textContent;
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = 'en-US';
-      window.speechSynthesis.speak(u);
-    }
-
-    function initWordGame() {
-      const curr = wordGameData[g1Idx];
-      document.getElementById('g1-prompt').textContent = curr.uz;
+  function checkWordGame() {
+    const currentItem = wordGameData[g1Idx];
+    const correct = currentItem.correct;
+    const isCorrect = builtSeq.length === correct.length && builtSeq[0].word === correct[0];
+    
+    let message = isCorrect ? "To'g'ri javob! +1 tanga" : "Xato. To'g'ri javob: " + correct[0];
+    
+    if (isCorrect) {
+      addCoin(1); // To'g'ri javob uchun 1 tanga
       
-      let words = [curr.correct[0]];
-      let availD = distractors.filter(d => d !== curr.correct[0]);
-      for (let i = 0; i < 2; i++) {
-        if (availD.length > 0) {
-          const rIdx = Math.floor(Math.random() * availD.length);
-          words.push(availD[rIdx]);
-          availD.splice(rIdx, 1);
+      // Darslar progressini yangilash (birinchi darsni 10% ga oshirish)
+      if (lessonsData[0].percent < 100) {
+        lessonsData[0].percent = Math.min(lessonsData[0].percent + 10, 100);
+        if (lessonsData[0].percent === 100) lessonsData[0].completed = true;
+      }
+    }
+    
+    showResultPanel(
+      isCorrect ? "Barakalla!" : "Xato!",
+      message,
+      () => {
+        if (!isCorrect) {
+          wordGameData.push(currentItem, currentItem);
+        }
+        
+        if (g1Idx < wordGameData.length - 1) {
+          g1Idx++;
+          initWordGame();
+        } else {
+          // Word game tugadi, sentence game ga o'tish
+          document.querySelectorAll('.app-container').forEach(s => s.classList.remove('active'));
+          document.getElementById('sentence-screen').classList.add('active');
+          initSentenceGame();
         }
       }
-      words.sort(() => Math.random() - 0.5);
-      
-      builtSeq = [];
-      usedFlags = new Array(words.length).fill(false);
-      currentBank = words;
-      renderGame('g1');
-    }
+    );
+  }
 
-    function checkWordGame() {
-      const currentItem = wordGameData[g1Idx];
-      const correct = currentItem.correct;
-      const isCorrect = builtSeq.length === correct.length && builtSeq[0].word === correct[0];
+  // ========== GAP TUZISH O'YINI ==========
+  function initSentenceGame() {
+    const curr = sentenceData[g2Idx];
+    document.getElementById('g2-prompt').textContent = curr.uz;
+    
+    let words = [...curr.correct].sort(() => Math.random() - 0.5);
+    builtSeq = [];
+    usedFlags = new Array(words.length).fill(false);
+    currentBank = words;
+    renderGame('g2');
+  }
+
+  function checkSentenceGame() {
+    const currentItem = sentenceData[g2Idx];
+    const correct = currentItem.correct;
+    const isCorrect = builtSeq.length === correct.length && 
+                     builtSeq.every((v, i) => v.word === correct[i]);
+    
+    let message = isCorrect ? "Gap to'g'ri tuzildi! +2 tanga" : "Xato. To'g'ri tartib: " + correct.join(' ');
+    
+    if (isCorrect) {
+      addCoin(2); // Gap to'g'ri tuzilganda 2 tanga
       
-      showResult(
-        isCorrect ? "Barakalla!" : "Xato!",
-        isCorrect ? "To'g'ri javob. +1 tanga" : `To'g'ri javob: ${correct[0]}`,
-        isCorrect,
-        () => {
-          if (!isCorrect) {
-            wordGameData.push(currentItem);
-          }
-          if (g1Idx < wordGameData.length - 1) {
-            g1Idx++;
-            initWordGame();
-          } else {
-            document.getElementById('wordGameSection').style.display = 'none';
-            document.getElementById('sentenceGameSection').style.display = 'block';
-            initSentenceGame();
-          }
+      // Darslar progressini yangilash
+      if (lessonsData[1].percent < 100) {
+        lessonsData[1].percent = Math.min(lessonsData[1].percent + 15, 100);
+        if (lessonsData[1].percent === 100) lessonsData[1].completed = true;
+      }
+    }
+    
+    showResultPanel(
+      isCorrect ? "Zo'r!" : "E'tiborli bo'ling!",
+      message,
+      () => {
+        if (!isCorrect) {
+          sentenceData.push(currentItem, currentItem);
         }
-      );
-    }
-
-    function initSentenceGame() {
-      const curr = sentenceData[g2Idx];
-      document.getElementById('g2-prompt').textContent = curr.uz;
-      let words = [...curr.correct].sort(() => Math.random() - 0.5);
-      builtSeq = [];
-      usedFlags = new Array(words.length).fill(false);
-      currentBank = words;
-      renderGame('g2');
-    }
-
-    function checkSentenceGame() {
-      const currentItem = sentenceData[g2Idx];
-      const correct = currentItem.correct;
-      const isCorrect = builtSeq.length === correct.length && 
-                       builtSeq.every((v, i) => v.word === correct[i]);
-
-      showResult(
-        isCorrect ? "Zo'r!" : "E'tiborli bo'ling!",
-        isCorrect ? "Gap to'g'ri tuzildi. +1 tanga" : `To'g'ri tartib: ${correct.join(' ')}`,
-        isCorrect,
-        () => {
-          if (!isCorrect) {
-            sentenceData.push(currentItem);
-          }
-          if (g2Idx < sentenceData.length - 1) {
-            g2Idx++;
-            initSentenceGame();
-          } else {
-            document.getElementById('sentenceGameSection').style.display = 'none';
-            document.getElementById('finalSection').style.display = 'block';
-          }
+        
+        if (g2Idx < sentenceData.length - 1) {
+          g2Idx++;
+          initSentenceGame();
+        } else {
+          document.querySelectorAll('.app-container').forEach(s => s.classList.remove('active'));
+          document.getElementById('final-screen').classList.add('active');
         }
-      );
-    }
+      }
+    );
+  }
 
-    function renderGame(prefix) {
-      const zone = document.getElementById(`${prefix}-zone`);
-      const bank = document.getElementById(`${prefix}-bank`);
-      const btn = document.getElementById(`${prefix}-check`);
-      
-      zone.innerHTML = '';
-      builtSeq.forEach((item, i) => {
-        const d = document.createElement('div');
-        d.className = 'chip';
-        d.textContent = item.word;
-        d.onclick = () => {
-          usedFlags[item.idx] = false;
-          builtSeq.splice(i, 1);
+  // ========== O'YIN INTERFEYSI ==========
+  function renderGame(prefix) {
+    const zone = document.getElementById(`${prefix}-zone`);
+    const bank = document.getElementById(`${prefix}-bank`);
+    const btn = document.getElementById(`${prefix}-check`);
+    
+    zone.innerHTML = '';
+    builtSeq.forEach((item, i) => {
+      const div = document.createElement('div');
+      div.className = 'chip';
+      div.textContent = item.word;
+      div.onclick = () => {
+        usedFlags[item.idx] = false;
+        builtSeq.splice(i, 1);
+        renderGame(prefix);
+      };
+      zone.appendChild(div);
+    });
+    
+    bank.innerHTML = '';
+    currentBank.forEach((word, i) => {
+      if (!usedFlags[i]) {
+        const div = document.createElement('div');
+        div.className = 'token';
+        div.textContent = word;
+        div.onclick = () => {
+          usedFlags[i] = true;
+          builtSeq.push({word, idx: i});
           renderGame(prefix);
         };
-        zone.appendChild(d);
-      });
-      
-      bank.innerHTML = '';
-      currentBank.forEach((word, i) => {
-        if (!usedFlags[i]) {
-          const t = document.createElement('div');
-          t.className = 'token';
-          t.textContent = word;
-          t.onclick = () => {
-            usedFlags[i] = true;
-            builtSeq.push({word, idx: i});
-            renderGame(prefix);
-          };
-          bank.appendChild(t);
-        }
-      });
-      
-      btn.disabled = builtSeq.length === 0;
-    }
+        bank.appendChild(div);
+      }
+    });
+    
+    btn.disabled = builtSeq.length === 0;
+  }
 
-    function restartGame() {
-      currentFlash = 0;
-      g1Idx = 0;
-      g2Idx = 0;
-      
-      const firstItem = vocabData[0];
-      document.getElementById('f-pos').textContent = firstItem.pos;
-      document.getElementById('f-eng').textContent = firstItem.eng;
-      document.getElementById('f-uzb').textContent = firstItem.uzb;
-      
-      document.getElementById('finalSection').style.display = 'none';
-      document.getElementById('flashcardSection').style.display = 'block';
-      document.getElementById('wordGameSection').style.display = 'none';
-      document.getElementById('sentenceGameSection').style.display = 'none';
-    }
+  // ========== RESULT PANEL ==========
+  function showResultPanel(title, message, callback) {
+    document.getElementById('res-title').textContent = title;
+    document.getElementById('res-msg').textContent = message;
+    document.getElementById('res-panel').classList.add('active');
+    document.getElementById('res-btn').onclick = () => {
+      document.getElementById('res-panel').classList.remove('active');
+      if (callback) callback();
+    };
+  }
 
-    // Initialize first flashcard
-    const firstItem = vocabData[0];
-    document.getElementById('f-pos').textContent = firstItem.pos;
-    document.getElementById('f-eng').textContent = firstItem.eng;
-    document.getElementById('f-uzb').textContent = firstItem.uzb;
-  </script>
+  function restartGame() {
+    showLessonScreen();
+  }
+
+  // ========== BOSHLANG'ICH SOZLASH ==========
+  updateCoinDisplay();
+  createLessonCards();
+  loadFlashcard(0);
+</script>
 
 </body>
 </html>
