@@ -22,48 +22,52 @@
       overflow: hidden;
     }
 
+    /* ── ASOSIY KONTEYNER ── */
     .container {
       width: 100%;
       max-width: 420px;
       height: 100vh;
+      background: transparent;
       position: relative;
       overflow: hidden;
       display: flex;
       flex-direction: column;
       align-items: center;
+      box-shadow: 0 0 50px rgba(0,0,0,0.1);
     }
 
+    /* ── STACK MAYDONI ── */
     .stack-scene {
       position: relative;
-      width: 90%;
+      width: 100%;
       height: 100%;
       display: flex;
       justify-content: center;
       align-items: center;
     }
 
+    /* ── RANGLI KARTALAR (YUMALOQ BURCHAKLI) ── */
     .lesson-card {
       position: absolute;
       width: 100%;
-      height: 450px; 
-      border-radius: 40px; /* Burchaklar yumaloqligi */
-      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      height: 400px; /* Karta balandligi 500px dan 400px ga kamaytirildi */
+      border-radius: 45px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.12);
       display: flex;
       flex-direction: column;
-      padding: 40px 30px;
+      padding: 45px 35px;
       cursor: grab;
       user-select: none;
       touch-action: none;
-      
-      /* ASOSIY O'ZGARIŞ: Markazni pastga qo'yamiz */
-      transform-origin: center bottom; 
-      
-      transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
+      transform-origin: center center;
+      transition: transform 0.45s cubic-bezier(0.23, 1, 0.32, 1), 
+                  bottom 0.45s cubic-bezier(0.23, 1, 0.32, 1),
                   opacity 0.4s ease, 
                   filter 0.4s ease;
     }
+    .lesson-card:active { cursor: grabbing; }
 
-    /* Ranglar */
+    /* Ranglar palitrasi */
     .lesson-card:nth-child(1) { background: linear-gradient(135deg, #FF6B6B, #EE5252); }
     .lesson-card:nth-child(2) { background: linear-gradient(135deg, #4ECDC4, #45B7AA); }
     .lesson-card:nth-child(3) { background: linear-gradient(135deg, #FFD93D, #F6C90E); }
@@ -71,29 +75,33 @@
     .lesson-card:nth-child(5) { background: linear-gradient(135deg, #A8E6CF, #7FCFB1); }
 
     .card-tag {
-      font-size: 0.8rem;
+      font-size: 0.85rem;
       font-weight: 700;
-      color: rgba(255,255,255,0.8);
+      color: rgba(255,255,255,0.85);
       text-transform: uppercase;
-      margin-bottom: 15px;
+      letter-spacing: 1.2px;
+      margin-bottom: 20px;
     }
 
     .card-title {
-      font-size: 2rem;
+      font-size: 2.2rem;
       font-weight: 800;
       color: white;
       line-height: 1.2;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
 
+    /* Swipe ko'rsatmasi */
     .hint {
       position: absolute;
-      bottom: 40px;
-      color: #888;
-      font-size: 0.85rem;
-      background: white;
-      padding: 10px 20px;
-      border-radius: 50px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+      bottom: 30px;
+      color: #999;
+      font-size: 0.9rem;
+      font-weight: 500;
+      background: rgba(255,255,255,0.8);
+      padding: 8px 16px;
+      border-radius: 100px;
+      backdrop-filter: blur(4px);
     }
   </style>
 </head>
@@ -101,12 +109,32 @@
 
 <div class="container">
   <div class="stack-scene" id="stackScene">
-    <!-- Kartalar -->
-    <div class="lesson-card"><div class="card-tag">1-dars</div><div class="card-title">Algebra asoslari</div></div>
-    <div class="lesson-card"><div class="card-tag">2-dars</div><div class="card-title">Ingliz tili</div></div>
-    <div class="lesson-card"><div class="card-tag">3-dars</div><div class="card-title">Fizika</div></div>
-    <div class="lesson-card"><div class="card-tag">4-dars</div><div class="card-title">Tarix</div></div>
-    <div class="lesson-card"><div class="card-tag">5-dars</div><div class="card-title">Kimyo</div></div>
+
+    <div class="lesson-card">
+      <div class="card-tag">1-dars · Matematika</div>
+      <div class="card-title">Algebra asoslari va murakkab tenglamalar</div>
+    </div>
+
+    <div class="lesson-card">
+      <div class="card-tag">2-dars · Ingliz tili</div>
+      <div class="card-title">Grammatika va so'zlashuv</div>
+    </div>
+
+    <div class="lesson-card">
+      <div class="card-tag">3-dars · Fizika</div>
+      <div class="card-title">Kinematika va dinamika asoslari</div>
+    </div>
+
+    <div class="lesson-card">
+      <div class="card-tag">4-dars · Tarix</div>
+      <div class="card-title">Jahon sivilizatsiyasi rivojlanishi</div>
+    </div>
+
+    <div class="lesson-card">
+      <div class="card-tag">5-dars · Kimyo</div>
+      <div class="card-title">Organik birikmalar va reaksiyalar</div>
+    </div>
+
   </div>
   <div class="hint">Almashtirish uchun tepaga yoki pastga suring</div>
 </div>
@@ -117,56 +145,69 @@
   const cards = Array.from(scene.querySelectorAll('.lesson-card'));
   const N = cards.length;
 
-  /* SOZLAMALAR */
-  const Y_OFFSET = 45;       /* Orqa kartalar qancha tepaga chiqib turishi (px) */
-  const SCALE_STEP = 0.05;   /* Orqadagi kartalar qisqarishi */
+  /* Parametrlar */
+  const PEEK = 30;           /* Orqa kartalar orasidagi masofa */
+  const SCALE_STEP = 0.05;    /* Orqaga qarab kichrayish darajasi */
+  const BOTTOM_BASE = 100;    /* Kartaning eng pastki nuqtasi (ekran pastidan masofa) */
 
   let topIdx = 0;
 
   function applyLayout(animated) {
     cards.forEach((card, i) => {
-      // Tartibni hisoblash (0 - eng oldindagi)
       const depth = (i - topIdx + N) % N;
       
-      card.style.transition = animated ? '' : 'none';
+      if (!animated) {
+        card.style.transition = 'none';
+      } else {
+        card.style.transition = ''; 
+      }
       
-      // Kartaning holati
-      // translateY: kartani yuqoriga suradi
-      // scale: kartani ozgina kichraytiradi
-      const ty = -depth * Y_OFFSET;
-      const sc = 1 - (depth * SCALE_STEP);
-      
-      card.style.transform = `translateY(${ty}px) scale(${sc})`;
+      // Kartani joylashuvi
+      card.style.bottom = (BOTTOM_BASE + (depth * PEEK)) + 'px';
+      card.style.transform = `scale(${1 - depth * SCALE_STEP})`;
       card.style.zIndex = N - depth;
       
-      // Orqadagi kartalarni xiralashtirish
+      // Effektlar
       card.style.filter = `brightness(${1 - depth * 0.1})`;
       card.style.opacity = depth > 3 ? 0 : 1;
-      
-      // Faqat eng oldingisiga teginish mumkin
       card.style.pointerEvents = depth === 0 ? 'auto' : 'none';
     });
   }
 
+  // Boshlang'ich holat
   applyLayout(false);
 
+  /* ── SWIPE LOGIKASI ── */
   let startY = null;
-  const onDown = (e) => startY = e.touches ? e.touches[0].clientY : e.clientY;
-  const onUp = (e) => {
+
+  function onDown(e) {
+    startY = e.touches ? e.touches[0].clientY : e.clientY;
+  }
+
+  function onUp(e) {
     if (startY === null) return;
+    
     const endY = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
     const deltaY = endY - startY;
+    
     if (Math.abs(deltaY) > 50) {
-      topIdx = deltaY < 0 ? (topIdx + 1) % N : (topIdx - 1 + N) % N;
+      if (deltaY < 0) {
+        // Swipe UP
+        topIdx = (topIdx + 1) % N;
+      } else {
+        // Swipe DOWN
+        topIdx = (topIdx - 1 + N) % N;
+      }
       applyLayout(true);
     }
     startY = null;
-  };
+  }
 
   scene.addEventListener('mousedown', onDown);
   scene.addEventListener('touchstart', onDown, { passive: true });
   scene.addEventListener('mouseup', onUp);
   scene.addEventListener('touchend', onUp);
+  document.addEventListener('mouseup', onUp);
 })();
 </script>
 
