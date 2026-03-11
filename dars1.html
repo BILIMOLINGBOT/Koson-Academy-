@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="uz">
 <head>
@@ -37,7 +36,7 @@
       box-shadow: 0 0 50px rgba(0,0,0,0.1);
     }
 
-    /* ── STACK MAYDONI ── */
+    /* ── STACK MAYDONI (GORIZONTAL STACK) ── */
     .stack-scene {
       position: relative;
       width: 100%;
@@ -62,7 +61,7 @@
       touch-action: none;
       transform-origin: center center;
       transition: transform 0.45s cubic-bezier(0.23, 1, 0.32, 1), 
-                  bottom 0.45s cubic-bezier(0.23, 1, 0.32, 1),
+                  left 0.45s cubic-bezier(0.23, 1, 0.32, 1),
                   opacity 0.4s ease, 
                   filter 0.4s ease;
     }
@@ -92,7 +91,7 @@
       text-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
 
-    /* Swipe ko'rsatmasi */
+    /* Swipe ko'rsatmasi (GORIZONTAL) */
     .hint {
       position: absolute;
       bottom: 30px;
@@ -137,7 +136,7 @@
     </div>
 
   </div>
-  <div class="hint">Almashtirish uchun tepaga yoki pastga suring</div>
+  <div class="hint">Almashtirish uchun o'ngga yoki chapga suring</div>
 </div>
 
 <script>
@@ -146,64 +145,73 @@
   const cards = Array.from(scene.querySelectorAll('.lesson-card'));
   const N = cards.length;
 
-  /* Parametrlar */
-  const PEEK = 30;           /* Orqa kartalar orasidagi masofa */
+  /* GORIZONTAL PARAMETRLAR */
+  const PEEK = 24;            /* Orqa kartalar orasidagi gorizontal masofa (px) */
   const SCALE_STEP = 0.05;    /* Orqaga qarab kichrayish darajasi */
-  const BOTTOM_BASE = 100;    /* Kartaning eng pastki nuqtasi (ekran pastidan masofa) */
+  const LEFT_START = 20;      /* Birinchi karta (eng ustki) chapdan masofasi */
 
-  let topIdx = 0;
+  let topIdx = 0;   // Hozirgi eng oldingi kartaning indeksi
 
   function applyLayout(animated) {
     cards.forEach((card, i) => {
+      // Depth: 0 (old) ... N-1 (eng orqa)
       const depth = (i - topIdx + N) % N;
       
       if (!animated) {
         card.style.transition = 'none';
       } else {
+        // Transition still default (CSS da belgilangan)
         card.style.transition = ''; 
       }
       
-      // Kartani joylashuvi
-      card.style.bottom = (BOTTOM_BASE + (depth * PEEK)) + 'px';
+      // Gorizontal joylashuv: left orqali siljitish (vertikaldan farqli)
+      card.style.left = (LEFT_START + (depth * PEEK)) + 'px';
+      
+      // Transform (scale) va z-index
       card.style.transform = `scale(${1 - depth * SCALE_STEP})`;
       card.style.zIndex = N - depth;
       
-      // Effektlar
+      // Effektlar (orqa kartalar xira va qorayadi)
       card.style.filter = `brightness(${1 - depth * 0.1})`;
       card.style.opacity = depth > 3 ? 0 : 1;
+      
+      // Faqat eng oldingi karta (depth = 0) bosiladigan bo'lsin
       card.style.pointerEvents = depth === 0 ? 'auto' : 'none';
     });
   }
 
-  // Boshlang'ich holat
+  // Boshlang'ich holat (animatsiyasiz)
   applyLayout(false);
 
-  /* ── SWIPE LOGIKASI ── */
-  let startY = null;
+  /* ── GORIZONTAL SWIPE LOGIKASI ── */
+  let startX = null;
 
   function onDown(e) {
-    startY = e.touches ? e.touches[0].clientY : e.clientY;
+    // Bosish boshlanganda X koordinatasini olish
+    startX = e.touches ? e.touches[0].clientX : e.clientX;
   }
 
   function onUp(e) {
-    if (startY === null) return;
+    if (startX === null) return;
     
-    const endY = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
-    const deltaY = endY - startY;
+    const endX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+    const deltaX = endX - startX;
     
-    if (Math.abs(deltaY) > 50) {
-      if (deltaY < 0) {
-        // Swipe UP
+    if (Math.abs(deltaX) > 50) {   // Gorizontal siljish sezgirligi
+      if (deltaX < 0) {
+        // Chapga surish (←) -> keyingi kartani oldinga chiqaramiz
         topIdx = (topIdx + 1) % N;
       } else {
-        // Swipe DOWN
+        // O'ngga surish (→) -> oldingi kartaga qaytamiz
         topIdx = (topIdx - 1 + N) % N;
       }
-      applyLayout(true);
+      applyLayout(true);   // Animatsiya bilan yangilash
     }
-    startY = null;
+    startX = null;
   }
 
+  // Event listenerlarni faqat stack-scene ga bog'lash,
+  // shuningdek mouse/touch bosilishidan tashqari butun hujjatda qo'yib yuborilishini ham tinglash
   scene.addEventListener('mousedown', onDown);
   scene.addEventListener('touchstart', onDown, { passive: true });
   scene.addEventListener('mouseup', onUp);
