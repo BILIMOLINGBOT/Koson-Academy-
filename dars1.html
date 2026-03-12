@@ -3,20 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>LearnU · Chetga Taqalgan Kartalar</title>
+  <title>LearnU · Yumaloq kartalar (stack chetga tegib)</title>
   <style>
-    /* ── ASOSIY RESET ── */
-    * { 
-      margin: 0; 
-      padding: 0; 
+    /* ── RESET & FONTS ── */
+    * {
+      margin: 0;
+      padding: 0;
       box-sizing: border-box;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
     body {
-      background: #f0f2f5;
-      display: flex; 
-      align-items: center; 
+      background: #eef0f3;
+      display: flex;
+      align-items: center;
       justify-content: center;
       min-height: 100vh;
       overflow: hidden;
@@ -29,84 +29,95 @@
       height: 100vh;
       background: transparent;
       position: relative;
-      overflow: hidden;
       display: flex;
       flex-direction: column;
       align-items: center;
+      box-shadow: 0 0 40px rgba(0,0,0,0.08);
     }
 
-    /* ── STACK MAYDONI ── */
+    /* ── STACK SAHNI (GORIZONTAL OFFSET BILAN) ── */
     .stack-scene {
       position: relative;
       width: 100%;
       height: 100%;
       display: flex;
-      justify-content: flex-start; /* Chapdan boshlash */
+      justify-content: flex-start;  /* kartalarni chapdan boshlab joylashtiradi */
       align-items: center;
+      padding-left: 12px;           /* birinchi karta ekran chetiga tegib turishi uchun */
+      overflow: visible;
     }
 
-    /* ── RANGLI KARTALAR ── */
+    /* ── KARTALAR (yumaloq, stack gorizontal) ── */
     .lesson-card {
       position: absolute;
-      width: 90%; /* Orqa kartalar ko'rinishi uchun 90% qilingan */
-      height: 400px; 
-      border-radius: 0 45px 45px 0; /* Faqat o'ng tomoni yumaloq, chap tomoni tekis */
-      box-shadow: 10px 20px 40px rgba(0,0,0,0.12);
+      width: 86%;                   /* ekran kengligining 86% — atrofida bo‘sh joy qoladi */
+      max-width: 340px;             
+      height: 420px;                /* balandlik biroz qisqartirildi, yaxshi muvozanat uchun */
+      border-radius: 48px;          /* yumaloqlik */
+      box-shadow: 0 22px 44px rgba(0, 0, 0, 0.18);
       display: flex;
       flex-direction: column;
-      padding: 45px 35px;
+      padding: 44px 32px;
       cursor: grab;
       user-select: none;
       touch-action: none;
       transform-origin: center center;
-      transition: transform 0.45s cubic-bezier(0.23, 1, 0.32, 1), 
-                  left 0.45s cubic-bezier(0.23, 1, 0.32, 1),
-                  opacity 0.4s ease, 
-                  filter 0.4s ease;
+      transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.1), 
+                  left 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.1),
+                  opacity 0.35s ease, 
+                  filter 0.35s ease;
+      will-change: transform, left, opacity;
+      left: 0;                      /* JS orqali boshqariladi */
     }
-    
-    /* Agar chap tomoni ham yumaloq bo'lishini xohlasangiz:
-       border-radius: 45px; deb o'zgartiring. 
-    */
 
-    .lesson-card:active { cursor: grabbing; }
+    .lesson-card:active {
+      cursor: grabbing;
+    }
 
-    /* Ranglar palitrasi */
-    .lesson-card:nth-child(1) { background: linear-gradient(135deg, #FF6B6B, #EE5252); }
-    .lesson-card:nth-child(2) { background: linear-gradient(135deg, #4ECDC4, #45B7AA); }
-    .lesson-card:nth-child(3) { background: linear-gradient(135deg, #FFD93D, #F6C90E); }
-    .lesson-card:nth-child(4) { background: linear-gradient(135deg, #6C5CE7, #5F4BCF); }
-    .lesson-card:nth-child(5) { background: linear-gradient(135deg, #A8E6CF, #7FCFB1); }
+    /* rangli gradientlar */
+    .lesson-card:nth-child(1) { background: linear-gradient(145deg, #FF6B6B, #EE5252); }
+    .lesson-card:nth-child(2) { background: linear-gradient(145deg, #4ECDC4, #3AA99F); }
+    .lesson-card:nth-child(3) { background: linear-gradient(145deg, #FFD93D, #F5C20A); }
+    .lesson-card:nth-child(4) { background: linear-gradient(145deg, #6C5CE7, #5A4BCF); }
+    .lesson-card:nth-child(5) { background: linear-gradient(145deg, #A8E6CF, #8CD4B5); }
 
     .card-tag {
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       font-weight: 700;
-      color: rgba(255,255,255,0.85);
+      color: rgba(255,255,255,0.9);
       text-transform: uppercase;
-      letter-spacing: 1.2px;
-      margin-bottom: 20px;
+      letter-spacing: 1.4px;
+      margin-bottom: 18px;
+      background: rgba(0,0,0,0.06);
+      padding: 6px 14px;
+      border-radius: 40px;
+      align-self: flex-start;
+      backdrop-filter: blur(2px);
     }
 
     .card-title {
-      font-size: 2.2rem;
+      font-size: 2.3rem;
       font-weight: 800;
       color: white;
       line-height: 1.2;
-      text-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      text-shadow: 0 3px 12px rgba(0,0,0,0.15);
+      word-break: break-word;
     }
 
-    /* Swipe ko'rsatmasi */
+    /* surish uchun hint — pastki markazda */
     .hint {
       position: absolute;
-      bottom: 40px;
-      color: #999;
-      font-size: 0.9rem;
+      bottom: 30px;
+      color: #5a5f73;
+      font-size: 0.95rem;
       font-weight: 500;
-      background: rgba(255,255,255,0.9);
-      padding: 10px 20px;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 10px 22px;
       border-radius: 100px;
-      backdrop-filter: blur(4px);
-      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+      white-space: nowrap;
+      z-index: 100;
     }
   </style>
 </head>
@@ -115,9 +126,10 @@
 <div class="container">
   <div class="stack-scene" id="stackScene">
 
+    <!-- 5 ta karta (rasmga mos mavzular) -->
     <div class="lesson-card">
       <div class="card-tag">1-dars · Matematika</div>
-      <div class="card-title">Algebra asoslari va murakkab tenglamalar</div>
+      <div class="card-title">Algebra asoslari<br>va murakkab tenglamalar</div>
     </div>
 
     <div class="lesson-card">
@@ -141,7 +153,7 @@
     </div>
 
   </div>
-  <div class="hint">Almashtirish uchun o'ngga yoki chapga suring</div>
+  <div class="hint">〈  suring  〉</div>
 </div>
 
 <script>
@@ -150,71 +162,146 @@
   const cards = Array.from(scene.querySelectorAll('.lesson-card'));
   const N = cards.length;
 
-  /* KONFIGURATSIYA */
-  const PEEK = 35;            /* Orqa kartalar orasidagi masofa */
-  const SCALE_STEP = 0.06;    /* Orqaga qarab kichrayish */
-  const LEFT_START = 0;       /* CHETGA TAQASH UCHUN: 0 */
+  // STACK PARAMETRLARI (GORIZONTAL OFFSET)
+  const BASE_LEFT = 8;              // eng oldingi kartaning chapdan uzoqligi (ekran chetiga tegib turishi uchun kichik)
+  const PEEK = 28;                  // har bir orqa karta uchun qo'shimcha gorizontal siljish (oldingisidan o'ngroq)
+  const SCALE_STEP = 0.045;         // kichrayish miqdori
+  const OPACITY_DEPTH_LIMIT = 3;    // 3-dan keyin opacity = 0
 
-  let topIdx = 0;
+  let topIndex = 0;                 // ayni paytda eng oldingi kartaning indexi
 
-  function applyLayout(animated) {
+  // Layout yangilash (gorizontal stack)
+  function applyLayout(animate = false) {
     cards.forEach((card, i) => {
-      const depth = (i - topIdx + N) % N;
-      
-      if (!animated) {
+      // depth 0 (eng old) dan N-1 gacha
+      const depth = (i - topIndex + N) % N;
+
+      // transitionni vaqtincha o'chirish (agar animate false bo'lsa)
+      if (!animate) {
         card.style.transition = 'none';
       } else {
-        card.style.transition = ''; 
+        // CSS da belgilangan transition ishlashi uchun bo'sh string
+        card.style.transition = '';
       }
-      
-      // Chap tomondan masofani hisoblash
-      card.style.left = (LEFT_START + (depth * PEEK)) + 'px';
-      
-      // O'lcham va qatlam tartibi
-      card.style.transform = `scale(${1 - depth * SCALE_STEP})`;
+
+      // GORIZONTAL JOYLASHUV: left = BASE_LEFT + depth * PEEK
+      card.style.left = `${BASE_LEFT + depth * PEEK}px`;
+
+      // SCALE va Z-INDEX
+      const scaleValue = 1 - depth * SCALE_STEP;
+      card.style.transform = `scale(${scaleValue})`;
       card.style.zIndex = N - depth;
-      
-      // Vizual effektlar
-      card.style.filter = `brightness(${1 - depth * 0.15})`;
-      card.style.opacity = depth > 3 ? 0 : 1;
-      
-      // Faqat eng ustki karta bosilsin
+
+      // FILTER (yorqinlikni pasaytirish) va opacity (chuqur kartalarni yashirish)
+      card.style.filter = `brightness(${1 - depth * 0.12})`;
+      card.style.opacity = depth > OPACITY_DEPTH_LIMIT ? '0' : '1';
+
+      // faqat eng oldingi karta bosilishi mumkin (depth == 0)
       card.style.pointerEvents = depth === 0 ? 'auto' : 'none';
     });
+
+    // JS ni majburan reflow qilish uchun (transition o'chirilganda kerak bo'ladi)
+    if (!animate) void scene.offsetHeight;
   }
 
+  // boshlang'ich layout (animatsiyasiz)
   applyLayout(false);
 
-  /* GORIZONTAL SWIPE */
+  // ---------- SURISH (SWIPE) LOGIKASI ----------
   let startX = null;
+  let isDragging = false;
 
-  function onDown(e) {
+  function handlePointerDown(e) {
+    // faqat eng oldingi kartadan boshlanganda ishga tushadi (pointerEvents auto)
+    const targetCard = e.target.closest('.lesson-card');
+    if (!targetCard) return;
+    
+    // indeks tekshiruvi: agar bosilgan karta eng oldingi bo'lmasa, ignore qilamiz
+    const cardIndex = cards.indexOf(targetCard);
+    if (cardIndex !== topIndex) return;
+
+    // boshlang'ich X koordinata
     startX = e.touches ? e.touches[0].clientX : e.clientX;
+    isDragging = true;
+    
+    // bosish vaqtida kursor ushlab qolish uchun (ixtiyoriy)
+    targetCard.style.cursor = 'grabbing';
   }
 
-  function onUp(e) {
-    if (startX === null) return;
+  function handlePointerUp(e) {
+    if (!isDragging || startX === null) {
+      startX = null;
+      isDragging = false;
+      cards.forEach(c => c.style.cursor = 'grab');
+      return;
+    }
+
     const endX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
     const deltaX = endX - startX;
-    
-    if (Math.abs(deltaX) > 50) {
-      if (deltaX < 0) {
-        topIdx = (topIdx + 1) % N; // Keyingi
-      } else {
-        topIdx = (topIdx - 1 + N) % N; // Oldingi
+
+    // sezgirlik chegarasi 45px
+    if (Math.abs(deltaX) > 45) {
+      if (deltaX < 0) { 
+        // chapga surish (←) keyingi karta
+        topIndex = (topIndex + 1) % N;
+      } else { 
+        // o'ngga surish (→) oldingi karta
+        topIndex = (topIndex - 1 + N) % N;
       }
-      applyLayout(true);
+      applyLayout(true);   // animatsiya bilan qayta joyla
+    } else {
+      // siljish yetarli emas — kartani joyiga qaytarish effekti (hozircha oddiygina)
+      applyLayout(true);   // xuddi shu holatni qayta qo'llaydi (hech narsa o'zgarmaydi)
     }
+
+    // tozalash
     startX = null;
+    isDragging = false;
+    cards.forEach(c => c.style.cursor = 'grab');
   }
 
-  scene.addEventListener('mousedown', onDown);
-  scene.addEventListener('touchstart', onDown, { passive: true });
-  scene.addEventListener('mouseup', onUp);
-  scene.addEventListener('touchend', onUp);
-  document.addEventListener('mouseup', onUp);
+  // Agar bosish bekor bo'lsa (masalan, barmoq chiqib ketmasa) - sug'urta
+  function handlePointerCancel() {
+    startX = null;
+    isDragging = false;
+    cards.forEach(c => c.style.cursor = 'grab');
+  }
+
+  // EVENTLARNI ULANISH
+  // scene ga mousedown/touchstart ni biriktiramiz (kartalarga emas, chunki kartalar pointerEvents none bo'lib qoladi)
+  // Lekin biz faqat oldingi kartani bosish mumkin. Shuning uchun scene da ham tinglash xavfsiz, chunki depth=0 bo'lmagan karta pointer-events: none.
+  scene.addEventListener('mousedown', handlePointerDown);
+  scene.addEventListener('touchstart', handlePointerDown, { passive: true });
+  
+  // mouseup va touchend ni butun document ga qo'yamiz (tashqarida qo'yib yuborilsa ham ishlasin)
+  document.addEventListener('mouseup', handlePointerUp);
+  document.addEventListener('touchend', handlePointerUp);
+  document.addEventListener('touchcancel', handlePointerCancel);
+  
+  // mouseleave (agar sichqoncha sceneni tark etsa) — shart emas, lekin xavfsizlik uchun scene'da ham tinglaymiz
+  scene.addEventListener('mouseleave', () => {
+    if (isDragging) {
+      startX = null;
+      isDragging = false;
+      cards.forEach(c => c.style.cursor = 'grab');
+    }
+  });
+
+  // mobil skrinshotda hech qanday skroll bo'lmasligi uchun
+  document.body.addEventListener('touchmove', (e) => {
+    if (isDragging) e.preventDefault();
+  }, { passive: false });
+
+  // QO'SHIMCHA: barcha kartalar boshlang'ichda to'g'ri joylashgan, birinchi karta chap chetiga tegib turibdi (BASE_LEFT = 8px)
+  // Bu orqali foydalanuvchi birinchi kartani chetidan ushlab surish imkoniga ega bo'ladi.
+
+  // Yana bir tekshiruv: birinchi karta (topIndex 0) left 8px da, shuning uchun ekran chetiga deyarli tegib turadi.
+  // Kartaning umumiy eni 86% (max 340px) bo'lgani uchun o'ng tomonda ham biroz bo'shliq qoladi – stack effekti aniq ko'rinadi.
+
 })();
 </script>
 
+<!-- inter font (ishonchli) -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,700;14..32,800&display=swap" rel="stylesheet">
 </body>
 </html>
