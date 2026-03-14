@@ -1,114 +1,154 @@
-
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-  <meta charset="UTF-8">
-  <title>Spin Wheel</title>
-  <style>
-    body {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      background: #111;
-      font-family: Arial, sans-serif;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spin Wheel UI</title>
+    <style>
+        /* Umumiy fon */
+        body {
+            background-color: #050c12;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
-    .wheel-container {
-      position: relative;
-      width: 400px;
-      height: 400px;
-    }
+        .container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
 
-    .wheel {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      border: 10px solid #ffcc00;
-      position: relative;
-      overflow: hidden;
-      transition: transform 5s cubic-bezier(0.17, 0.67, 0.83, 0.67);
-    }
+        /* Ko'rsatkich (Strelka) */
+        .indicator {
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 25px solid #ff9d00;
+            position: absolute;
+            top: -10px;
+            z-index: 10;
+            filter: drop-shadow(0 0 5px rgba(255, 157, 0, 0.5));
+        }
 
-    .segment {
-      position: absolute;
-      width: 50%;
-      height: 50%;
-      background: #222;
-      color: #fff;
-      text-align: center;
-      line-height: 180px;
-      font-size: 18px;
-      font-weight: bold;
-      transform-origin: 100% 100%;
-    }
+        /* G'ildirak asosi */
+        .wheel-wrapper {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            border: 8px solid #000;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            overflow: hidden;
+            transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+        }
 
-    /* 8 sektor ranglari va burchaklari */
-    .segment:nth-child(1) { background:#ff7675; transform: rotate(0deg); }
-    .segment:nth-child(2) { background:#74b9ff; transform: rotate(45deg); }
-    .segment:nth-child(3) { background:#55efc4; transform: rotate(90deg); }
-    .segment:nth-child(4) { background:#ffeaa7; transform: rotate(135deg); color:#000; }
-    .segment:nth-child(5) { background:#fd79a8; transform: rotate(180deg); }
-    .segment:nth-child(6) { background:#a29bfe; transform: rotate(225deg); }
-    .segment:nth-child(7) { background:#00cec9; transform: rotate(270deg); }
-    .segment:nth-child(8) { background:#fab1a0; transform: rotate(315deg); color:#000; }
+        /* Segmentlar */
+        .wheel-segment {
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            transform-origin: 100% 100%;
+            border: 1px solid rgba(0,0,0,0.2);
+            /* Gradient rang rasmga moslab */
+            background: linear-gradient(135deg, #f0a500 0%, #a67000 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-    .arrow {
-      position: absolute;
-      top: -20px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 0; 
-      height: 0; 
-      border-left: 20px solid transparent;
-      border-right: 20px solid transparent;
-      border-bottom: 30px solid #ffcc00;
-    }
+        /* Matn joylashuvi */
+        .wheel-segment span {
+            position: absolute;
+            bottom: 40px;
+            right: 20px;
+            transform: rotate(45deg);
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            text-align: center;
+            width: 100px;
+        }
 
-    .center-btn {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: #ffcc00;
-      color: #000;
-      font-weight: bold;
-      border: none;
-      border-radius: 50%;
-      width: 100px;
-      height: 100px;
-      cursor: pointer;
-      font-size: 16px;
-      box-shadow: 0 0 20px #ffcc00;
-    }
-  </style>
+        /* Markazdagi tugma */
+        .center-btn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(circle, #fff 0%, #f7d794 100%);
+            border-radius: 50%;
+            z-index: 5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+            border: 5px solid #000;
+            font-weight: bold;
+            font-size: 16px;
+            color: #222;
+            user-select: none;
+        }
+
+        .center-btn:active {
+            transform: translate(-50%, -50%) scale(0.95);
+        }
+    </style>
 </head>
 <body>
-  <div class="wheel-container">
-    <div class="wheel" id="wheel">
-      <div class="segment">30%</div>
-      <div class="segment">10 000</div>
-      <div class="segment">5 000</div>
-      <div class="segment">Next time</div>
-      <div class="segment">Zehnly</div>
-      <div class="segment">10%</div>
-      <div class="segment">20%</div>
-      <div class="segment">30%</div>
+
+<div class="container">
+    <div class="indicator"></div>
+    
+    <div class="wheel-wrapper" id="wheel">
+        <div class="wheel-segment" style="transform: rotate(0deg) skewY(-38.5deg);">
+            <span style="transform: skewY(38.5deg) rotate(25deg);">10 000</span>
+        </div>
+        <div class="wheel-segment" style="transform: rotate(51.4deg) skewY(-38.5deg);">
+            <span style="transform: skewY(38.5deg) rotate(25deg);">5 000</span>
+        </div>
+        <div class="wheel-segment" style="transform: rotate(102.8deg) skewY(-38.5deg);">
+            <span style="transform: skewY(38.5deg) rotate(25deg);">Next time</span>
+        </div>
+        <div class="wheel-segment" style="transform: rotate(154.2deg) skewY(-38.5deg);">
+            <span style="transform: skewY(38.5deg) rotate(25deg);">Zehnly</span>
+        </div>
+        <div class="wheel-segment" style="transform: rotate(205.6deg) skewY(-38.5deg);">
+            <span style="transform: skewY(38.5deg) rotate(25deg);">10%</span>
+        </div>
+        <div class="wheel-segment" style="transform: rotate(257deg) skewY(-38.5deg);">
+            <span style="transform: skewY(38.5deg) rotate(25deg);">20%</span>
+        </div>
+        <div class="wheel-segment" style="transform: rotate(308.4deg) skewY(-38.5deg);">
+            <span style="transform: skewY(38.5deg) rotate(25deg);">30%</span>
+        </div>
     </div>
-    <div class="arrow"></div>
-    <button class="center-btn" onclick="spin()">Aylantiring</button>
-  </div>
 
-  <script>
-    let wheel = document.getElementById('wheel');
-    let deg = 0;
+    <div class="center-btn" onclick="spinWheel()">
+        Aylantiring
+    </div>
+</div>
 
-    function spin() {
-      let rand = Math.floor(Math.random() * 360) + 1440; // kamida 4 marta aylanadi
-      deg += rand;
-      wheel.style.transform = `rotate(${deg}deg)`;
+<script>
+    let currentRotation = 0;
+
+    function spinWheel() {
+        const wheel = document.getElementById('wheel');
+        // Kamida 5 marta to'liq aylanadi + tasodifiy gradus
+        const extraDegree = Math.floor(Math.random() * 360);
+        currentRotation += 1800 + extraDegree; 
+        
+        wheel.style.transform = `rotate(${currentRotation}deg)`;
     }
-  </script>
+</script>
+
 </body>
 </html>
