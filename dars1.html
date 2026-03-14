@@ -2,445 +2,73 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Omadli G'ildirak</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8">
+  <title>Spin Wheel</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background: #f0f0f0;
+      font-family: Arial, sans-serif;
+    }
+    .wheel {
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      border: 8px solid #333;
+      position: relative;
+      overflow: hidden;
+      transition: transform 4s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+    }
+    .wheel div {
+      position: absolute;
+      width: 50%;
+      height: 50%;
+      background: #ff7675;
+      transform-origin: 100% 100%;
+    }
+    .wheel div:nth-child(2) { background: #74b9ff; transform: rotate(60deg); }
+    .wheel div:nth-child(3) { background: #55efc4; transform: rotate(120deg); }
+    .wheel div:nth-child(4) { background: #ffeaa7; transform: rotate(180deg); }
+    .wheel div:nth-child(5) { background: #fd79a8; transform: rotate(240deg); }
+    .wheel div:nth-child(6) { background: #a29bfe; transform: rotate(300deg); }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 800px;
-            width: 100%;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 30px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 30px;
-        }
-
-        h1 {
-            text-align: center;
-            color: #333;
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .subtitle {
-            text-align: center;
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 1.1em;
-        }
-
-        .wheel-container {
-            position: relative;
-            width: 400px;
-            height: 400px;
-            margin: 0 auto 30px;
-        }
-
-        .wheel {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            transition: transform 5s cubic-bezier(0.25, 0.1, 0.15, 1);
-            cursor: pointer;
-        }
-
-        .wheel:active {
-            transform: scale(0.98);
-        }
-
-        .wheel-segment {
-            position: absolute;
-            width: 50%;
-            height: 50%;
-            transform-origin: bottom right;
-            left: 50%;
-            top: 50%;
-            margin-left: -50%;
-            margin-top: -50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 14px;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-            padding-right: 20px;
-            box-sizing: border-box;
-        }
-
-        .wheel-center {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 60px;
-            height: 60px;
-            background: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-            z-index: 10;
-            font-size: 24px;
-            color: #764ba2;
-            border: 3px solid #fff;
-        }
-
-        .pointer {
-            position: absolute;
-            top: -15px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 20px solid transparent;
-            border-right: 20px solid transparent;
-            border-top: 40px solid #ff4757;
-            filter: drop-shadow(0 4px 4px rgba(0,0,0,0.2));
-            z-index: 20;
-        }
-
-        .controls {
-            text-align: center;
-            margin: 30px 0;
-        }
-
-        .spin-btn {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            font-size: 1.2em;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-            font-weight: bold;
-            letter-spacing: 1px;
-        }
-
-        .spin-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-        }
-
-        .spin-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .result {
-            text-align: center;
-            padding: 20px;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            border-radius: 15px;
-            margin-top: 20px;
-        }
-
-        .result h3 {
-            color: #333;
-            font-size: 1.3em;
-            margin-bottom: 10px;
-        }
-
-        .result-value {
-            font-size: 2em;
-            font-weight: bold;
-            color: #764ba2;
-            text-transform: uppercase;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.05);
-            }
-            100% {
-                transform: scale(1);
-            }
-        }
-
-        .history {
-            margin-top: 30px;
-            padding: 20px;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-
-        .history h3 {
-            color: #333;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .history-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .history-item {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 0.9em;
-            animation: slideIn 0.3s ease;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .clear-btn {
-            background: #ff4757;
-            color: white;
-            border: none;
-            padding: 5px 15px;
-            border-radius: 15px;
-            cursor: pointer;
-            font-size: 0.9em;
-            margin-left: 10px;
-            transition: all 0.3s ease;
-        }
-
-        .clear-btn:hover {
-            background: #ff6b81;
-            transform: scale(1.05);
-        }
-
-        .footer {
-            text-align: center;
-            margin-top: 20px;
-            color: #666;
-            font-size: 0.9em;
-        }
-
-        @media (max-width: 600px) {
-            .container {
-                padding: 20px;
-            }
-            
-            .wheel-container {
-                width: 280px;
-                height: 280px;
-            }
-            
-            h1 {
-                font-size: 2em;
-            }
-        }
-    </style>
+    .arrow {
+      width: 0; 
+      height: 0; 
+      border-left: 20px solid transparent;
+      border-right: 20px solid transparent;
+      border-bottom: 30px solid #333;
+      margin-top: 20px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🎡 Omadli G'ildirak</h1>
-        <p class="subtitle">G'ildirakni aylantiring va omadingizni sinab ko'ring!</p>
-        
-        <div class="wheel-container">
-            <div class="pointer"></div>
-            <div class="wheel" id="wheel"></div>
-            <div class="wheel-center">🎯</div>
-        </div>
+  <div class="wheel" id="wheel">
+    <div></div><div></div><div></div>
+    <div></div><div></div><div></div>
+  </div>
+  <div class="arrow"></div>
+  <button onclick="spin()">Spin!</button>
 
-        <div class="controls">
-            <button class="spin-btn" id="spinBtn">G'ildirakni Aylantirish 🎲</button>
-        </div>
+  <script>
+    let wheel = document.getElementById('wheel');
+    let deg = 0;
 
-        <div class="result">
-            <h3>Bugungi omadingiz:</h3>
-            <div class="result-value" id="result">---</div>
-        </div>
-
-        <div class="history">
-            <h3>
-                📜 Tarix 
-                <button class="clear-btn" id="clearBtn">Tozalash</button>
-            </h3>
-            <div class="history-list" id="historyList"></div>
-        </div>
-
-        <div class="footer">
-            <p>G'ildirakni aylantirish uchun bosing yoki tugmani ishlating</p>
-        </div>
-    </div>
-
-    <script>
-        const prizes = [
-            { text: "1000 so'm", color: "#FF6B6B" },
-            { text: "5000 so'm", color: "#4ECDC4" },
-            { text: "Telefon", color: "#45B7D1" },
-            { text: "Yutqazdingiz", color: "#96CEB4" },
-            { text: "2000 so'm", color: "#FFEEAD" },
-            { text: "Noutbuk", color: "#D4A5A5" },
-            { text: "10000 so'm", color: "#9B59B6" },
-            { text: "Kiyim", color: "#3498DB" },
-            { text: "3000 so'm", color: "#E67E22" },
-            { text: "Sayohat", color: "#E74C3C" },
-            { text: "Avtomobil", color: "#1ABC9C" },
-            { text: "Konsert", color: "#F1C40F" }
-        ];
-
-        let currentRotation = 0;
-        let isSpinning = false;
-        let spinHistory = [];
-
-        const wheel = document.getElementById('wheel');
-        const spinBtn = document.getElementById('spinBtn');
-        const resultDiv = document.getElementById('result');
-        const historyList = document.getElementById('historyList');
-        const clearBtn = document.getElementById('clearBtn');
-
-        // G'ildirak segmentlarini yaratish
-        function createWheel() {
-            const segmentAngle = 360 / prizes.length;
-            
-            prizes.forEach((prize, index) => {
-                const segment = document.createElement('div');
-                segment.className = 'wheel-segment';
-                segment.style.transform = `rotate(${index * segmentAngle}deg) skewY(${90 - segmentAngle}deg)`;
-                segment.style.backgroundColor = prize.color;
-                segment.style.border = '1px solid rgba(255,255,255,0.3)';
-                
-                const text = document.createElement('span');
-                text.style.transform = `skewY(-${90 - segmentAngle}deg) rotate(${segmentAngle / 2}deg)`;
-                text.textContent = prize.text;
-                
-                segment.appendChild(text);
-                wheel.appendChild(segment);
-            });
-        }
-
-        // G'ildirakni aylantirish
-        function spinWheel() {
-            if (isSpinning) return;
-            
-            isSpinning = true;
-            spinBtn.disabled = true;
-            
-            const spinDuration = 5000; // 5 sekund
-            const extraSpins = Math.floor(Math.random() * 5 + 5) * 360; // 5-10 marta to'liq aylanish
-            const randomDegree = Math.floor(Math.random() * 360);
-            const newRotation = currentRotation + extraSpins + randomDegree;
-            
-            wheel.style.transform = `rotate(${newRotation}deg)`;
-            
-            // Natijani hisoblash
-            setTimeout(() => {
-                const finalRotation = newRotation % 360;
-                const segmentAngle = 360 / prizes.length;
-                const winningIndex = Math.floor((360 - finalRotation) / segmentAngle) % prizes.length;
-                
-                const prize = prizes[winningIndex];
-                resultDiv.textContent = prize.text;
-                resultDiv.style.color = prize.color;
-                
-                // Tarixga qo'shish
-                addToHistory(prize);
-                
-                currentRotation = newRotation;
-                isSpinning = false;
-                spinBtn.disabled = false;
-            }, spinDuration);
-        }
-
-        // Tarixga qo'shish
-        function addToHistory(prize) {
-            spinHistory.unshift({
-                text: prize.text,
-                color: prize.color,
-                time: new Date().toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })
-            });
-            
-            if (spinHistory.length > 10) {
-                spinHistory.pop();
-            }
-            
-            updateHistoryDisplay();
-        }
-
-        // Tarixni yangilash
-        function updateHistoryDisplay() {
-            historyList.innerHTML = '';
-            spinHistory.forEach(item => {
-                const historyItem = document.createElement('div');
-                historyItem.className = 'history-item';
-                historyItem.style.background = `linear-gradient(135deg, ${item.color}, ${adjustColor(item.color, 20)})`;
-                historyItem.innerHTML = `${item.text} <small>${item.time}</small>`;
-                historyList.appendChild(historyItem);
-            });
-        }
-
-        // Rangni ochish/yopish
-        function adjustColor(color, percent) {
-            // Rangni ochish uchun oddiy funksiya
-            return color;
-        }
-
-        // Tarixni tozalash
-        function clearHistory() {
-            spinHistory = [];
-            updateHistoryDisplay();
-        }
-
-        // G'ildirakni bosish orqali aylantirish
-        wheel.addEventListener('click', spinWheel);
-
-        // Tugma orqali aylantirish
-        spinBtn.addEventListener('click', spinWheel);
-
-        // Tarixni tozalash
-        clearBtn.addEventListener('click', clearHistory);
-
-        // G'ildirakni yaratish
-        createWheel();
-
-        // Klaviatura orqali aylantirish (Space tugmasi)
-        document.addEventListener('keydown', (e) => {
-            if (e.code === 'Space' && !isSpinning) {
-                e.preventDefault();
-                spinWheel();
-            }
-        });
-    </script>
+    function spin() {
+      let rand = Math.floor(Math.random() * 360) + 720; // kamida 2 marta aylanadi
+      deg += rand;
+      wheel.style.transform = `rotate(${deg}deg)`;
+    }
+  </script>
 </body>
 </html>
