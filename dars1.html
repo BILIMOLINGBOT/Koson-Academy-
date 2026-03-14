@@ -3,203 +3,208 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Congratulations UI Clone</title>
+    <title>Daily Wheel Clone</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        :root {
+            --bg-dark: #05111a;
+            --accent-orange: #f4a100;
+            --blue-btn: #42a5f5;
+            --card-bg: #1c1308;
+            --green-border: #4caf50;
         }
 
         body {
-            background: radial-gradient(circle at top, #2a104a 0%, #000000 100%);
-            height: 100vh;
+            background-color: var(--bg-dark);
+            color: white;
+            font-family: 'Segoe UI', Roboto, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
-            color: white;
-            overflow: hidden;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
         }
 
-        /* Orqa fondagi setka (Grid) */
-        body::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: 
-                linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-            background-size: 40px 40px;
-            z-index: 0;
-        }
-
-        .header {
-            margin-top: 60px;
-            text-align: center;
-            z-index: 1;
-        }
-
-        .header h1 {
-            font-size: 32px;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-
-        .claim-link {
-            color: #888;
-            text-decoration: none;
-            font-size: 18px;
-        }
+        .header { text-align: center; margin-bottom: 30px; margin-top: 40px;}
+        .header h1 { font-size: 28px; margin-bottom: 10px; }
+        .header p { color: #8a99a4; font-size: 14px; max-width: 250px; line-height: 1.5; }
 
         /* G'ildirak qismi */
-        .wheel-area {
+        .wheel-container {
             position: relative;
-            margin-top: auto;
-            width: 100%;
-            height: 450px;
-            display: flex;
-            justify-content: center;
-            z-index: 1;
+            width: 320px;
+            height: 320px;
+            margin-bottom: 40px;
         }
 
-        .items-container {
+        /* Pointer (Tepadagi uchburchak) */
+        .pointer {
             position: absolute;
-            bottom: -350px; /* Doirani pastga tushirib, faqat tepasini ko'rsatamiz */
-            width: 800px;
-            height: 800px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-        }
-
-        .item {
-            position: absolute;
-            width: 120px;
-            height: 150px;
-            background: linear-gradient(135deg, #7b2ff7, #2d0a63);
-            border-radius: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            transform-origin: center 450px; /* Aylanish markazi */
-            transition: all 0.3s ease;
-        }
-
-        /* Markazdagi g'olib element stylingi */
-        .item.active {
-            background: linear-gradient(135deg, #4c26b7, #1b0a3d);
-            transform: rotate(0deg) scale(1.15);
-            z-index: 10;
-            box-shadow: 0 0 30px rgba(123, 47, 247, 0.5);
-        }
-
-        .item img {
-            width: 80px;
-            height: 80px;
-            object-fit: contain;
-        }
-
-        /* Ko'rsatkichlar (Pointers) */
-        .pointers {
-            position: absolute;
-            top: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 180px; /* Ikkita arrow orasidagi masofa */
-            z-index: 20;
-        }
-
-        .arrow-down {
-            width: 0; height: 0;
-            border-left: 25px solid transparent;
-            border-right: 25px solid transparent;
-            border-top: 35px solid white;
-            filter: drop-shadow(0 0 10px white);
-        }
-
-        .arrow-up {
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
             width: 0; height: 0;
             border-left: 15px solid transparent;
             border-right: 15px solid transparent;
-            border-bottom: 20px solid white;
+            border-top: 25px solid var(--accent-orange);
+            z-index: 10;
+            filter: drop-shadow(0 0 10px var(--accent-orange));
         }
 
-        .prize-name {
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 4px solid #1a2a35;
+            position: relative;
+            overflow: hidden;
+            transition: transform 5s cubic-bezier(0.15, 0, 0.15, 1);
+            background: conic-gradient(
+                from 22.5deg,
+                #d48806 0deg 45deg,
+                #9e6604 45deg 90deg,
+                #d48806 90deg 135deg,
+                #9e6604 135deg 180deg,
+                #d48806 180deg 225deg,
+                #9e6604 225deg 270deg,
+                #d48806 270deg 315deg,
+                #9e6604 315deg 360deg
+            );
+        }
+
+        /* Segment chiziqlari */
+        .wheel::after {
+            content: '';
             position: absolute;
-            top: 300px;
-            font-size: 28px;
-            font-weight: bold;
+            width: 100%; height: 100%;
+            background: repeating-conic-gradient(from 22.5deg, transparent 0 44deg, #000 44deg 45deg);
+            pointer-events: none;
         }
 
-        /* Pastki tugma */
-        .footer-btn {
-            width: 90%;
-            max-width: 400px;
-            background: white;
-            color: black;
+        .label {
+            position: absolute;
+            width: 50%;
+            height: 40px;
+            top: 50%;
+            left: 50%;
+            transform-origin: 0% 50%;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 25px;
+            font-weight: bold;
+            font-size: 16px;
+            pointer-events: none;
+        }
+
+        /* Markaziy aylana tugmasi */
+        .center-circle {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px; height: 100px;
+            background: radial-gradient(circle, #fff9e6 0%, #d4a017 100%);
+            border-radius: 50%;
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-weight: bold;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            cursor: pointer;
+        }
+
+        /* Hozirgi so'z kartasi */
+        .word-card {
+            width: 100%;
+            max-width: 340px;
+            background-color: var(--card-bg);
+            border: 1.5px solid var(--green-border);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .word-card span { color: #8a8a8a; font-size: 14px; }
+        .word-card h2 { margin: 10px 0 0; font-size: 24px; letter-spacing: 1px; }
+
+        /* Asosiy aylantirish tugmasi */
+        .main-btn {
+            width: 100%;
+            max-width: 340px;
+            background-color: var(--blue-btn);
+            color: white;
             border: none;
             padding: 18px;
-            border-radius: 15px;
-            font-size: 18px;
+            border-radius: 12px;
+            font-size: 16px;
             font-weight: bold;
-            margin-bottom: 40px;
+            text-transform: uppercase;
             cursor: pointer;
-            z-index: 1;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 15px rgba(66, 165, 245, 0.3);
         }
 
-        /* Elementlarni joylashtirish (Burchaklar bo'yicha) */
-        .item:nth-child(1) { transform: rotate(-60deg); background: #9c008b; }
-        .item:nth-child(2) { transform: rotate(-30deg); background: #32107c; }
-        .item:nth-child(3) { transform: rotate(0deg); } /* Markaz */
-        .item:nth-child(4) { transform: rotate(30deg); background: #9200a8; }
-        .item:nth-child(5) { transform: rotate(60deg); background: #32107c; }
-
+        .main-btn:active { transform: scale(0.98); }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>Congratulations!</h1>
-        <a href="#" class="claim-link">Claim Bonus</a>
+        <h1>Daily Wheel</h1>
+        <p>Sovrinlarni yutib olish va ingliz tilini o'rganish uchun aylantiring</p>
     </div>
 
-    <div class="wheel-area">
-        <div class="pointers">
-            <div class="arrow-down"></div>
-            <div class="arrow-up"></div>
-        </div>
+    <div class="wheel-container">
+        <div class="pointer"></div>
+        <div class="center-circle" onclick="spin()">Aylantiring</div>
+        <div class="wheel" id="wheel">
+            </div>
+    </div>
 
-        <div class="items-container">
-            <div class="item">
-                <img src="https://cdn-icons-png.flaticon.com/512/3063/3063822.png" alt="box">
-            </div>
-            <div class="item">
-                <img src="https://cdn-icons-png.flaticon.com/512/2855/2855169.png" alt="ufc">
-            </div>
+    <div class="word-card">
+        <span>Hozirgi so'z</span>
+        <h2>volatile</h2>
+    </div>
+
+    <button class="main-btn" onclick="spin()">Aylantirish</button>
+
+    <script>
+        const wheel = document.getElementById('wheel');
+        const prizes = [
+            "10 000", "5 000", "Next time", "Zehnly", 
+            "10%", "20%", "30%", "10 000"
+        ];
+
+        // Elementlarni aylanaga joylashtirish
+        prizes.forEach((text, i) => {
+            const el = document.createElement('div');
+            el.className = 'label';
+            // Har bir elementni 45 gradusga surish (360/8 = 45)
+            el.style.transform = `translateY(-50%) rotate(${i * 45}deg)`;
+            el.innerText = text;
+            wheel.appendChild(el);
+        });
+
+        let currentRotation = 0;
+        let isSpinning = false;
+
+        function spin() {
+            if (isSpinning) return;
             
-            <div class="item active">
-                <img src="https://cdn-icons-png.flaticon.com/512/10302/10302971.png" alt="papakha">
-            </div>
+            isSpinning = true;
+            // Kamida 5 marta to'liq aylanish + tasodifiy burchak
+            const randomExtra = Math.floor(Math.random() * 360);
+            const totalSpin = 1800 + randomExtra; 
+            
+            currentRotation += totalSpin;
+            wheel.style.transform = `rotate(${currentRotation}deg)`;
 
-            <div class="item">
-                <img src="https://cdn-icons-png.flaticon.com/512/867/867855.png" alt="genie">
-            </div>
-            <div class="item">
-                <img src="https://cdn-icons-png.flaticon.com/512/3100/3100247.png" alt="bottle">
-            </div>
-        </div>
-
-        <div class="prize-name">Khabib's Papakha</div>
-    </div>
-
-    <button class="footer-btn">Claim Bonus</button>
-
+            setTimeout(() => {
+                isSpinning = false;
+            }, 5000); // 5 soniya davom etadi (CSS transition bilan bir xil)
+        }
+    </script>
 </body>
 </html>
