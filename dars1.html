@@ -1,14 +1,17 @@
+
 <!DOCTYPE html>
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wheel of Fortune - Aylantiring</title>
+    <title>Zehnly Spin Wheel UI</title>
     <style>
         :root {
-            --gold-light: #f9d976;
-            --gold-dark: #b07e0a;
-            --bg-color: #0b131a;
+            --bg-color: #0a0f14;
+            --wheel-border: #000000;
+            --gold-gradient: linear-gradient(180deg, #f0ac31 0%, #a66a15 100%);
+            --center-white: #ffffff;
+            --indicator-color: #f0ac31;
         }
 
         body {
@@ -21,36 +24,38 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        .wheel-container {
+        .container {
             position: relative;
             width: 400px;
             height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        /* Yuqoridagi ko'rsatkich (Pointer) */
-        .pointer {
+        /* Tepasidagi ko'rsatkich (uchburchak) */
+        .indicator {
             position: absolute;
             top: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(to bottom, #ffcc00, #b07e0a);
-            clip-path: polygon(0% 0%, 100% 0%, 50% 100%);
             z-index: 10;
-            filter: drop-shadow(0 0 5px rgba(255, 204, 0, 0.8));
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 25px solid var(--indicator-color);
+            filter: drop-shadow(0 0 5px rgba(240, 172, 49, 0.8));
         }
 
-        /* Asosiy baraban */
-        .wheel {
+        /* Barabanning asosi */
+        .wheel-container {
             width: 100%;
             height: 100%;
             border-radius: 50%;
+            border: 8px solid var(--wheel-border);
             position: relative;
             overflow: hidden;
-            border: 8px solid #000;
             transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1);
-            background: #000;
+            background-color: var(--wheel-border);
         }
 
         /* Segmentlar */
@@ -61,8 +66,8 @@
             left: 50%;
             top: 50%;
             transform-origin: 0% 0%;
-            border: 2px solid #000;
-            background: radial-gradient(circle at bottom right, var(--gold-light), var(--gold-dark));
+            border: 2px solid var(--wheel-border);
+            background: var(--gold-gradient);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -70,93 +75,95 @@
 
         .segment span {
             position: absolute;
+            top: -130px;
             left: 20px;
-            top: 40px;
-            transform: rotate(-70deg); /* Matnni segmentga moslash */
+            transform: rotate(75deg);
+            color: white;
             font-weight: bold;
-            color: #fff;
-            font-size: 1.2rem;
+            font-size: 18px;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
             white-space: nowrap;
         }
 
+        /* 7 ta segment uchun pozitsiyalar (360 / 7 = ~51.4deg) */
+        .segment:nth-child(1) { transform: rotate(-25.7deg) skewY(-38.6deg); }
+        .segment:nth-child(2) { transform: rotate(25.7deg) skewY(-38.6deg); }
+        .segment:nth-child(3) { transform: rotate(77.1deg) skewY(-38.6deg); }
+        .segment:nth-child(4) { transform: rotate(128.5deg) skewY(-38.6deg); }
+        .segment:nth-child(5) { transform: rotate(179.9deg) skewY(-38.6deg); }
+        .segment:nth-child(6) { transform: rotate(231.3deg) skewY(-38.6deg); }
+        .segment:nth-child(7) { transform: rotate(282.7deg) skewY(-38.6deg); }
+
         /* Markazdagi tugma */
-        .center-button {
+        .spin-button {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
             width: 120px;
             height: 120px;
-            background: radial-gradient(circle, #fff, #f9d976);
+            background: var(--center-white);
             border-radius: 50%;
-            border: 8px solid #000;
+            z-index: 5;
             display: flex;
             justify-content: center;
             align-items: center;
             cursor: pointer;
-            z-index: 5;
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
-            text-align: center;
-            font-weight: bold;
-            font-size: 1.1rem;
-            color: #1a1a1a;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.6), inset 0 0 10px rgba(0,0,0,0.2);
+            border: 10px solid var(--wheel-border);
             user-select: none;
         }
 
-        .center-button:active {
-            transform: translate(-50%, -50%) scale(0.95);
+        .spin-button span {
+            color: #222;
+            font-weight: 800;
+            font-size: 16px;
+        }
+
+        .spin-button:active {
+            transform: scale(0.95);
         }
     </style>
 </head>
 <body>
 
-<div class="wheel-container">
-    <div class="pointer"></div>
-    <div class="wheel" id="wheel">
+    <div class="container">
+        <div class="indicator"></div>
+        
+        <div class="wheel-container" id="wheel">
+            <div class="segment"><span>10 000</span></div>
+            <div class="segment"><span>5 000</span></div>
+            <div class="segment"><span>Next time</span></div>
+            <div class="segment"><span>Zehnly</span></div>
+            <div class="segment"><span>10%</span></div>
+            <div class="segment"><span>20%</span></div>
+            <div class="segment"><span>30%</span></div>
         </div>
-    <div class="center-button" onclick="spin()">
-        Aylantiring
+
+        <div class="spin-button" onclick="spinWheel()">
+            <span>Aylantiring</span>
+        </div>
     </div>
-</div>
 
-<script>
-    const wheel = document.getElementById('wheel');
-    const items = ["10 000", "5 000", "Next time", "Zehnly", "10%", "20%", "30%"];
-    const segmentCount = items.length;
-    const angleStep = 360 / segmentCount;
+    <script>
+        let currentRotation = 0;
+        let isSpinning = false;
 
-    // Segmentlarni yaratish
-    items.forEach((item, index) => {
-        const segment = document.createElement('div');
-        segment.className = 'segment';
-        
-        // Har bir segmentni burish va qiyshaytirish (skew)
-        // 7 ta segment bo'lgani uchun skewY ishlatamiz
-        const rotation = index * angleStep;
-        const skew = 90 - angleStep;
-        segment.style.transform = `rotate(${rotation}deg) skewY(-${skew}deg)`;
-        
-        const span = document.createElement('span');
-        span.innerText = item;
-        
-        // Matnni teskari burish (skewni kompensatsiya qilish)
-        span.style.transform = `skewY(${skew}deg) rotate(15deg) translate(40px, 20px)`;
-        
-        segment.appendChild(span);
-        wheel.appendChild(segment);
-    });
+        function spinWheel() {
+            if (isSpinning) return;
 
-    let currentRotation = 0;
+            isSpinning = true;
+            const wheel = document.getElementById('wheel');
+            
+            // Tasodifiy aylanish (kamida 5 marta to'liq aylanish + tasodifiy gradus)
+            const extraDegrees = Math.floor(Math.random() * 360);
+            const spinDegrees = 1800 + extraDegrees; 
+            
+            currentRotation += spinDegrees;
+            wheel.style.transform = `rotate(${currentRotation}deg)`;
 
-    function spin() {
-        // Tasodifiy aylanish darajasi (kamida 5 marta to'liq aylanish + tasodifiy)
-        const extraDegree = Math.floor(Math.random() * 360);
-        currentRotation += 1800 + extraDegree; 
-        
-        wheel.style.transform = `rotate(${currentRotation}deg)`;
-    }
-</script>
-
+            // Aylanish tugagach
+            setTimeout(() => {
+                isSpinning = false;
+            }, 4000);
+        }
+    </script>
 </body>
 </html>
