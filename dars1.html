@@ -1,169 +1,205 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uz">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Bonus Wheel Clone</title>
-  <style>
-    body {
-      margin: 0;
-      height: 100vh;
-      background: radial-gradient(circle at center, #1a0033 0%, #000 70%);
-      color: white;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Congratulations UI Clone</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
 
-    .container {
-      text-align: center;
-      position: relative;
-      width: 380px;
-      max-width: 90vw;
-    }
+        body {
+            background: radial-gradient(circle at top, #2a104a 0%, #000000 100%);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: white;
+            overflow: hidden;
+        }
 
-    h1 {
-      font-size: 2.4rem;
-      margin: 0 0 0.4rem 0;
-      text-shadow: 0 0 20px rgba(255,215,0,0.7);
-      letter-spacing: 1px;
-    }
+        /* Orqa fondagi setka (Grid) */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: 0;
+        }
 
-    .subtitle {
-      font-size: 1.3rem;
-      margin: 0 0 2.5rem 0;
-      opacity: 0.9;
-    }
+        .header {
+            margin-top: 60px;
+            text-align: center;
+            z-index: 1;
+        }
 
-    .wheel-wrapper {
-      position: relative;
-    }
+        .header h1 {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
 
-    .wheel {
-      width: 100%;
-      aspect-ratio: 1 / 1;
-      background: conic-gradient(
-        #c300ff 0deg 72deg,
-        #ff00aa 72deg 144deg,
-        #ff5500 144deg 216deg,
-        #ffaa00 216deg 288deg,
-        #55ff00 288deg 360deg
-      );
-      border-radius: 50%;
-      position: relative;
-      box-shadow: 
-        0 0 40px rgba(200,0,255,0.6),
-        inset 0 0 60px rgba(0,0,0,0.8);
-      overflow: hidden;
-    }
+        .claim-link {
+            color: #888;
+            text-decoration: none;
+            font-size: 18px;
+        }
 
-    .pointer {
-      position: absolute;
-      top: -20px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 0;
-      height: 0;
-      border-left: 22px solid transparent;
-      border-right: 22px solid transparent;
-      border-bottom: 50px solid #fff;
-      filter: drop-shadow(0 0 15px #fff);
-      z-index: 10;
-    }
+        /* G'ildirak qismi */
+        .wheel-area {
+            position: relative;
+            margin-top: auto;
+            width: 100%;
+            height: 450px;
+            display: flex;
+            justify-content: center;
+            z-index: 1;
+        }
 
-    .segment {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      clip-path: polygon(50% 50%, 100% 0, 100% 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transform-origin: 50% 50%;
-    }
+        .items-container {
+            position: absolute;
+            bottom: -350px; /* Doirani pastga tushirib, faqat tepasini ko'rsatamiz */
+            width: 800px;
+            height: 800px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+        }
 
-    .segment-content {
-      transform: translateY(-30%) rotate(25deg);
-      font-size: 1.1rem;
-      font-weight: bold;
-      text-shadow: 0 0 8px black;
-      text-align: center;
-      line-height: 1.1;
-    }
+        .item {
+            position: absolute;
+            width: 120px;
+            height: 150px;
+            background: linear-gradient(135deg, #7b2ff7, #2d0a63);
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transform-origin: center 450px; /* Aylanish markazi */
+            transition: all 0.3s ease;
+        }
 
-    .claim-btn {
-      margin-top: 2.5rem;
-      background: linear-gradient(45deg, #ffd700, #ffaa00);
-      color: #000;
-      font-size: 1.5rem;
-      font-weight: bold;
-      padding: 16px 60px;
-      border: none;
-      border-radius: 50px;
-      box-shadow: 0 8px 30px rgba(255,215,0,0.5);
-      cursor: pointer;
-      transition: all 0.2s;
-    }
+        /* Markazdagi g'olib element stylingi */
+        .item.active {
+            background: linear-gradient(135deg, #4c26b7, #1b0a3d);
+            transform: rotate(0deg) scale(1.15);
+            z-index: 10;
+            box-shadow: 0 0 30px rgba(123, 47, 247, 0.5);
+        }
 
-    .claim-btn:hover {
-      transform: translateY(-3px) scale(1.05);
-      box-shadow: 0 12px 40px rgba(255,215,0,0.7);
-    }
+        .item img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+        }
 
-    .small-text {
-      margin-top: 1.5rem;
-      font-size: 0.95rem;
-      opacity: 0.7;
-    }
-  </style>
+        /* Ko'rsatkichlar (Pointers) */
+        .pointers {
+            position: absolute;
+            top: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 180px; /* Ikkita arrow orasidagi masofa */
+            z-index: 20;
+        }
+
+        .arrow-down {
+            width: 0; height: 0;
+            border-left: 25px solid transparent;
+            border-right: 25px solid transparent;
+            border-top: 35px solid white;
+            filter: drop-shadow(0 0 10px white);
+        }
+
+        .arrow-up {
+            width: 0; height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-bottom: 20px solid white;
+        }
+
+        .prize-name {
+            position: absolute;
+            top: 300px;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        /* Pastki tugma */
+        .footer-btn {
+            width: 90%;
+            max-width: 400px;
+            background: white;
+            color: black;
+            border: none;
+            padding: 18px;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 40px;
+            cursor: pointer;
+            z-index: 1;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        /* Elementlarni joylashtirish (Burchaklar bo'yicha) */
+        .item:nth-child(1) { transform: rotate(-60deg); background: #9c008b; }
+        .item:nth-child(2) { transform: rotate(-30deg); background: #32107c; }
+        .item:nth-child(3) { transform: rotate(0deg); } /* Markaz */
+        .item:nth-child(4) { transform: rotate(30deg); background: #9200a8; }
+        .item:nth-child(5) { transform: rotate(60deg); background: #32107c; }
+
+    </style>
 </head>
 <body>
 
-<div class="container">
-  <h1>Congratulations!</h1>
-  <div class="subtitle">Claim Bonus</div>
-
-  <div class="wheel-wrapper">
-    <div class="pointer"></div>
-
-    <div class="wheel">
-
-      <!-- 5 segment misol uchun -->
-      <div class="segment" style="transform: rotate(0deg); background: rgba(0,0,0,0.2);">
-        <div class="segment-content">
-          UFC<br>Collectible
-        </div>
-      </div>
-      <div class="segment" style="transform: rotate(72deg); background: rgba(0,0,0,0.2);">
-        <div class="segment-content">
-          Khabib's<br>Papakakha
-        </div>
-      </div>
-      <div class="segment" style="transform: rotate(144deg); background: rgba(0,0,0,0.2);">
-        <div class="segment-content">
-          Bot<br>Army
-        </div>
-      </div>
-      <div class="segment" style="transform: rotate(216deg); background: rgba(0,0,0,0.2);">
-        <div class="segment-content">
-          Golden<br>Genie
-        </div>
-      </div>
-      <div class="segment" style="transform: rotate(288deg); background: rgba(0,0,0,0.2);">
-        <div class="segment-content">
-          Mystery<br>Chest
-        </div>
-      </div>
-
+    <div class="header">
+        <h1>Congratulations!</h1>
+        <a href="#" class="claim-link">Claim Bonus</a>
     </div>
-  </div>
 
-  <button class="claim-btn">Claim Bonus</button>
+    <div class="wheel-area">
+        <div class="pointers">
+            <div class="arrow-down"></div>
+            <div class="arrow-up"></div>
+        </div>
 
-  <div class="small-text">Khabib's Papakakha</div>
-</div>
+        <div class="items-container">
+            <div class="item">
+                <img src="https://cdn-icons-png.flaticon.com/512/3063/3063822.png" alt="box">
+            </div>
+            <div class="item">
+                <img src="https://cdn-icons-png.flaticon.com/512/2855/2855169.png" alt="ufc">
+            </div>
+            
+            <div class="item active">
+                <img src="https://cdn-icons-png.flaticon.com/512/10302/10302971.png" alt="papakha">
+            </div>
+
+            <div class="item">
+                <img src="https://cdn-icons-png.flaticon.com/512/867/867855.png" alt="genie">
+            </div>
+            <div class="item">
+                <img src="https://cdn-icons-png.flaticon.com/512/3100/3100247.png" alt="bottle">
+            </div>
+        </div>
+
+        <div class="prize-name">Khabib's Papakha</div>
+    </div>
+
+    <button class="footer-btn">Claim Bonus</button>
 
 </body>
 </html>
