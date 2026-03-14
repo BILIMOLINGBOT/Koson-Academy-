@@ -3,41 +3,668 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>LearnU · Asosiy</title>
+  <title>LearnU · 30 Modul</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; -webkit-tap-highlight-color: transparent; }
-    body { background: #000000; color: #ffffff; height: 100vh; display: flex; justify-content: center; }
-    .app-wrapper { width: 100%; max-width: 420px; height: 100vh; background: #000000; position: relative; }
-    .header { padding: 25px 20px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
-    .avatar-wrapper { display: flex; align-items: center; gap: 15px; }
-    .avatar-circle { width: 50px; height: 50px; background: linear-gradient(135deg, #333, #111); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid #222; }
-    .scroll-container { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; padding: 10px 20px; gap: 15px; }
-    .scroll-container::-webkit-scrollbar { display: none; }
-    .lesson-card { flex: 0 0 85%; height: 280px; border-radius: 40px; padding: 35px; display: flex; flex-direction: column; justify-content: space-between; scroll-snap-align: center; background: linear-gradient(145deg, #1c1c1e, #0a0a0a); border: 1px solid rgba(255,255,255,0.05); }
-    .tab-bar { position: absolute; bottom: 35px; left: 50%; transform: translateX(-50%); width: 90%; height: 75px; background: rgba(28, 28, 30, 0.8); backdrop-filter: blur(25px); border-radius: 35px; display: flex; align-items: center; justify-content: space-around; border: 1px solid rgba(255,255,255,0.08); z-index: 100; }
-    .tab-item { display: flex; flex-direction: column; align-items: center; gap: 5px; color: #8e8e93; text-decoration: none; font-size: 0.65rem; font-weight: 600; transition: 0.2s; }
+    * { 
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; 
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: #000000;
+      color: #ffffff;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .app-wrapper {
+      width: 100%;
+      max-width: 420px;
+      height: 100vh;
+      background: #000000;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* HEADER */
+    .header {
+      padding: 25px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+    }
+
+    .avatar-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .avatar-circle {
+      width: 50px;
+      height: 50px;
+      background: linear-gradient(135deg, #333, #111);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #222;
+    }
+
+    /* MODULLAR KONTEYNERI */
+    .modules-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 20px 100px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      scroll-behavior: smooth;
+    }
+
+    .modules-container::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* MODUL KARTALARI */
+    .module-card {
+      width: 100%;
+      min-height: 200px;
+      border-radius: 30px;
+      padding: 25px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background: linear-gradient(145deg, #1c1c1e, #0a0a0a);
+      border: 1px solid rgba(255,255,255,0.05);
+      transition: transform 0.2s, box-shadow 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .module-card:hover {
+      transform: scale(1.02);
+      box-shadow: 0 10px 30px rgba(0,122,255,0.2);
+    }
+
+    .module-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(circle at top right, rgba(255,255,255,0.1), transparent);
+      pointer-events: none;
+    }
+
+    /* O'RTADAGI MAXSUS MODULLAR */
+    .module-card.special {
+      background: linear-gradient(145deg, #1a2a3a, #0a1a2a);
+      border: 2px solid #007aff;
+      box-shadow: 0 0 30px rgba(0,122,255,0.3);
+      min-height: 250px;
+    }
+
+    .module-card.special::after {
+      content: '⭐';
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      font-size: 24px;
+      color: #ffd700;
+    }
+
+    .module-number {
+      color: #8e8e93;
+      font-size: 0.8rem;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+
+    .module-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 15px;
+      line-height: 1.2;
+    }
+
+    .module-description {
+      color: #8e8e93;
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+    }
+
+    .module-progress {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .progress-bar {
+      flex: 1;
+      height: 6px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: #007aff;
+      border-radius: 3px;
+    }
+
+    .module-action {
+      color: #007aff;
+      font-weight: 600;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* KATEGORIYA BELGILARI */
+    .module-badge {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 5px 12px;
+      background: rgba(0,122,255,0.2);
+      border-radius: 20px;
+      color: #007aff;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+
+    /* TAB BAR */
+    .tab-bar {
+      position: absolute;
+      bottom: 35px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      height: 75px;
+      background: rgba(28, 28, 30, 0.8);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      border-radius: 35px;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+      z-index: 100;
+    }
+
+    .tab-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      color: #8e8e93;
+      text-decoration: none;
+      font-size: 0.65rem;
+      font-weight: 600;
+      transition: 0.2s;
+    }
+
     .tab-item.active { color: #ffffff; }
-    .tab-item svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2; }
+
+    .tab-item svg { width: 26px; height: 26px; }
+
+    /* SEKSIYON SARLAVHALARI */
+    .section-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin: 10px 0 5px;
+      color: #8e8e93;
+    }
   </style>
 </head>
 <body>
+
 <div class="app-wrapper">
+  
+  <!-- HEADER -->
   <div class="header" onclick="location.href='profil.html'">
     <div class="avatar-wrapper">
-      <div class="avatar-circle"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>
-      <div><h4 style="font-size: 1.1rem;">Javlonbek</h4><p style="color: #8e8e93; font-size: 0.85rem;">Premium darslar</p></div>
+      <div class="avatar-circle">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+      </div>
+      <div>
+        <h4 style="font-size: 1.1rem;">Javlonbek</h4>
+        <p style="color: #8e8e93; font-size: 0.85rem;">30 ta modul · 2 maxsus</p>
+      </div>
     </div>
-    <div style="background: #fff; color: #000; padding: 6px 12px; border-radius: 15px; font-weight: 800; font-size: 0.8rem;">⚡ 359</div>
+    <div style="background: #fff; color: #000; padding: 6px 12px; border-radius: 15px; font-weight: 800; font-size: 0.8rem;">
+      ⚡ 2,359
+    </div>
   </div>
-  <div class="scroll-container">
-    <div class="lesson-card"><span style="color: #8e8e93; font-size: 0.7rem;">MODUL 1</span><h2 style="font-size: 1.6rem;">Kvant fizikasi asoslari</h2><div style="color: #007aff; font-weight: 600;">Darsni boshlash →</div></div>
-    <div class="lesson-card"><span style="color: #8e8e93; font-size: 0.7rem;">MODUL 2</span><h2 style="font-size: 1.6rem;">Algoritmlar</h2><div style="color: #007aff; font-weight: 600;">Davom etish →</div></div>
+
+  <!-- MODULLAR RO'YXATI (30 ta) -->
+  <div class="modules-container">
+    
+    <!-- 1-10 MODULLAR (Boshlang'ich) -->
+    <div class="section-title">📘 BOSHLANG'ICH DARAJALAR</div>
+    
+    <!-- Module 1 -->
+    <div class="module-card">
+      <div class="module-number">MODUL 1/30</div>
+      <div class="module-title">Kvant fizikasi asoslari</div>
+      <div class="module-description">Atom tuzilishi, kvant sonlar va asosiy tushunchalar</div>
+      <div class="module-progress">
+        <div class="progress-bar"><div class="progress-fill" style="width: 100%"></div></div>
+        <span class="module-action">✅ Tugallangan</span>
+      </div>
+      <div class="module-badge">Boshlang'ich</div>
+    </div>
+
+    <!-- Module 2 -->
+    <div class="module-card">
+      <div class="module-number">MODUL 2/30</div>
+      <div class="module-title">Algoritmlar nazariyasi</div>
+      <div class="module-description">Asosiy algoritmlar, murakkablik tahlili</div>
+      <div class="module-progress">
+        <div class="progress-bar"><div class="progress-fill" style="width: 75%"></div></div>
+        <span class="module-action">Davom etish →</span>
+      </div>
+      <div class="module-badge">Boshlang'ich</div>
+    </div>
+
+    <!-- Module 3 -->
+    <div class="module-card">
+      <div class="module-number">MODUL 3/30</div>
+      <div class="module-title">Ma'lumotlar tuzilmasi</div>
+      <div class="module-description">Array, Linked List, Stack, Queue</div>
+      <div class="module-progress">
+        <div class="progress-bar"><div class="progress-fill" style="width: 30%"></div></div>
+        <span class="module-action">Boshlash →</span>
+      </div>
+      <div class="module-badge">Boshlang'ich</div>
+    </div>
+
+    <!-- Module 4 -->
+    <div class="module-card">
+      <div class="module-number">MODUL 4/30</div>
+      <div class="module-title">Matematik analiz</div>
+      <div class="module-description">Limit, hosila, integral</div>
+      <div class="module-progress">
+        <div class="progress-bar"><div class="progress-fill" style="width: 0%"></div></div>
+        <span class="module-action">Boshlash →</span>
+      </div>
+      <div class="module-badge">Boshlang'ich</div>
+    </div>
+
+    <!-- Module 5 -->
+    <div class="module-card">
+      <div class="module-number">MODUL 5/30</div>
+      <div class="module-title">Liney algebra</div>
+      <div class="module-description">Matritsalar, vektorlar, determinantlar</div>
+      <div class="module-progress">
+        <div class="progress-bar"><div class="progress-fill" style="width: 45%"></div></div>
+        <span class="module-action">Davom etish →</span>
+      </div>
+      <div class="module-badge">Boshlang'ich</div>
+    </div>
+
+    <!-- Module 6 -->
+    <div class="module-card">
+      <div class="module-number">MODUL 6/30</div>
+      <div class="module-title">Diskret matematika</div>
+      <div class="module-description">Kombinatorika, grafalar nazariyasi</div>
+      <div class="module-progress">
+        <div class="progress-bar"><div class="progress-fill" style="width: 20%"></div></div>
+        <span class="module-action">Boshlash →</span>
+      </div>
+      <div class="module-badge">Boshlang'ich</div>
+    </div>
+
+    <!-- Module 7 -->
+    <div class="module-card">
+      <div class="module-number">MODUL 7/30</div>
+      <div class="module-title">Ehtimollar nazariyasi</div>
+      <div class="module-description">Statistika, ehtimollik taqsimoti</div>
+      <div class="module-progress">
+        <div class="progress-bar"><div class="progress-fill" style="width: 60%"></div></div>
+        <span class="module-action">Davom etish →</span>
+      </div>
+      <div class="module-badge">Boshlang'ich</div>
+    </div>
+
+    <!-- Module 8 -->
+    <div class="module-card">
+      <div class="module-number">MODUL 8/30</div>
+      <div class="module-title">Fizika asoslari</div>
+      <div class="module-description">Mexanika, termodinamika</div>
+      <div class="module-progress">
+        <div class="progress-bar"><div class="progress-fill" style="width: 85%"></div></div>
+        <span class="module-action">Davom etish →</span>
+      </div>
+      <div class="module-badge">Boshlang'ich</div>
+    </div>
+
+    <!-- Module 9 -->
+    <div class="module-card">
+      <div class="module-number">MODUL 9/30</div>
+      <div class="module-title">Kimyo elementlari</div>
+      <div class="module-description">Davriy sistema, kimyoviy bog'lanish</div>
+      <div class="module-progress">
+        <div class="progress-bar"><div class="progress-fill" style="width: 15%"></div></div>
+        <span class="module-action">Boshlash →</span>
+      </div>
+      <div class="module-badge">Boshlang'ich</div>
+    </div>
+
+    <!-- Module 10 -->
+    <div class="module-card">
+      <div class="module-number">MODUL 10/30</div>
+      <div class="module-title">Biologiya kirish</div>
+      <div class="module-description">Hujayra, DNK, evolyutsiya</div>
+      <div class="module-progress">
+        <div class="progress-bar"><div class="progress-fill" style="width: 40%"></div></div>
+        <span class="module-action">Davom etish →</span>
+      </div>
+      <div class="module-badge">Boshlang'ich</div>
+    </div>
+
+    <!-- 🎯 1-O'RTADAGI MAXSUS MODUL (11) -->
+    <div class="section-title">🌟 MAXSUS MODULLAR</div>
+    
+    <div class="module-card special">
+      <div class="module-number">MODUL 11/30 · ⭐ MARAFON</div>
+      <div class="module-title">🧠 Sun'iy intellekt asoslari</div>
+      <div class="module-description">Machine Learning, Neural Networks - amaliy loyihalar bilan</div>
+      <div class="module-progress">
+        <div class="progress-bar"><div class="progress-fill" style="width: 25%"></div></div>
+        <span class="module-action">Maxsus dars →</span>
+      </div>
+      <div class="module-badge" style="background: rgba(255,215,0,0.2); color: gold;">⭐ Premium</div>
+    </div>
+
+    <!-- 12-20 MODULLAR (O'rta) -->
+    <div class="section-title">📗 O'RTA DARAJALAR</div>
+
+    <!-- Module 12 -->
+    <div class="module-card">
+      <div class="module-number">MODUL 12/30</div>
+      <div class="module-title">Murakkab algoritmlar</div>
+      <div class="module-description">Dinamik dasturlash, greedy algoritmlar</div>
+      <div class="module-progress">
+        <div class="progress-bar"><div class="progress-fill" style="width: 10%"></div></div>
+        <span class="module-action">Boshlash →</span>
+      </div>
+      <div class="module-badge">O'rta</div>
+    </div>
+
+    <!-- Module 13 -->
+    <div class="module-card">
+      <div class="module-number">MODUL 13/30</div>
+      <div class="module-title">Ma'lumotlar bazasi</div>
+      <div class="module-description">SQL, NoSQL, optimizatsiya</div>
+      <div class="module-progress">
+        <div class="progress-bar"><div class="progress-fill" style="width: 70%"></div></div>
+        <span class="module-action">Davom etish →</span>
+      </div>
+      <div class="module-badge">O'rta</div>
+    </div>
+
+    <!-- Module 14 -->
+    <div class="module-card">
+      <div class="module-number">MODUL 14/30</div>
+      <div class="module-title">Veb dasturlash</div>
+      <div class="module-description">HTML, CSS, JavaScript chuqur</div>
+      <div class="module-progress">
+        <div class="progress-bar"><div class="progress-fill" style="width: 90%"></div></div>
+        <span class="module-action">✅ Tugallangan</span>
+      </div>
+      <div class="module-badge">O'rta</div>
+    </div>
+
+    <!-- Module 15 -->
+    <div class="module-card">
+      <div class="module-number">MODUL 15/30</div>
+      <div class="module-title">Mobil ilovalar</div>
+      <div class="module-description">iOS va Android asoslari</div>
+      <div class="module-progress">
+        <div class="progress-bar"><div class="progress-fill" style="width: 45%"></div></div>
+        <span class="module-action">Davom etish →</span>
+      </div>
+      <div class="module-badge">O'rta</div>
+    </div>
+
+    <!-- Module 16 -->
+    <div class="module-card">
+      <div class="module-number">MODUL 16/30</div>
+      <div class="module-title">Bulutli texnologiyalar</div>
+      <div class="module-description">AWS, Azure, Google Cloud</div>
+      <div class="module-progress">
+        <div class="progress-bar"><div class="progress-fill" style="width: 5%"></div></div>
+        <span class="module-action">Boshlash →</span>
+      </div>
+      <div class="module-badge">O'rta</div>
+    </div>
+
+    <!-- Module 17 -->
+    <div class="module-card">
+      <div class="module-number">MODUL 17/30</div>
+      <div class="module-title">Kiberxavfsizlik</div>
+      <div class="module-description">Kriptografiya, tarmoq xavfsizligi</div>
+      <div class="module-progress">
+        <div class="progress-bar"><div class="progress-fill" style="width: 30%"></div></div>
+        <span class="module-action">Boshlash →</span>
+      </div>
+      <div class="module-badge">O'rta</div>
+    </div>
+
+    <!-- Module 18 -->
+    <div class="module-card">
+      <div class="module-number">MODUL 18/30</div>
+      <div class="module-title">DevOps asoslari</div>
+      <div class="module-description">CI/CD, Docker, Kubernetes</div>
+      <div class="module-progress">
+        <div class="progress-bar"><div class="progress-fill" style="width: 15%"></div></div>
+        <span class="module-action">Boshlash →</span>
+      </div>
+      <div class="module-badge">O'rta</div>
+    </div>
+
+    <!-- Module 19 -->
+    <div class="module-card">
+      <div class="module-number">MODUL 19/30</div>
+      <div class="module-title">Blokcheyn texnologiyasi</div>
+      <div class="module-description">Bitcoin, Smart Contracts</div>
+      <div class="module-progress">
+        <div class="progress-bar"><div class="progress-fill" style="width: 20%"></div></div>
+        <span class="module-action">Boshlash →</span>
+      </div>
+      <div class="module-badge">O'rta</div>
+    </div>
+
+    <!-- Module 20 -->
+    <div class="module-card">
+      <div class="module-number">MODUL 20/30</div>
+      <div class="module-title">Big Data asoslari</div>
+      <div class="module-description">Hadoop, Spark, ma'lumotlar tahlili</div>
+      <div class="module-progress">
+        <div class="progress-bar"><div class="progress-fill" style="width: 40%"></div></div>
+        <span class="module-action">Davom etish →</span>
+      </div>
+      <div class="module-badge">O'rta</div>
+    </div>
+
+    <!-- 🎯 2-O'RTADAGI MAXSUS MODUL (21) -->
+    <div class="section-title">🚀 MAXSUS LOYIHALAR</div>
+    
+    <div class="module-card special">
+      <div class="module-number">MODUL 21/30 · ⭐ HACKATHON</div>
+      <div class="module-title">🤖 Katta amaliy loyiha</div>
+      <div class="module-description">Real startap loyihasini yaratish, jamoa bilan ishlash</div>
+      <div class="module-progress">
+        <div class="progress-bar"><div class="progress-fill" style="width: 50%"></div></div>
+        <span class="module-action">Loyihani ko'rish →</span>
+      </div>
+      <div class="module-badge" style="background: rgba(0,255,0,0.2); color: #00ff00;">🚀 Startap</div>
+    </div>
+
+    <!-- 22-30 MODULLAR (Yuqori) -->
+    <div class="section-title">📕 YUQORI DARAJALAR</div>
+
+    <!-- Module 22 -->
+    <div class="module-card">
+      <div class="module-number">MODUL 22/30</div>
+      <div class="module-title">Chuqur o'rganish</div>
+      <div class="module-description">Deep Learning, CNN, RNN, Transformers</div>
+      <div class="module-progress">
+        <div class="progress-bar"><div class="progress-fill" style="width: 5%"></div></div>
+        <span class="module-action">Boshlash →</span>
+      </div>
+      <div class="module-badge">Yuqori</div>
+    </div>
+
+    <!-- Module 23 -->
+    <div class="module-card">
+      <div class="module-number">MODUL 23/30</div>
+      <div class="module-title">Kompyuter ko'rish</div>
+      <div class="module-description">OpenCV, tasvirni aniqlash</div>
+      <div class="module-progress">
+        <div class="progress-bar"><div class="progress-fill" style="width: 10%"></div></div>
+        <span class="module-action">Boshlash →</span>
+      </div>
+      <div class="module-badge">Yuqori</div>
+    </div>
+
+    <!-- Module 24 -->
+    <div class="module-card">
+      <div class="module-number">MODUL 24/30</div>
+      <div class="module-title">Tabiiy tilni qayta ishlash</div>
+      <div class="module-description">NLP, ChatGPT, sentiment tahlil</div>
+      <div class="module-progress">
+        <div class="progress-bar"><div class="progress-fill" style="width: 25%"></div></div>
+        <span class="module-action">Boshlash →</span>
+      </div>
+      <div class="module-badge">Yuqori</div>
+    </div>
+
+    <!-- Module 25 -->
+    <div class="module-card">
+      <div class="module-number">MODUL 25/30</div>
+      <div class="module-title">Robototexnika</div>
+      <div class="module-description">Arduino, ROS, sensorlar</div>
+      <div class="module-progress">
+        <div class="progress-bar"><div class="progress-fill" style="width: 35%"></div></div>
+        <span class="module-action">Davom etish →</span>
+      </div>
+      <div class="module-badge">Yuqori</div>
+    </div>
+
+    <!-- Module 26 -->
+    <div class="module-card">
+      <div class="module-number">MODUL 26/30</div>
+      <div class="module-title">Kvant hisoblash</div>
+      <div class="module-description">Kvant kompyuterlari, Qubitlar</div>
+      <div class="module-progress">
+        <div class="progress-bar"><div class="progress-fill" style="width: 15%"></div></div>
+        <span class="module-action">Boshlash →</span>
+      </div>
+      <div class="module-badge">Yuqori</div>
+    </div>
+
+    <!-- Module 27 -->
+    <div class="module-card">
+      <div class="module-number">MODUL 27/30</div>
+      <div class="module-title">Nanotexnologiya</div>
+      <div class="module-description">Nanomateriallar, qo'llanilishi</div>
+      <div class="module-progress">
+        <div class="progress-bar"><div class="progress-fill" style="width: 20%"></div></div>
+        <span class="module-action">Boshlash →</span>
+      </div>
+      <div class="module-badge">Yuqori</div>
+    </div>
+
+    
+    <!-- Module 28 -->
+    <div class="module-card">
+      <div class="module-number">MODUL 28/30</div>
+      <div class="module-title">Bioinformatika</div>
+      <div class="module-description">Genomika, biologik ma'lumotlar</div>
+      <div class="module-progress">
+        <div class="progress-bar"><div class="progress-fill" style="width: 40%"></div></div>
+        <span class="module-action">Davom etish →</span>
+      </div>
+      <div class="module-badge">Yuqori</div>
+    </div>
+
+    <!-- Module 29 -->
+    <div class="module-card">
+      <div class="module-number">MODUL 29/30</div>
+      <div class="module-title">Kosmik texnologiyalar</div>
+      <div class="module-description">Sun'iy yo'ldoshlar, raketa qurilishi</div>
+      <div class="module-progress">
+        <div class="progress-bar"><div class="progress-fill" style="width: 60%"></div></div>
+        <span class="module-action">Davom etish →</span>
+      </div>
+      <div class="module-badge">Yuqori</div>
+    </div>
+
+    <!-- Module 30 - Final -->
+    <div class="module-card">
+      <div class="module-number">MODUL 30/30 · YAKUNIY</div>
+      <div class="module-title">🎓 Diplom loyihasi</div>
+      <div class="module-description">O'z startapingizni yaratish va himoya qilish</div>
+      <div class="module-progress">
+        <div class="progress-bar"><div class="progress-fill" style="width: 0%"></div></div>
+        <span class="module-action">Loyihani boshlash →</span>
+      </div>
+      <div class="module-badge" style="background: rgba(255,255,255,0.2); color: white;">🏆 Final</div>
+    </div>
+
+    <!-- Bo'sh joy -->
+    <div style="height: 20px;"></div>
+
   </div>
+
+  <!-- TAB BAR -->
   <nav class="tab-bar">
-    <a href="index.html" class="tab-item active"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Asosiy</span></a>
-    <a href="reyting.html" class="tab-item"><svg viewBox="0 0 24 24"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>Reyting</span></a>
-    <a href="gift.html" class="tab-item"><svg viewBox="0 0 24 24"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg><span>Sovg'a</span></a>
+    <a href="index.html" class="tab-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+      </svg>
+      <span>Asosiy</span>
+    </a>
+    <a href="reyting.html" class="tab-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+      </svg>
+      <span>Reyting</span>
+    </a>
+    <a href="gift.html" class="tab-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
+      </svg>
+      <span>Sovg'a</span>
+    </a>
   </nav>
+
 </div>
+
+<!-- PROFILGA O'TISH -->
+<script>
+  // Header bosilganda profilga o'tish
+  document.querySelector('.header').addEventListener('click', function() {
+    window.location.href = 'profil.html';
+  });
+</script>
+
 </body>
 </html>
