@@ -1,274 +1,215 @@
+
 <!DOCTYPE html>
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iPhone 14 Pro - Spin Wheel</title>
+    <title>iOS Lucky Wheel</title>
     <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            overflow: hidden;
+        :root {
+            --ios-gold: linear-gradient(180deg, #fceabb 0%, #fccd4d 50%, #f8b500 100%);
+            --ios-dark: #000000;
+            --glass: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            background-color: #1c1c1e;
             display: flex;
             justify-content: center;
             align-items: center;
-            background-color: #010c1e;
-        }
-
-        .background-wheel-effect {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 150vw;
-            height: 150vw;
-            background: radial-gradient(circle, #f5d179, #c18b28, #96611a);
-            border-radius: 50%;
-            opacity: 0.1;
-            z-index: 0;
-        }
-
-        .phone-wrapper {
-            position: relative;
-            width: 380px;
-            height: 800px;
-            background-color: #1a1a1a;
-            border: 14px solid #1a1a1a;
-            border-radius: 56px;
-            box-shadow: 0 50px 100px rgba(0, 0, 0, 0.5), 0 0 1px 1px rgba(255, 255, 255, 0.1);
+            height: 100vh;
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+            color: white;
             overflow: hidden;
+        }
+
+        /* iPhone karkasi */
+        .iphone-frame {
+            width: 375px;
+            height: 750px;
+            background: var(--ios-dark);
+            border: 12px solid #333;
+            border-radius: 50px;
+            position: relative;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* Dynamic Island */
+        .dynamic-island {
+            width: 110px;
+            height: 30px;
+            background: black;
+            border-radius: 20px;
+            margin-top: 10px;
             z-index: 10;
         }
 
-        .screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #000;
-            border-radius: 42px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .dynamic-island {
-            position: absolute;
-            top: 14px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 120px;
-            height: 36px;
-            background-color: black;
-            border-radius: 20px;
-            z-index: 20;
-        }
-
-        .status-bar {
-            position: absolute;
-            top: 20px;
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            padding: 0 40px;
-            color: white;
-            font-weight: 600;
-            font-size: 14px;
-            z-index: 15;
-            box-sizing: border-box;
-        }
-
-        .spin-wheel {
-            position: relative;
-            width: 700px;
-            height: 700px;
-            background: conic-gradient(
-                #96611a 0deg 51.4deg,
-                #f5d179 51.4deg 102.8deg,
-                #96611a 102.8deg 154.2deg,
-                #f5d179 154.2deg 205.6deg,
-                #96611a 205.6deg 257deg,
-                #f5d179 257deg 308.4deg,
-                #96611a 308.4deg 360deg
-            );
-            border-radius: 50%;
-            box-shadow: 0 0 50px rgba(245, 209, 121, 0.3), inset 0 0 100px rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transform: translate(-50%, -50%);
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transition: transform 5s cubic-bezier(0.2, 0.8, 0.2, 0.99);
-        }
-
-        .wheel-text {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-        }
-
-        .wheel-text span {
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform-origin: 0 0;
-            color: white;
-            font-weight: 700;
-            font-size: 24px;
-            text-transform: uppercase;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-            white-space: nowrap;
-        }
-
-        .wheel-text span:nth-child(1) { transform: rotate(25.7deg) translateY(-280px) rotate(-25.7deg); }
-        .wheel-text span:nth-child(2) { transform: rotate(77.1deg) translateY(-280px) rotate(-77.1deg); }
-        .wheel-text span:nth-child(3) { transform: rotate(128.5deg) translateY(-280px) rotate(-128.5deg); }
-        .wheel-text span:nth-child(4) { transform: rotate(180deg) translateY(-280px) rotate(-180deg); }
-        .wheel-text span:nth-child(5) { transform: rotate(231.4deg) translateY(-280px) rotate(-231.4deg); }
-        .wheel-text span:nth-child(6) { transform: rotate(282.8deg) translateY(-280px) rotate(-282.8deg); }
-        .wheel-text span:nth-child(7) { transform: rotate(334.2deg) translateY(-280px) rotate(-334.2deg); }
-
-        .central-pattern {
-            position: absolute;
-            width: 140px;
-            height: 140px;
-            background: linear-gradient(135deg, #d4af37, #96611a);
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5), 0 0 20px rgba(245, 209, 121, 0.5);
-            z-index: 12;
-        }
-
-        .central-pattern::after {
-            content: '';
-            position: absolute;
-            width: 80px;
-            height: 80px;
-            border: 4px solid white;
-            border-top-color: transparent;
-            border-radius: 50%;
-            animation: central-spin 5s linear infinite;
-        }
-
-        @keyframes central-spin {
-            to { transform: rotate(360deg); }
-        }
-
+        /* Tepasidagi ko'rsatkich */
         .pointer {
             position: absolute;
-            top: 40px;
-            left: 50%;
-            transform: translateX(-50%);
+            top: 120px;
+            z-index: 10;
             width: 0;
             height: 0;
             border-left: 15px solid transparent;
             border-right: 15px solid transparent;
-            border-top: 25px solid #f5d179;
-            z-index: 16;
-            filter: drop-shadow(0 4px 4px rgba(0,0,0,0.3));
+            border-top: 25px solid #fccd4d;
+            filter: drop-shadow(0 0 10px rgba(252, 205, 77, 0.8));
         }
 
-        .blur-button {
-            position: absolute;
-            bottom: 60px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 280px;
-            padding: 18px 40px 18px 24px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: white;
-            font-weight: 700;
-            font-size: 20px;
-            z-index: 20;
-            cursor: pointer;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: transform 0.3s ease, background 0.3s ease;
-            box-sizing: border-box;
+        .wheel-box {
+            margin-top: 80px;
+            position: relative;
         }
 
-        .blur-button:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateX(-50%) scale(1.02);
-        }
-
-        .blur-button:active {
-            transform: translateX(-50%) scale(0.98);
-        }
-
-        .blur-button::after {
-            content: '';
-            width: 30px;
-            height: 30px;
-            border: 3px solid #f5d179;
-            border-top-color: transparent;
+        canvas {
+            width: 320px;
+            height: 320px;
             border-radius: 50%;
-            animation: central-spin 2s linear infinite;
+            transition: transform 5s cubic-bezier(0.1, 0, 0.1, 1);
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        }
+
+        /* Markaziy oltin doira */
+        .center-dot {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 70px;
+            height: 70px;
+            background: var(--ios-gold);
+            border-radius: 50%;
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 4px solid #000;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+        }
+
+        /* iOS uslubidagi tugma */
+        #spin-btn {
+            margin-top: auto;
+            margin-bottom: 50px;
+            width: 80%;
+            padding: 18px;
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 20px;
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #spin-btn:active {
+            transform: scale(0.95);
+            background: rgba(255,255,255,0.2);
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 22px;
+            font-weight: 300;
+            color: #fccd4d;
+            height: 30px;
         }
     </style>
 </head>
 <body>
 
-    <div class="background-wheel-effect"></div>
-
-    <div class="phone-wrapper">
-        <div class="status-bar">
-            <span>9:41</span>
-            <span>📶 🔋 100%</span>
-        </div>
+    <div class="iphone-frame">
         <div class="dynamic-island"></div>
         <div class="pointer"></div>
-        
-        <div class="screen">
-            <div class="spin-wheel" id="wheel">
-                <div class="wheel-text">
-                    <span>10 000</span>
-                    <span>5 000</span>
-                    <span>Keyingi</span>
-                    <span>Zehnli</span>
-                    <span>10%</span>
-                    <span>20%</span>
-                    <span>30%</span>
-                </div>
-                <div class="central-pattern"></div>
-            </div>
 
-            <div class="blur-button" onclick="spinWheel()">
-                Aylantiring
+        <div class="wheel-box">
+            <div class="center-dot">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2V5M12 19V22M22 12H19M5 12H2M19.07 4.93L16.95 7.05M7.05 16.95L4.93 19.07M19.07 19.07L16.95 16.95M7.05 7.05L4.93 4.93" stroke="black" stroke-width="2" stroke-linecap="round"/>
+                </svg>
             </div>
+            <canvas id="wheelCanvas" width="600" height="600"></canvas>
         </div>
+
+        <div id="result"></div>
+
+        <button id="spin-btn">Aylantiring</button>
     </div>
 
     <script>
-        function spinWheel() {
-            const wheel = document.getElementById('wheel');
-            const currentRotate = wheel.style.transform;
-            const randomDeg = Math.floor(Math.random() * 360) + 1440; // 4-5 full rotations
-            wheel.style.transform = `translate(-50%, -50%) rotate(${randomDeg}deg)`;
+        const canvas = document.getElementById('wheelCanvas');
+        const ctx = canvas.getContext('2d');
+        const btn = document.getElementById('spin-btn');
+        const resultDisplay = document.getElementById('result');
+
+        const segments = ["10 000", "5 000", "Zehnly", "10%", "20%", "30%", "Next time"];
+        const colors = ["#d4901a", "#b3770e", "#d4901a", "#b3770e", "#d4901a", "#b3770e", "#d4901a"];
+        
+        const numSegments = segments.length;
+        const anglePerSegment = 2 * Math.PI / numSegments;
+        let currentRotation = 0;
+
+        function drawWheel() {
+            const radius = canvas.width / 2;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            segments.forEach((text, i) => {
+                const angle = i * anglePerSegment;
+                
+                // Segment
+                ctx.beginPath();
+                ctx.fillStyle = colors[i];
+                ctx.moveTo(radius, radius);
+                ctx.arc(radius, radius, radius, angle, angle + anglePerSegment);
+                ctx.fill();
+                ctx.strokeStyle = "#1c1c1e";
+                ctx.lineWidth = 5;
+                ctx.stroke();
+
+                // Matn
+                ctx.save();
+                ctx.translate(radius, radius);
+                ctx.rotate(angle + anglePerSegment / 2);
+                ctx.textAlign = "right";
+                ctx.fillStyle = "white";
+                ctx.font = "bold 32px -apple-system";
+                ctx.fillText(text, radius - 40, 10);
+                ctx.restore();
+            });
         }
 
-        // Reset animation when it ends (optional)
-        document.getElementById('wheel').addEventListener('transitionend', function() {
-            console.log('Wheel stopped spinning!');
+        drawWheel();
+
+        btn.addEventListener('click', () => {
+            btn.disabled = true;
+            resultDisplay.innerText = "Omad tilaymiz...";
+            
+            const randomSpin = Math.floor(Math.random() * 360) + 2880; // Kamida 8 marta aylanish
+            currentRotation += randomSpin;
+            
+            canvas.style.transform = `rotate(${currentRotation}deg)`;
+
+            setTimeout(() => {
+                btn.disabled = false;
+                const actualDeg = currentRotation % 360;
+                const correctedDeg = (360 - actualDeg + 270) % 360;
+                const segmentIndex = Math.floor(correctedDeg / (360 / numSegments));
+                
+                resultDisplay.innerText = segments[segmentIndex];
+                
+                // iPhone haptic feedback simulyatsiyasi (faqat vizual)
+                resultDisplay.style.transform = "scale(1.2)";
+                setTimeout(() => resultDisplay.style.transform = "scale(1)", 200);
+            }, 5000);
         });
     </script>
 </body>
