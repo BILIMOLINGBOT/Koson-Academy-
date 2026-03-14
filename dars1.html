@@ -3,231 +3,265 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Omadli G'ildirak - Zamonaviy</title>
+    <title>iPhone 14 Pro - Spin Wheel</title>
     <style>
-        :root {
-            --primary-gold: #f39c12;
-            --dark-gold: #b07010;
-            --bg-color: #0b131e;
-            --text-white: #ffffff;
-            --circle-center-color: #ffffff;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
+        body, html {
             margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: var(--text-white);
-        }
-
-        .wheel-container {
-            position: relative;
-            width: 400px;
-            height: 400px;
-            margin-bottom: 30px;
-            perspective: 1000px;
-        }
-
-        /* Tepasidagi yangilangan ko'rsatkich */
-        .pointer {
-            position: absolute;
-            top: -30px; /* Joyini sozlash */
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 10;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        /* Uchburchak qismi */
-        .pointer-triangle {
-            width: 0;
-            height: 0;
-            border-left: 20px solid transparent;
-            border-right: 20px solid transparent;
-            border-top: 35px solid var(--primary-gold);
-            filter: drop-shadow(0 0 5px rgba(243, 156, 18, 0.8));
-        }
-
-        /* Uchi aylana qismi */
-        .pointer-circle-tip {
-            width: 35px;
-            height: 35px;
-            background-color: var(--primary-gold);
-            border-radius: 50%;
-            margin-top: -10px; /* Uchburchak bilan birlashtirish */
-            box-shadow: 0 0 10px rgba(0,0,0,0.5), 0 0 15px rgba(243, 156, 18, 0.8);
-            position: relative;
-        }
-
-        /* G'ildirakning asosi (aylanadi) */
-        canvas {
-            width: 100%;
+            padding: 0;
             height: 100%;
-            border-radius: 50%;
-            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5), 0 0 20px rgba(243, 156, 18, 0.2);
-            transition: transform 4s cubic-bezier(0.1, 0, 0.1, 1);
-            position: relative;
-            z-index: 1;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #010c1e;
         }
 
-        /* Markazdagi "Aylantiring" tugmasi */
-        .center-spin-button {
-            position: absolute;
+        /* Fon orqasidagi g'ildirak effekti */
+        .background-wheel-effect {
+            position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 120px;
-            height: 120px;
-            background: radial-gradient(circle, #fff, #f39c12);
+            width: 150vw;
+            height: 150vw;
+            background: radial-gradient(circle, #f5d179, #c18b28, #96611a);
             border-radius: 50%;
-            border: 5px solid #0b131e; /* Qora chegara */
+            opacity: 0.1;
+            z-index: 0;
+        }
+
+        /* iPhone kadri */
+        .phone-wrapper {
+            position: relative;
+            width: 380px;
+            height: 800px;
+            background-color: #1a1a1a; /* Kadrdagi to'q kulrang gradient */
+            border: 14px solid #1a1a1a;
+            border-radius: 56px;
+            box-shadow: 0 50px 100px rgba(0, 0, 0, 0.5), 0 0 1px 1px rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            z-index: 10;
+        }
+
+        /* iPhone ekrani */
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            border-radius: 42px;
+            overflow: hidden;
             display: flex;
-            align-items: center;
-            text-align: center;
+            flex-direction: column;
             justify-content: center;
-            font-weight: bold;
-            color: #1a1a1a;
-            font-size: 16px;
-            z-index: 5;
-            cursor: pointer;
-            box-shadow: 0 0 15px rgba(0,0,0,0.5);
-            transition: all 0.3s ease;
+            align-items: center;
+        }
+
+        /* Dynamic Island */
+        .dynamic-island {
+            position: absolute;
+            top: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 36px;
+            background-color: black;
+            border-radius: 20px;
+            z-index: 20;
+        }
+
+        /* Soat va ikonka */
+        .status-bar {
+            position: absolute;
+            top: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 40px;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            z-index: 15;
+        }
+
+        /* G'ildirak (Spin Wheel) */
+        .spin-wheel {
+            position: relative;
+            width: 700px; /* Ekranning ortiqcha qismi */
+            height: 700px;
+            background: conic-gradient(
+                #96611a 0 51.4deg, /* 360/7 segment = 51.4deg */
+                #f5d179 51.4deg 102.8deg,
+                #96611a 102.8deg 154.2deg,
+                #f5d179 154.2deg 205.6deg,
+                #96611a 205.6deg 257deg,
+                #f5d179 257deg 308.4deg,
+                #96611a 308.4deg 360deg
+            );
+            border-radius: 50%;
+            box-shadow: 0 0 50px rgba(245, 209, 121, 0.3), inset 0 0 100px rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Ushbu element iPhone kadridan biroz kattaroq bo'lgani uchun, kadr orqasidagi qismlarni ko'rsatadi */
+            transform: translate(-50%, -50%);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+        }
+
+        /* Segment matnlari */
+        .spin-wheel span {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform-origin: 0 0;
+            color: white;
+            font-weight: 700;
+            font-size: 28px;
             text-transform: uppercase;
         }
 
-        .center-spin-button:hover {
-            transform: translate(-50%, -50%) scale(1.05);
-            box-shadow: 0 0 25px rgba(243, 156, 18, 0.7);
+        /* Har bir segmentni va uning matnini aylantirish */
+        .spin-wheel span:nth-child(1) { transform: rotate(calc(1 * 51.4deg)) translateY(-260px) rotate(-calc(1 * 51.4deg)); }
+        .spin-wheel span:nth-child(2) { transform: rotate(calc(2 * 51.4deg)) translateY(-260px) rotate(-calc(2 * 51.4deg)); }
+        .spin-wheel span:nth-child(3) { transform: rotate(calc(3 * 51.4deg)) translateY(-260px) rotate(-calc(3 * 51.4deg)); }
+        .spin-wheel span:nth-child(4) { transform: rotate(calc(4 * 51.4deg)) translateY(-260px) rotate(-calc(4 * 51.4deg)); }
+        .spin-wheel span:nth-child(5) { transform: rotate(calc(5 * 51.4deg)) translateY(-260px) rotate(-calc(5 * 51.4deg)); }
+        .spin-wheel span:nth-child(6) { transform: rotate(calc(6 * 51.4deg)) translateY(-260px) rotate(-calc(6 * 51.4deg)); }
+        .spin-wheel span:nth-child(7) { transform: rotate(calc(7 * 51.4deg)) translateY(-260px) rotate(-calc(7 * 51.4deg)); }
+
+        /* Matnlar aylanish yo'nalishiga mos keladigan darajada to'g'irlash */
+        /* Rasmda matnlar burchaklangan, buni CSS bilan to'liq takrorlash murakkab, ammo bu yondashuv matnlarni aylana bo'ylab ko'rsatadi. */
+        .spin-wheel span {
+            text-align: center;
+            width: 120px; /* Matn botiq bo'lishini ta'minlash */
+            margin-left: -60px; /* Markazlashtirish */
         }
 
-        .center-spin-button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            color: #555;
-            box-shadow: none;
+        /* Markaziy naqsh */
+        .central-pattern {
+            position: absolute;
+            width: 140px;
+            height: 140px;
+            background-color: #f5d179;
+            background: linear-gradient(#d4af37, #96611a);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5), 0 0 20px rgba(245, 209, 121, 0.5);
+            z-index: 12;
         }
 
-        #result {
-            margin-top: 20px;
-            font-size: 28px;
-            font-weight: bold;
-            height: 35px;
-            color: var(--primary-gold);
-            text-shadow: 0 0 10px rgba(243, 156, 18, 0.5);
+        /* Soddalashtirilgan spiral naqsh */
+        .central-pattern::after {
+            content: '';
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            border: 4px solid white;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: central-spin 5s linear infinite;
+        }
+
+        @keyframes central-spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Ko'rsatkich pointer */
+        .pointer {
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 25px solid #f5d179;
+            z-index: 16;
+        }
+
+        /* Yarim shaffof tugma (Aylantiring) */
+        .blur-button {
+            position: absolute;
+            bottom: 60px;
+            width: 280px;
+            padding: 18px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            font-weight: 700;
+            font-size: 20px;
+            z-index: 20;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            text-transform: uppercase;
+        }
+
+        /* Tugmadagi ikonka */
+        .blur-button::after {
+            content: '';
+            position: absolute;
+            right: 20px;
+            width: 30px;
+            height: 30px;
+            border: 3px solid #f5d179;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: central-spin 2s linear infinite; /* Kichikroq va tezroq aylanish */
         }
     </style>
 </head>
 <body>
 
-    <div class="wheel-container">
-        <div class="pointer">
-            <div class="pointer-triangle"></div>
-            <div class="pointer-circle-tip"></div>
+    <div class="background-wheel-effect"></div>
+
+    <div class="phone-wrapper">
+        <div class="status-bar">
+            <span>9:41</span>
+            <span style="font-size: 16px;">📶🔋</span>
         </div>
+        <div class="dynamic-island"></div>
+        <div class="pointer"></div>
         
-        <canvas id="wheelCanvas" width="500" height="500"></canvas>
-        
-        <button class="center-spin-button" id="spinBtn">
-            Aylantiring
-        </button>
+        <div class="screen">
+            <div class="spin-wheel">
+                <span>10 000</span>
+                <span>5 000</span>
+                <span>Next time</span>
+                <span>Zehnl</span>
+                <span>10%</span>
+                <span>20%</span>
+                <span>30%</span>
+                
+                <div class="central-pattern"></div>
+            </div>
+
+            <div class="blur-button" onclick="spinWheel()">
+                Aylantiring
+            </div>
+        </div>
     </div>
 
-    <div id="result"></div>
-
     <script>
-        const canvas = document.getElementById('wheelCanvas');
-        const ctx = canvas.getContext('2d');
-        const btn = document.getElementById('spinBtn');
-        const resultDisplay = document.getElementById('result');
-
-        // Segmentlar va ranglar (image_0.png asosida)
-        const segments = [
-            "10 000",
-            "5 000",
-            "Next time",
-            "Zehnly",
-            "10%",
-            "20%",
-            "30%"
-        ];
-
-        // Har bir segmentning o'ziga xos tilla/jigarrang gradyenti
-        const colors = [
-            "#d4901a", "#b3770e", "#d4901a", "#b3770e", "#d4901a", "#b3770e", "#d4901a"
-        ];
-
-        const numSegments = segments.length;
-        const anglePerSegment = 2 * Math.PI / numSegments;
-        let currentRotation = 0;
-
-        // G'ildirakni Canvas-da chizish
-        function drawWheel() {
-            const radius = canvas.width / 2;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            segments.forEach((text, i) => {
-                const angle = i * anglePerSegment;
-                
-                // Segment rangini chizish
-                ctx.beginPath();
-                ctx.fillStyle = colors[i];
-                ctx.moveTo(radius, radius);
-                ctx.arc(radius, radius, radius, angle, angle + anglePerSegment);
-                ctx.lineTo(radius, radius);
-                ctx.fill();
-                
-                // Qora bo'luvchi chiziqlar
-                ctx.strokeStyle = '#0b131e';
-                ctx.lineWidth = 4;
-                ctx.stroke();
-
-                // Matnni yozish
-                ctx.save();
-                ctx.translate(radius, radius);
-                ctx.rotate(angle + anglePerSegment / 2);
-                ctx.textAlign = "right";
-                ctx.fillStyle = "#fff";
-                ctx.font = "bold 26px Arial";
-                ctx.fillText(text, radius - 40, 10);
-                ctx.restore();
-            });
+        function spinWheel() {
+            let wheel = document.querySelector('.spin-wheel');
+            let deg = Math.floor(Math.random() * 360) + 1800; /* Minimal 5 to'liq aylanish + tasodifiy burchak */
+            wheel.style.transition = 'transform 5s cubic-bezier(0.2, 0.8, 0.2, 0.99)'; /* Yumshoq to'xtash */
+            wheel.style.transform = `translate(-50%, -50%) rotate(${deg}deg)`;
         }
-
-        drawWheel();
-
-        // Aylantirish funksiyasi
-        btn.addEventListener('click', () => {
-            if (btn.disabled) return; // Allaqachon aylanayotgan bo'lsa
-            btn.disabled = true;
-            resultDisplay.innerText = "";
-            
-            // Tasodifiy aylanish darajasi (kamida 5 ta to'liq aylanish + 0-360 gradus)
-            const randomSpin = Math.floor(Math.random() * 360) + 1800; 
-            currentRotation += randomSpin;
-            
-            // CSS orqali g'ildirakni aylantirish
-            canvas.style.transform = `rotate(${currentRotation}deg)`;
-
-            // To'xtash va natijani aniqlash (4 soniyadan keyin)
-            setTimeout(() => {
-                btn.disabled = false;
-                
-                // Qaysi segmentda to'xtaganini hisoblash
-                const actualDeg = currentRotation % 360;
-                // Canvasda 0 gradus o'ng tomondan boshlanadi, ko'rsatkich esa tepada (-90 deg)
-                const correctedDeg = (360 - actualDeg + 270) % 360;
-                const segmentIndex = Math.floor(correctedDeg / (360 / numSegments));
-                
-                resultDisplay.innerText = "Yutuq: " + segments[segmentIndex];
-            }, 4000); // 4 soniya (CSS transition-ga mos)
-        });
     </script>
 </body>
 </html>
