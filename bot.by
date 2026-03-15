@@ -1,60 +1,63 @@
+
 import logging
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 import json
 import os
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
 
-# Bot token
+# Bot token - Sizning tokeningiz
 TOKEN = "8798956949:AAGpsGM53l9ELjIa12A30qSnBfJmeVuxYrk"
+# Sizning Vercel domeningiz (Web App manzili)
+WEB_APP_URL = "https://koson-academy.vercel.app"
 
-# Foydalanuvchilar ma'lumotlarini saqlash
 USER_DATA_FILE = "users.json"
 
-# Logging sozlamalari
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 def load_users():
-    """Foydalanuvchilarni fayldan yuklash"""
     if os.path.exists(USER_DATA_FILE):
         with open(USER_DATA_FILE, 'r') as f:
             return json.load(f)
     return {}
 
 def save_users(users):
-    """Foydalanuvchilarni faylga saqlash"""
     with open(USER_DATA_FILE, 'w') as f:
-        json.dump(users, f, indent=2)
+        json.dump(users, f, indent=2, ensure_ascii=False)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Start komandasi - foydalanuvchini ro'yxatdan o'tkazish"""
+    """Start komandasi - foydalanuvchini ro'yxatdan o'tkazish va Web Appni ko'rsatish"""
     user = update.effective_user
     users = load_users()
     
-    # Foydalanuvchi ma'lumotlarini saqlash
-    users[str(user.id)] = {
+    # Foydalanuvchi ma'lumotlarini saqlash (yangilash)
+    user_data = {
         "id": user.id,
-        "username": user.username or "No username",
+        "username": user.username,
         "first_name": user.first_name,
         "last_name": user.last_name or "",
-        "avatar": f"https://t.me/i/userpic/320/{user.username}.jpg" if user.username else None
+        "language_code": user.language_code,
+        "is_premium": getattr(user, 'is_premium', False)
     }
+    users[str(user.id)] = user_data
     save_users(users)
     
-    # Inline tugmalar
+    # Web Appni ochish uchun tugma
     keyboard = [
-        [InlineKeyboardButton("🌐 Web ilovani ochish", web_app={"url": "https://your-domain.com"})],
+        [InlineKeyboardButton("🚀 Ilovani ochish", web_app=WebAppInfo(url=WEB_APP_URL))],
         [InlineKeyboardButton("📊 Profilim", callback_data="profile")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
-    await update.message.reply_text(
-        f"Assalomu alaykum {user.first_name}! LearnU ilovasiga xush kelibsiz.\n\n"
-        f"✅ Siz muvaffaqiyatli ro'yxatdan o'tdingiz!\n"
-        f"🆔 ID: {user.id}\n"
-        f"👤 Username: @{user.username if user.username else 'mavjud emas'}",
-        reply_markup=reply_markup
+    welcome_text = (
+        f"Assalomu alaykum, {user.first_name}! 🌟\n\n"
+        f"✅ **LearnU** ilovasiga xush kelibsiz.\n"
+        f"🆔 ID: `{user.id}`\n"
+        f"👤 Username: {('@' + user.username) if user.username else 'mavjud emas'}\n\n"
+        f"Quyidagi tugma orqali ilovani oching:"
     )
+    
+    await update.message.reply_text(welcome_text, reply_markup=reply_markup, parse_mode='Markdown')
 
 async def profile_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Profil ma'lumotlarini ko'rsatish"""
@@ -65,50 +68,53 @@ async def profile_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     users = load_users()
     user_data = users.get(str(user.id), {})
     
-    text = (
-        f"👤 **Profil ma'lumotlari**\n\n"
-        f"🆔 ID: `{user.id}`\n"
-        f"👤 Ism: {user.first_name}\n"
-        f"📝 Familiya: {user.last_name or 'mavjud emas'}\n"
-        f"🔤 Username: @{user.username if user.username else 'mavjud emas'}\n"
-        f"📅 Ro'yxatdan o'tgan: Ha"
+    profile_text = (
+        f"👤 **Sizning profilingiz**\n\n"
+        f"🆔 **ID:** `{user.id}`\n"
+        f"👤 **Ism:** {user.first_name} {user.last_name or ''}\n"
+        f"🔤 **Username:** {('@' + user.username) if user.username else 'mavjud emas'}\n"
+        f"🌐 **Til:** {user.language_code or 'unknown'}\n"
+        f"⭐ **Premium:** {'Ha' if user_data.get('is_premium') else 'Yo‘q'}\n"
+        f"📅 **Botda:** Ro'yxatdan o'tgan"
     )
     
-    await query.edit_message_text(text, parse_mode='Markdown')
+    await query.edit_message_text(profile_text, parse_mode='Markdown')
 
-async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Web App dan kelgan ma'lumotlarni qayta ishlash"""
+async def handle_web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Web Appdan kelgan ma'lumotlarni qayta ishlash"""
     data = json.loads(update.effective_message.web_app_data.data)
     user = update.effective_user
     
-    if data.get('action') == 'get_user':
+    if data.get('action') == 'get_user_data':
+        # Foydalanuvchi ma'lumotlarini Web Appga yuborish
         users = load_users()
         user_data = users.get(str(user.id), {})
         
-        # Web App ga ma'lumot yuborish
-        await update.effective_message.reply_text(
-            json.dumps({
+        # Javobni Web Appga yuborish (bot orqali)
+        response_text = json.dumps({
+            "ok": True,
+            "user": {
                 "id": user.id,
                 "username": user.username,
                 "first_name": user.first_name,
                 "last_name": user.last_name,
-                "avatar": f"https://t.me/i/userpic/320/{user.username}.jpg" if user.username else None
-            })
-        )
+                "language_code": user.language_code,
+                "avatar_url": f"https://t.me/i/userpic/320/{user.username}.jpg" if user.username else None
+            }
+        }, ensure_ascii=False)
+        
+        await update.effective_message.reply_text(response_text)
 
 def main():
     """Botni ishga tushirish"""
-    # Application yaratish
-    application = Application.builder().token(TOKEN).build()
+    app = Application.builder().token(TOKEN).build()
     
-    # Handlerlar
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CallbackQueryHandler(profile_callback, pattern="^profile$"))
-    application.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, web_app_data))
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CallbackQueryHandler(profile_callback, pattern="^profile$"))
+    app.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handle_web_app_data))
     
-    # Botni ishga tushirish
-    print("Bot ishga tushdi...")
-    application.run_polling()
+    logger.info("Bot ishga tushdi...")
+    app.run_polling()
 
 if __name__ == '__main__':
     main()
