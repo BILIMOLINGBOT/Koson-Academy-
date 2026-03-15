@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="uz">
 <head>
@@ -7,465 +6,170 @@
   <title>LearnU · Asosiy</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    /* Umumiy sozlamalar - to'liq ekran uchun */
-    * { 
-      margin: 0; 
-      padding: 0; 
-      box-sizing: border-box; 
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; 
-      -webkit-tap-highlight-color: transparent; 
-    }
-    
-    body { 
-      background: #000000; 
-      color: #ffffff; 
-      height: 100dvh; /* dynamic viewport height */
-      width: 100dvw;
-      overflow: hidden; 
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-    }
-    
-    .app-wrapper { 
-      width: 100%; 
-      height: 100%; 
-      display: flex; 
-      flex-direction: column; 
-      position: relative; 
-      background: #000000;
-    }
-
-    /* Header */
-    .header { 
-      padding: 20px; 
-      display: flex; 
-      align-items: center; 
-      justify-content: space-between; 
-      cursor: pointer;
-      background: #000000;
-      z-index: 10;
-    }
-    
-    .avatar-wrapper { 
-      display: flex; 
-      align-items: center; 
-      gap: 12px; 
-    }
-    
-    .avatar-circle { 
-      width: 45px; 
-      height: 45px; 
-      background: #222; 
-      border-radius: 50%; 
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-      overflow: hidden; 
-      border: 2px solid #333;
-    }
-    
-    .avatar-circle img { 
-      width: 100%; 
-      height: 100%; 
-      object-fit: cover; 
-    }
-    
-    .points-badge { 
-      background: #fff; 
-      color: #000; 
-      padding: 6px 14px; 
-      border-radius: 20px; 
-      font-weight: 800; 
-      font-size: 0.9rem;
-      box-shadow: 0 2px 10px rgba(255,255,255,0.1);
-    }
-
-    /* Modullar uchun asosiy konteyner - to'liq ekran */
-    .scroll-container { 
-      flex: 1; 
-      display: flex; 
-      overflow-x: auto; 
-      overflow-y: hidden;
-      scroll-snap-type: x mandatory; 
-      padding: 10px 20px 20px 20px; 
-      gap: 15px; 
-      align-items: center;
-      scroll-behavior: smooth;
-      -webkit-overflow-scrolling: touch;
-      height: calc(100% - 170px); /* Header va tab bar balandligi */
-    }
-    
-    .scroll-container::-webkit-scrollbar { 
-      display: none; 
-    }
-
-    /* MODUL KARTASI - to'liq ekranga mos */
-    .lesson-card { 
-      flex: 0 0 85%; 
-      height: 100%;
-      min-height: 450px;
-      max-height: 600px;
-      border-radius: 45px; 
-      padding: 40px 30px; 
-      display: flex; 
-      flex-direction: column; 
-      justify-content: space-between;
-      scroll-snap-align: center; 
-      background: linear-gradient(145deg, #1c1c1e, #0a0a0a); 
-      border: 1px solid rgba(255,255,255,0.1); 
-      transition: transform 0.2s ease, border-color 0.2s ease; 
-      cursor: pointer;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-      position: relative;
-      overflow: hidden;
-    }
-    
-    /* Gradient overlay */
-    .lesson-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: radial-gradient(circle at top right, rgba(255,255,255,0.1), transparent);
-      border-radius: 45px;
-      pointer-events: none;
-    }
-    
-    .lesson-card:active { 
-      transform: scale(0.98); 
-      border-color: rgba(255,255,255,0.2);
-    }
-
-    .modul-label { 
-      color: #8e8e93; 
-      font-size: 0.9rem; 
-      letter-spacing: 1px; 
-      margin-bottom: 15px;
-      text-transform: uppercase;
-      font-weight: 500;
-    }
-    
-    .modul-title { 
-      font-size: 2.5rem; 
-      font-weight: 700; 
-      line-height: 1.2; 
-      margin-bottom: auto;
-      text-shadow: 0 2px 10px rgba(0,0,0,0.3);
-    }
-    
-    .start-btn { 
-      color: #007aff; 
-      font-weight: 600; 
-      font-size: 1.2rem; 
-      display: flex; 
-      align-items: center; 
-      gap: 10px; 
-      margin-top: 20px;
-      background: rgba(255,255,255,0.05);
-      padding: 15px 20px;
-      border-radius: 30px;
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,0.1);
-      transition: background 0.2s ease;
-    }
-    
-    .start-btn:hover {
-      background: rgba(255,255,255,0.1);
-    }
-
-    /* Bottom Tab Bar - to'liq ekran */
-    .tab-bar { 
-      height: 85px; 
-      background: rgba(0, 0, 0, 0.95); 
-      backdrop-filter: blur(20px); 
-      display: flex; 
-      align-items: center; 
-      justify-content: space-around; 
-      padding-bottom: 10px;
-      border-top: 1px solid rgba(255,255,255,0.1);
-      position: relative;
-      z-index: 20;
-      width: 100%;
-    }
-    
-    .tab-item { 
-      display: flex; 
-      flex-direction: column; 
-      align-items: center; 
-      gap: 5px; 
-      color: #8e8e93; 
-      text-decoration: none; 
-      font-size: 0.7rem; 
-      cursor: pointer;
-      transition: color 0.2s ease;
-      padding: 10px 20px;
-      border-radius: 30px;
-    }
-    
-    .tab-item.active { 
-      color: #ffffff; 
-      background: rgba(255,255,255,0.1);
-    }
-    
-    .tab-item svg { 
-      width: 24px; 
-      height: 24px; 
-      fill: none; 
-      stroke: currentColor; 
-      stroke-width: 2; 
-    }
-
-    /* Loading state */
-    .loading {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: #000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background: #000000; color: #ffffff; height: 100vh; display: flex; justify-content: center; }
+    .app-wrapper { width: 100%; max-width: 420px; height: 100vh; background: #000000; position: relative; }
+    .header { padding: 25px 20px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+    .avatar-wrapper { display: flex; align-items: center; gap: 15px; }
+    .avatar-circle { width: 50px; height: 50px; background: linear-gradient(135deg, #333, #111); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid #222; overflow: hidden; }
+    .avatar-circle img { width: 100%; height: 100%; object-fit: cover; }
+    .scroll-container { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; padding: 10px 20px; gap: 15px; }
+    .scroll-container::-webkit-scrollbar { display: none; }
+    .lesson-card { flex: 0 0 85%; height: 280px; border-radius: 40px; padding: 35px; display: flex; flex-direction: column; justify-content: space-between; scroll-snap-align: center; background: linear-gradient(145deg, #1c1c1e, #0a0a0a); border: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: transform 0.2s; }
+    .lesson-card:active { transform: scale(0.98); }
+    .tab-bar { position: absolute; bottom: 35px; left: 50%; transform: translateX(-50%); width: 90%; height: 75px; background: rgba(28, 28, 30, 0.8); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border-radius: 35px; display: flex; align-items: center; justify-content: space-around; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 20px 40px rgba(0,0,0,0.5); z-index: 100; }
+    .tab-item { display: flex; flex-direction: column; align-items: center; gap: 5px; color: #8e8e93; text-decoration: none; font-size: 0.65rem; font-weight: 600; transition: 0.2s; }
+    .tab-item.active { color: #ffffff; }
+    .tab-item svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2; }
+    .points-badge { background: #fff; color: #000; padding: 6px 12px; border-radius: 15px; font-weight: 800; font-size: 0.8rem; }
+    .loading { text-align: center; padding: 20px; color: #8e8e93; }
   </style>
 </head>
 <body>
-
 <div class="app-wrapper">
-  <!-- Header qismi -->
+  <!-- Header qismi - real foydalanuvchi ma'lumotlari bilan -->
   <div class="header" onclick="openProfile()">
     <div class="avatar-wrapper">
       <div class="avatar-circle" id="avatarContainer">
-        <span id="avatarText" style="font-size: 24px;">👤</span>
+        <span id="avatarText">👤</span>
         <img id="avatarImage" src="" alt="avatar" style="display: none;">
       </div>
       <div>
-        <h4 id="userName" style="font-size: 1rem;">Yuklanmoqda...</h4>
-        <p id="userStatus" style="color: #8e8e93; font-size: 0.8rem;">@username</p>
+        <h4 id="userName" style="font-size: 1.1rem;">Yuklanmoqda...</h4>
+        <p id="userStatus" style="color: #8e8e93; font-size: 0.85rem;">Premium darslar</p>
       </div>
     </div>
-    <div class="points-badge" id="userPoints">⚡ 312</div>
+    <div class="points-badge" id="userPoints">⚡ 0</div>
   </div>
 
-  <!-- Modullar ro'yxati -->
-  <div class="scroll-container" id="moduleList">
-    <!-- Modul 1 -->
-    <div class="lesson-card" onclick="openModule(1, 'Kvant fizikasi asoslari')">
-        <div>
-          <span class="modul-label">MODUL 1</span>
-          <h2 class="modul-title">Kvant fizikasi<br>asoslari</h2>
-        </div>
-        <div class="start-btn">
-          <span>Darsni boshlash</span>
-          <span>→</span>
-        </div>
-    </div>
-    
-    <!-- Modul 2 -->
-    <div class="lesson-card" onclick="openModule(2, 'Algoritmlar')">
-        <div>
-          <span class="modul-label">MODUL 2</span>
-          <h2 class="modul-title">Algoritmlar va<br>Ma'lumotlar</h2>
-        </div>
-        <div class="start-btn">
-          <span>Davom etish</span>
-          <span>→</span>
-        </div>
-    </div>
-    
-    <!-- Modul 3 -->
-    <div class="lesson-card" onclick="openModule(3, 'Sun\'iy intellekt')">
-        <div>
-          <span class="modul-label">MODUL 3</span>
-          <h2 class="modul-title">Sun'iy intellekt<br>asoslari</h2>
-        </div>
-        <div class="start-btn">
-          <span>Boshlash</span>
-          <span>→</span>
-        </div>
-    </div>
-    
-    <!-- Modul 4 -->
-    <div class="lesson-card" onclick="openModule(4, 'Ma\'lumotlar bazasi')">
-        <div>
-          <span class="modul-label">MODUL 4</span>
-          <h2 class="modul-title">Ma'lumotlar<br>bazasi</h2>
-        </div>
-        <div class="start-btn">
-          <span>Boshlash</span>
-          <span>→</span>
-        </div>
-    </div>
+  <!-- Darslar karuseli - 30 ta modul -->
+  <div class="scroll-container">
+    <div class="lesson-card" onclick="openModule(1, 'Kvant fizikasi asoslari')"><span style="color: #8e8e93; font-size: 0.7rem;">MODUL 1</span><h2 style="font-size: 1.6rem;">Kvant fizikasi asoslari</h2><div style="color: #007aff; font-weight: 600;">Darsni boshlash →</div></div>
+    <div class="lesson-card" onclick="openModule(2, 'Algoritmlar')"><span style="color: #8e8e93; font-size: 0.7rem;">MODUL 2</span><h2 style="font-size: 1.6rem;">Algoritmlar</h2><div style="color: #007aff; font-weight: 600;">Davom etish →</div></div>
+    <div class="lesson-card" onclick="openModule(3, 'Matematik analiz')"><span style="color: #8e8e93; font-size: 0.7rem;">MODUL 3</span><h2 style="font-size: 1.6rem;">Matematik analiz</h2><div style="color: #007aff; font-weight: 600;">Darsni boshlash →</div></div>
+    <div class="lesson-card" onclick="openModule(4, 'Organik kimyo')"><span style="color: #8e8e93; font-size: 0.7rem;">MODUL 4</span><h2 style="font-size: 1.6rem;">Organik kimyo</h2><div style="color: #007aff; font-weight: 600;">Darsni boshlash →</div></div>
+    <div class="lesson-card" onclick="openModule(5, 'Elektromagnetizm')"><span style="color: #8e8e93; font-size: 0.7rem;">MODUL 5</span><h2 style="font-size: 1.6rem;">Elektromagnetizm</h2><div style="color: #007aff; font-weight: 600;">Darsni boshlash →</div></div>
+    <div class="lesson-card" onclick="openModule(6, 'Ingliz tili')"><span style="color: #8e8e93; font-size: 0.7rem;">MODUL 6</span><h2 style="font-size: 1.6rem;">Ingliz tili</h2><div style="color: #007aff; font-weight: 600;">Darsni boshlash →</div></div>
+    <div class="lesson-card" onclick="openModule(7, 'Dasturlash')"><span style="color: #8e8e93; font-size: 0.7rem;">MODUL 7</span><h2 style="font-size: 1.6rem;">Dasturlash</h2><div style="color: #007aff; font-weight: 600;">Darsni boshlash →</div></div>
+    <div class="lesson-card" onclick="openModule(8, 'Sun\'iy intellekt')"><span style="color: #8e8e93; font-size: 0.7rem;">MODUL 8</span><h2 style="font-size: 1.6rem;">Sun'iy intellekt</h2><div style="color: #007aff; font-weight: 600;">Darsni boshlash →</div></div>
+    <div class="lesson-card" onclick="openModule(9, 'Tarix')"><span style="color: #8e8e93; font-size: 0.7rem;">MODUL 9</span><h2 style="font-size: 1.6rem;">Tarix</h2><div style="color: #007aff; font-weight: 600;">Darsni boshlash →</div></div>
+    <div class="lesson-card" onclick="openModule(10, 'Geometriya')"><span style="color: #8e8e93; font-size: 0.7rem;">MODUL 10</span><h2 style="font-size: 1.6rem;">Geometriya</h2><div style="color: #007aff; font-weight: 600;">Darsni boshlash →</div></div>
+    <div class="lesson-card" onclick="openModule(11, 'Astronomiya')"><span style="color: #8e8e93; font-size: 0.7rem;">MODUL 11</span><h2 style="font-size: 1.6rem;">Astronomiya</h2><div style="color: #007aff; font-weight: 600;">Darsni boshlash →</div></div>
+    <div class="lesson-card" onclick="openModule(12, 'Falsafa')"><span style="color: #8e8e93; font-size: 0.7rem;">MODUL 12</span><h2 style="font-size: 1.6rem;">Falsafa</h2><div style="color: #007aff; font-weight: 600;">Darsni boshlash →</div></div>
+    <div class="lesson-card" onclick="openModule(13, 'Biologiya')"><span style="color: #8e8e93; font-size: 0.7rem;">MODUL 13</span><h2 style="font-size: 1.6rem;">Biologiya</h2><div style="color: #007aff; font-weight: 600;">Darsni boshlash →</div></div>
+    <div class="lesson-card" onclick="openModule(14, 'Fizika')"><span style="color: #8e8e93; font-size: 0.7rem;">MODUL 14</span><h2 style="font-size: 1.6rem;">Fizika</h2><div style="color: #007aff; font-weight: 600;">Darsni boshlash →</div></div>
+    <div class="lesson-card" onclick="openModule(15, 'Adabiyot')"><span style="color: #8e8e93; font-size: 0.7rem;">MODUL 15</span><h2 style="font-size: 1.6rem;">Adabiyot</h2><div style="color: #007aff; font-weight: 600;">Darsni boshlash →</div></div>
+    <div class="lesson-card" onclick="openModule(16, 'Mikroiqtisodiyot')"><span style="color: #8e8e93; font-size: 0.7rem;">MODUL 16</span><h2 style="font-size: 1.6rem;">Mikroiqtisodiyot</h2><div style="color: #007aff; font-weight: 600;">Darsni boshlash →</div></div>
+    <div class="lesson-card" onclick="openModule(17, 'Psixologiya')"><span style="color: #8e8e93; font-size: 0.7rem;">MODUL 17</span><h2 style="font-size: 1.6rem;">Psixologiya</h2><div style="color: #007aff; font-weight: 600;">Darsni boshlash →</div></div>
+    <div class="lesson-card" onclick="openModule(18, 'Tibbiyot')"><span style="color: #8e8e93; font-size: 0.7rem;">MODUL 18</span><h2 style="font-size: 1.6rem;">Tibbiyot</h2><div style="color: #007aff; font-weight: 600;">Darsni boshlash →</div></div>
+    <div class="lesson-card" onclick="openModule(19, 'Grafik dizayn')"><span style="color: #8e8e93; font-size: 0.7rem;">MODUL 19</span><h2 style="font-size: 1.6rem;">Grafik dizayn</h2><div style="color: #007aff; font-weight: 600;">Darsni boshlash →</div></div>
+    <div class="lesson-card" onclick="openModule(20, 'Ingliz tili')"><span style="color: #8e8e93; font-size: 0.7rem;">MODUL 20</span><h2 style="font-size: 1.6rem;">Ingliz tili</h2><div style="color: #007aff; font-weight: 600;">Darsni boshlash →</div></div>
+    <div class="lesson-card" onclick="openModule(21, 'Algebra')"><span style="color: #8e8e93; font-size: 0.7rem;">MODUL 21</span><h2 style="font-size: 1.6rem;">Algebra</h2><div style="color: #007aff; font-weight: 600;">Darsni boshlash →</div></div>
+    <div class="lesson-card" onclick="openModule(22, 'Astrologiya')"><span style="color: #8e8e93; font-size: 0.7rem;">MODUL 22</span><h2 style="font-size: 1.6rem;">Astrologiya</h2><div style="color: #007aff; font-weight: 600;">Darsni boshlash →</div></div>
+    <div class="lesson-card" onclick="openModule(23, 'Genetika')"><span style="color: #8e8e93; font-size: 0.7rem;">MODUL 23</span><h2 style="font-size: 1.6rem;">Genetika</h2><div style="color: #007aff; font-weight: 600;">Darsni boshlash →</div></div>
+    <div class="lesson-card" onclick="openModule(24, 'Sotsiologiya')"><span style="color: #8e8e93; font-size: 0.7rem;">MODUL 24</span><h2 style="font-size: 1.6rem;">Sotsiologiya</h2><div style="color: #007aff; font-weight: 600;">Darsni boshlash →</div></div>
+    <div class="lesson-card" onclick="openModule(25, 'Kimyo')"><span style="color: #8e8e93; font-size: 0.7rem;">MODUL 25</span><h2 style="font-size: 1.6rem;">Kimyo</h2><div style="color: #007aff; font-weight: 600;">Darsni boshlash →</div></div>
+    <div class="lesson-card" onclick="openModule(26, 'Fizika')"><span style="color: #8e8e93; font-size: 0.7rem;">MODUL 26</span><h2 style="font-size: 1.6rem;">Fizika</h2><div style="color: #007aff; font-weight: 600;">Darsni boshlash →</div></div>
+    <div class="lesson-card" onclick="openModule(27, 'Matematika')"><span style="color: #8e8e93; font-size: 0.7rem;">MODUL 27</span><h2 style="font-size: 1.6rem;">Matematika</h2><div style="color: #007aff; font-weight: 600;">Darsni boshlash →</div></div>
+    <div class="lesson-card" onclick="openModule(28, 'Informatika')"><span style="color: #8e8e93; font-size: 0.7rem;">MODUL 28</span><h2 style="font-size: 1.6rem;">Informatika</h2><div style="color: #007aff; font-weight: 600;">Darsni boshlash →</div></div>
+    <div class="lesson-card" onclick="openModule(29, 'Tarix')"><span style="color: #8e8e93; font-size: 0.7rem;">MODUL 29</span><h2 style="font-size: 1.6rem;">Tarix</h2><div style="color: #007aff; font-weight: 600;">Darsni boshlash →</div></div>
+    <div class="lesson-card" onclick="openModule(30, 'Geografiya')"><span style="color: #8e8e93; font-size: 0.7rem;">MODUL 30</span><h2 style="font-size: 1.6rem;">Geografiya</h2><div style="color: #007aff; font-weight: 600;">Darsni boshlash →</div></div>
   </div>
 
   <!-- Bottom Tab Bar -->
   <nav class="tab-bar">
-    <a href="#" class="tab-item active" onclick="switchTab('home', event)">
-      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-      <span>Asosiy</span>
-    </a>
-    <a href="#" class="tab-item" onclick="switchTab('rating', event)">
-      <svg viewBox="0 0 24 24">
-        <line x1="12" y1="20" x2="12" y2="10"/>
-        <line x1="18" y1="20" x2="18" y2="4"/>
-        <line x1="6" y1="20" x2="6" y2="14"/>
-      </svg>
-      <span>Reyting</span>
-    </a>
-    <a href="#" class="tab-item" onclick="switchTab('gift', event)">
-      <svg viewBox="0 0 24 24">
-        <polyline points="20 12 20 22 4 22 4 12"/>
-        <rect x="2" y="7" width="20" height="5"/>
-        <line x1="12" y1="22" x2="12" y2="7"/>
-        <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/>
-        <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
-      </svg>
-      <span>Sovg'a</span>
-    </a>
+    <a href="index.html" class="tab-item active"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Asosiy</span></a>
+    <a href="reyting.html" class="tab-item"><svg viewBox="0 0 24 24"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>Reyting</span></a>
+    <a href="gift.html" class="tab-item"><svg viewBox="0 0 24 24"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg><span>Sovg'a</span></a>
   </nav>
 </div>
 
 <script>
-  // Telegram WebApp ni to'liq ekran rejimida ishga tushirish
+  // Telegram Web App init
   const tg = window.Telegram.WebApp;
-  
-  // To'liq ekran rejimi uchun sozlamalar
+  tg.expand();
   tg.ready();
-  tg.expand(); // Mini App ni to'liq ekranga yoyish
-  tg.headerColor = '#000000';
-  tg.backgroundColor = '#000000';
-  tg.setHeaderColor('#000000');
   
-  // To'liq ekranni majburiy qilish
-  if (tg.platform === 'ios' || tg.platform === 'android') {
-    tg.expand(); // Qayta chaqirish
-  }
-
+  // Foydalanuvchi ma'lumotlarini olish
   const user = tg.initDataUnsafe?.user;
+  
+  // UI elementlari
+  const userNameEl = document.getElementById('userName');
+  const userStatusEl = document.getElementById('userStatus');
+  const userPointsEl = document.getElementById('userPoints');
+  const avatarText = document.getElementById('avatarText');
+  const avatarImage = document.getElementById('avatarImage');
+  const avatarContainer = document.getElementById('avatarContainer');
 
   // Foydalanuvchi ma'lumotlarini yuklash
   function loadUserData() {
     if (user) {
-      const fullName = user.first_name + (user.last_name ? ' ' + user.last_name : '');
-      document.getElementById('userName').textContent = fullName;
-      document.getElementById('userStatus').textContent = user.username ? '@' + user.username : 'ID: ' + user.id;
+      // Ismni ko'rsatish
+      const firstName = user.first_name || '';
+      const lastName = user.last_name || '';
+      userNameEl.textContent = firstName + (lastName ? ' ' + lastName : '');
       
-      if (user.photo_url) {
-        const img = document.getElementById('avatarImage');
-        img.src = user.photo_url;
-        img.style.display = 'block';
-        document.getElementById('avatarText').style.display = 'none';
+      // Username yoki ID ni statusda ko'rsatish
+      if (user.username) {
+        userStatusEl.textContent = '@' + user.username;
+      } else {
+        userStatusEl.textContent = 'ID: ' + user.id;
       }
       
-      // Foydalanuvchi ma'lumotlarini konsolga chiqarish
-      console.log('Foydalanuvchi:', fullName);
+      // Ballarni localstorage dan olish yoki random
+      let points = localStorage.getItem('userPoints_' + user.id);
+      if (!points) {
+        points = Math.floor(Math.random() * 500) + 100; // 100-600 oralig'ida
+        localStorage.setItem('userPoints_' + user.id, points);
+      }
+      userPointsEl.innerHTML = '⚡ ' + points;
+      
+      // Avatar yuklash
+      if (user.username) {
+        const imgUrl = 'https://t.me/i/userpic/320/' + user.username + '.jpg';
+        avatarImage.src = imgUrl;
+        avatarImage.onload = function() {
+          avatarText.style.display = 'none';
+          avatarImage.style.display = 'block';
+        };
+        avatarImage.onerror = function() {
+          avatarText.style.display = 'block';
+          avatarImage.style.display = 'none';
+          avatarText.textContent = firstName.charAt(0) || '👤';
+        };
+      } else {
+        avatarText.textContent = firstName.charAt(0) || '👤';
+      }
+    } else {
+      // Test ma'lumotlari
+      userNameEl.textContent = 'Javlonbek';
+      userStatusEl.textContent = '@javlon_dev';
+      userPointsEl.innerHTML = '⚡ 359';
+      avatarText.textContent = 'J';
     }
   }
 
-  // MODULNI OCHISH FUNKSIYASI - to'liq ekran rejimida
-  function openModule(moduleId, moduleName) {
-    // Haptic feedback
-    tg.HapticFeedback.impactOccurred('medium');
-    
-    // Modul ma'lumotlarini saqlash
-    localStorage.setItem('currentModule', moduleId);
-    localStorage.setItem('currentModuleName', moduleName);
-    
-    console.log(`📚 Modul ochilmoqda: ${moduleName} (ID: ${moduleId})`);
-    
-    // To'liq ekran rejimida yangi sahifaga o'tish
-    // window.location.href = `module.html?id=${moduleId}`;
-    
-    // Demo uchun
-    tg.showPopup({
-      title: 'Modul ochildi',
-      message: `${moduleName} moduli (ID: ${moduleId})`,
-      buttons: [{type: 'close', text: 'Yopish'}]
-    });
-    
-    // Backend ga so'rov yuborish (agar kerak bo'lsa)
-    // fetch(`/api/open-module/${moduleId}`, {
-    //   method: 'POST',
-    //   headers: {'Content-Type': 'application/json'},
-    //   body: JSON.stringify({user_id: user?.id})
-    // });
-  }
-
-  // Profilni ochish
+  // Profil sahifasini ochish
   function openProfile() {
+    location.href = 'profil.html';
+  }
+
+  // Modulni ochish
+  function openModule(moduleNumber, moduleName) {
     tg.HapticFeedback.impactOccurred('light');
-    console.log("Profil ochilmoqda");
-    
-    tg.showPopup({
-      title: 'Profil',
-      message: 'Profil sahifasi ishga tushirilmoqda...',
-      buttons: [
-        {id: 'ok', type: 'default', text: 'OK'},
-        {type: 'cancel', text: 'Bekor qilish'}
-      ]
-    });
-    // window.location.href = 'profile.html';
+    // moduleNumber va moduleName ni localStorage ga saqlash
+    localStorage.setItem('currentModule', moduleNumber);
+    localStorage.setItem('currentModuleName', moduleName);
+    location.href = 'modul' + moduleNumber + '.html';
   }
 
-  // Tablarni almashtirish
-  function switchTab(tabName, event) {
-    event.preventDefault();
-    tg.HapticFeedback.selectionChanged();
-    
-    // Active class ni yangilash
-    document.querySelectorAll('.tab-item').forEach(tab => {
-      tab.classList.remove('active');
-    });
-    event.currentTarget.classList.add('active');
-    
-    console.log("Tab: " + tabName);
-    
-    // Sahifaga o'tish
-    switch(tabName) {
-      case 'home':
-        // window.location.href = 'index.html';
-        break;
-      case 'rating':
-        tg.showPopup({
-          title: 'Reyting',
-          message: 'Reyting sahifasi tayyorlanmoqda',
-          buttons: [{type: 'close'}]
-        });
-        break;
-      case 'gift':
-        tg.showPopup({
-          title: 'Sovg\'alar',
-          message: 'Sovg\'alar sahifasi tayyorlanmoqda',
-          buttons: [{type: 'close'}]
-        });
-        break;
-    }
-  }
+  // Sahifa yuklanganda ma'lumotlarni yuklash
+  loadUserData();
 
-  // Ekran o'lchami o'zgarganda
-  window.addEventListener('resize', function() {
-    // To'liq ekranni saqlash
-    tg.expand();
+  // Telegram back button
+  tg.BackButton.onClick(function() {
+    tg.close();
   });
-
-  // Sahifa yuklanganda
-  document.addEventListener('DOMContentLoaded', function() {
-    loadUserData();
-    
-    // To'liq ekranni tekshirish
-    setTimeout(() => {
-      tg.expand();
-      console.log('Ekran holati:', tg.viewportHeight, 'x', tg.viewportWidth);
-    }, 100);
-  });
-
 </script>
-
 </body>
 </html>
