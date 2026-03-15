@@ -2,8 +2,8 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LearnU · Telegram Web App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LearnU · Web App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
@@ -20,6 +20,7 @@
             display: flex;
             justify-content: center;
             padding: 16px;
+            transition: background 0.3s, color 0.3s;
         }
 
         .container {
@@ -33,8 +34,9 @@
             gap: 20px;
             padding: 20px;
             background: var(--tg-theme-secondary-bg-color, #f0f0f0);
-            border-radius: 20px;
-            margin-bottom: 20px;
+            border-radius: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         .avatar {
@@ -45,9 +47,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 32px;
+            font-size: 36px;
             color: white;
             overflow: hidden;
+            flex-shrink: 0;
+            border: 3px solid var(--tg-theme-button-color, #007aff);
         }
 
         .avatar img {
@@ -58,51 +62,61 @@
 
         .user-info {
             flex: 1;
+            overflow: hidden;
         }
 
         .user-name {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: 700;
             margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .user-username {
-            font-size: 16px;
+            font-size: 15px;
             color: var(--tg-theme-hint-color, #8e8e93);
             margin-bottom: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .user-id {
-            font-size: 14px;
+            font-size: 13px;
             color: var(--tg-theme-hint-color, #8e8e93);
             background: var(--tg-theme-bg-color, #ffffff);
             padding: 4px 12px;
             border-radius: 20px;
             display: inline-block;
+            border: 1px solid var(--tg-theme-hint-color, #e0e0e0);
         }
 
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 12px;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
         .stat-card {
             background: var(--tg-theme-secondary-bg-color, #f0f0f0);
-            padding: 16px;
-            border-radius: 16px;
+            padding: 16px 8px;
+            border-radius: 20px;
             text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         }
 
         .stat-value {
-            font-size: 24px;
-            font-weight: 700;
+            font-size: 26px;
+            font-weight: 800;
             margin-bottom: 4px;
+            color: var(--tg-theme-button-color, #007aff);
         }
 
         .stat-label {
-            font-size: 12px;
+            font-size: 13px;
             color: var(--tg-theme-hint-color, #8e8e93);
         }
 
@@ -110,49 +124,58 @@
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 12px;
-            margin-bottom: 20px;
+            margin-bottom: 80px;
         }
 
         .menu-item {
             background: var(--tg-theme-secondary-bg-color, #f0f0f0);
-            padding: 20px;
-            border-radius: 16px;
+            padding: 24px 12px;
+            border-radius: 20px;
             text-align: center;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: transform 0.2s, background 0.2s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border: 1px solid transparent;
         }
 
         .menu-item:active {
-            transform: scale(0.95);
+            transform: scale(0.97);
+            background: var(--tg-theme-button-color, #007aff);
+            color: white;
         }
 
         .menu-icon {
-            font-size: 32px;
+            font-size: 36px;
             margin-bottom: 8px;
         }
 
         .menu-title {
             font-weight: 600;
+            font-size: 16px;
         }
 
         .tab-bar {
             position: fixed;
             bottom: 0;
-            left: 0;
-            right: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 420px;
             background: var(--tg-theme-bg-color, #ffffff);
             border-top: 1px solid var(--tg-theme-hint-color, #e0e0e0);
             display: flex;
             justify-content: space-around;
-            padding: 12px 16px 24px;
-            max-width: 420px;
-            margin: 0 auto;
+            padding: 12px 16px 20px;
+            backdrop-filter: blur(10px);
+            background: rgba(var(--tg-theme-bg-color-rgb), 0.8);
         }
 
         .tab-item {
             text-align: center;
             color: var(--tg-theme-hint-color, #8e8e93);
             cursor: pointer;
+            transition: color 0.2s;
+            flex: 1;
         }
 
         .tab-item.active {
@@ -166,198 +189,240 @@
 
         .tab-label {
             font-size: 11px;
+            font-weight: 500;
         }
 
-        /* Dark mode support */
-        @media (prefers-color-scheme: dark) {
-            body {
-                background: #1c1c1e;
-                color: #ffffff;
-            }
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            font-size: 18px;
+            color: var(--tg-theme-hint-color);
         }
     </style>
 </head>
 <body>
     <div class="container" id="app">
-        <!-- Profile Header -->
-        <div class="profile-header">
-            <div class="avatar" id="avatar">
-                <span id="avatarText">👤</span>
-                <img id="avatarImage" src="" alt="avatar" style="display: none;">
+        <div id="loading" class="loading">Ma'lumotlar yuklanmoqda...</div>
+        
+        <div id="content" style="display: none;">
+            <!-- Profile Header -->
+            <div class="profile-header">
+                <div class="avatar" id="avatar">
+                    <span id="avatarText">👤</span>
+                    <img id="avatarImage" src="" alt="avatar" style="display: none;">
+                </div>
+                <div class="user-info">
+                    <div class="user-name" id="userName">-</div>
+                    <div class="user-username" id="userUsername">@yuklanmoqda</div>
+                    <div class="user-id" id="userId">ID: -</div>
+                </div>
             </div>
-            <div class="user-info">
-                <div class="user-name" id="userName">Yuklanmoqda...</div>
-                <div class="user-username" id="userUsername">@yuklanmoqda</div>
-                <div class="user-id" id="userId">ID: Yuklanmoqda</div>
-            </div>
-        </div>
 
-        <!-- Statistics -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-value" id="statLessons">0</div>
-                <div class="stat-label">Darslar</div>
+            <!-- Statistics (dinamik o'zgaradi) -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="statLessons">0</div>
+                    <div class="stat-label">Darslar</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statPoints">0</div>
+                    <div class="stat-label">Ballar</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statDays">0</div>
+                    <div class="stat-label">Kun</div>
+                </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-value" id="statPoints">0</div>
-                <div class="stat-label">Ballar</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="statDays">0</div>
-                <div class="stat-label">Kun</div>
-            </div>
-        </div>
 
-        <!-- Menu Grid -->
-        <div class="menu-grid">
-            <div class="menu-item" onclick="alert('Darslar bo\'limi')">
-                <div class="menu-icon">📚</div>
-                <div class="menu-title">Darslar</div>
+            <!-- Menu Grid -->
+            <div class="menu-grid">
+                <div class="menu-item" onclick="handleMenuClick('lessons')">
+                    <div class="menu-icon">📚</div>
+                    <div class="menu-title">Darslar</div>
+                </div>
+                <div class="menu-item" onclick="handleMenuClick('rating')">
+                    <div class="menu-icon">🏆</div>
+                    <div class="menu-title">Reyting</div>
+                </div>
+                <div class="menu-item" onclick="handleMenuClick('gift')">
+                    <div class="menu-icon">🎁</div>
+                    <div class="menu-title">Sovg'alar</div>
+                </div>
+                <div class="menu-item" onclick="handleMenuClick('settings')">
+                    <div class="menu-icon">⚙️</div>
+                    <div class="menu-title">Sozlamalar</div>
+                </div>
             </div>
-            <div class="menu-item" onclick="alert('Reyting bo\'limi')">
-                <div class="menu-icon">🏆</div>
-                <div class="menu-title">Reyting</div>
-            </div>
-            <div class="menu-item" onclick="alert('Sovg\'alar bo\'limi')">
-                <div class="menu-icon">🎁</div>
-                <div class="menu-title">Sovg'alar</div>
-            </div>
-            <div class="menu-item" onclick="alert('Sozlamalar bo\'limi')">
-                <div class="menu-icon">⚙️</div>
-                <div class="menu-title">Sozlamalar</div>
-            </div>
-        </div>
 
-        <!-- Tab Bar -->
-        <div class="tab-bar">
-            <div class="tab-item active" onclick="switchTab('home')">
-                <div class="tab-icon">🏠</div>
-                <div class="tab-label">Asosiy</div>
-            </div>
-            <div class="tab-item" onclick="switchTab('rating')">
-                <div class="tab-icon">📊</div>
-                <div class="tab-label">Reyting</div>
-            </div>
-            <div class="tab-item" onclick="switchTab('gift')">
-                <div class="tab-icon">🎁</div>
-                <div class="tab-label">Sovg'a</div>
-            </div>
-            <div class="tab-item" onclick="switchTab('profile')">
-                <div class="tab-icon">👤</div>
-                <div class="tab-label">Profil</div>
+            <!-- Tab Bar -->
+            <div class="tab-bar">
+                <div class="tab-item active" onclick="switchTab('home', this)">
+                    <div class="tab-icon">🏠</div>
+                    <div class="tab-label">Asosiy</div>
+                </div>
+                <div class="tab-item" onclick="switchTab('rating', this)">
+                    <div class="tab-icon">📊</div>
+                    <div class="tab-label">Reyting</div>
+                </div>
+                <div class="tab-item" onclick="switchTab('gift', this)">
+                    <div class="tab-icon">🎁</div>
+                    <div class="tab-label">Sovg'a</div>
+                </div>
+                <div class="tab-item" onclick="switchTab('profile', this)">
+                    <div class="tab-icon">👤</div>
+                    <div class="tab-label">Profil</div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Telegram Web App init
         const tg = window.Telegram.WebApp;
-        tg.expand(); // Web App ni to'liq ekran qilish
+        tg.expand();
         tg.ready();
-
-        // Foydalanuvchi ma'lumotlarini olish
-        const user = tg.initDataUnsafe?.user;
         
-        function loadUserData() {
+        const user = tg.initDataUnsafe?.user;
+        const contentDiv = document.getElementById('content');
+        const loadingDiv = document.getElementById('loading');
+
+        // Foydalanuvchi ma'lumotlarini yuklash
+        async function loadUserData() {
             if (user) {
-                // Avatar
-                const avatarDiv = document.getElementById('avatar');
-                const avatarText = document.getElementById('avatarText');
-                const avatarImage = document.getElementById('avatarImage');
+                // Telegram'dan to'g'ridan-to'g'ri ma'lumotlarni olish
+                updateUIWithUserData(user);
+                loadingDiv.style.display = 'none';
+                contentDiv.style.display = 'block';
                 
-                // Agar username bo'lsa, Telegram avatarini yuklash
-                if (user.username) {
-                    avatarImage.src = `https://t.me/i/userpic/320/${user.username}.jpg`;
-                    avatarImage.onload = function() {
-                        avatarText.style.display = 'none';
-                        avatarImage.style.display = 'block';
-                    };
-                    avatarImage.onerror = function() {
-                        avatarText.style.display = 'block';
-                        avatarImage.style.display = 'none';
-                        avatarText.textContent = user.first_name?.charAt(0) || '👤';
-                    };
-                } else {
-                    avatarText.textContent = user.first_name?.charAt(0) || '👤';
+                // Qo'shimcha ma'lumotlarni botdan so'rash (ixtiyoriy)
+                try {
+                    tg.sendData(JSON.stringify({ action: 'get_user_data' }));
+                } catch (e) {
+                    console.log('Botga so\'rov yuborilmadi');
                 }
-                
-                // Ism
-                document.getElementById('userName').textContent = 
-                    `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Foydalanuvchi';
-                
-                // Username
-                document.getElementById('userUsername').textContent = 
-                    user.username ? `@${user.username}` : '@username_yo\'q';
-                
-                // ID
-                document.getElementById('userId').textContent = `ID: ${user.id}`;
-                
-                // Statistikalar (misol uchun)
-                document.getElementById('statLessons').textContent = '12';
-                document.getElementById('statPoints').textContent = '359';
-                document.getElementById('statDays').textContent = '7';
-                
-                // Telegram theme ranglarini qo'llash
-                document.body.style.backgroundColor = tg.themeParams.bg_color || '#ffffff';
-                document.body.style.color = tg.themeParams.text_color || '#000000';
             } else {
-                // Test ma'lumotlari (Telegram'dan tashqari)
-                document.getElementById('userName').textContent = 'Javlonbek Rashidov';
-                document.getElementById('userUsername').textContent = '@javlon_dev';
-                document.getElementById('userId').textContent = 'ID: 774829';
-                document.getElementById('statLessons').textContent = '12';
-                document.getElementById('statPoints').textContent = '359';
-                document.getElementById('statDays').textContent = '7';
+                // Test ma'lumotlari (agar Telegram ochilmagan bo'lsa)
+                const testUser = {
+                    id: 774829,
+                    first_name: 'Javlonbek',
+                    last_name: 'Rashidov',
+                    username: 'javlon_dev',
+                    language_code: 'uz'
+                };
+                updateUIWithUserData(testUser);
+                loadingDiv.style.display = 'none';
+                contentDiv.style.display = 'block';
             }
+        }
+
+        // UI ni yangilash
+        function updateUIWithUserData(userData) {
+            // Avatar
+            const avatarText = document.getElementById('avatarText');
+            const avatarImage = document.getElementById('avatarImage');
+            
+            if (userData.username) {
+                avatarImage.src = `https://t.me/i/userpic/320/${userData.username}.jpg`;
+                avatarImage.onload = function() {
+                    avatarText.style.display = 'none';
+                    avatarImage.style.display = 'block';
+                };
+                avatarImage.onerror = function() {
+                    avatarText.style.display = 'block';
+                    avatarImage.style.display = 'none';
+                    avatarText.textContent = userData.first_name?.charAt(0).toUpperCase() || '👤';
+                };
+            } else {
+                avatarText.textContent = userData.first_name?.charAt(0).toUpperCase() || '👤';
+            }
+            
+            // Ism
+            document.getElementById('userName').textContent = 
+                `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || 'Foydalanuvchi';
+            
+            // Username
+            document.getElementById('userUsername').textContent = 
+                userData.username ? `@${userData.username}` : '@username_yoq';
+            
+            // ID
+            document.getElementById('userId').textContent = `ID: ${userData.id}`;
+            
+            // Statistikalar (serverdan olinishi mumkin, hozircha statik)
+            document.getElementById('statLessons').textContent = '12';
+            document.getElementById('statPoints').textContent = '359';
+            document.getElementById('statDays').textContent = '7';
+            
+            // Telegram tema ranglarini qo'llash
+            applyTheme();
+        }
+
+        // Telegram temasini qo'llash
+        function applyTheme() {
+            const theme = tg.themeParams;
+            document.body.style.backgroundColor = theme.bg_color || '#ffffff';
+            document.body.style.color = theme.text_color || '#000000';
+            
+            // CSS o'zgaruvchilarni qo'llash
+            const style = document.createElement('style');
+            style.textContent = `
+                :root {
+                    --tg-theme-bg-color: ${theme.bg_color || '#ffffff'};
+                    --tg-theme-text-color: ${theme.text_color || '#000000'};
+                    --tg-theme-hint-color: ${theme.hint_color || '#8e8e93'};
+                    --tg-theme-button-color: ${theme.button_color || '#007aff'};
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        // Menu click handler
+        function handleMenuClick(menu) {
+            tg.HapticFeedback.impactOccurred('light');
+            
+            let message = '';
+            switch(menu) {
+                case 'lessons': message = '📚 Darslar bo\'limi tez orada'; break;
+                case 'rating': message = '🏆 Reyting bo\'limi tez orada'; break;
+                case 'gift': message = '🎁 Sovg\'alar bo\'limi tez orada'; break;
+                case 'settings': message = '⚙️ Sozlamalar bo\'limi tez orada'; break;
+            }
+            
+            tg.showAlert(message);
         }
 
         // Tab switcher
-        function switchTab(tab) {
+        function switchTab(tab, element) {
             document.querySelectorAll('.tab-item').forEach(item => {
                 item.classList.remove('active');
             });
-            event.currentTarget.classList.add('active');
+            element.classList.add('active');
             
-            // Tab bo'yicha amallar
-            switch(tab) {
-                case 'home':
-                    tg.HapticFeedback.impactOccurred('light');
-                    break;
-                case 'rating':
-                    tg.HapticFeedback.impactOccurred('medium');
-                    break;
-                case 'gift':
-                    tg.HapticFeedback.impactOccurred('heavy');
-                    break;
-                case 'profile':
-                    tg.HapticFeedback.notificationOccurred('success');
-                    break;
-            }
+            tg.HapticFeedback.selectionChanged();
+            
+            // Bu yerda sahifa o'tishlari amalga oshiriladi
+            console.log('Switch to:', tab);
         }
 
-        // Main button
-        tg.MainButton.setText("Profilni yangilash");
-        tg.MainButton.onClick(function() {
-            tg.sendData(JSON.stringify({
-                action: 'refresh_profile',
-                user_id: user?.id
-            }));
+        // Web App dan kelgan xabarlarni eshitish
+        tg.onEvent('webAppData', function(data) {
+            try {
+                const response = JSON.parse(data.data);
+                if (response.ok && response.user) {
+                    updateUIWithUserData(response.user);
+                }
+            } catch (e) {
+                console.log('Xatolik yuz berdi');
+            }
         });
-
-        // Yuklash
-        loadUserData();
 
         // Back button
         tg.BackButton.onClick(function() {
             tg.close();
         });
 
-        // Haptic feedback
-        document.querySelectorAll('.menu-item').forEach(item => {
-            item.addEventListener('click', () => {
-                tg.HapticFeedback.impactOccurred('light');
-            });
-        });
+        // Ilovani yuklash
+        loadUserData();
     </script>
 </body>
 </html>
