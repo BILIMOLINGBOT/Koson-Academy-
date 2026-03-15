@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="uz">
 <head>
@@ -6,151 +7,259 @@
   <title>LearnU · Asosiy</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    /* ... oldingi stillar ... */
-    .error-fallback {
-      display: none;
-      color: #ff3b30;
-      text-align: center;
-      padding: 20px;
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background: #000000; color: #ffffff; height: 100vh; display: flex; justify-content: center; }
+    .app-wrapper { width: 100%; max-width: 420px; height: 100vh; background: #000000; position: relative; overflow-y: auto; padding-bottom: 100px; }
+    .header { padding: 25px 20px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+    .avatar-wrapper { display: flex; align-items: center; gap: 15px; }
+    .avatar-circle { width: 50px; height: 50px; background: linear-gradient(135deg, #333, #111); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid #222; overflow: hidden; }
+    .avatar-circle img { width: 100%; height: 100%; object-fit: cover; }
+    .scroll-container { 
+      display: flex; 
+      overflow-x: auto; 
+      scroll-snap-type: x mandatory; 
+      padding: 10px 20px; 
+      gap: 15px; 
+      align-items: center; 
     }
+    .scroll-container::-webkit-scrollbar { display: none; }
+    .lesson-card { 
+      flex: 0 0 85%; 
+      height: 65vh; 
+      border-radius: 40px; 
+      padding: 35px; 
+      display: flex; 
+      flex-direction: column; 
+      justify-content: space-between; 
+      scroll-snap-align: center; 
+      background: linear-gradient(145deg, #1c1c1e, #0a0a0a); 
+      border: 1px solid rgba(255,255,255,0.05); 
+      cursor: pointer; 
+      transition: transform 0.2s; 
+    }
+    .lesson-card:active { transform: scale(0.98); }
+    .tab-bar { position: fixed; bottom: 35px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 380px; height: 75px; background: rgba(28, 28, 30, 0.8); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border-radius: 35px; display: flex; align-items: center; justify-content: space-around; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 20px 40px rgba(0,0,0,0.5); z-index: 100; }
+    .tab-item { display: flex; flex-direction: column; align-items: center; gap: 5px; color: #8e8e93; text-decoration: none; font-size: 0.65rem; font-weight: 600; transition: 0.2s; }
+    .tab-item.active { color: #ffffff; }
+    .tab-item svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2; }
+    .points-badge { background: #fff; color: #000; padding: 6px 12px; border-radius: 15px; font-weight: 800; font-size: 0.8rem; }
+    .error-message { display: none; color: #ff3b30; text-align: center; padding: 10px; }
   </style>
 </head>
 <body>
-  <!-- To'g'ri: body ichida to'g'ridan-to'g'ri kontent -->
-  <div class="app-wrapper">
-    <!-- ... oldingi kontent ... -->
+<div class="app-wrapper">
+  <div class="header" onclick="openProfile()">
+    <div class="avatar-wrapper">
+      <div class="avatar-circle" id="avatarContainer">
+        <span id="avatarText">👤</span>
+        <img id="avatarImage" src="" alt="avatar" style="display: none;" onerror="handleAvatarError()">
+      </div>
+      <div>
+        <h4 id="userName" style="font-size: 1.1rem;">Yuklanmoqda...</h4>
+        <p id="userStatus" style="color: #8e8e93; font-size: 0.85rem;">Premium darslar</p>
+      </div>
+    </div>
+    <div class="points-badge" id="userPoints">⚡ 0</div>
   </div>
 
-  <div id="errorMessage" class="error-fallback"></div>
+  <div class="scroll-container">
+    <div class="lesson-card" onclick="openModule(1, 'Kvant fizikasi asoslari')">
+      <span style="color: #8e8e93; font-size: 0.7rem;">MODUL 1</span>
+      <h2 style="font-size: 1.6rem;">Kvant fizikasi asoslari</h2>
+      <div style="color: #007aff; font-weight: 600;">Darsni boshlash →</div>
+    </div>
+    <div class="lesson-card" onclick="openModule(2, 'Algoritmlar')">
+      <span style="color: #8e8e93; font-size: 0.7rem;">MODUL 2</span>
+      <h2 style="font-size: 1.6rem;">Algoritmlar</h2>
+      <div style="color: #007aff; font-weight: 600;">Davom etish →</div>
+    </div>
+  </div>
 
-  <script>
-    (function() {
+  <nav class="tab-bar">
+    <a href="index.html" class="tab-item active" onclick="handleNavigation(event, 'index.html')">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      <span>Asosiy</span>
+    </a>
+    <a href="reyting.html" class="tab-item" onclick="handleNavigation(event, 'reyting.html')">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span>Reyting</span>
+    </a>
+    <a href="gift.html" class="tab-item" onclick="handleNavigation(event, 'gift.html')">
+      <svg viewBox="0 0 24 24"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+      <span>Sovg'a</span>
+    </a>
+  </nav>
+  
+  <div id="errorMessage" class="error-message"></div>
+</div>
+
+<script>
+  (function() {
+    // Telegram WebApp init
+    const tg = window.Telegram.WebApp;
+    
+    // Xavfsizlik: initData ni tekshirish
+    if (!tg.initData || !tg.initDataUnsafe) {
+      showError('Xavfsizlik: So\'rov noto\'g\'ri');
+      return;
+    }
+    
+    tg.expand();
+    tg.ready();
+    
+    // Foydalanuvchi ma'lumotlarini olish
+    const user = tg.initDataUnsafe?.user;
+    const startParam = tg.initDataUnsafe?.start_param || '';
+    
+    // Elementlarni olish
+    const userNameEl = document.getElementById('userName');
+    const userStatusEl = document.getElementById('userStatus');
+    const userPointsEl = document.getElementById('userPoints');
+    const avatarText = document.getElementById('avatarText');
+    const avatarImage = document.getElementById('avatarImage');
+    
+    // Xatolikni ko'rsatish
+    function showError(message) {
+      const errorEl = document.getElementById('errorMessage');
+      errorEl.style.display = 'block';
+      errorEl.textContent = message;
+      setTimeout(() => { errorEl.style.display = 'none'; }, 3000);
+    }
+    
+    // Avatar xatolik handler
+    window.handleAvatarError = function() {
+      avatarImage.style.display = 'none';
+      avatarText.style.display = 'block';
+      if (user) {
+        avatarText.textContent = (user.first_name || 'U').charAt(0).toUpperCase();
+      }
+    };
+    
+    // Navigatsiya handler
+    window.handleNavigation = function(event, url) {
+      event.preventDefault();
       try {
-        const tg = window.Telegram?.WebApp;
-        if (!tg) {
-          throw new Error("Telegram WebApp mavjud emas");
-        }
-        
-        tg.expand();
-        tg.ready();
-        
-        // Xavfsizlik: initData ni tekshirish
-        if (!tg.initData) {
-          console.warn("initData mavjud emas");
-          // Demo rejim
-          loadDemoData();
-        } else {
-          loadUserData(tg);
-        }
-        
-        function loadUserData(tg) {
-          const user = tg.initDataUnsafe?.user;
-          if (!user) {
-            loadDemoData();
-            return;
-          }
-          
-          // User ma'lumotlarini yuklash
-          updateUserUI(user);
-          
-          // BackButton ni to'g'ri boshqarish
-          tg.BackButton.onClick(() => {
-            if (document.referrer) {
-              window.history.back();
-            } else {
-              tg.close();
-            }
-          });
-        }
-        
-        function loadDemoData() {
-          document.getElementById('userName').textContent = 'Javlonbek';
-          document.getElementById('userStatus').textContent = '@JavlonbekRA';
-          document.getElementById('userPoints').innerHTML = '⚡ 312';
-          document.getElementById('avatarText').textContent = 'J';
-        }
-        
-        function updateUserUI(user) {
+        tg.HapticFeedback.impactOccurred('light');
+        location.href = url;
+      } catch (e) {
+        console.error('Navigation error:', e);
+        location.href = url;
+      }
+    };
+    
+    // Foydalanuvchi ma'lumotlarini yuklash
+    function loadUserData() {
+      try {
+        if (user && user.id) {
           const firstName = user.first_name || '';
           const lastName = user.last_name || '';
-          const userNameEl = document.getElementById('userName');
-          const userStatusEl = document.getElementById('userStatus');
-          const userPointsEl = document.getElementById('userPoints');
-          const avatarText = document.getElementById('avatarText');
-          const avatarImage = document.getElementById('avatarImage');
+          const username = user.username || '';
           
           userNameEl.textContent = firstName + (lastName ? ' ' + lastName : '');
-          userStatusEl.textContent = user.username ? '@' + user.username : 'ID: ' + user.id;
+          userStatusEl.textContent = username ? '@' + username : 'ID: ' + user.id;
           
-          // Ballarni backend dan olish kerak
-          fetchUserPoints(user.id).then(points => {
-            userPointsEl.innerHTML = '⚡ ' + points;
-          }).catch(() => {
-            userPointsEl.innerHTML = '⚡ 0';
-          });
+          // Xavfsiz: ballarni serverdan olish kerak (hozircha localStorage)
+          let points = 312; // Default
+          try {
+            const savedPoints = localStorage.getItem('userPoints_' + user.id);
+            if (savedPoints && !isNaN(parseInt(savedPoints))) {
+              points = parseInt(savedPoints);
+            } else {
+              // Serverdan olish kerak (hozircha mock)
+              points = 312;
+            }
+          } catch (e) {
+            console.warn('LocalStorage error:', e);
+          }
+          
+          userPointsEl.innerHTML = '⚡ ' + points;
           
           // Avatar yuklash
-          if (user.username) {
-            avatarImage.src = 'https://t.me/i/userpic/320/' + user.username + '.jpg';
+          if (username) {
+            avatarImage.src = 'https://t.me/i/userpic/320/' + username + '.jpg';
             avatarImage.onload = () => {
               avatarText.style.display = 'none';
               avatarImage.style.display = 'block';
             };
-            avatarImage.onerror = () => {
-              avatarImage.style.display = 'none';
-              avatarText.style.display = 'block';
-              avatarText.textContent = firstName.charAt(0) || '👤';
-            };
           } else {
-            avatarText.textContent = firstName.charAt(0) || '👤';
+            avatarText.textContent = firstName.charAt(0).toUpperCase() || 'U';
           }
+        } else {
+          // Test ma'lumotlari
+          userNameEl.textContent = 'Javlonbek';
+          userStatusEl.textContent = '@JavlonbekRA';
+          userPointsEl.innerHTML = '⚡ 312';
+          avatarText.textContent = 'J';
         }
-        
-        async function fetchUserPoints(userId) {
-          // Backend API dan olish kerak
-          // Hozircha localStorage
-          return localStorage.getItem('userPoints_' + userId) || 0;
-        }
-        
-        function openModule(num, name) {
-          if (!num || !name) return;
-          
-          tg.HapticFeedback?.impactOccurred('light');
-          
-          // Module mavjudligini tekshirish
-          const modulePath = `modul${num}.html`;
-          fetch(modulePath, { method: 'HEAD' })
-            .then(response => {
-              if (response.ok) {
-                localStorage.setItem('currentModule', num);
-                localStorage.setItem('currentModuleName', name);
-                location.href = modulePath;
-              } else {
-                showError(`${name} moduli hozircha mavjud emas`);
-              }
-            })
-            .catch(() => {
-              showError("Modul yuklanmadi");
-            });
-        }
-        
-        function showError(message) {
-          const errorDiv = document.getElementById('errorMessage');
-          errorDiv.style.display = 'block';
-          errorDiv.textContent = message;
-          setTimeout(() => {
-            errorDiv.style.display = 'none';
-          }, 3000);
-        }
-        
-        window.openProfile = () => location.href = 'profil.html';
-        window.openModule = openModule;
-        
-      } catch (error) {
-        console.error("Xatolik:", error);
-        document.body.innerHTML += `<div style="color:red;padding:20px;">Xatolik: ${error.message}</div>`;
+      } catch (e) {
+        console.error('Load user error:', e);
+        showError('Ma\'lumotlarni yuklashda xatolik');
       }
-    })();
-  </script>
+    }
+    
+    // Profil ochish
+    window.openProfile = function() {
+      try {
+        tg.HapticFeedback.impactOccurred('light');
+        
+        // Xavfsiz: faqat ruxsat etilgan sahifalarga o'tish
+        const allowedPages = ['profil.html', 'index.html', 'reyting.html', 'gift.html'];
+        const targetPage = 'profil.html';
+        
+        if (allowedPages.includes(targetPage)) {
+          location.href = targetPage;
+        } else {
+          showError('Ruxsat etilmagan sahifa');
+        }
+      } catch (e) {
+        console.error('Profile navigation error:', e);
+      }
+    };
+    
+    // Modul ochish
+    window.openModule = function(num, name) {
+      try {
+        tg.HapticFeedback.impactOccurred('light');
+        
+        // Xavfsiz: modul nomlarini tekshirish
+        const allowedModules = {
+          1: 'Kvant fizikasi asoslari',
+          2: 'Algoritmlar'
+        };
+        
+        if (allowedModules[num] === name) {
+          try {
+            localStorage.setItem('currentModule', num);
+            localStorage.setItem('currentModuleName', name);
+          } catch (e) {
+            console.warn('LocalStorage error:', e);
+          }
+          
+          location.href = 'modul' + num + '.html';
+        } else {
+          showError('Noto\'g\'ri modul');
+        }
+      } catch (e) {
+        console.error('Module open error:', e);
+        showError('Darsni ochishda xatolik');
+      }
+    };
+    
+    // BackButton handler
+    tg.BackButton.onClick(() => {
+      tg.close();
+    });
+    
+    // Ma'lumotlarni yuklash
+    loadUserData();
+    
+    // Xavfsizlik: localStorage ni tozalash (agar kerak bo'lsa)
+    window.addEventListener('beforeunload', function() {
+      // Sensitive ma'lumotlarni tozalash
+      // sessionStorage.clear(); // Agar kerak bo'lsa
+    });
+    
+  })();
+</script>
 </body>
 </html>
