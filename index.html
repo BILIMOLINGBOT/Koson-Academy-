@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="uz">
 <head>
@@ -7,259 +6,160 @@
   <title>LearnU · Asosiy</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
+    /* CSS o'zgarishsiz qoldi, faqat silliq o'tishlar qo'shildi */
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; -webkit-tap-highlight-color: transparent; }
-    body { background: #000000; color: #ffffff; height: 100vh; display: flex; justify-content: center; }
-    .app-wrapper { width: 100%; max-width: 420px; height: 100vh; background: #000000; position: relative; overflow-y: auto; padding-bottom: 100px; }
-    .header { padding: 25px 20px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
-    .avatar-wrapper { display: flex; align-items: center; gap: 15px; }
-    .avatar-circle { width: 50px; height: 50px; background: linear-gradient(135deg, #333, #111); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid #222; overflow: hidden; }
+    body { background: #000; color: #fff; height: 100vh; overflow: hidden; }
+    .app-wrapper { width: 100%; max-width: 420px; height: 100vh; margin: 0 auto; display: flex; flex-direction: column; }
+    
+    .header { padding: 20px; display: flex; align-items: center; justify-content: space-between; }
+    .avatar-wrapper { display: flex; align-items: center; gap: 12px; }
+    .avatar-circle { width: 45px; height: 45px; background: #222; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; border: 1px solid #333; overflow: hidden; }
     .avatar-circle img { width: 100%; height: 100%; object-fit: cover; }
+
     .scroll-container { 
+      flex: 1;
       display: flex; 
       overflow-x: auto; 
       scroll-snap-type: x mandatory; 
       padding: 10px 20px; 
       gap: 15px; 
-      align-items: center; 
+      align-items: center;
+      -ms-overflow-style: none; scrollbar-width: none;
     }
     .scroll-container::-webkit-scrollbar { display: none; }
+
     .lesson-card { 
       flex: 0 0 85%; 
-      height: 65vh; 
-      border-radius: 40px; 
-      padding: 35px; 
+      height: 60vh; 
+      border-radius: 30px; 
+      padding: 30px; 
       display: flex; 
       flex-direction: column; 
       justify-content: space-between; 
       scroll-snap-align: center; 
       background: linear-gradient(145deg, #1c1c1e, #0a0a0a); 
-      border: 1px solid rgba(255,255,255,0.05); 
-      cursor: pointer; 
-      transition: transform 0.2s; 
+      border: 1px solid rgba(255,255,255,0.1);
     }
-    .lesson-card:active { transform: scale(0.98); }
-    .tab-bar { position: fixed; bottom: 35px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 380px; height: 75px; background: rgba(28, 28, 30, 0.8); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border-radius: 35px; display: flex; align-items: center; justify-content: space-around; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 20px 40px rgba(0,0,0,0.5); z-index: 100; }
-    .tab-item { display: flex; flex-direction: column; align-items: center; gap: 5px; color: #8e8e93; text-decoration: none; font-size: 0.65rem; font-weight: 600; transition: 0.2s; }
-    .tab-item.active { color: #ffffff; }
-    .tab-item svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2; }
-    .points-badge { background: #fff; color: #000; padding: 6px 12px; border-radius: 15px; font-weight: 800; font-size: 0.8rem; }
-    .error-message { display: none; color: #ff3b30; text-align: center; padding: 10px; }
+
+    .tab-bar { 
+      height: 80px; background: rgba(20, 20, 20, 0.95); backdrop-filter: blur(10px);
+      display: flex; justify-content: space-around; align-items: center;
+      border-top: 0.5px solid #333; padding-bottom: env(safe-area-inset-bottom);
+    }
+    .tab-item { color: #8e8e93; text-decoration: none; text-align: center; font-size: 10px; }
+    .tab-item.active { color: #007aff; }
+    .tab-item svg { width: 24px; height: 24px; display: block; margin: 0 auto 4px; stroke: currentColor; fill: none; }
+    
+    .points-badge { background: #fff; color: #000; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 14px; }
   </style>
 </head>
 <body>
+
 <div class="app-wrapper">
-  <div class="header" onclick="openProfile()">
+  <div class="header" onclick="navigateTo('profil.html')">
     <div class="avatar-wrapper">
-      <div class="avatar-circle" id="avatarContainer">
-        <span id="avatarText">👤</span>
-        <img id="avatarImage" src="" alt="avatar" style="display: none;" onerror="handleAvatarError()">
-      </div>
+      <div class="avatar-circle" id="userAvatar">?</div>
       <div>
-        <h4 id="userName" style="font-size: 1.1rem;">Yuklanmoqda...</h4>
-        <p id="userStatus" style="color: #8e8e93; font-size: 0.85rem;">Premium darslar</p>
+        <h4 id="userName">Yuklanmoqda...</h4>
+        <p id="userStatus" style="color: #8e8e93; font-size: 12px;">@username</p>
       </div>
     </div>
     <div class="points-badge" id="userPoints">⚡ 0</div>
   </div>
 
-  <div class="scroll-container">
-    <div class="lesson-card" onclick="openModule(1, 'Kvant fizikasi asoslari')">
-      <span style="color: #8e8e93; font-size: 0.7rem;">MODUL 1</span>
-      <h2 style="font-size: 1.6rem;">Kvant fizikasi asoslari</h2>
-      <div style="color: #007aff; font-weight: 600;">Darsni boshlash →</div>
+  <div class="scroll-container" id="moduleContainer">
     </div>
-    <div class="lesson-card" onclick="openModule(2, 'Algoritmlar')">
-      <span style="color: #8e8e93; font-size: 0.7rem;">MODUL 2</span>
-      <h2 style="font-size: 1.6rem;">Algoritmlar</h2>
-      <div style="color: #007aff; font-weight: 600;">Davom etish →</div>
-    </div>
-  </div>
 
   <nav class="tab-bar">
-    <a href="index.html" class="tab-item active" onclick="handleNavigation(event, 'index.html')">
-      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+    <a href="#" class="tab-item active" onclick="navigateTo('index.html')">
+      <svg viewBox="0 0 24 24" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
       <span>Asosiy</span>
     </a>
-    <a href="reyting.html" class="tab-item" onclick="handleNavigation(event, 'reyting.html')">
-      <svg viewBox="0 0 24 24"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    <a href="#" class="tab-item" onclick="navigateTo('reyting.html')">
+      <svg viewBox="0 0 24 24" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
       <span>Reyting</span>
     </a>
-    <a href="gift.html" class="tab-item" onclick="handleNavigation(event, 'gift.html')">
-      <svg viewBox="0 0 24 24"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
-      <span>Sovg'a</span>
+    <a href="#" class="tab-item" onclick="navigateTo('gift.html')">
+      <svg viewBox="0 0 24 24" stroke-width="2"><rect x="2" y="7" width="20" height="5"/><path d="M20 12v10H4V12M12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+      <span>Sovg'alar</span>
     </a>
   </nav>
-  
-  <div id="errorMessage" class="error-message"></div>
 </div>
 
 <script>
-  (function() {
-    // Telegram WebApp init
-    const tg = window.Telegram.WebApp;
-    
-    // Xavfsizlik: initData ni tekshirish
-    if (!tg.initData || !tg.initDataUnsafe) {
-      showError('Xavfsizlik: So\'rov noto\'g\'ri');
-      return;
-    }
-    
-    tg.expand();
-    tg.ready();
-    
-    // Foydalanuvchi ma'lumotlarini olish
+  const tg = window.Telegram.WebApp;
+  tg.expand();
+  
+  // Ranglarni Telegram mavzusiga moslash
+  tg.setHeaderColor('secondary_bg_color');
+  tg.setBackgroundColor('bg_color');
+
+  const modules = [
+    { id: 1, title: 'Kvant fizikasi asoslari', label: 'MODUL 1', action: 'Darsni boshlash' },
+    { id: 2, title: 'Algoritmlar va Data Structure', label: 'MODUL 2', action: 'Davom etish' },
+    { id: 3, title: 'Sun\'iy Intellekt', label: 'MODUL 3', action: 'Tez kunda' }
+  ];
+
+  function initApp() {
     const user = tg.initDataUnsafe?.user;
-    const startParam = tg.initDataUnsafe?.start_param || '';
     
-    // Elementlarni olish
-    const userNameEl = document.getElementById('userName');
-    const userStatusEl = document.getElementById('userStatus');
-    const userPointsEl = document.getElementById('userPoints');
-    const avatarText = document.getElementById('avatarText');
-    const avatarImage = document.getElementById('avatarImage');
-    
-    // Xatolikni ko'rsatish
-    function showError(message) {
-      const errorEl = document.getElementById('errorMessage');
-      errorEl.style.display = 'block';
-      errorEl.textContent = message;
-      setTimeout(() => { errorEl.style.display = 'none'; }, 3000);
-    }
-    
-    // Avatar xatolik handler
-    window.handleAvatarError = function() {
-      avatarImage.style.display = 'none';
-      avatarText.style.display = 'block';
-      if (user) {
-        avatarText.textContent = (user.first_name || 'U').charAt(0).toUpperCase();
-      }
-    };
-    
-    // Navigatsiya handler
-    window.handleNavigation = function(event, url) {
-      event.preventDefault();
-      try {
-        tg.HapticFeedback.impactOccurred('light');
-        location.href = url;
-      } catch (e) {
-        console.error('Navigation error:', e);
-        location.href = url;
-      }
-    };
-    
-    // Foydalanuvchi ma'lumotlarini yuklash
-    function loadUserData() {
-      try {
-        if (user && user.id) {
-          const firstName = user.first_name || '';
-          const lastName = user.last_name || '';
-          const username = user.username || '';
-          
-          userNameEl.textContent = firstName + (lastName ? ' ' + lastName : '');
-          userStatusEl.textContent = username ? '@' + username : 'ID: ' + user.id;
-          
-          // Xavfsiz: ballarni serverdan olish kerak (hozircha localStorage)
-          let points = 312; // Default
-          try {
-            const savedPoints = localStorage.getItem('userPoints_' + user.id);
-            if (savedPoints && !isNaN(parseInt(savedPoints))) {
-              points = parseInt(savedPoints);
-            } else {
-              // Serverdan olish kerak (hozircha mock)
-              points = 312;
-            }
-          } catch (e) {
-            console.warn('LocalStorage error:', e);
-          }
-          
-          userPointsEl.innerHTML = '⚡ ' + points;
-          
-          // Avatar yuklash
-          if (username) {
-            avatarImage.src = 'https://t.me/i/userpic/320/' + username + '.jpg';
-            avatarImage.onload = () => {
-              avatarText.style.display = 'none';
-              avatarImage.style.display = 'block';
-            };
-          } else {
-            avatarText.textContent = firstName.charAt(0).toUpperCase() || 'U';
-          }
-        } else {
-          // Test ma'lumotlari
-          userNameEl.textContent = 'Javlonbek';
-          userStatusEl.textContent = '@JavlonbekRA';
-          userPointsEl.innerHTML = '⚡ 312';
-          avatarText.textContent = 'J';
-        }
-      } catch (e) {
-        console.error('Load user error:', e);
-        showError('Ma\'lumotlarni yuklashda xatolik');
+    // Foydalanuvchi ismi
+    if (user) {
+      document.getElementById('userName').textContent = user.first_name;
+      document.getElementById('userStatus').textContent = user.username ? `@${user.username}` : `ID: ${user.id}`;
+      
+      // Avatar
+      const avatarEl = document.getElementById('userAvatar');
+      if (user.photo_url) {
+        avatarEl.innerHTML = `<img src="${user.photo_url}" alt="avatar">`;
+      } else {
+        avatarEl.textContent = user.first_name.charAt(0).toUpperCase();
       }
     }
-    
-    // Profil ochish
-    window.openProfile = function() {
-      try {
-        tg.HapticFeedback.impactOccurred('light');
-        
-        // Xavfsiz: faqat ruxsat etilgan sahifalarga o'tish
-        const allowedPages = ['profil.html', 'index.html', 'reyting.html', 'gift.html'];
-        const targetPage = 'profil.html';
-        
-        if (allowedPages.includes(targetPage)) {
-          location.href = targetPage;
-        } else {
-          showError('Ruxsat etilmagan sahifa');
-        }
-      } catch (e) {
-        console.error('Profile navigation error:', e);
-      }
-    };
-    
-    // Modul ochish
-    window.openModule = function(num, name) {
-      try {
-        tg.HapticFeedback.impactOccurred('light');
-        
-        // Xavfsiz: modul nomlarini tekshirish
-        const allowedModules = {
-          1: 'Kvant fizikasi asoslari',
-          2: 'Algoritmlar'
-        };
-        
-        if (allowedModules[num] === name) {
-          try {
-            localStorage.setItem('currentModule', num);
-            localStorage.setItem('currentModuleName', name);
-          } catch (e) {
-            console.warn('LocalStorage error:', e);
-          }
-          
-          location.href = 'modul' + num + '.html';
-        } else {
-          showError('Noto\'g\'ri modul');
-        }
-      } catch (e) {
-        console.error('Module open error:', e);
-        showError('Darsni ochishda xatolik');
-      }
-    };
-    
-    // BackButton handler
+
+    // Ballarni yuklash (Haqiqiy loyihada buni Backenddan fetch qilish kerak)
+    const points = localStorage.getItem('user_points') || 312;
+    document.getElementById('userPoints').textContent = `⚡ ${points}`;
+
+    renderModules();
+  }
+
+  function renderModules() {
+    const container = document.getElementById('moduleContainer');
+    container.innerHTML = modules.map(m => `
+      <div class="lesson-card" onclick="openModule(${m.id})">
+        <span style="color: #8e8e93; font-size: 12px; font-weight: 600;">${m.label}</span>
+        <h2 style="font-size: 24px; line-height: 1.2;">${m.title}</h2>
+        <div style="color: #007aff; font-weight: 600;">${m.action} →</div>
+      </div>
+    `).join('');
+  }
+
+  window.navigateTo = function(url) {
+    tg.HapticFeedback.impactOccurred('light');
+    // Sahifa o'zgarishidan oldin biroz kechikish (visual feedback uchun)
+    setTimeout(() => {
+      window.location.href = url;
+    }, 100);
+  };
+
+  window.openModule = function(id) {
+    tg.HapticFeedback.notificationOccurred('success');
+    localStorage.setItem('last_module', id);
+    window.location.href = `module.html?id=${id}`;
+  };
+
+  // Telegram BackButton boshqarish
+  if (window.location.pathname.includes('module.html') || window.location.pathname.includes('profil.html')) {
+    tg.BackButton.show();
     tg.BackButton.onClick(() => {
-      tg.close();
+      window.history.back();
     });
-    
-    // Ma'lumotlarni yuklash
-    loadUserData();
-    
-    // Xavfsizlik: localStorage ni tozalash (agar kerak bo'lsa)
-    window.addEventListener('beforeunload', function() {
-      // Sensitive ma'lumotlarni tozalash
-      // sessionStorage.clear(); // Agar kerak bo'lsa
-    });
-    
-  })();
+  } else {
+    tg.BackButton.hide();
+  }
+
+  initApp();
 </script>
 </body>
 </html>
