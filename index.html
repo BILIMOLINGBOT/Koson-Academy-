@@ -51,6 +51,14 @@
     .tab-item svg { width: 24px; height: 24px; display: block; margin: 0 auto 4px; stroke: currentColor; fill: none; }
     
     .points-badge { background: #fff; color: #000; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 14px; }
+    
+    /* Gradient text for full name */
+    .gradient-name {
+      background: linear-gradient(135deg, #fff, #aaccff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -60,8 +68,8 @@
     <div class="avatar-wrapper">
       <div class="avatar-circle" id="userAvatar">?</div>
       <div>
-        <h4 id="userName">Yuklanmoqda...</h4>
-        <p id="userStatus" style="color: #8e8e93; font-size: 12px;">@username</p>
+        <h4 id="userName" class="gradient-name">Yuklanmoqda...</h4>
+        <p id="userStatus" style="color: #8e8e93; font-size: 12px;">⚡ LearnU foydalanuvchisi</p>
       </div>
     </div>
     <div class="points-badge" id="userPoints">⚡ 0</div>
@@ -103,18 +111,31 @@
   function initApp() {
     const user = tg.initDataUnsafe?.user;
     
-    // Foydalanuvchi ismi
+    // Foydalanuvchi ismi va familiyasi
     if (user) {
-      document.getElementById('userName').textContent = user.first_name;
-      document.getElementById('userStatus').textContent = user.username ? `@${user.username}` : `ID: ${user.id}`;
+      // To'liq ismni yaratish (ism + familiya)
+      let fullName = user.first_name || 'Foydalanuvchi';
+      if (user.last_name) {
+        fullName = `${user.first_name} ${user.last_name}`;
+      }
+      document.getElementById('userName').textContent = fullName;
       
-      // Avatar
+      // Status matnini o'zgartirish (username va ID o'rniga)
+      document.getElementById('userStatus').textContent = '⚡ LearnU foydalanuvchisi';
+      
+      // Avatar - agar rasm bo'lsa, aks holda ismning birinchi harfi
       const avatarEl = document.getElementById('userAvatar');
       if (user.photo_url) {
         avatarEl.innerHTML = `<img src="${user.photo_url}" alt="avatar">`;
       } else {
-        avatarEl.textContent = user.first_name.charAt(0).toUpperCase();
+        const firstChar = user.first_name ? user.first_name.charAt(0).toUpperCase() : '?';
+        avatarEl.textContent = firstChar;
       }
+    } else {
+      // Agar user ma'lumoti bo'lmasa
+      document.getElementById('userName').textContent = 'Mehmon';
+      document.getElementById('userStatus').textContent = '⚡ LearnU foydalanuvchisi';
+      document.getElementById('userAvatar').textContent = '?';
     }
 
     // Ballarni yuklash (Haqiqiy loyihada buni Backenddan fetch qilish kerak)
