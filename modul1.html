@@ -1,636 +1,526 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>LearnU · Modul</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; -webkit-tap-highlight-color: transparent; }
-    body { background: #000; color: #fff; height: 100vh; overflow: hidden; }
-    .app-wrapper { width: 100%; max-width: 420px; height: 100vh; margin: 0 auto; display: flex; flex-direction: column; }
-    
-    .header { padding: 20px; display: flex; align-items: center; justify-content: space-between; }
-    .avatar-wrapper { display: flex; align-items: center; gap: 12px; }
-    .avatar-circle { 
-      width: 45px; 
-      height: 45px; 
-      background: #222; 
-      border-radius: 50%; 
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-      font-weight: bold; 
-      font-size: 1.2rem; 
-      border: 1px solid #333; 
-      overflow: hidden; 
-    }
-    .avatar-circle img { 
-      width: 100%; 
-      height: 100%; 
-      object-fit: cover; 
-      display: block;
-    }
-    
-    .gradient-name {
-      background: linear-gradient(135deg, #fff, #aaccff);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      font-weight: bold;
-    }
-    
-    .points-badge { background: #fff; color: #000; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 14px; }
-    
-    /* Modul header */
-    .module-header {
-      padding: 0 20px 20px;
-    }
-    
-    .back-button {
-      width: 40px;
-      height: 40px;
-      background: #1c1c1e;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      margin-bottom: 20px;
-      border: 1px solid #333;
-    }
-    
-    .back-button svg {
-      width: 20px;
-      height: 20px;
-      stroke: #fff;
-    }
-    
-    .module-title {
-      font-size: 32px;
-      font-weight: 700;
-      margin-bottom: 8px;
-      background: linear-gradient(135deg, #fff, #aaccff);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    
-    .module-subtitle {
-      color: #8e8e93;
-      font-size: 16px;
-    }
-    
-    /* Scroll container */
-    .scroll-container { 
-      flex: 1;
-      overflow-y: auto;
-      padding: 0 20px;
-      -ms-overflow-style: none; 
-      scrollbar-width: none;
-    }
-    .scroll-container::-webkit-scrollbar { display: none; }
-    
-    /* Progress section */
-    .progress-section {
-      background: #1c1c1e;
-      border-radius: 20px;
-      padding: 20px;
-      margin-bottom: 20px;
-      border: 1px solid #333;
-    }
-    
-    .progress-header {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 12px;
-    }
-    
-    .progress-title {
-      color: #8e8e93;
-      font-size: 14px;
-    }
-    
-    .progress-percent {
-      font-weight: 600;
-      color: #007aff;
-    }
-    
-    .progress-bar {
-      width: 100%;
-      height: 8px;
-      background: #333;
-      border-radius: 4px;
-      overflow: hidden;
-    }
-    
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #007aff, #00c6ff);
-      border-radius: 4px;
-      width: 0%;
-      transition: width 0.3s;
-    }
-    
-    /* Stats grid */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-    
-    .stat-card {
-      background: #1c1c1e;
-      border: 1px solid #333;
-      border-radius: 16px;
-      padding: 15px 10px;
-      text-align: center;
-    }
-    
-    .stat-value {
-      font-size: 24px;
-      font-weight: 700;
-      color: #007aff;
-      margin-bottom: 4px;
-    }
-    
-    .stat-label {
-      font-size: 12px;
-      color: #8e8e93;
-    }
-    
-    /* Darslar listi */
-    .lessons-title {
-      font-size: 18px;
-      font-weight: 600;
-      margin-bottom: 15px;
-    }
-    
-    .lesson-item {
-      background: #1c1c1e;
-      border: 1px solid #333;
-      border-radius: 20px;
-      padding: 20px;
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    
-    .lesson-item:active {
-      transform: scale(0.98);
-      background: #2c2c2e;
-    }
-    
-    .lesson-item.completed {
-      border-color: #30d158;
-    }
-    
-    .lesson-icon {
-      width: 50px;
-      height: 50px;
-      background: #2c2c2e;
-      border-radius: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-    }
-    
-    .lesson-icon.completed {
-      background: #30d15820;
-      color: #30d158;
-    }
-    
-    .lesson-info {
-      flex: 1;
-    }
-    
-    .lesson-name {
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
-    
-    .lesson-meta {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 12px;
-      color: #8e8e93;
-    }
-    
-    .lesson-points {
-      color: #ff9f0a;
-      font-weight: 600;
-    }
-    
-    .lesson-status {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    
-    .lesson-status.completed {
-      color: #30d158;
-    }
-    
-    .lesson-status.locked {
-      color: #8e8e93;
-    }
-    
-    /* Bottom button */
-    .bottom-button {
-      margin: 20px;
-    }
-    
-    .action-btn {
-      width: 100%;
-      height: 56px;
-      background: linear-gradient(135deg, #007aff, #00c6ff);
-      border: none;
-      border-radius: 28px;
-      color: #fff;
-      font-size: 16px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    
-    .action-btn:active {
-      transform: scale(0.96);
-      opacity: 0.9;
-    }
-    
-    .action-btn:disabled {
-      background: #333;
-      cursor: not-allowed;
-      opacity: 0.5;
-    }
-    
-    .action-btn svg {
-      width: 20px;
-      height: 20px;
-      stroke: #fff;
-    }
-    
-    /* Tab bar */
-    .tab-bar { 
-      height: 80px; 
-      background: rgba(20, 20, 20, 0.95); 
-      backdrop-filter: blur(10px);
-      display: flex; 
-      justify-content: space-around; 
-      align-items: center;
-      border-top: 0.5px solid #333; 
-      padding-bottom: env(safe-area-inset-bottom);
-    }
-    .tab-item { 
-      color: #8e8e93; 
-      text-decoration: none; 
-      text-align: center; 
-      font-size: 10px; 
-      cursor: pointer;
-    }
-    .tab-item.active { color: #007aff; }
-    .tab-item svg { 
-      width: 24px; 
-      height: 24px; 
-      display: block; 
-      margin: 0 auto 4px; 
-      stroke: currentColor; 
-      fill: none; 
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>LearnU · Ingliz tili</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* LearnU ranglar palitrasi – qora, gradient ko'k va oq aksanlar */
+        :root {
+            --bg-primary: #000000;           /* qora fon */
+            --card-bg: #0f0f0f;               /* karta uchun bir oz ochiqroq qora */
+            --surface: #1a1a1a;                /* bank/zonadagi fon */
+            --text-primary: #ffffff;           /* asosiy matn */
+            --text-secondary: #a0a0a0;          /* yordamchi matn */
+            --accent-gradient: linear-gradient(145deg, #007aff, #00c6ff); /* LearnU gradienti */
+            --accent-blue: #007aff;              /* standart ko'k */
+            --border-subtle: rgba(255,255,255,0.08);
+            --chip-bg: #1c1c1e;                  /* tokenlar uchun */
+            --glow: 0 4px 20px rgba(0,122,255,0.15);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 450px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 40px 20px 20px;
+            display: none;
+            position: relative;
+        }
+
+        .app-container.active { display: flex; }
+
+        /* Ballar ko'rsatkichi – LearnU uslubi */
+        .points-header {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+            z-index: 5;
+        }
+
+        .points-badge {
+            background: rgba(255,255,255,0.95);
+            color: #000;
+            padding: 8px 18px;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            backdrop-filter: blur(4px);
+            box-shadow: var(--glow);
+            letter-spacing: -0.2px;
+        }
+
+        /* FLASHCARDS – to'liq LearnU look */
+        .card-stack { flex: 1; display: flex; flex-direction: column; gap: 20px; justify-content: center; }
+        
+        .flashcard {
+            background: var(--card-bg);
+            border: 1px solid var(--border-subtle);
+            border-radius: 36px;
+            padding: 28px 25px;
+            box-shadow: var(--glow);
+            backdrop-filter: blur(10px);
+            transition: transform 0.2s ease;
+        }
+        .flashcard:active { transform: scale(0.99); }
+
+        .flag-row { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+        .flag-img { width: 42px; height: 28px; border-radius: 6px; object-fit: cover; filter: brightness(0.95); }
+        .part-of-speech {
+            color: var(--text-secondary);
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            font-size: 14px;
+            text-transform: uppercase;
+            background: rgba(255,255,255,0.03);
+            padding: 4px 12px;
+            border-radius: 30px;
+        }
+
+        .word-main {
+            font-size: 44px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: linear-gradient(135deg, #fff, #b0d0ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .audio-icon {
+            color: var(--accent-blue);
+            font-size: 32px;
+            cursor: pointer;
+            transition: 0.2s;
+            -webkit-text-fill-color: initial;
+            color: var(--accent-blue);
+        }
+        .audio-icon:hover { opacity: 0.8; transform: scale(1.05); }
+
+        .translation-word {
+            font-size: 32px;
+            font-weight: 700;
+            line-height: 1.3;
+            color: #ffffff;
+            opacity: 0.95;
+        }
+
+        /* Universal tugma – LearnU gradienti */
+        .next-btn, .check-btn {
+            width: 100%;
+            height: 65px;
+            background: var(--accent-gradient);
+            color: white;
+            border: none;
+            border-radius: 32px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: 0.2s;
+            margin-top: 20px;
+            box-shadow: 0 8px 20px rgba(0,122,255,0.3);
+            letter-spacing: 0.5px;
+        }
+        .next-btn:active, .check-btn:active { transform: scale(0.96); opacity: 0.9; }
+        .next-btn:disabled, .check-btn:disabled {
+            background: #2a2a2a;
+            color: #666;
+            box-shadow: none;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        /* Header va prompt */
+        .header { text-align: center; margin-bottom: 30px; }
+        .prompt-text {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffffff, #aaccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .game-content { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+
+        .zone {
+            min-height: 90px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 28px;
+            padding: 18px;
+            border: 1px dashed rgba(0,122,255,0.3);
+        }
+
+        .bank {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .chip, .token {
+            background: var(--chip-bg);
+            padding: 14px 22px;
+            border-radius: 24px;
+            border: 1px solid rgba(255,255,255,0.05);
+            font-size: 18px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.15s;
+            color: var(--text-primary);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        .chip {
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            font-weight: 600;
+        }
+        .token:hover { background: #2a2a2e; border-color: var(--accent-blue); }
+
+        .result-panel {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: #0f0f0f;
+            color: white;
+            border-radius: 36px 36px 0 0;
+            padding: 40px 25px 35px;
+            transform: translateY(100%);
+            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            border-top: 2px solid var(--accent-blue);
+            box-shadow: 0 -10px 30px rgba(0,122,255,0.2);
+        }
+        .result-panel.active { transform: translateY(0); }
+        .res-title {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #fff, #7bb3ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .res-msg { font-size: 18px; margin-bottom: 30px; color: #b0b0b0; }
+        #res-btn { background: white !important; color: black !important; box-shadow: none; }
+
+        .trophy-icon { font-size: 90px; color: #ffd966; filter: drop-shadow(0 0 15px rgba(255,215,0,0.5)); margin-bottom: 25px; }
+
+        /* Kichik kosmetik */
+        .gradient-name {
+            background: linear-gradient(135deg, #fff, #aaccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        hr { border: 0.5px solid rgba(255,255,255,0.05); margin: 15px 0; }
+    </style>
 </head>
 <body>
 
-<div class="app-wrapper">
-  <!-- Header -->
-  <div class="header" onclick="navigateTo('profil.html')">
-    <div class="avatar-wrapper">
-      <div class="avatar-circle" id="userAvatar">
-        <span id="avatarInitial">?</span>
-        <img id="avatarImage" src="" alt="avatar" style="display: none;">
-      </div>
-      <div>
-        <h4 id="userName" class="gradient-name">Yuklanmoqda...</h4>
-      </div>
+<!-- 1. FLASHCARDS SCREEN (LearnU) -->
+<div id="screen1" class="app-container active">
+    <div class="points-header">
+        <div class="points-badge" id="pointsDisplay">⚡ 0</div>
     </div>
-    <div class="points-badge" id="userPoints">⚡ 0</div>
-  </div>
-
-  <!-- Modul Header -->
-  <div class="module-header">
-    <div class="back-button" onclick="goBack()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M19 12H5M12 5l-7 7 7 7"/>
-      </svg>
+    <div class="header"></div>
+    <div class="card-stack">
+        <div class="flashcard">
+            <div class="flag-row">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Flag_of_the_United_Kingdom_%283-5%29.svg" class="flag-img">
+                <span class="part-of-speech" id="f-pos">OLMOSH</span>
+            </div>
+            <div class="word-main">
+                <span id="f-eng">My</span>
+                <i class="fas fa-volume-up audio-icon" onclick="speak()"></i>
+            </div>
+        </div>
+        <div class="flashcard">
+            <div class="flag-row">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/8/84/Flag_of_Uzbekistan.svg" class="flag-img">
+            </div>
+            <div class="translation-word" id="f-uzb">mening</div>
+        </div>
     </div>
-    <div class="module-title" id="moduleTitle">1-modul</div>
-    <div class="module-subtitle" id="moduleSubtitle">Dasturlash asoslari</div>
-  </div>
-
-  <!-- Scrollable Content -->
-  <div class="scroll-container">
-    <!-- Progress -->
-    <div class="progress-section">
-      <div class="progress-header">
-        <span class="progress-title">Umumiy progress</span>
-        <span class="progress-percent" id="progressPercent">0%</span>
-      </div>
-      <div class="progress-bar">
-        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
-      </div>
-    </div>
-
-    <!-- Stats -->
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-value" id="completedLessons">0</div>
-        <div class="stat-label">Darslar</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-value" id="earnedPoints">0</div>
-        <div class="stat-label">Ballar</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-value" id="totalTime">0</div>
-        <div class="stat-label">Soat</div>
-      </div>
-    </div>
-
-    <!-- Darslar -->
-    <div class="lessons-title">Modul darslari</div>
-    <div id="lessonsList"></div>
-    
-    <!-- Bottom padding -->
-    <div style="height: 20px;"></div>
-  </div>
-
-  <!-- Bottom Button -->
-  <div class="bottom-button">
-    <button class="action-btn" id="startBtn" onclick="startModule()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <polygon points="5 3 19 12 5 21 5 3"/>
-      </svg>
-      <span>Darsni boshlash</span>
+    <button class="next-btn" onclick="nextFlashcard()">
+        Keyingi <i class="fas fa-arrow-right"></i>
     </button>
-  </div>
+</div>
 
-  <!-- Tab Bar -->
-  <nav class="tab-bar">
-    <a href="index.html" class="tab-item" onclick="navigateTo('index.html')">
-      <svg viewBox="0 0 24 24" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-      <span>Asosiy</span>
-    </a>
-    <a href="reyting.html" class="tab-item" onclick="navigateTo('reyting.html')">
-      <svg viewBox="0 0 24 24" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-      <span>Reyting</span>
-    </a>
-    <a href="gift.html" class="tab-item" onclick="navigateTo('gift.html')">
-      <svg viewBox="0 0 24 24" stroke-width="2"><rect x="2" y="7" width="20" height="5"/><path d="M20 12v10H4V12M12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
-      <span>Sovg'alar</span>
-    </a>
-  </nav>
+<!-- 2. WORD GAME SCREEN -->
+<div id="screen2" class="app-container">
+    <div class="points-header">
+        <div class="points-badge" id="pointsDisplay2">⚡ 0</div>
+    </div>
+    <div class="header">
+        <div class="prompt-text" id="g1-prompt">mening</div>
+    </div>
+    <div class="game-content">
+        <div class="zone" id="g1-zone"></div>
+        <div class="bank" id="g1-bank"></div>
+    </div>
+    <button class="check-btn" id="g1-check" onclick="checkWordGame()" disabled>Tekshirish</button>
+</div>
+
+<!-- 3. SENTENCE BUILDER SCREEN -->
+<div id="screen3" class="app-container">
+    <div class="points-header">
+        <div class="points-badge" id="pointsDisplay3">⚡ 0</div>
+    </div>
+    <div class="header">
+        <div class="prompt-text" id="g2-prompt">Mening ismim Aziz.</div>
+    </div>
+    <div class="game-content">
+        <div class="zone" id="g2-zone"></div>
+        <div class="bank" id="g2-bank"></div>
+    </div>
+    <button class="check-btn" id="g2-check" onclick="checkSentenceGame()" disabled>Tekshirish</button>
+</div>
+
+<!-- FINAL SCREEN -->
+<div id="screen-final" class="app-container" style="text-align: center; justify-content: center;">
+    <div class="points-header">
+        <div class="points-badge" id="pointsDisplay4">⚡ 0</div>
+    </div>
+    <i class="fas fa-trophy trophy-icon"></i>
+    <h1 style="font-size: 36px; margin-bottom: 10px; background: linear-gradient(135deg,#fff,#9bc5ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Tabriklaymiz!</h1>
+    <p style="color: var(--text-secondary); margin-bottom: 40px;">Barcha bosqichlarni muvaffaqiyatli yakunladingiz.</p>
+    <button class="next-btn" onclick="continueToMain()">
+        Davom etish <i class="fas fa-arrow-right"></i>
+    </button>
+</div>
+
+<div class="result-panel" id="res-panel">
+    <div id="res-title" class="res-title">Ajoyib!</div>
+    <div id="res-msg" class="res-msg">To'g'ri javob topildi.</div>
+    <button class="next-btn" id="res-btn">Davom etish</button>
 </div>
 
 <script>
-  const tg = window.Telegram.WebApp;
-  tg.expand();
-  
-  tg.setHeaderColor('secondary_bg_color');
-  tg.setBackgroundColor('bg_color');
+    // Ballar va modul id
+    let userPoints = parseInt(localStorage.getItem('user_points')) || 0;
+    let currentModulePoints = 0;
+    let moduleId = new URLSearchParams(window.location.search).get('id') || '1';
 
-  // URL parametrlardan modul ID ni olish
-  const urlParams = new URLSearchParams(window.location.search);
-  const moduleId = urlParams.get('id') || '1';
-  
-  // Modul ma'lumotlari
-  const moduleData = {
-    title: `${moduleId}-modul`,
-    subtitle: getModuleSubtitle(moduleId),
-    totalLessons: 12,
-    completedLessons: 3,
-    earnedPoints: 45,
-    totalTime: 2,
-    status: 'available' // 'available', 'in-progress', 'coming-soon'
-  };
+    function updatePointsDisplay() {
+        const displays = document.querySelectorAll('[id^="pointsDisplay"]');
+        displays.forEach(el => {
+            if (el) el.textContent = `⚡ ${userPoints}`;
+        });
+    }
 
-  // Darslar ro'yxati
-  const lessons = Array.from({ length: moduleData.totalLessons }, (_, i) => {
-    const lessonNum = i + 1;
-    const isCompleted = i < moduleData.completedLessons;
-    const isLocked = lessonNum > moduleData.completedLessons + 1;
-    
-    return {
-      id: lessonNum,
-      name: `${lessonNum}-dars: ${getLessonName(moduleId, lessonNum)}`,
-      points: 5,
-      duration: '10 min',
-      completed: isCompleted,
-      locked: isLocked
-    };
-  });
-
-  function getModuleSubtitle(id) {
-    const titles = {
-      '1': 'Dasturlash asoslari',
-      '2': 'Algoritmlar',
-      '3': "Ma'lumotlar tuzilmasi",
-      '4': 'Veb dasturlash',
-      '5': 'Mobil dasturlash'
-    };
-    return titles[id] || 'Dasturlash moduli';
-  }
-
-  function getLessonName(moduleId, lessonNum) {
-    const lessons = {
-      '1': {
-        1: 'Kirish va o\'rnatish',
-        2: 'O\'zgaruvchilar',
-        3: 'Ma\'lumot turlari',
-        4: 'Shartlar',
-        5: 'Sikllar',
-        6: 'Funksiyalar',
-        7: 'Massivlar',
-        8: 'Stringlar',
-        9: 'Ob\'ektlar',
-        10: 'Xatoliklar',
-        11: 'Modullar',
-        12: 'Amaliy mashg\'ulot'
-      }
-    };
-    return lessons[moduleId]?.[lessonNum] || `Asosiy tushunchalar ${lessonNum}`;
-  }
-
-  function setAvatar(user) {
-    const avatarInitial = document.getElementById('avatarInitial');
-    const avatarImage = document.getElementById('avatarImage');
-    
-    if (user && user.photo_url) {
-      avatarImage.src = user.photo_url;
-      avatarImage.style.display = 'block';
-      avatarInitial.style.display = 'none';
-      
-      avatarImage.onerror = function() {
-        avatarImage.style.display = 'none';
-        avatarInitial.style.display = 'block';
-        if (user.first_name) {
-          avatarInitial.textContent = user.first_name.charAt(0).toUpperCase();
+    function addPoints(amount = 1) {
+        userPoints += amount;
+        currentModulePoints += amount;
+        localStorage.setItem('user_points', userPoints);
+        updatePointsDisplay();
+        if (window.Telegram?.WebApp) {
+            window.Telegram.WebApp.sendData(JSON.stringify({
+                action: 'add_points',
+                points: userPoints,
+                module: moduleId
+            }));
         }
-      };
-    } else {
-      avatarImage.style.display = 'none';
-      avatarInitial.style.display = 'block';
-      
-      if (user && user.first_name) {
-        avatarInitial.textContent = user.first_name.charAt(0).toUpperCase();
-      } else {
-        avatarInitial.textContent = '?';
-      }
-    }
-  }
-
-  function initApp() {
-    const user = tg.initDataUnsafe?.user;
-    
-    // Foydalanuvchi ismi
-    if (user) {
-      let fullName = user.first_name || 'Foydalanuvchi';
-      if (user.last_name) {
-        fullName = `${user.first_name} ${user.last_name}`;
-      }
-      document.getElementById('userName').textContent = fullName;
-      setAvatar(user);
-    } else {
-      document.getElementById('userName').textContent = 'Mehmon';
-      setAvatar(null);
     }
 
-    // Ballarni yuklash
-    const points = localStorage.getItem('user_points') || 312;
-    document.getElementById('userPoints').textContent = `⚡ ${points}`;
+    // Ma'lumotlar
+    let vocabData = [
+        { pos: "OLMOSH", eng: "My", uzb: "mening" },
+        { pos: "OT", eng: "Name", uzb: "ism" },
+        { pos: "FE'L (to be)", eng: "is", uzb: "bo‘lmoq" },
+        { pos: "OLMOSH", eng: "I", uzb: "men" },
+        { pos: "FE'L (to be)", eng: "am", uzb: "bo‘lmoq" },
+        { pos: "PREDLOG", eng: "from", uzb: "dan" },
+        { pos: "FE'L", eng: "live", uzb: "yashaymoq" },
+        { pos: "PREDLOG", eng: "in", uzb: "da" },
+        { pos: "ARTIKL", eng: "a", uzb: "artikl (bir)" },
+        { pos: "OT", eng: "student", uzb: "talaba" },
+        { pos: "FE'L", eng: "have", uzb: "ega bo‘lmoq / bor" },
+        { pos: "OT", eng: "family", uzb: "oila" }
+    ];
 
-    // Modul ma'lumotlarini ko'rsatish
-    document.getElementById('moduleTitle').textContent = moduleData.title;
-    document.getElementById('moduleSubtitle').textContent = moduleData.subtitle;
-    
-    // Progress
-    const progress = (moduleData.completedLessons / moduleData.totalLessons) * 100;
-    document.getElementById('progressPercent').textContent = `${Math.round(progress)}%`;
-    document.getElementById('progressFill').style.width = `${progress}%`;
-    
-    // Stats
-    document.getElementById('completedLessons').textContent = moduleData.completedLessons;
-    document.getElementById('earnedPoints').textContent = moduleData.earnedPoints;
-    document.getElementById('totalTime').textContent = moduleData.totalTime;
+    let wordGameData = [
+        { uz: "mening", correct: ["My"] },
+        { uz: "ism", correct: ["Name"] },
+        { uz: "bo‘lmoq (3-shaxs)", correct: ["is"] },
+        { uz: "men", correct: ["I"] },
+        { uz: "bo‘lmoq (1-shaxs)", correct: ["am"] },
+        { uz: "dan", correct: ["from"] },
+        { uz: "yashaymoq", correct: ["live"] },
+        { uz: "da", correct: ["in"] },
+        { uz: "artikl", correct: ["a"] },
+        { uz: "talaba", correct: ["student"] },
+        { uz: "ega bo‘lmoq / bor", correct: ["have"] },
+        { uz: "oila", correct: ["family"] }
+    ];
 
-    // Darslarni render qilish
-    renderLessons();
+    let sentenceData = [
+        { uz: "Mening ismim Aziz.", correct: ["My", "name", "is", "Aziz."] },
+        { uz: "Men talabaman.", correct: ["I", "am", "a", "student."] },
+        { uz: "Men Toshkentdanman.", correct: ["I", "am", "from", "Tashkent."] },
+        { uz: "Men Toshkentda yashayman.", correct: ["I", "live", "in", "Tashkent."] },
+        { uz: "Mening oilam bor.", correct: ["I", "have", "a", "family."] }
+    ];
 
-    // Button status
-    updateStartButton();
-  }
+    const distractors = ["You", "He", "She", "It", "We", "They", "the", "at", "on", "book", "car"];
 
-  function renderLessons() {
-    const container = document.getElementById('lessonsList');
-    container.innerHTML = lessons.map(lesson => `
-      <div class="lesson-item ${lesson.completed ? 'completed' : ''}" onclick="openLesson(${lesson.id})">
-        <div class="lesson-icon ${lesson.completed ? 'completed' : ''}">
-          ${lesson.completed ? '✓' : lesson.locked ? '🔒' : lesson.id}
-        </div>
-        <div class="lesson-info">
-          <div class="lesson-name">${lesson.name}</div>
-          <div class="lesson-meta">
-            <span>${lesson.duration}</span>
-            <span class="lesson-points">+${lesson.points}</span>
-          </div>
-        </div>
-        <div class="lesson-status ${lesson.completed ? 'completed' : lesson.locked ? 'locked' : ''}">
-          ${lesson.completed ? '✓' : lesson.locked ? '🔒' : ''}
-        </div>
-      </div>
-    `).join('');
-  }
+    let currentFlash = 0, g1Idx = 0, g2Idx = 0, builtSeq = [], usedFlags = [];
 
-  function updateStartButton() {
-    const btn = document.getElementById('startBtn');
-    const span = btn.querySelector('span');
-    
-    if (moduleData.status === 'coming-soon') {
-      span.textContent = 'Tez kunda';
-      btn.disabled = true;
-    } else if (moduleData.completedLessons === moduleData.totalLessons) {
-      span.textContent = 'Qayta boshlash';
-    } else if (moduleData.completedLessons > 0) {
-      span.textContent = 'Davom etish';
-    } else {
-      span.textContent = 'Darsni boshlash';
+    updatePointsDisplay();
+
+    function showScreen(id) {
+        document.querySelectorAll('.app-container').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
     }
-  }
 
-  function startModule() {
-    tg.HapticFeedback.impactOccurred('medium');
-    
-    if (moduleData.status === 'coming-soon') {
-      tg.HapticFeedback.notificationOccurred('warning');
-      tg.showAlert('Bu modul hozircha mavjud emas');
-      return;
+    function togglePanel(show, title = "", msg = "", callback = null, isCorrect = false) {
+        const panel = document.getElementById('res-panel');
+        if (show) {
+            document.getElementById('res-title').textContent = title;
+            document.getElementById('res-msg').textContent = msg;
+            panel.classList.add('active');
+            if (isCorrect) addPoints(1);
+            document.getElementById('res-btn').onclick = () => {
+                panel.classList.remove('active');
+                if (callback) callback();
+            };
+        } else panel.classList.remove('active');
     }
-    
-    // Birinchi tugallanmagan darsni topish
-    const nextLesson = lessons.find(l => !l.completed && !l.locked) || lessons[0];
-    openLesson(nextLesson.id);
-  }
 
-  function openLesson(lessonId) {
-    const lesson = lessons.find(l => l.id === lessonId);
-    
-    if (lesson.locked) {
-      tg.HapticFeedback.notificationOccurred('warning');
-      tg.showAlert('Avval oldingi darslarni tugating');
-      return;
+    function nextFlashcard() {
+        if (currentFlash < vocabData.length - 1) {
+            currentFlash++;
+            const item = vocabData[currentFlash];
+            document.getElementById('f-pos').textContent = item.pos;
+            document.getElementById('f-eng').textContent = item.eng;
+            document.getElementById('f-uzb').textContent = item.uzb;
+        } else {
+            showScreen('screen2');
+            initWordGame();
+        }
     }
-    
-    tg.HapticFeedback.impactOccurred('light');
-    
-    // Lesson ID ni saqlash
-    localStorage.setItem('current_lesson', lessonId);
-    localStorage.setItem('current_module', moduleId);
-    
-    // Dars sahifasiga o'tish
-    window.location.href = `dars.html?module=${moduleId}&lesson=${lessonId}`;
-  }
 
-  function goBack() {
-    tg.HapticFeedback.impactOccurred('light');
-    window.history.back();
-  }
+    function speak() {
+        const text = document.getElementById('f-eng').textContent;
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'en-GB';
+        window.speechSynthesis.speak(u);
+    }
 
-  window.navigateTo = function(url) {
-    tg.HapticFeedback.impactOccurred('light');
-    setTimeout(() => {
-      window.location.href = url;
-    }, 100);
-  };
+    function initWordGame() {
+        const curr = wordGameData[g1Idx];
+        document.getElementById('g1-prompt').textContent = curr.uz;
+        let words = [curr.correct[0]];
+        let availD = distractors.filter(d => d !== curr.correct[0]);
+        for (let i = 0; i < 2; i++) {
+            const rIdx = Math.floor(Math.random() * availD.length);
+            words.push(availD[rIdx]);
+            availD.splice(rIdx, 1);
+        }
+        words.sort(() => Math.random() - 0.5);
+        builtSeq = []; usedFlags = new Array(words.length).fill(false);
+        window.currentBank = words;
+        renderGame('g1');
+    }
 
-  // Telegram BackButton
-  if (window.location.pathname.includes('modul')) {
-    tg.BackButton.show();
-    tg.BackButton.onClick(goBack);
-  } else {
-    tg.BackButton.hide();
-  }
+    function checkWordGame() {
+        const currentItem = wordGameData[g1Idx];
+        const correct = currentItem.correct;
+        const isCorrect = builtSeq.length === correct.length && builtSeq[0].word === correct[0];
+        togglePanel(true, isCorrect ? "Barakalla!" : "Xato!", 
+                   isCorrect ? "To'g'ri topdingiz." : "To'g'ri javob: " + correct[0], () => {
+            if (!isCorrect) wordGameData.push(currentItem, currentItem, currentItem);
+            if (g1Idx < wordGameData.length - 1) { g1Idx++; initWordGame(); } 
+            else { showScreen('screen3'); initSentenceGame(); }
+        }, isCorrect);
+    }
 
-  initApp();
+    function initSentenceGame() {
+        const curr = sentenceData[g2Idx];
+        document.getElementById('g2-prompt').textContent = curr.uz;
+        let words = [...curr.correct].sort(() => Math.random() - 0.5);
+        builtSeq = []; usedFlags = new Array(words.length).fill(false);
+        window.currentBank = words;
+        renderGame('g2');
+    }
+
+    function checkSentenceGame() {
+        const currentItem = sentenceData[g2Idx];
+        const correct = currentItem.correct;
+        const isCorrect = builtSeq.length === correct.length && builtSeq.every((v, i) => v.word === correct[i]);
+        togglePanel(true, isCorrect ? "Zo'r!" : "E'tiborli bo'ling!", 
+                   isCorrect ? "Gap to'g'ri tuzildi." : "To'g'ri tartib: " + correct.join(' '), () => {
+            if (!isCorrect) sentenceData.push(currentItem, currentItem, currentItem);
+            if (g2Idx < sentenceData.length - 1) { g2Idx++; initSentenceGame(); } 
+            else { showScreen('screen-final'); }
+        }, isCorrect);
+    }
+
+    function continueToMain() {
+        localStorage.setItem('last_module_points', currentModulePoints);
+        localStorage.setItem(`module_${moduleId}_points`, currentModulePoints);
+        localStorage.setItem(`module_${moduleId}_completed`, 'true');
+        window.location.href = 'index.html';
+    }
+
+    function renderGame(prefix) {
+        const zone = document.getElementById(`${prefix}-zone`);
+        const bank = document.getElementById(`${prefix}-bank`);
+        const btn = document.getElementById(`${prefix}-check`);
+        zone.innerHTML = '';
+        builtSeq.forEach((item, i) => {
+            const d = document.createElement('div');
+            d.className = 'chip'; d.textContent = item.word;
+            d.onclick = () => { usedFlags[item.idx] = false; builtSeq.splice(i, 1); renderGame(prefix); };
+            zone.appendChild(d);
+        });
+        bank.innerHTML = '';
+        window.currentBank.forEach((word, i) => {
+            if (!usedFlags[i]) {
+                const t = document.createElement('div');
+                t.className = 'token'; t.textContent = word;
+                t.onclick = () => { usedFlags[i] = true; builtSeq.push({word, idx: i}); renderGame(prefix); };
+                bank.appendChild(t);
+            }
+        });
+        btn.disabled = builtSeq.length === 0;
+        btn.style.opacity = btn.disabled ? '0.5' : '1';
+    }
+
+    const firstItem = vocabData[0];
+    document.getElementById('f-pos').textContent = firstItem.pos;
+    document.getElementById('f-eng').textContent = firstItem.eng;
+    document.getElementById('f-uzb').textContent = firstItem.uzb;
 </script>
 </body>
 </html>
