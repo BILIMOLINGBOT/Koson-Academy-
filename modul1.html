@@ -248,7 +248,7 @@
 </head>
 <body>
 
-<!-- 1. FLASHCARDS SCREEN (yangilangan so'zlar: I, am, a, student, He, is, my, friend, She, very, kind, You, are, smart, They, in, park) -->
+<!-- 1. FLASHCARDS SCREEN (LearnU) -->
 <div id="screen1" class="app-container active">
     <div class="points-header">
         <div class="points-badge" id="pointsDisplay">⚡ 0</div>
@@ -277,7 +277,7 @@
     </button>
 </div>
 
-<!-- 2. WORD GAME SCREEN (so'z-moslik o'yini) -->
+<!-- 2. WORD GAME SCREEN (so'z o'yini) -->
 <div id="screen2" class="app-container">
     <div class="points-header">
         <div class="points-badge" id="pointsDisplay2">⚡ 0</div>
@@ -353,33 +353,36 @@
         }
     }
 
-    // --- YANGI MA'LUMOTLAR (berilgan 5 ta gap asosida) ---
-    // FLASHCARDS lug'ati
+    // ------ YANGILANGAN MA'LUMOTLAR ------
+    // Flashcards: berilgan 5 ta gapdagi so'zlar
     let vocabData = [
         { pos: "OLMOSH", eng: "I", uzb: "men" },
-        { pos: "FE'L (to be)", eng: "am", uzb: "bo‘lmoq (1-shaxs)" },
+        { pos: "FE'L", eng: "am", uzb: "bo‘lmoq" },
         { pos: "ARTIKL", eng: "a", uzb: "bir" },
         { pos: "OT", eng: "student", uzb: "talaba" },
         { pos: "OLMOSH", eng: "He", uzb: "u" },
-        { pos: "FE'L (to be)", eng: "is", uzb: "bo‘lmoq (3-shaxs)" },
-        { pos: "OLMOSH", eng: "my", uzb: "mening" },
+        { pos: "FE'L", eng: "is", uzb: "bo‘lmoq" },
+        { pos: "SIFAT", eng: "my", uzb: "mening" },
         { pos: "OT", eng: "friend", uzb: "do‘st" },
         { pos: "OLMOSH", eng: "She", uzb: "u (ayol)" },
-        { pos: "SIFAT", eng: "very", uzb: "juda" },
+        { pos: "FE'L", eng: "is", uzb: "bo‘lmoq" },
+        { pos: "HOL", eng: "very", uzb: "juda" },
         { pos: "SIFAT", eng: "kind", uzb: "mehribon" },
-        { pos: "OLMOSH", eng: "You", uzb: "sen / siz" },
-        { pos: "FE'L (to be)", eng: "are", uzb: "bo‘lmoq (ko‘plik)" },
+        { pos: "OLMOSH", eng: "You", uzb: "siz" },
+        { pos: "FE'L", eng: "are", uzb: "bo‘lmoq" },
+        { pos: "HOL", eng: "very", uzb: "juda" },
         { pos: "SIFAT", eng: "smart", uzb: "aqlli" },
         { pos: "OLMOSH", eng: "They", uzb: "ular" },
+        { pos: "FE'L", eng: "are", uzb: "bo‘lmoq" },
         { pos: "PREDLOG", eng: "in", uzb: "da" },
+        { pos: "ARTIKL", eng: "the", uzb: "artikl" },
         { pos: "OT", eng: "park", uzb: "park" }
     ];
 
-    // So'z o'yini: berilgan o'zbekcha so'zlar -> to'g'ri inglizcha ekvivalent
+    // So'z o'yini: bitta so'zni topish (berilgan gaplardan muhim so'zlar)
     let wordGameData = [
         { uz: "men", correct: ["I"] },
         { uz: "bo‘lmoq (1-shaxs)", correct: ["am"] },
-        { uz: "bir", correct: ["a"] },
         { uz: "talaba", correct: ["student"] },
         { uz: "u (erkak)", correct: ["He"] },
         { uz: "bo‘lmoq (3-shaxs)", correct: ["is"] },
@@ -388,25 +391,25 @@
         { uz: "u (ayol)", correct: ["She"] },
         { uz: "juda", correct: ["very"] },
         { uz: "mehribon", correct: ["kind"] },
-        { uz: "sen/siz", correct: ["You"] },
-        { uz: "bo‘lmoq (ko‘plik)", correct: ["are"] },
+        { uz: "siz", correct: ["You"] },
+        { uz: "bo‘lmoq (2-shaxs)", correct: ["are"] },
         { uz: "aqlli", correct: ["smart"] },
         { uz: "ular", correct: ["They"] },
         { uz: "da (ichida)", correct: ["in"] },
         { uz: "park", correct: ["park"] }
     ];
 
-    // Gap qurish: 5 ta gap (berilgan)
+    // Gap tuzish o‘yini: berilgan 5 ta gap (nuqta bilan birga)
     let sentenceData = [
-        { uz: "I am a student.", correct: ["I", "am", "a", "student."] },
-        { uz: "He is my friend.", correct: ["He", "is", "my", "friend."] },
-        { uz: "She is very kind.", correct: ["She", "is", "very", "kind."] },
-        { uz: "You are very smart.", correct: ["You", "are", "very", "smart."] },
-        { uz: "They are in the park.", correct: ["They", "are", "in", "the", "park."] }  // "the" qo'shimcha kerak, biz distractorlardan olamiz
+        { uz: "Men talabaman.", correct: ["I", "am", "a", "student."] },
+        { uz: "U mening do‘stim.", correct: ["He", "is", "my", "friend."] },
+        { uz: "U juda mehribon.", correct: ["She", "is", "very", "kind."] },
+        { uz: "Siz juda aqllisiz.", correct: ["You", "are", "very", "smart."] },
+        { uz: "Ular parkda.", correct: ["They", "are", "in", "the", "park."] }
     ];
 
-    // Distraktorlar (chalg'ituvchilar) – qo'shimcha so'zlar
-    const distractors = ["the", "at", "on", "book", "car", "cat", "dog", "from", "with", "We"];
+    // Distraktorlar (chalg'ituvchilar) – kerakli so'zlar bilan mos
+    const distractors = ["We", "It", "at", "on", "book", "car", "from", "have", "name", "family"];
 
     let currentFlash = 0, g1Idx = 0, g2Idx = 0, builtSeq = [], usedFlags = [];
 
@@ -448,31 +451,25 @@
     function speak() {
         const text = document.getElementById('f-eng').textContent;
         const u = new SpeechSynthesisUtterance(text);
-        u.lang = 'en-US';
+        u.lang = 'en-GB';
         window.speechSynthesis.speak(u);
     }
 
-    // So'z o'yinini boshlash (g1)
+    // So'z o'yinini boshlash
     function initWordGame() {
-        if (g1Idx >= wordGameData.length) {
-            showScreen('screen3');
-            initSentenceGame();
-            return;
-        }
         const curr = wordGameData[g1Idx];
         document.getElementById('g1-prompt').textContent = curr.uz;
-        // To'g'ri javob va 2 ta chalg'ituvchi
+        // to'g'ri so'z va 2 ta chalg'ituvchi
         let words = [curr.correct[0]];
-        let availD = distractors.filter(d => d !== curr.correct[0] && !words.includes(d));
-        // yetarli bo'lmasa qo'shimcha
-        while (words.length < 3 && availD.length > 0) {
+        let availD = distractors.filter(d => d !== curr.correct[0]);
+        for (let i = 0; i < 2; i++) {
+            if (availD.length === 0) break;
             const rIdx = Math.floor(Math.random() * availD.length);
             words.push(availD[rIdx]);
             availD.splice(rIdx, 1);
         }
         words.sort(() => Math.random() - 0.5);
-        builtSeq = []; 
-        usedFlags = new Array(words.length).fill(false);
+        builtSeq = []; usedFlags = new Array(words.length).fill(false);
         window.currentBank = words;
         renderGame('g1');
     }
@@ -483,40 +480,20 @@
         const isCorrect = builtSeq.length === correct.length && builtSeq[0].word === correct[0];
         togglePanel(true, isCorrect ? "Barakalla!" : "Xato!", 
                    isCorrect ? "To'g'ri topdingiz." : "To'g'ri javob: " + correct[0], () => {
-            if (!isCorrect) {
-                // xato bo'lsa, so'zni qayta urinish uchun oxiriga qo'shamiz (bir marta)
-                wordGameData.push(currentItem);
-            }
+            if (!isCorrect) wordGameData.push(currentItem); // qiyinlash uchun qo'shamiz
             if (g1Idx < wordGameData.length - 1) { g1Idx++; initWordGame(); } 
-            else { 
-                showScreen('screen3'); 
-                initSentenceGame(); 
-            }
+            else { showScreen('screen3'); initSentenceGame(); }
         }, isCorrect);
     }
 
     
-    // Gap o'yini (g2)
+    // Gap o'yinini boshlash
     function initSentenceGame() {
-        if (g2Idx >= sentenceData.length) {
-            showScreen('screen-final');
-            return;
-        }
         const curr = sentenceData[g2Idx];
         document.getElementById('g2-prompt').textContent = curr.uz;
-        // So'zlar banki: to'g'ri so'zlar + 2-3 ta distraktor, aralashtirilgan
-        let words = [...curr.correct];
-        // distraktorlardan to'ldirish
-        let availD = distractors.filter(d => !words.includes(d));
-        for (let i=0; i<3; i++) {
-            if (availD.length === 0) break;
-            const rIdx = Math.floor(Math.random() * availD.length);
-            words.push(availD[rIdx]);
-            availD.splice(rIdx, 1);
-        }
-        words.sort(() => Math.random() - 0.5);
-        builtSeq = []; 
-        usedFlags = new Array(words.length).fill(false);
+        // So'zlarni aralashtiramiz (bank uchun)
+        let words = [...curr.correct].sort(() => Math.random() - 0.5);
+        builtSeq = []; usedFlags = new Array(words.length).fill(false);
         window.currentBank = words;
         renderGame('g2');
     }
@@ -527,14 +504,9 @@
         const isCorrect = builtSeq.length === correct.length && builtSeq.every((v, i) => v.word === correct[i]);
         togglePanel(true, isCorrect ? "Zo'r!" : "E'tiborli bo'ling!", 
                    isCorrect ? "Gap to'g'ri tuzildi." : "To'g'ri tartib: " + correct.join(' '), () => {
-            if (!isCorrect) {
-                // xato bo'lsa, yana bir imkoniyat (gapni oxiriga qo'shamiz)
-                sentenceData.push(currentItem);
-            }
+            if (!isCorrect) sentenceData.push(currentItem); // takrorlash uchun
             if (g2Idx < sentenceData.length - 1) { g2Idx++; initSentenceGame(); } 
-            else { 
-                showScreen('screen-final'); 
-            }
+            else { showScreen('screen-final'); }
         }, isCorrect);
     }
 
@@ -542,9 +514,10 @@
         localStorage.setItem('last_module_points', currentModulePoints);
         localStorage.setItem(`module_${moduleId}_points`, currentModulePoints);
         localStorage.setItem(`module_${moduleId}_completed`, 'true');
-        window.location.href = 'index.html'; // asosiy sahifaga qaytish
+        window.location.href = 'index.html';
     }
 
+    // Bank va zonani render qilish
     function renderGame(prefix) {
         const zone = document.getElementById(`${prefix}-zone`);
         const bank = document.getElementById(`${prefix}-bank`);
@@ -569,7 +542,7 @@
         btn.style.opacity = btn.disabled ? '0.5' : '1';
     }
 
-    // Dastlabki flashcardni ko'rsatish
+    // Dastlabki flashcardni o'rnatamiz (I / men)
     const firstItem = vocabData[0];
     document.getElementById('f-pos').textContent = firstItem.pos;
     document.getElementById('f-eng').textContent = firstItem.eng;
