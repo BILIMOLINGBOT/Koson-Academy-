@@ -57,6 +57,11 @@
       scroll-snap-align: center; 
       background: linear-gradient(145deg, #1c1c1e, #0a0a0a); 
       border: 1px solid rgba(255,255,255,0.1);
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .lesson-card:active {
+      transform: scale(0.98);
     }
 
     .tab-bar { 
@@ -99,15 +104,15 @@
     </div>
 
   <nav class="tab-bar">
-    <a href="#" class="tab-item active" onclick="navigateTo('index.html')">
+    <a href="index.html" class="tab-item active" onclick="navigateTo('index.html')">
       <svg viewBox="0 0 24 24" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
       <span>Asosiy</span>
     </a>
-    <a href="#" class="tab-item" onclick="navigateTo('reyting.html')">
+    <a href="reyting.html" class="tab-item" onclick="navigateTo('reyting.html')">
       <svg viewBox="0 0 24 24" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
       <span>Reyting</span>
     </a>
-    <a href="#" class="tab-item" onclick="navigateTo('gift.html')">
+    <a href="gift.html" class="tab-item" onclick="navigateTo('gift.html')">
       <svg viewBox="0 0 24 24" stroke-width="2"><rect x="2" y="7" width="20" height="5"/><path d="M20 12v10H4V12M12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
       <span>Sovg'alar</span>
     </a>
@@ -122,19 +127,56 @@
   tg.setHeaderColor('secondary_bg_color');
   tg.setBackgroundColor('bg_color');
 
-  // 30 ta modul yaratish
+  // Modullar ma'lumotlari (30 ta)
+  const moduleUrls = Array.from({ length: 30 }, (_, i) => `modul${i + 1}.html`);
+  
   const modules = Array.from({ length: 30 }, (_, i) => {
     const id = i + 1;
+    // Har bir modul uchun turli mavzular
+    const topics = [
+      'Dasturlash asoslari',
+      'Algoritmlar',
+      'Ma\'lumotlar tuzilmasi',
+      'Veb dasturlash',
+      'Mobil dasturlash',
+      'Sun\'iy intellekt',
+      'Ma\'lumotlar bazasi',
+      'Tarmoq texnologiyalari',
+      'Kiberxavfsizlik',
+      'Bulutli hisoblash',
+      'Python dasturlash',
+      'JavaScript asoslari',
+      'React.js',
+      'Node.js',
+      'Flutter',
+      'Kotlin',
+      'Swift',
+      'Java',
+      'C++ dasturlash',
+      'Go dasturlash',
+      'DevOps asoslari',
+      'Docker va Kubernetes',
+      'Machine Learning',
+      'Deep Learning',
+      'Data Science',
+      'Blockchain',
+      'IoT texnologiyalari',
+      'AR/VR dasturlash',
+      'Game Development',
+      'Software Architecture'
+    ];
+    
     return {
       id: id,
-      title: `${id}-modul: Dasturlash asoslari`,
+      title: `${id}-modul: ${topics[id-1] || 'Dasturlash asoslari'}`,
       label: `MODUL ${id}`,
-      action: id <= 3 ? 'Darsni boshlash' : 'Tez kunda'
+      action: id <= 5 ? 'Darsni boshlash' : (id <= 15 ? 'Davom etish' : 'Tez kunda'),
+      url: `modul${id}.html`,
+      status: id <= 5 ? 'available' : (id <= 15 ? 'in-progress' : 'coming-soon')
     };
   });
 
   function setAvatar(user) {
-    const avatarCircle = document.getElementById('userAvatar');
     const avatarInitial = document.getElementById('avatarInitial');
     const avatarImage = document.getElementById('avatarImage');
     
@@ -198,13 +240,18 @@
 
   function renderModules() {
     const container = document.getElementById('moduleContainer');
-    container.innerHTML = modules.map(m => `
-      <div class="lesson-card" onclick="openModule(${m.id})">
-        <span style="color: #8e8e93; font-size: 12px; font-weight: 600;">${m.label}</span>
-        <h2 style="font-size: 24px; line-height: 1.2;">${m.title}</h2>
-        <div style="color: #007aff; font-weight: 600;">${m.action} →</div>
-      </div>
-    `).join('');
+    container.innerHTML = modules.map(m => {
+      // Statusga qarab action rangini o'zgartirish
+      const actionColor = m.status === 'available' ? '#007aff' : (m.status === 'in-progress' ? '#ff9f0a' : '#8e8e93');
+      
+      return `
+        <div class="lesson-card" onclick="openModule(${m.id}, '${m.url}')">
+          <span style="color: #8e8e93; font-size: 12px; font-weight: 600;">${m.label}</span>
+          <h2 style="font-size: 24px; line-height: 1.2;">${m.title}</h2>
+          <div style="color: ${actionColor}; font-weight: 600;">${m.action} →</div>
+        </div>
+      `;
+    }).join('');
   }
 
   window.navigateTo = function(url) {
@@ -215,14 +262,19 @@
     }, 100);
   };
 
-  window.openModule = function(id) {
+  window.openModule = function(id, url) {
     tg.HapticFeedback.notificationOccurred('success');
     localStorage.setItem('last_module', id);
-    window.location.href = `modul${id}.html`; // modul1.html, modul2.html, ... modul30.html
+    localStorage.setItem(`module_${id}_status`, 'opened');
+    
+    // URL bo'yicha navigatsiya
+    setTimeout(() => {
+      window.location.href = url;
+    }, 100);
   };
 
   // Telegram BackButton boshqarish
-  if (window.location.pathname.includes('module.html') || window.location.pathname.includes('profil.html')) {
+  if (window.location.pathname.includes('modul') || window.location.pathname.includes('profil.html')) {
     tg.BackButton.show();
     tg.BackButton.onClick(() => {
       window.history.back();
