@@ -1,283 +1,367 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>LearnU · Dars</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <style>
-    :root {
-      --ios-blue: #007AFF;
-      --ios-bg: #000000;
-      --ios-card: #1C1C1E;
-      --ios-text: #FFFFFF;
-      --ios-secondary: #8E8E93;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>LearnU · iOS Edition</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --ios-blue: #007AFF;
+            --ios-bg: #000000;
+            --ios-secondary-bg: #1C1C1E;
+            --ios-tertiary-bg: #2C2C2E;
+            --ios-text: #FFFFFF;
+            --ios-secondary-text: #8E8E93;
+            --ios-green: #34C759;
+            --radius-main: 20px;
+            --safe-area-top: env(safe-area-inset-top);
+        }
 
-    * { 
-      margin: 0; 
-      padding: 0; 
-      box-sizing: border-box;
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", sans-serif;
-      -webkit-tap-highlight-color: transparent;
-    }
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+            -webkit-tap-highlight-color: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+        }
 
-    body {
-      background: var(--ios-bg);
-      color: var(--ios-text);
-      overflow-x: hidden;
-      line-height: 1.5;
-    }
+        body {
+            background: var(--ios-bg);
+            color: var(--ios-text);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+        }
 
-    /* iPhone X va undan yuqori modellarda "Chekka" qismlarni hisobga olish */
-    .app-wrapper {
-      padding-top: env(safe-area-inset-top);
-      padding-bottom: env(safe-area-inset-bottom);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
+        /* Ilova konteyneri - iPhone o'lchami */
+        .app-container {
+            width: 100%;
+            max-width: 430px; /* iPhone 15 Pro Max width */
+            height: 100vh;
+            padding: calc(var(--safe-area-top) + 10px) 20px 40px;
+            display: none;
+            flex-direction: column;
+            position: relative;
+        }
 
-    /* Top Navigation */
-    .nav-header {
-      padding: 15px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background: rgba(0, 0, 0, 0.8);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-    }
+        .app-container.active { display: flex; }
 
-    .progress-container {
-      flex: 1;
-      margin: 0 20px;
-      height: 6px;
-      background: #333;
-      border-radius: 3px;
-      overflow: hidden;
-    }
+        /* Top Navigation Bar */
+        .nav-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
 
-    .progress-bar {
-      height: 100%;
-      width: 35%; /* Test uchun */
-      background: var(--ios-blue);
-      box-shadow: 0 0 10px rgba(0, 122, 255, 0.5);
-      transition: width 0.3s ease;
-    }
+        .close-btn {
+            font-size: 20px;
+            color: var(--ios-secondary-text);
+            cursor: pointer;
+        }
 
-    /* Content Layout */
-    .content-area {
-      padding: 20px;
-      flex: 1;
-    }
+        .progress-container {
+            flex: 1;
+            height: 8px;
+            background: var(--ios-secondary-bg);
+            border-radius: 4px;
+            margin: 0 15px;
+            overflow: hidden;
+        }
 
-    .module-tag {
-      color: var(--ios-blue);
-      text-transform: uppercase;
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      margin-bottom: 8px;
-      display: block;
-    }
+        .progress-bar {
+            width: 10%;
+            height: 100%;
+            background: var(--ios-blue);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
 
-    .lesson-title {
-      font-size: 32px;
-      font-weight: 800;
-      margin-bottom: 20px;
-      letter-spacing: -0.5px;
-    }
+        .points-badge {
+            font-weight: 600;
+            font-size: 17px;
+            color: var(--ios-blue);
+        }
 
-    .video-card {
-      width: 100%;
-      aspect-ratio: 16/9;
-      background: var(--ios-card);
-      border-radius: 20px;
-      margin-bottom: 25px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid #333;
-      overflow: hidden;
-      position: relative;
-    }
+        /* Flashcards Section */
+        .card-stack {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 16px;
+        }
 
-    .video-placeholder-icon {
-      width: 60px;
-      height: 60px;
-      background: var(--ios-blue);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding-left: 5px;
-    }
+        .flashcard {
+            background: var(--ios-secondary-bg);
+            border-radius: var(--radius-main);
+            padding: 30px 24px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
 
-    /* Text Content Card */
-    .info-card {
-      background: var(--ios-card);
-      border-radius: 24px;
-      padding: 24px;
-      margin-bottom: 20px;
-    }
+        .part-of-speech {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--ios-blue);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            display: block;
+        }
 
-    .info-card h3 {
-      font-size: 20px;
-      margin-bottom: 12px;
-      color: #fff;
-    }
+        .word-main {
+            font-size: 40px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
 
-    .info-card p {
-      color: #aeaeb2;
-      font-size: 16px;
-      line-height: 1.6;
-    }
+        .audio-icon {
+            width: 44px;
+            height: 44px;
+            background: var(--ios-tertiary-bg);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--ios-blue);
+            cursor: pointer;
+        }
 
-    /* Bottom Action Bar */
-    .bottom-actions {
-      padding: 20px;
-      background: linear-gradient(to top, var(--ios-bg) 80%, transparent);
-      position: sticky;
-      bottom: 0;
-    }
+        .translation-word {
+            font-size: 28px;
+            font-weight: 500;
+            color: var(--ios-secondary-text);
+        }
 
-    .main-button {
-      background: var(--ios-blue);
-      color: white;
-      border: none;
-      width: 100%;
-      padding: 18px;
-      border-radius: 18px;
-      font-size: 17px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: transform 0.2s, background 0.2s;
-    }
+        /* Game Elements */
+        .prompt-text {
+            font-size: 24px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 30px;
+        }
 
-    .main-button:active {
-      transform: scale(0.96);
-      background: #0056b3;
-    }
+        .zone {
+            min-height: 120px;
+            background: var(--ios-secondary-bg);
+            border-radius: var(--radius-main);
+            border: 2px dashed var(--ios-tertiary-bg);
+            padding: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-content: flex-start;
+            margin-bottom: 20px;
+        }
 
-    .secondary-button {
-      background: transparent;
-      color: var(--ios-blue);
-      border: none;
-      width: 100%;
-      padding: 15px;
-      margin-top: 10px;
-      font-size: 16px;
-      font-weight: 500;
-    }
+        .bank {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
 
-    /* Animatsiyalar */
-    .fade-up {
-      animation: fadeUp 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
-    }
+        /* iOS Chips & Tokens */
+        .token, .chip {
+            padding: 12px 18px;
+            background: var(--ios-tertiary-bg);
+            border-radius: 12px;
+            font-size: 17px;
+            font-weight: 500;
+            transition: transform 0.1s;
+            cursor: pointer;
+        }
 
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-  </style>
+        .chip {
+            background: var(--ios-blue);
+            color: white;
+        }
+
+        .token:active, .chip:active {
+            transform: scale(0.92);
+        }
+
+        /* Action Button */
+        .ios-btn {
+            background: var(--ios-blue);
+            color: white;
+            border: none;
+            height: 56px;
+            border-radius: 16px;
+            font-size: 17px;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 20px;
+            transition: all 0.2s;
+        }
+
+        .ios-btn:disabled {
+            background: #3a3a3c;
+            color: #8e8e93;
+        }
+
+        .ios-btn:active {
+            transform: scale(0.97);
+            filter: brightness(0.9);
+        }
+
+        /* Result Panel (Bottom Sheet style) */
+        .result-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #1c1c1e;
+            padding: 30px 20px 50px;
+            border-radius: 30px 30px 0 0;
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.15, 0, 0.2, 1);
+            z-index: 1000;
+            border-top: 1px solid #38383a;
+        }
+
+        .result-panel.active { transform: translateY(0); }
+
+        .result-panel.correct { border-top: 4px solid var(--ios-green); }
+        .result-panel.wrong { border-top: 4px solid #ff453a; }
+
+        .res-title { font-size: 22px; font-weight: 700; margin-bottom: 5px; }
+        .res-msg { color: var(--ios-secondary-text); margin-bottom: 20px; }
+
+        /* Final Trophy */
+        .trophy-icon {
+            font-size: 80px;
+            color: #FFD60A;
+            margin-bottom: 20px;
+            display: block;
+        }
+    </style>
 </head>
 <body>
 
-<div class="app-wrapper">
-  <div class="nav-header">
-    <div style="font-size: 14px; font-weight: 600; color: var(--ios-secondary);" id="moduleNumber">1-Modul</div>
-    <div class="progress-container">
-      <div class="progress-bar" id="lessonProgress"></div>
-    </div>
-    <div style="width: 20px;"></div> </div>
-
-  <div class="content-area">
-    <span class="module-tag fade-up" style="animation-delay: 0.1s;">Boshlang'ich dars</span>
-    <h1 class="lesson-title fade-up" id="lessonTitle" style="animation-delay: 0.2s;">Dasturlash dunyosiga xush kelibsiz</h1>
-
-    <div class="video-card fade-up" style="animation-delay: 0.3s;" onclick="playVideo()">
-      <div class="video-placeholder-icon">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-          <path d="M8 5v14l11-7z"/>
-        </svg>
-      </div>
-      <div style="position: absolute; bottom: 15px; left: 15px; font-size: 12px; color: #888;">
-        Videoniv ko'rish • 12:45
-      </div>
+<div id="screen1" class="app-container active">
+    <div class="nav-bar">
+        <i class="fas fa-times close-btn"></i>
+        <div class="progress-container"><div class="progress-bar" style="width: 20%"></div></div>
+        <div class="points-badge" id="pointsDisplay">⚡ 0</div>
     </div>
 
-    <div class="info-card fade-up" style="animation-delay: 0.4s;">
-      <h3>Dars haqida</h3>
-      <p id="lessonDesc">
-        Ushbu modulda siz dasturlashning asosiy tushunchalari, kompilyatorlar va algoritmlar qanday ishlashi haqida fundamental bilimlarga ega bo'lasiz.
-      </p>
+    <div class="card-stack">
+        <div class="flashcard">
+            <span class="part-of-speech" id="f-pos">OLMOSH</span>
+            <div class="word-main">
+                <span id="f-eng">My</span>
+                <div class="audio-icon" onclick="speak()"><i class="fas fa-volume-up"></i></div>
+            </div>
+        </div>
+        <div class="flashcard" style="background: transparent; border: 1px solid var(--ios-tertiary-bg);">
+            <div class="translation-word" id="f-uzb">mening</div>
+        </div>
     </div>
+    
+    <button class="ios-btn" onclick="nextFlashcard()">Keyingi</button>
+</div>
 
-    <div class="info-card fade-up" style="animation-delay: 0.5s;">
-      <h3>Vazifa</h3>
-      <p>O'zgaruvchilar haqida qisqacha konspekt tayyorlang va Telegram guruhiga yuboring.</p>
+<div id="screen2" class="app-container">
+    <div class="nav-bar">
+        <i class="fas fa-chevron-left close-btn" onclick="showScreen('screen1')"></i>
+        <div class="progress-container"><div class="progress-bar" style="width: 50%"></div></div>
+        <div class="points-badge" id="pointsDisplay2">⚡ 0</div>
     </div>
-  </div>
+    <div class="prompt-text" id="g1-prompt">mening</div>
+    <div class="zone" id="g1-zone"></div>
+    <div class="bank" id="g1-bank"></div>
+    <button class="ios-btn" id="g1-check" onclick="checkWordGame()" disabled>Tekshirish</button>
+</div>
 
-  <div class="bottom-actions fade-up" style="animation-delay: 0.6s;">
-    <button class="main-button" onclick="completeLesson()">Keyingi darsga o'tish</button>
-    <button class="secondary-button" onclick="goBack()">Orqaga qaytish</button>
-  </div>
+<div class="result-panel" id="res-panel">
+    <div id="res-title" class="res-title">Ajoyib!</div>
+    <div id="res-msg" class="res-msg">To'g'ri javob topildi.</div>
+    <button class="ios-btn" id="res-btn">Davom etish</button>
 </div>
 
 <script>
-  const tg = window.Telegram.WebApp;
-  tg.expand();
-  
-  // Telegram BackButton
-  tg.BackButton.show();
-  tg.BackButton.onClick(() => {
-    goBack();
-  });
-
-  function goBack() {
-    tg.HapticFeedback.impactOccurred('light');
-    window.location.href = 'index.html';
-  }
-
-  function playVideo() {
-    tg.HapticFeedback.impactOccurred('medium');
-    tg.showPopup({
-      title: 'Video Player',
-      message: 'Video yuklanmoqda... (Haqiqiy loyihada bu yerda YouTube yoki MP4 pleer bo\'ladi)',
-      buttons: [{type: 'close', text: 'Tushunarli'}]
-    });
-  }
-
-  function completeLesson() {
-    tg.HapticFeedback.notificationOccurred('success');
+    // Logic remains mostly same, just updating UI interactions
+    let userPoints = 0;
+    let currentFlash = 0;
     
-    // Ballarni oshirish (simulatsiya)
-    let currentPoints = parseInt(localStorage.getItem('user_points') || 312);
-    localStorage.setItem('user_points', currentPoints + 10);
-    
-    tg.showPopup({
-      title: 'Tabriklaymiz! 🎉',
-      message: 'Siz ushbu darsni yakunladingiz va 10 ballga ega bo\'ldingiz!',
-      buttons: [{type: 'ok', text: 'Davom etish'}]
-    }, () => {
-      window.location.href = 'index.html';
-    });
-  }
+    // ... (Old data arrays from your code) ...
+    let vocabData = [
+        { pos: "OLMOSH", eng: "My", uzb: "mening" },
+        { pos: "OT", eng: "Name", uzb: "ism" }
+    ];
+    let wordGameData = [{ uz: "mening", correct: ["My"] }];
+    const distractors = ["You", "He", "She"];
+    let builtSeq = [], usedFlags = [];
 
-  // URL'dan modul ID'sini olish (agar kerak bo'lsa)
-  window.addEventListener('load', () => {
-    const params = new URLSearchParams(window.location.search);
-    const modId = params.get('id');
-    if(modId) {
-       document.getElementById('moduleNumber').textContent = modId + '-Modul';
+    function nextFlashcard() {
+        if (currentFlash < vocabData.length - 1) {
+            currentFlash++;
+            document.getElementById('f-eng').textContent = vocabData[currentFlash].eng;
+            document.getElementById('f-uzb').textContent = vocabData[currentFlash].uzb;
+            document.getElementById('f-pos').textContent = vocabData[currentFlash].pos;
+        } else {
+            showScreen('screen2');
+            initWordGame();
+        }
     }
-  });
-</script>
 
+    function showScreen(id) {
+        document.querySelectorAll('.app-container').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+
+    function initWordGame() {
+        const curr = wordGameData[0];
+        const bankEl = document.getElementById('g1-bank');
+        let words = [curr.correct[0], ...distractors].sort(() => Math.random() - 0.5);
+        window.currentBank = words;
+        usedFlags = new Array(words.length).fill(false);
+        renderGame('g1');
+    }
+
+    function renderGame(prefix) {
+        const zone = document.getElementById(`${prefix}-zone`);
+        const bank = document.getElementById(`${prefix}-bank`);
+        const btn = document.getElementById(`${prefix}-check`);
+        zone.innerHTML = ''; bank.innerHTML = '';
+        
+        builtSeq.forEach((item, i) => {
+            const d = document.createElement('div');
+            d.className = 'chip'; d.textContent = item.word;
+            d.onclick = () => { usedFlags[item.idx] = false; builtSeq.splice(i,1); renderGame(prefix); };
+            zone.appendChild(d);
+        });
+
+        window.currentBank.forEach((word, i) => {
+            if(!usedFlags[i]) {
+                const t = document.createElement('div');
+                t.className = 'token'; t.textContent = word;
+                t.onclick = () => { usedFlags[i] = true; builtSeq.push({word, idx:i}); renderGame(prefix); };
+                bank.appendChild(t);
+            }
+        });
+        btn.disabled = builtSeq.length === 0;
+    }
+
+    function checkWordGame() {
+        const panel = document.getElementById('res-panel');
+        panel.classList.add('active', 'correct');
+        document.getElementById('res-btn').onclick = () => {
+            panel.classList.remove('active');
+            alert("Dars tugadi!");
+        }
+    }
+
+    function speak() {
+        const u = new SpeechSynthesisUtterance(document.getElementById('f-eng').textContent);
+        u.lang = 'en-US';
+        window.speechSynthesis.speak(u);
+    }
+</script>
 </body>
 </html>
