@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="uz">
 <head>
@@ -13,8 +14,25 @@
     
     .header { padding: 20px; display: flex; align-items: center; justify-content: space-between; }
     .avatar-wrapper { display: flex; align-items: center; gap: 12px; }
-    .avatar-circle { width: 45px; height: 45px; background: #222; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; border: 1px solid #333; overflow: hidden; }
-    .avatar-circle img { width: 100%; height: 100%; object-fit: cover; }
+    .avatar-circle { 
+      width: 45px; 
+      height: 45px; 
+      background: #222; 
+      border-radius: 50%; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      font-weight: bold; 
+      font-size: 1.2rem; 
+      border: 1px solid #333; 
+      overflow: hidden; 
+    }
+    .avatar-circle img { 
+      width: 100%; 
+      height: 100%; 
+      object-fit: cover; 
+      display: block;
+    }
 
     .scroll-container { 
       flex: 1;
@@ -66,10 +84,12 @@
 <div class="app-wrapper">
   <div class="header" onclick="navigateTo('profil.html')">
     <div class="avatar-wrapper">
-      <div class="avatar-circle" id="userAvatar">?</div>
+      <div class="avatar-circle" id="userAvatar">
+        <span id="avatarInitial">?</span>
+        <img id="avatarImage" src="" alt="avatar" style="display: none;">
+      </div>
       <div>
         <h4 id="userName" class="gradient-name">Yuklanmoqda...</h4>
-        <!-- Status qatori butunlay olib tashlandi -->
       </div>
     </div>
     <div class="points-badge" id="userPoints">⚡ 0</div>
@@ -102,11 +122,48 @@
   tg.setHeaderColor('secondary_bg_color');
   tg.setBackgroundColor('bg_color');
 
-  const modules = [
-    { id: 1, title: 'Kvant fizikasi asoslari', label: 'MODUL 1', action: 'Darsni boshlash' },
-    { id: 2, title: 'Algoritmlar va Data Structure', label: 'MODUL 2', action: 'Davom etish' },
-    { id: 3, title: 'Sun\'iy Intellekt', label: 'MODUL 3', action: 'Tez kunda' }
-  ];
+  // 30 ta modul yaratish
+  const modules = Array.from({ length: 30 }, (_, i) => {
+    const id = i + 1;
+    return {
+      id: id,
+      title: `${id}-modul: Dasturlash asoslari`,
+      label: `MODUL ${id}`,
+      action: id <= 3 ? 'Darsni boshlash' : 'Tez kunda'
+    };
+  });
+
+  function setAvatar(user) {
+    const avatarCircle = document.getElementById('userAvatar');
+    const avatarInitial = document.getElementById('avatarInitial');
+    const avatarImage = document.getElementById('avatarImage');
+    
+    if (user && user.photo_url) {
+      // Telegram profil rasmi mavjud
+      avatarImage.src = user.photo_url;
+      avatarImage.style.display = 'block';
+      avatarInitial.style.display = 'none';
+      
+      // Rasm yuklanmasa, initial harfni ko'rsatish
+      avatarImage.onerror = function() {
+        avatarImage.style.display = 'none';
+        avatarInitial.style.display = 'block';
+        if (user.first_name) {
+          avatarInitial.textContent = user.first_name.charAt(0).toUpperCase();
+        }
+      };
+    } else {
+      // Profil rasmi yo'q, initial harfni ko'rsatish
+      avatarImage.style.display = 'none';
+      avatarInitial.style.display = 'block';
+      
+      if (user && user.first_name) {
+        avatarInitial.textContent = user.first_name.charAt(0).toUpperCase();
+      } else {
+        avatarInitial.textContent = '?';
+      }
+    }
+  }
 
   function initApp() {
     const user = tg.initDataUnsafe?.user;
@@ -120,18 +177,16 @@
       }
       document.getElementById('userName').textContent = fullName;
       
-      // Avatar - agar rasm bo'lsa, aks holda ismning birinchi harfi
-      const avatarEl = document.getElementById('userAvatar');
-      if (user.photo_url) {
-        avatarEl.innerHTML = `<img src="${user.photo_url}" alt="avatar">`;
-      } else {
-        const firstChar = user.first_name ? user.first_name.charAt(0).toUpperCase() : '?';
-        avatarEl.textContent = firstChar;
-      }
+      // Avatar - Telegram profil rasmi yoki initial harf
+      setAvatar(user);
+      
+      // Konsolga ma'lumot chiqarish (test uchun)
+      console.log('Telegram user:', user);
+      console.log('Photo URL:', user.photo_url);
     } else {
       // Agar user ma'lumoti bo'lmasa
       document.getElementById('userName').textContent = 'Mehmon';
-      document.getElementById('userAvatar').textContent = '?';
+      setAvatar(null);
     }
 
     // Ballarni yuklash (Haqiqiy loyihada buni Backenddan fetch qilish kerak)
@@ -163,7 +218,7 @@
   window.openModule = function(id) {
     tg.HapticFeedback.notificationOccurred('success');
     localStorage.setItem('last_module', id);
-    window.location.href = `module.html?id=${id}`;
+    window.location.href = `modul${id}.html`; // modul1.html, modul2.html, ... modul30.html
   };
 
   // Telegram BackButton boshqarish
