@@ -126,27 +126,73 @@
   tg.setHeaderColor('secondary_bg_color');
   tg.setBackgroundColor('bg_color');
 
-  // Modullar ma'lumotlari (5 ta)
-  const moduleUrls = Array.from({ length: 5 }, (_, i) => `modul${i + 1}.html`);
-  
-  const modules = Array.from({ length: 5 }, (_, i) => {
+  // Modullar ma'lumotlari (30 ta + 5 ta qo'shimcha)
+  const totalModules = 35; // 30 + 5 qo'shimcha
+  const moduleUrls = Array.from({ length: totalModules }, (_, i) => {
     const id = i + 1;
-    // Har bir modul uchun turli mavzular
-    const topics = [
+    return id <= 30 ? `modul${id}.html` : `modul${id}.html`; // 31-35 modullar uchun ham modul{id}.html
+  });
+  
+  const modules = Array.from({ length: totalModules }, (_, i) => {
+    const id = i + 1;
+    // Asosiy mavzular (30 ta)
+    const mainTopics = [
       'Dasturlash asoslari',
       'Algoritmlar',
       'Ma\'lumotlar tuzilmasi',
       'Veb dasturlash',
-      'Mobil dasturlash'
+      'Mobil dasturlash',
+      'Sun\'iy intellekt',
+      'Ma\'lumotlar bazasi',
+      'Tarmoq texnologiyalari',
+      'Kiberxavfsizlik',
+      'Bulutli hisoblash',
+      'Python dasturlash',
+      'JavaScript asoslari',
+      'React.js',
+      'Node.js',
+      'Flutter',
+      'Kotlin',
+      'Swift',
+      'Java',
+      'C++ dasturlash',
+      'Go dasturlash',
+      'DevOps asoslari',
+      'Docker va Kubernetes',
+      'Machine Learning',
+      'Deep Learning',
+      'Data Science',
+      'Blockchain',
+      'IoT texnologiyalari',
+      'AR/VR dasturlash',
+      'Game Development',
+      'Software Architecture'
     ];
+    
+    // Qo'shimcha 5 ta modul mavzulari
+    const extraTopics = [
+      'Sun\'iy intellekt etikasi',
+      'Kvant hisoblash',
+      'Bioinformatika',
+      'Robototexnika',
+      'Neyrointerfeyslar'
+    ];
+
+    // Mavzuni tanlash: agar id <= 30 bo'lsa asosiy, aks holda qo'shimcha
+    let topic;
+    if (id <= 30) {
+      topic = mainTopics[id - 1];
+    } else {
+      topic = extraTopics[id - 31];
+    }
     
     return {
       id: id,
-      title: `${id}-modul: ${topics[id-1] || 'Dasturlash asoslari'}`,
+      title: `${id}-modul: ${topic || 'Dasturlash asoslari'}`,
       label: `MODUL ${id}`,
-      action: id <= 3 ? 'Darsni boshlash' : 'Davom etish',
+      action: id <= 5 ? 'Darsni boshlash' : (id <= 15 ? 'Davom etish' : (id <= 30 ? 'Tez kunda' : 'Premium dars')),
       url: `modul${id}.html`,
-      status: id <= 3 ? 'available' : 'in-progress'
+      status: id <= 5 ? 'available' : (id <= 15 ? 'in-progress' : (id <= 30 ? 'coming-soon' : 'premium'))
     };
   });
 
@@ -215,8 +261,24 @@
   function renderModules() {
     const container = document.getElementById('moduleContainer');
     container.innerHTML = modules.map(m => {
-      // Statusga qarab action rangini o'zgartirish (ko'k o'rniga kulrang)
-      const actionColor = m.status === 'available' ? '#ffffff' : '#cccccc';
+      // Statusga qarab action rangini o'zgartirish
+      let actionColor;
+      switch(m.status) {
+        case 'available':
+          actionColor = '#ffffff';
+          break;
+        case 'in-progress':
+          actionColor = '#cccccc';
+          break;
+        case 'coming-soon':
+          actionColor = '#666666';
+          break;
+        case 'premium':
+          actionColor = '#ffd700'; // Oltin rang (premium uchun)
+          break;
+        default:
+          actionColor = '#666666';
+      }
       
       return `
         <div class="lesson-card" onclick="openModule(${m.id}, '${m.url}')">
