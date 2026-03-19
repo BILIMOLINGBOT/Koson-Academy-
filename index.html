@@ -3,357 +3,286 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>LearnU · Video platforma</title>
+  <title>LearnU · Asosiy</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    * { 
-      margin: 0; 
-      padding: 0; 
-      box-sizing: border-box; 
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-      -webkit-tap-highlight-color: transparent; 
-    }
+    /* CSS o'zgarishsiz qoldi, faqat silliq o'tishlar qo'shildi */
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background: #000; color: #fff; height: 100vh; overflow: hidden; }
+    .app-wrapper { width: 100%; max-width: 420px; height: 100vh; margin: 0 auto; display: flex; flex-direction: column; }
     
-    body { 
-      background: #000; 
-      color: #fff; 
-      min-height: 100vh; 
-      display: flex; 
-      justify-content: center; 
-    }
-    
-    .app-wrapper { 
-      width: 100%; 
-      max-width: 480px; 
-      min-height: 100vh; 
-      background: #000; 
-      position: relative; 
-    }
-    
-    /* Header */
-    .header { 
-      padding: 16px 20px; 
-      display: flex; 
-      align-items: center; 
-      justify-content: space-between; 
-      background: #000;
-      border-bottom: 1px solid #222;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-    
-    .avatar-wrapper { 
-      display: flex; 
-      align-items: center; 
-      gap: 12px; 
-      cursor: pointer;
-    }
-    
+    .header { padding: 20px; display: flex; align-items: center; justify-content: space-between; }
+    .avatar-wrapper { display: flex; align-items: center; gap: 12px; }
     .avatar-circle { 
       width: 45px; 
       height: 45px; 
-      background: linear-gradient(135deg, #333, #111); 
+      background: #222; 
       border-radius: 50%; 
       display: flex; 
       align-items: center; 
       justify-content: center; 
       font-weight: bold; 
       font-size: 1.2rem; 
-      border: 2px solid #007aff; 
+      border: 1px solid #333; 
       overflow: hidden; 
     }
-    
     .avatar-circle img { 
       width: 100%; 
       height: 100%; 
       object-fit: cover; 
       display: block;
     }
-    
-    .gradient-name {
-      background: linear-gradient(135deg, #fff, #aaccff);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      font-weight: 600;
+
+    .scroll-container { 
+      flex: 1;
+      display: flex; 
+      overflow-x: auto; 
+      scroll-snap-type: x mandatory; 
+      padding: 10px 20px; 
+      gap: 15px; 
+      align-items: center;
+      -ms-overflow-style: none; scrollbar-width: none;
     }
-    
-    .points-badge { 
-      background: #fff; 
-      color: #000; 
-      padding: 6px 14px; 
-      border-radius: 20px; 
-      font-weight: 600; 
-      font-size: 14px; 
-    }
-    
-    /* Videolar grid */
-    .videos-container {
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-    
-    .video-card {
-      background: #111;
-      border-radius: 12px;
-      overflow: hidden;
+    .scroll-container::-webkit-scrollbar { display: none; }
+
+    .lesson-card { 
+      flex: 0 0 85%; 
+      height: 60vh; 
+      border-radius: 30px; 
+      padding: 30px; 
+      display: flex; 
+      flex-direction: column; 
+      justify-content: space-between; 
+      scroll-snap-align: center; 
+      background: linear-gradient(145deg, #1c1c1e, #0a0a0a); 
+      border: 1px solid rgba(255,255,255,0.1);
       cursor: pointer;
       transition: transform 0.2s;
-      border: 1px solid #222;
     }
-    
-    .video-card:active {
+    .lesson-card:active {
       transform: scale(0.98);
     }
-    
-    .video-thumbnail {
-      width: 100%;
-      aspect-ratio: 16/9;
-      background: #000;
-      position: relative;
-      overflow: hidden;
+
+    .tab-bar { 
+      height: 80px; background: rgba(20, 20, 20, 0.95); backdrop-filter: blur(10px);
+      display: flex; justify-content: space-around; align-items: center;
+      border-top: 0.5px solid #333; padding-bottom: env(safe-area-inset-bottom);
     }
+    .tab-item { color: #8e8e93; text-decoration: none; text-align: center; font-size: 10px; }
+    .tab-item.active { color: #ffffff; }
+    .tab-item svg { width: 24px; height: 24px; display: block; margin: 0 auto 4px; stroke: currentColor; fill: none; }
     
-    .video-thumbnail video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      pointer-events: none;
-    }
+    .points-badge { background: #fff; color: #000; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 14px; }
     
-    .video-info {
-      padding: 12px;
-    }
-    
-    .video-title {
-      font-size: 16px;
-      font-weight: 600;
-      margin-bottom: 6px;
-      color: #fff;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    
-    .video-meta {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      color: #888;
-      font-size: 13px;
-    }
-    
-    .video-author {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    
-    .video-stats {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .empty-state {
-      text-align: center;
-      color: #666;
-      padding: 60px 20px;
-      font-size: 16px;
-    }
-    
-    .empty-state svg {
-      width: 60px;
-      height: 60px;
-      margin-bottom: 16px;
-      opacity: 0.5;
-    }
-    
-    .loading-spinner {
-      width: 40px;
-      height: 40px;
-      border: 3px solid #333;
-      border-top: 3px solid #007aff;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin: 40px auto;
-    }
-    
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    
-    .upload-prompt {
-      background: #1a1a1a;
-      border-radius: 12px;
-      padding: 32px 20px;
-      text-align: center;
-      border: 1px dashed #333;
-      margin: 20px;
-    }
-    
-    .upload-prompt button {
-      background: #007aff;
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 24px;
-      font-size: 16px;
-      font-weight: 600;
-      margin-top: 16px;
-      cursor: pointer;
+    /* Gradient text for full name - oq va kulrang */
+    .gradient-name {
+      background: linear-gradient(135deg, #fff, #cccccc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <div class="app-wrapper">
-    <!-- Header -->
-    <div class="header" onclick="navigateTo('profil.html')">
-      <div class="avatar-wrapper">
-        <div class="avatar-circle" id="userAvatar">
-          <span id="avatarInitial">?</span>
-          <img id="avatarImage" src="" alt="avatar" style="display: none;">
-        </div>
-        <div>
-          <h4 id="userName" class="gradient-name">Yuklanmoqda...</h4>
-        </div>
-      </div>
-      <div class="points-badge" id="userPoints">⚡ 0</div>
-    </div>
 
-    <!-- Videolar ro'yxati -->
-    <div class="videos-container" id="videosContainer">
-      <div class="loading-spinner"></div>
+<div class="app-wrapper">
+  <div class="header" onclick="navigateTo('profil.html')">
+    <div class="avatar-wrapper">
+      <div class="avatar-circle" id="userAvatar">
+        <span id="avatarInitial">?</span>
+        <img id="avatarImage" src="" alt="avatar" style="display: none;">
+      </div>
+      <div>
+        <h4 id="userName" class="gradient-name">Yuklanmoqda...</h4>
+      </div>
     </div>
+    <div class="points-badge" id="userPoints">⚡ 0</div>
   </div>
 
-  <script>
-    const tg = window.Telegram.WebApp;
-    tg.expand();
-    tg.setHeaderColor('secondary_bg_color');
-    tg.setBackgroundColor('bg_color');
+  <div class="scroll-container" id="moduleContainer">
+    </div>
 
-    let allVideos = [];
+  <nav class="tab-bar">
+    <a href="index.html" class="tab-item active" onclick="navigateTo('index.html')">
+      <svg viewBox="0 0 24 24" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      <span>Asosiy</span>
+    </a>
+    <a href="reyting.html" class="tab-item" onclick="navigateTo('reyting.html')">
+      <svg viewBox="0 0 24 24" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span>Reyting</span>
+    </a>
+    <a href="gift.html" class="tab-item" onclick="navigateTo('gift.html')">
+      <svg viewBox="0 0 24 24" stroke-width="2"><rect x="2" y="7" width="20" height="5"/><path d="M20 12v10H4V12M12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+      <span>Sovg'alar</span>
+    </a>
+  </nav>
+</div>
 
-    // Yuklash
-    function loadVideos() {
-      allVideos = JSON.parse(localStorage.getItem('videos')) || [];
-      renderVideos();
-    }
+<script>
+  const tg = window.Telegram.WebApp;
+  tg.expand();
+  
+  // Ranglarni Telegram mavzusiga moslash
+  tg.setHeaderColor('secondary_bg_color');
+  tg.setBackgroundColor('bg_color');
 
-    // Videolarni ko'rsatish
-    function renderVideos() {
-      const container = document.getElementById('videosContainer');
-      
-      if (allVideos.length === 0) {
-        container.innerHTML = `
-          <div class="empty-state">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="1.5">
-              <path d="M14 2H6C4.9 2 4.01 2.9 4.01 4L4 20C4 21.1 4.89 22 5.99 22H18C19.1 22 20 21.1 20 20V8L14 2Z" />
-              <path d="M8 12H16V14H8V12ZM8 16H16V18H8V16Z" />
-            </svg>
-            <p>Hozircha hech qanday video yo'q</p>
-            <div class="upload-prompt">
-              <p>Birinchi videongizni yuklang!</p>
-              <button onclick="navigateTo('videoupdate.html')">Video yuklash</button>
-            </div>
-          </div>
-        `;
-        return;
-      }
-
-      container.innerHTML = allVideos
-        .sort((a, b) => b.id - a.id) // Yangilari tepada
-        .map(video => `
-          <div class="video-card" onclick="openVideo(${video.id})">
-            <div class="video-thumbnail">
-              <video muted preload="metadata">
-                <source src="${video.videoUrl}" type="video/mp4">
-              </video>
-            </div>
-            <div class="video-info">
-              <div class="video-title">${video.title || 'Nomsiz video'}</div>
-              <div class="video-meta">
-                <span class="video-author">${video.author || 'Foydalanuvchi'}</span>
-                <span>•</span>
-                <span>${video.views || 0} ko'rish</span>
-                <span>•</span>
-                <span>${video.timeAgo || 'hozirgina'}</span>
-              </div>
-            </div>
-          </div>
-        `).join('');
-
-      // Thumbnail videolarni hover effekti
-      document.querySelectorAll('.video-card').forEach(card => {
-        const video = card.querySelector('video');
-        if (video) {
-          card.addEventListener('mouseenter', () => {
-            video.play().catch(() => {});
-          });
-          card.addEventListener('mouseleave', () => {
-            video.pause();
-            video.currentTime = 0;
-          });
-        }
-      });
-    }
-
-    // Videoni ochish
-    window.openVideo = function(videoId) {
-      const video = allVideos.find(v => v.id === videoId);
-      if (video) {
-        // Ko'rishlar sonini oshirish
-        video.views = (parseInt(video.views) || 0) + 1;
-        localStorage.setItem('videos', JSON.stringify(allVideos));
-        
-        // Joriy videoni saqlash
-        localStorage.setItem('currentVideo', JSON.stringify(video));
-        navigateTo('videoview.html');
-      }
+  // Modullar ma'lumotlari (30 ta)
+  const moduleUrls = Array.from({ length: 30 }, (_, i) => `modul${i + 1}.html`);
+  
+  const modules = Array.from({ length: 30 }, (_, i) => {
+    const id = i + 1;
+    // Har bir modul uchun turli mavzular
+    const topics = [
+      'Dasturlash asoslari',
+      'Algoritmlar',
+      'Ma\'lumotlar tuzilmasi',
+      'Veb dasturlash',
+      'Mobil dasturlash',
+      'Sun\'iy intellekt',
+      'Ma\'lumotlar bazasi',
+      'Tarmoq texnologiyalari',
+      'Kiberxavfsizlik',
+      'Bulutli hisoblash',
+      'Python dasturlash',
+      'JavaScript asoslari',
+      'React.js',
+      'Node.js',
+      'Flutter',
+      'Kotlin',
+      'Swift',
+      'Java',
+      'C++ dasturlash',
+      'Go dasturlash',
+      'DevOps asoslari',
+      'Docker va Kubernetes',
+      'Machine Learning',
+      'Deep Learning',
+      'Data Science',
+      'Blockchain',
+      'IoT texnologiyalari',
+      'AR/VR dasturlash',
+      'Game Development',
+      'Software Architecture'
+    ];
+    
+    return {
+      id: id,
+      title: `${id}-modul: ${topics[id-1] || 'Dasturlash asoslari'}`,
+      label: `MODUL ${id}`,
+      action: id <= 5 ? 'Darsni boshlash' : (id <= 15 ? 'Davom etish' : 'Tez kunda'),
+      url: `modul${id}.html`,
+      status: id <= 5 ? 'available' : (id <= 15 ? 'in-progress' : 'coming-soon')
     };
+  });
 
-    // Telegram ma'lumotlarini olish
-    function initTelegramData() {
-      const user = tg.initDataUnsafe?.user;
+  function setAvatar(user) {
+    const avatarInitial = document.getElementById('avatarInitial');
+    const avatarImage = document.getElementById('avatarImage');
+    
+    if (user && user.photo_url) {
+      // Telegram profil rasmi mavjud
+      avatarImage.src = user.photo_url;
+      avatarImage.style.display = 'block';
+      avatarInitial.style.display = 'none';
       
-      if (user) {
-        let fullName = user.first_name || 'Foydalanuvchi';
-        if (user.last_name) {
-          fullName = `${user.first_name} ${user.last_name}`;
+      // Rasm yuklanmasa, initial harfni ko'rsatish
+      avatarImage.onerror = function() {
+        avatarImage.style.display = 'none';
+        avatarInitial.style.display = 'block';
+        if (user.first_name) {
+          avatarInitial.textContent = user.first_name.charAt(0).toUpperCase();
         }
-        document.getElementById('userName').textContent = fullName;
-        
-        // Avatar
-        const avatarInitial = document.getElementById('avatarInitial');
-        const avatarImage = document.getElementById('avatarImage');
-        
-        if (user.photo_url) {
-          avatarImage.src = user.photo_url;
-          avatarImage.style.display = 'block';
-          avatarInitial.style.display = 'none';
-        } else {
-          avatarInitial.textContent = user.first_name?.charAt(0).toUpperCase() || '?';
-        }
+      };
+    } else {
+      // Profil rasmi yo'q, initial harfni ko'rsatish
+      avatarImage.style.display = 'none';
+      avatarInitial.style.display = 'block';
+      
+      if (user && user.first_name) {
+        avatarInitial.textContent = user.first_name.charAt(0).toUpperCase();
+      } else {
+        avatarInitial.textContent = '?';
       }
     }
+  }
 
-    // Navigatsiya
-    window.navigateTo = function(url) {
+  function initApp() {
+    const user = tg.initDataUnsafe?.user;
+    
+    // Foydalanuvchi ismi va familiyasi
+    if (user) {
+      // To'liq ismni yaratish (ism + familiya)
+      let fullName = user.first_name || 'Foydalanuvchi';
+      if (user.last_name) {
+        fullName = `${user.first_name} ${user.last_name}`;
+      }
+      document.getElementById('userName').textContent = fullName;
+      
+      // Avatar - Telegram profil rasmi yoki initial harf
+      setAvatar(user);
+      
+      // Konsolga ma'lumot chiqarish (test uchun)
+      console.log('Telegram user:', user);
+      console.log('Photo URL:', user.photo_url);
+    } else {
+      // Agar user ma'lumoti bo'lmasa
+      document.getElementById('userName').textContent = 'Mehmon';
+      setAvatar(null);
+    }
+
+    // Ballarni yuklash (Haqiqiy loyihada buni Backenddan fetch qilish kerak)
+    const points = localStorage.getItem('user_points') || 312;
+    document.getElementById('userPoints').textContent = `⚡ ${points}`;
+
+    renderModules();
+  }
+
+  function renderModules() {
+    const container = document.getElementById('moduleContainer');
+    container.innerHTML = modules.map(m => {
+      // Statusga qarab action rangini o'zgartirish (ko'k o'rniga kulrang)
+      const actionColor = m.status === 'available' ? '#ffffff' : (m.status === 'in-progress' ? '#cccccc' : '#666666');
+      
+      return `
+        <div class="lesson-card" onclick="openModule(${m.id}, '${m.url}')">
+          <span style="color: #8e8e93; font-size: 12px; font-weight: 600;">${m.label}</span>
+          <h2 style="font-size: 24px; line-height: 1.2;">${m.title}</h2>
+          <div style="color: ${actionColor}; font-weight: 600;">${m.action} →</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  window.navigateTo = function(url) {
+    // Tebranish effekti olib tashlandi
+    // Sahifa o'zgarishidan oldin biroz kechikish (visual feedback uchun)
+    setTimeout(() => {
       window.location.href = url;
-    };
+    }, 100);
+  };
 
-    // BackButton boshqaruvi
-    tg.BackButton.hide();
+  window.openModule = function(id, url) {
+    // Tebranish effekti olib tashlandi
+    localStorage.setItem('last_module', id);
+    localStorage.setItem(`module_${id}_status`, 'opened');
+    
+    // URL bo'yicha navigatsiya
+    setTimeout(() => {
+      window.location.href = url;
+    }, 100);
+  };
 
-    // Ishga tushirish
-    window.addEventListener('load', () => {
-      initTelegramData();
-      loadVideos();
+  // Telegram BackButton boshqarish
+  if (window.location.pathname.includes('modul') || window.location.pathname.includes('profil.html')) {
+    tg.BackButton.show();
+    tg.BackButton.onClick(() => {
+      window.history.back();
     });
-  </script>
+  } else {
+    tg.BackButton.hide();
+  }
+
+  initApp();
+</script>
 </body>
 </html>
