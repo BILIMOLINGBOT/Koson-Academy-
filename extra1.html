@@ -9,8 +9,10 @@
         :root {
             --bg-primary: #000000;
             --text-primary: #ffffff;
-            --player-green: #ffffff;  /* Oq rang */
+            --player-green: #ffffff;
             --player-grey: #4a4a4a;
+            --highlight-bg: #333333;
+            --tooltip-bg: #222222;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, sans-serif; }
@@ -37,14 +39,78 @@
             flex: 1;
             overflow-y: auto;
             padding-top: 20px;
-            line-height: 1.6;
+            line-height: 1.8;
             margin-bottom: 20px;
             scrollbar-width: none;
+            position: relative;
         }
         .lesson-content::-webkit-scrollbar { display: none; }
 
-        .lesson-content h2 { text-align: center; margin-bottom: 20px; }
-        .lesson-content p { margin-bottom: 15px; color: #ccc; }
+        .lesson-content h2 { 
+            text-align: center; 
+            margin-bottom: 20px; 
+            color: var(--text-primary);
+        }
+
+        /* Interaktiv so'zlar uchun stil */
+        .interactive-word {
+            display: inline-block;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 2px dotted rgba(255,255,255,0.3);
+            position: relative;
+        }
+
+        .interactive-word:hover {
+            background-color: var(--highlight-bg);
+            border-bottom-color: var(--player-green);
+        }
+
+        .interactive-word.active {
+            background-color: var(--highlight-bg);
+            border-bottom-color: var(--player-green);
+        }
+
+        /* Tooltip (tarjima va izoh) */
+        .word-tooltip {
+            position: fixed;
+            background: var(--tooltip-bg);
+            border: 1px solid #444;
+            border-radius: 12px;
+            padding: 12px 16px;
+            max-width: 300px;
+            width: auto;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+            z-index: 1000;
+            pointer-events: none;
+            backdrop-filter: blur(5px);
+            transition: opacity 0.2s ease;
+        }
+
+        .word-tooltip.hidden {
+            display: none;
+        }
+
+        .word-tooltip .word-original {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--player-green);
+            margin-bottom: 5px;
+        }
+
+        .word-tooltip .word-translation {
+            font-size: 16px;
+            color: #ccc;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #444;
+        }
+
+        .word-tooltip .word-example {
+            font-size: 14px;
+            color: #999;
+            font-style: italic;
+        }
 
         /* Audio Player */
         .audio-container {
@@ -111,7 +177,6 @@
 
         .icon-btn:active { transform: scale(0.9); }
         
-        /* Repeat tugmasi yoqilgandagi holat */
         .icon-btn.active {
             color: #ffffff;
             text-shadow: 0 0 8px var(--player-green);
@@ -119,7 +184,6 @@
 
         .play-pause-circle { font-size: 55px; }
 
-        /* Keyingi dars tugmasi (pastda kichikroq) */
         .finish-link {
             text-align: center;
             margin-top: 15px;
@@ -134,11 +198,27 @@
 <body>
 
 <div class="app-container">
-    <div class="lesson-content">
+    <div class="lesson-content" id="lesson-content">
         <h2>A Day in My Life</h2>
-        <p>I am a student. My name is Javlonbek. I am 20 years old. I am from Tashkent. My family is very kind. My father is a teacher and my mother is a nurse.</p>
-        <p>Today is Monday. I am at home now. The weather is good. The sun is shining and the sky is blue. My little brother is playing in the garden.</p>
-        <p>At night, I am feeling happy. My family is together. The house is quiet. My cat is sleeping next to me. I am thinking about tomorrow. Life is beautiful.</p>
+        <p id="text-content">
+            I am a student. My name is Javlonbek. I am 20 years old. I am from Tashkent. My family is very kind. My father is a teacher and my mother is a nurse. I am happy because my friends are always with me.
+            Today is Monday. I am at home now. The weather is good. The sun is shining and the sky is blue. My little brother is playing in the garden. My cat is sleeping on the sofa. I am sitting at the table and I am writing in my notebook.
+            In the morning, I was very tired because yesterday I was studying until late. My breakfast is simple. I am eating bread and drinking tea. My sister is making breakfast for my parents. She is very kind and helpful.
+            I am going to school by bus. My friends are on the bus with me. They are talking about their homework. I am listening to music. My teacher is very strict but he is also very smart. We are learning English grammar today.
+            In the classroom, my friends are answering questions. I am sometimes nervous because the questions are difficult. My notebook is full of notes. The lesson is interesting and I am enjoying it. My pen is on the desk. The blackboard is clean.
+            At noon, I am very hungry. My lunch is ready. My father is cooking in the kitchen. The food is delicious. My mother is smiling and my little brother is laughing. My cat is sleeping still. I am drinking water. The kitchen is warm and bright.
+            After lunch, I am going to the park. The park is big. There are many trees and flowers. Children are playing there. Some people are walking their dogs. I am meeting my friend Ali. He is very funny and kind. We are talking about school. The birds are singing. The air is fresh and cool.
+            In the evening, I am at home again. My homework is ready. My books are on the table. I am reading a story. My little brother is watching TV. My parents are resting. The sun is setting. The sky is orange and pink.
+            At night, I am feeling happy. My family is together. The house is quiet. My cat is sleeping next to me. I am thinking about tomorrow. I am ready to study more. Life is beautiful. My friends are wonderful. My dreams are big. I am thankful for everything.
+            Tomorrow is a new day. I am excited. My school is important. My family is important. My friends are important. I am learning new things every day. The world is full of opportunities. I am ready to grow. I am strong. I am happy.
+        </p>
+    </div>
+
+    <!-- Tooltip -->
+    <div id="word-tooltip" class="word-tooltip hidden">
+        <div class="word-original" id="tooltip-original"></div>
+        <div class="word-translation" id="tooltip-translation"></div>
+        <div class="word-example" id="tooltip-example"></div>
     </div>
 
     <audio id="main-audio" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
@@ -179,11 +259,233 @@
     const progressFill = document.getElementById('progress-fill');
     const currentTimeEl = document.getElementById('current-time');
     const repeatBtn = document.getElementById('repeat-btn');
+    const lessonContent = document.getElementById('lesson-content');
+    const textContent = document.getElementById('text-content');
+    const tooltip = document.getElementById('word-tooltip');
+    const tooltipOriginal = document.getElementById('tooltip-original');
+    const tooltipTranslation = document.getElementById('tooltip-translation');
+    const tooltipExample = document.getElementById('tooltip-example');
 
     let isPlaying = false;
     let isRepeat = false;
 
-    // Play/Pause funksiyasi
+    // So'zlar lug'ati (interaktiv so'zlar uchun)
+    const wordDictionary = {
+        'student': { translation: 'talaba', example: 'I am a student. / Men talabaman.' },
+        'name': { translation: 'ism', example: 'My name is Javlonbek. / Mening ismim Javlonbek.' },
+        'family': { translation: 'oila', example: 'My family is kind. / Mening oilam mehribon.' },
+        'father': { translation: 'ota', example: 'My father is a teacher. / Otam o\'qituvchi.' },
+        'mother': { translation: 'ona', example: 'My mother is a nurse. / Onam hamshira.' },
+        'teacher': { translation: 'o\'qituvchi', example: 'He is a teacher. / U o\'qituvchi.' },
+        'nurse': { translation: 'hamshira', example: 'She is a nurse. / U hamshira.' },
+        'happy': { translation: 'baxtli, xursand', example: 'I am happy. / Men baxtliman.' },
+        'friends': { translation: 'do\'stlar', example: 'My friends are kind. / Do\'stlarim mehribon.' },
+        'today': { translation: 'bugun', example: 'Today is Monday. / Bugun dushanba.' },
+        'monday': { translation: 'dushanba', example: 'Today is Monday. / Bugun dushanba.' },
+        'home': { translation: 'uy', example: 'I am at home. / Men uydaman.' },
+        'weather': { translation: 'ob-havo', example: 'The weather is good. / Ob-havo yaxshi.' },
+        'sun': { translation: 'quyosh', example: 'The sun is shining. / Quyosh charaqlab turibdi.' },
+        'sky': { translation: 'osmon', example: 'The sky is blue. / Osmon moviy.' },
+        'brother': { translation: 'aka/uka', example: 'My little brother. / Mening kenja ukam.' },
+        'playing': { translation: 'o\'ynamoq', example: 'He is playing. / U o\'ynayapti.' },
+        'garden': { translation: 'bog\'', example: 'In the garden. / Bog\'da.' },
+        'cat': { translation: 'mushuk', example: 'My cat is sleeping. / Mening mushugim uxlayapti.' },
+        'sleeping': { translation: 'uxlamoq', example: 'The cat is sleeping. / Mushuk uxlayapti.' },
+        'sofa': { translation: 'divan', example: 'On the sofa. / Divanda.' },
+        'sitting': { translation: 'o\'tirmoq', example: 'I am sitting. / Men o\'tiribman.' },
+        'table': { translation: 'stol', example: 'At the table. / Stol yonida.' },
+        'writing': { translation: 'yozmoq', example: 'I am writing. / Men yozyapman.' },
+        'notebook': { translation: 'daftar', example: 'My notebook. / Mening daftarim.' },
+        'morning': { translation: 'ertalab', example: 'In the morning. / Ertalab.' },
+        'tired': { translation: 'charchagan', example: 'I was tired. / Men charchagan edim.' },
+        'yesterday': { translation: 'kecha', example: 'Yesterday I studied. / Kecha men o\'qidim.' },
+        'studying': { translation: 'o\'qimoq', example: 'I was studying. / Men o\'qiyotgan edim.' },
+        'breakfast': { translation: 'nonushta', example: 'My breakfast. / Mening nonushtam.' },
+        'simple': { translation: 'oddiy', example: 'Simple breakfast. / Oddiy nonushta.' },
+        'eating': { translation: 'yemoq', example: 'I am eating. / Men yeyapman.' },
+        'bread': { translation: 'non', example: 'Eating bread. / Non yemoq.' },
+        'drinking': { translation: 'ichmoq', example: 'Drinking tea. / Choy ichmoq.' },
+        'tea': { translation: 'choy', example: 'Drinking tea. / Choy ichish.' },
+        'sister': { translation: 'opa/singil', example: 'My sister. / Mening opam/singlim.' },
+        'making': { translation: 'qilmoq, tayyorlamoq', example: 'Making breakfast. / Nonushta tayyorlash.' },
+        'parents': { translation: 'ota-ona', example: 'My parents. / Mening ota-onam.' },
+        'helpful': { translation: 'yordamchi', example: 'She is helpful. / U yordamchi.' },
+        'going': { translation: 'bormoq, ketmoq', example: 'I am going. / Men ketyapman.' },
+        'school': { translation: 'maktab', example: 'Going to school. / Maktabga borish.' },
+        'bus': { translation: 'avtobus', example: 'By bus. / Avtobusda.' },
+        'talking': { translation: 'gapirish', example: 'They are talking. / Ular gaplashyapti.' },
+        'homework': { translation: 'uy vazifasi', example: 'My homework. / Mening uy vazifam.' },
+        'listening': { translation: 'eshitmoq', example: 'Listening to music. / Musiqa eshitish.' },
+        'music': { translation: 'musiqa', example: 'Listening to music. / Musiqa eshitish.' },
+        'strict': { translation: 'qattiqqo\'l', example: 'Strict teacher. / Qattiqqo\'l o\'qituvchi.' },
+        'smart': { translation: 'aqlli', example: 'He is smart. / U aqlli.' },
+        'learning': { translation: 'o\'rganmoq', example: 'Learning English. / Ingliz tilini o\'rganish.' },
+        'english': { translation: 'ingliz tili', example: 'English grammar. / Ingliz tili grammatikasi.' },
+        'grammar': { translation: 'grammatika', example: 'English grammar. / Ingliz tili grammatikasi.' },
+        'classroom': { translation: 'sinfxona', example: 'In the classroom. / Sinfxonada.' },
+        'answering': { translation: 'javob bermoq', example: 'Answering questions. / Savollarga javob berish.' },
+        'questions': { translation: 'savollar', example: 'Difficult questions. / Qiyin savollar.' },
+        'nervous': { translation: 'asabiy', example: 'I am nervous. / Men asabiyman.' },
+        'difficult': { translation: 'qiyin', example: 'Difficult questions. / Qiyin savollar.' },
+        'full': { translation: 'to\'la', example: 'Full of notes. / Yozuvlarga to\'la.' },
+        'notes': { translation: 'yozuvlar', example: 'My notes. / Mening yozuvlarim.' },
+        'lesson': { translation: 'dars', example: 'The lesson is interesting. / Dars qiziqarli.' },
+        'interesting': { translation: 'qiziqarli', example: 'Interesting lesson. / Qiziqarli dars.' },
+        'enjoying': { translation: 'yoqtirib qilmoq', example: 'I am enjoying it. / Menga yoqyapti.' },
+        'pen': { translation: 'ruchka', example: 'My pen. / Mening ruchkam.' },
+        'desk': { translation: 'parta', example: 'On the desk. / Partada.' },
+        'blackboard': { translation: 'doska', example: 'The blackboard is clean. / Doska toza.' },
+        'clean': { translation: 'toza', example: 'Clean blackboard. / Toza doska.' },
+        'noon': { translation: 'tush payti', example: 'At noon. / Tush paytida.' },
+        'hungry': { translation: 'och', example: 'I am hungry. / Men ochman.' },
+        'lunch': { translation: 'tushlik', example: 'My lunch. / Mening tushligim.' },
+        'ready': { translation: 'tayyor', example: 'Ready lunch. / Tayyor tushlik.' },
+        'cooking': { translation: 'pishirmoq', example: 'Cooking in the kitchen. / Oshxonada pishirish.' },
+        'kitchen': { translation: 'oshxona', example: 'In the kitchen. / Oshxonada.' },
+        'food': { translation: 'ovqat', example: 'Delicious food. / Mazali ovqat.' },
+        'delicious': { translation: 'mazali', example: 'Delicious food. / Mazali ovqat.' },
+        'smiling': { translation: 'jilmayish', example: 'She is smiling. / U jilmayapti.' },
+        'laughing': { translation: 'kulish', example: 'He is laughing. / U kulyapti.' },
+        'water': { translation: 'suv', example: 'Drinking water. / Suv ichish.' },
+        'warm': { translation: 'iliq', example: 'Warm kitchen. / Iliq oshxona.' },
+        'bright': { translation: 'yorug\'', example: 'Bright kitchen. / Yorug\' oshxona.' },
+        'park': { translation: 'bog\'', example: 'Going to the park. / Bog\'ga borish.' },
+        'big': { translation: 'katta', example: 'Big park. / Katta bog\'.' },
+        'trees': { translation: 'daraxtlar', example: 'Many trees. / Ko\'p daraxtlar.' },
+        'flowers': { translation: 'gullar', example: 'Beautiful flowers. / Chiroyli gullar.' },
+        'children': { translation: 'bolalar', example: 'Children are playing. / Bolalar o\'ynayapti.' },
+        'people': { translation: 'odamlar', example: 'Many people. / Ko\'p odamlar.' },
+        'walking': { translation: 'yurish', example: 'Walking dogs. / Itlarni sayr qildirish.' },
+        'dogs': { translation: 'itlar', example: 'Walking dogs. / Itlarni sayr qildirish.' },
+        'meeting': { translation: 'uchrashmoq', example: 'Meeting my friend. / Do\'stim bilan uchrashish.' },
+        'funny': { translation: 'kulgili', example: 'He is funny. / U kulgili.' },
+        'birds': { translation: 'qushlar', example: 'Birds are singing. / Qushlar sayrayapti.' },
+        'singing': { translation: 'sayrash, kuylash', example: 'Birds are singing. / Qushlar sayrayapti.' },
+        'air': { translation: 'havo', example: 'Fresh air. / Toza havo.' },
+        'fresh': { translation: 'toza', example: 'Fresh air. / Toza havo.' },
+        'cool': { translation: 'salqin', example: 'Cool air. / Salqin havo.' },
+        'evening': { translation: 'kechqurun', example: 'In the evening. / Kechqurun.' },
+        'books': { translation: 'kitoblar', example: 'My books. / Mening kitoblarim.' },
+        'reading': { translation: 'o\'qimoq', example: 'Reading a story. / Hikoya o\'qish.' },
+        'story': { translation: 'hikoya', example: 'Reading a story. / Hikoya o\'qish.' },
+        'watching': { translation: 'tomosha qilmoq', example: 'Watching TV. / Televizor tomosha qilish.' },
+        'resting': { translation: 'dam olmoq', example: 'Resting parents. / Ota-ona dam olyapti.' },
+        'setting': { translation: 'botish', example: The sun is setting. / Quyosh botyapti.' },
+        'orange': { translation: 'to\'q sariq', example: 'Orange sky. / To\'q sariq osmon.' },
+        'pink': { translation: 'pushti', example: 'Pink sky. / Pushti osmon.' },
+        'night': { translation: 'tun', example: 'At night. / Kechasi.' },
+        'feeling': { translation: 'his qilmoq', example: 'Feeling happy. / Baxtli his qilish.' },
+        'together': { translation: 'birga', example: 'Family together. / Oila birga.' },
+        'house': { translation: 'uy', example: 'Quiet house. / Tinch uy.' },
+        'quiet': { translation: 'tinch', example: 'Quiet house. / Tinch uy.' },
+        'next': { translation: 'yonida, keyingi', example: 'Next to me. / Yonimda.' },
+        'thinking': { translation: 'o\'ylamoq', example: 'Thinking about tomorrow. / Ertangi kun haqida o\'ylash.' },
+        'tomorrow': { translation: 'ertaga', example: 'Tomorrow is new day. / Ertaga yangi kun.' },
+        'life': { translation: 'hayot', example: 'Life is beautiful. / Hayot go\'zal.' },
+        'beautiful': { translation: 'go\'zal', example: 'Beautiful life. / Go\'zal hayot.' },
+        'wonderful': { translation: 'ajoyib', example: 'Wonderful friends. / Ajoyib do\'stlar.' },
+        'dreams': { translation: 'orzular', example: 'My dreams. / Mening orzularim.' },
+        'thankful': { translation: 'minnatdor', example: 'I am thankful. / Men minnatdorman.' },
+        'excited': { translation: 'hayajonlangan', example: 'I am excited. / Men hayajondaman.' },
+        'important': { translation: 'muhim', example: 'Family is important. / Oila muhim.' },
+        'world': { translation: 'dunyo', example: 'The world is full. / Dunyo to\'la.' },
+        'full': { translation: 'to\'la', example: 'Full of opportunities. / Imkoniyatlarga to\'la.' },
+        'opportunities': { translation: 'imkoniyatlar', example: 'Many opportunities. / Ko\'p imkoniyatlar.' },
+        'grow': { translation: 'o\'smoq', example: 'Ready to grow. / O\'sishga tayyor.' },
+        'strong': { translation: 'kuchli', example: 'I am strong. / Men kuchliman.' }
+    };
+
+    // Matnni so'zlarga ajratish va interaktiv qilish
+    function makeTextInteractive() {
+        if (!textContent) return;
+        
+        const originalText = textContent.innerText;
+        const words = originalText.split(/(\s+)/); // Bo'shliqlarni ham saqlash
+        
+        let htmlContent = '';
+        
+        words.forEach(word => {
+            if (word.trim() === '') {
+                htmlContent += word; // Bo'shliqlarni qo'shish
+            } else {
+                // So'zni tozalash (tinish belgilaridan)
+                const cleanWord = word.replace(/[.,!?;:'"()]/g, '').toLowerCase();
+                
+                // Lug'atda bormi?
+                if (wordDictionary[cleanWord]) {
+                    // Interaktiv so'z yaratish
+                    htmlContent += `<span class="interactive-word" data-word="${cleanWord}">${word}</span>`;
+                } else {
+                    htmlContent += word;
+                }
+            }
+        });
+        
+        textContent.innerHTML = htmlContent;
+        
+        // Interaktiv so'zlarga event listener qo'shish
+        document.querySelectorAll('.interactive-word').forEach(wordElement => {
+            wordElement.addEventListener('click', showWordInfo);
+        });
+    }
+
+    // So'z ma'lumotini ko'rsatish
+    function showWordInfo(event) {
+        const wordElement = event.currentTarget;
+        const word = wordElement.dataset.word;
+        const wordData = wordDictionary[word];
+        
+        if (!wordData) return;
+        
+        // Tooltipni to'ldirish
+        tooltipOriginal.textContent = wordElement.textContent;
+        tooltipTranslation.textContent = wordData.translation;
+        tooltipExample.textContent = wordData.example;
+        
+        // Tooltipni joylashtirish
+        const rect = wordElement.getBoundingClientRect();
+        const tooltipWidth = 300;
+        let left = rect.left + window.scrollX;
+        let top = rect.bottom + window.scrollY + 10;
+        
+        // Agar tooltip ekrandan chiqib ketsa, tepaga joylashtirish
+        if (top + 150 > window.innerHeight) {
+            top = rect.top - 120;
+        }
+        
+        tooltip.style.left = left + 'px';
+        tooltip.style.top = top + 'px';
+        
+        // Tooltipni ko'rsatish
+        tooltip.classList.remove('hidden');
+        
+        // Active class
+        document.querySelectorAll('.interactive-word').forEach(el => {
+            el.classList.remove('active');
+        });
+        wordElement.classList.add('active');
+        
+        // 3 sekunddan keyin tooltipni yashirish
+        setTimeout(() => {
+            tooltip.classList.add('hidden');
+            wordElement.classList.remove('active');
+        }, 3000);
+    }
+
+    // Tooltipni yashirish (boshqa joyga bosganda)
+    document.addEventListener('click', (event) => {
+        if (!event.target.classList.contains('interactive-word')) {
+            tooltip.classList.add('hidden');
+            document.querySelectorAll('.interactive-word').forEach(el => {
+                el.classList.remove('active');
+            });
+        }
+    });
+
+    // Matnni tayyorlash
+    makeTextInteractive();
+
+    // Audio player funksiyalari
     function togglePlay() {
         if (isPlaying) {
             audio.pause();
@@ -197,20 +499,17 @@
 
     playPauseBtn.addEventListener('click', togglePlay);
 
-    // Progress bar yangilanishi
     audio.addEventListener('timeupdate', () => {
         const { duration, currentTime } = audio;
         const progressPercent = (currentTime / duration) * 100;
         progressFill.style.width = `${progressPercent}%`;
 
-        // Vaqtni formatlash
         let minutes = Math.floor(currentTime / 60);
         let seconds = Math.floor(currentTime % 60);
         if (seconds < 10) seconds = `0${seconds}`;
         currentTimeEl.innerText = `0${minutes}:${seconds}`;
     });
 
-    // Progress barda ixtiyoriy joyga o'tish
     progressContainer.addEventListener('click', (e) => {
         const width = progressContainer.clientWidth;
         const clickX = e.offsetX;
@@ -218,19 +517,16 @@
         audio.currentTime = (clickX / width) * duration;
     });
 
-    // Repeat (Takrorlash) funksiyasi
     repeatBtn.addEventListener('click', () => {
         isRepeat = !isRepeat;
-        audio.loop = isRepeat; // Audio loop xususiyatini o'zgartirish
+        audio.loop = isRepeat;
         repeatBtn.classList.toggle('active', isRepeat);
     });
 
-    // Oldinga/Orqaga o'tkazish
     function skip(seconds) {
         audio.currentTime += seconds;
     }
 
-    // Audio tugaganda ikonkani to'g'rilash
     audio.addEventListener('ended', () => {
         if (!isRepeat) {
             playIcon.classList.replace('fa-circle-pause', 'fa-circle-play');
