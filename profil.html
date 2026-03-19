@@ -40,7 +40,7 @@
       flex-direction: column;
       animation: fadeIn 0.3s ease-out;
       overflow-y: auto;
-      padding-bottom: 40px;
+      padding-bottom: 20px;
     }
 
     @keyframes fadeIn {
@@ -53,58 +53,12 @@
       text-align: center;
       overflow-y: auto;
       height: 100%;
-    }
-
-    /* ── PROFIL MENYU ── */
-    .menu-list {
-      margin-top: 20px;
-      text-align: left;
-    }
-
-    .menu-item {
-      background: #1c1c1e;
-      padding: 18px 20px;
-      border-radius: 20px;
-      margin-bottom: 8px;
-      font-weight: 500;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 15px;
-      color: #fff;
-      transition: 0.2s;
-      border: 1px solid transparent;
-      cursor: pointer;
+      justify-content: flex-start;
     }
 
-    .menu-item:hover,
-    .menu-item:active {
-      background: #2c2c2e;
-      border-color: #007aff;
-    }
-
-    .menu-item svg {
-      width: 22px;
-      height: 22px;
-      stroke: #007aff;
-      fill: none;
-      stroke-width: 2;
-    }
-
-    .back-button {
-      margin-top: 30px;
-      color: #ff453a;
-      text-align: center;
-      font-weight: 600;
-      cursor: pointer;
-      padding: 15px;
-      border-radius: 20px;
-      background: #1c1c1e;
-    }
-    
-    .back-button:active {
-      background: #2c2c2e;
-    }
-    
     /* PROFIL SAHIFASI UCHUN STILLAR */
     .profile-avatar-large {
       width: 100px;
@@ -130,16 +84,39 @@
     .profile-name {
       font-size: 1.8rem;
       font-weight: 700;
-      margin-bottom: 30px;
+      margin-bottom: 40px;
       background: linear-gradient(135deg, #fff, #aaccff);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
-    
-    .menu-arrow {
-      margin-left: auto;
-      color: #5e5e62;
-      font-size: 1.2rem;
+
+    /* ── + IKONKASI (qo'shish tugmasi) ── */
+    .plus-button {
+      width: 70px;
+      height: 70px;
+      background: #007aff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 20px auto 0;
+      cursor: pointer;
+      transition: 0.2s;
+      box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+      border: none;
+    }
+
+    .plus-button:hover,
+    .plus-button:active {
+      background: #005bbf;
+      transform: scale(1.05);
+    }
+
+    .plus-button svg {
+      width: 36px;
+      height: 36px;
+      stroke: white;
+      stroke-width: 2;
     }
   </style>
 </head>
@@ -147,7 +124,7 @@
 
 <div class="app-wrapper">
   
-  <!-- PROFIL SAHIFASI (faqat "+" menyu bilan) -->
+  <!-- PROFIL SAHIFASI (faqat + ikonkasi bilan) -->
   <div class="profile-page">
     <div class="page-content">
       <div class="profile-avatar-large" id="profileAvatar">
@@ -158,17 +135,12 @@
       </div>
       <h1 class="profile-name" id="profileFullName">Javlonbek Rashidov</h1>
 
-      <!-- MENYU RO'YXATI - FAQAT "+" QOLDI -->
-      <div class="menu-list">
-        <div class="menu-item" onclick="showMenuItem('partner')">
-          <svg viewBox="0 0 24 24"><path d="M12 2v4M12 22v-4M4 12H2h2M20 12h2-2M5.64 5.64l-1.41 1.41 1.41-1.41M18.36 5.64l1.41 1.41-1.41-1.41"/><circle cx="12" cy="12" r="4"/></svg>
-          <span>+</span>  <!-- MATN FAQAT "+" -->
-          <span class="menu-arrow">›</span>
-        </div>
+      <!-- FAQAT + IKONKASI (barcha menyu va orqaga tugmasi olib tashlandi) -->
+      <div class="plus-button" onclick="handlePlusClick()">
+        <svg viewBox="0 0 24 24" stroke="currentColor" fill="none">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
       </div>
-
-      <!-- ORQAGA QAYTISH TUGMASI index.html ga -->
-      <div class="back-button" onclick="goToIndex()">← Orqaga qaytish</div>
     </div>
   </div>
 
@@ -189,9 +161,8 @@
     photoUrl: null
   };
   
-  // index.html ga qaytish
+  // index.html ga qaytish (BackButton uchun)
   function goToIndex() {
-    haptic.impactOccurred('light');
     window.location.href = 'index.html';
   }
   
@@ -231,31 +202,17 @@
     }
   }
   
-  // Promo kod (funksiya saqlanadi, lekin chaqirilmaydi — xatolikka yo'l qo'ymaslik uchun qoldirildi)
-  function showPromoCode() {
-    // mavjud emas
-  }
-  
-  // Menyu bandlari (faqat partner qoldi, lekin matni "+" ga moslandi)
-  function showMenuItem(item) {
-    haptic.impactOccurred('light');
-    
-    const titles = {
-      partner: '+'   // sarlavha ham "+" qilindi
-    };
-    
-    const messages = {
-      partner: 'Hamkorlik dasturi haqida maʼlumot: +998 90 123 45 67 yoki partner@learnu.uz'  // kerakli matn
-    };
-    
+  // + ikonkasi bosilganda ishlaydigan funksiya
+  function handlePlusClick() {
+    haptic.impactOccurred('medium');
     tg.showPopup({
-      title: titles[item] || 'Maʼlumot',
-      message: messages[item] || 'Bu boʻlim tez orada ishga tushadi! 🚀',
+      title: 'Qoʻshish',
+      message: 'Bu yerda yangi element qoʻshish interfeysi boʻladi. (Tez orada)',
       buttons: [{ type: 'close', text: 'Yopish' }]
     });
   }
   
-  // BackButton boshqaruvi
+  // BackButton boshqaruvi (orqaga qaytganda index.html ga o'tadi)
   tg.BackButton.show();
   tg.BackButton.onClick(() => {
     goToIndex();
