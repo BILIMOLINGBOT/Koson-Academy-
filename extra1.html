@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>LearnU · Keyingi</title>
+    <title>LearnU · Lesson</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
             --bg-primary: #000000;
             --text-primary: #ffffff;
+            --player-green: #386b42; /* Rasmdagi yashil rang */
+            --player-grey: #4a4a4a;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
@@ -38,6 +40,7 @@
             overflow-y: auto;
             padding-top: 20px;
             line-height: 1.6;
+            margin-bottom: 20px;
         }
 
         .lesson-content h2 {
@@ -50,36 +53,85 @@
         .lesson-content p {
             margin-bottom: 15px;
             font-size: 16px;
+            color: #e0e0e0;
         }
 
-        .lesson-content b {
-            display: block;
-            margin-top: 10px;
-            color: #ffffff;
+        /* Audio Player Dizayni */
+        .audio-container {
+            background: #1a1a1a; /* Pastki panel foni */
+            padding: 20px;
+            border-radius: 20px;
+            margin-bottom: 10px;
         }
 
-        /* Navigatsiya tugmasi */
-        .next-btn {
-            width: 100%;
-            height: 65px;
-            background: #ffffff;
-            color: #000000;
+        .progress-area {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .time-text {
+            color: #888;
+            font-size: 14px;
+            font-family: monospace;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 3px;
+            background: var(--player-grey);
+            position: relative;
+            border-radius: 2px;
+        }
+
+        .progress-fill {
+            width: 70%; /* Rasmdagi holat */
+            height: 100%;
+            background: var(--player-green);
+            position: relative;
+        }
+
+        .progress-dot {
+            width: 12px;
+            height: 12px;
+            background: var(--player-green);
+            border-radius: 50%;
+            position: absolute;
+            right: -6px;
+            top: -4.5px;
+        }
+
+        .player-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 5px;
+        }
+
+        .icon-btn {
+            background: none;
             border: none;
-            border-radius: 32px;
-            font-size: 18px;
-            font-weight: 700;
+            color: var(--player-green);
+            font-size: 22px;
             cursor: pointer;
-            text-transform: uppercase;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            transition: 0.2s;
-            box-shadow: 0 8px 20px rgba(255,255,255,0.1);
-            margin-top: 10px;
+            transition: transform 0.1s;
         }
-        .next-btn:active { transform: scale(0.96); opacity: 0.9; }
-        
+
+        .icon-btn:active { transform: scale(0.9); }
+
+        /* Pauza tugmasi uchun maxsus doira */
+        .play-pause-circle {
+            font-size: 50px;
+            position: relative;
+        }
+
+        /* Maxsus "shuffle" va "repeat" piktogrammalari */
+        .small-icon { font-size: 18px; }
+
         /* Scrollbarni yashirish */
         .lesson-content::-webkit-scrollbar { display: none; }
     </style>
@@ -99,25 +151,37 @@
         <p>I am going to school by bus. My friends are on the bus with me. They are talking about their homework. I am listening to music. My teacher is very strict but he is also very smart. We are learning English grammar today.</p>
 
         <p>In the classroom, my friends are answering questions. I am sometimes nervous because the questions are difficult. My notebook is full of notes. The lesson is interesting and I am enjoying it. My pen is on the desk. The blackboard is clean.</p>
-
-        <p>At noon, I am very hungry. My lunch is ready. My father is cooking in the kitchen. The food is delicious. My mother is smiling and my little brother is laughing. My cat is sleeping still. I am drinking water. The kitchen is warm and bright.</p>
-
-        <p>After lunch, I am going to the park. The park is big. There are many trees and flowers. Children are playing there. Some people are walking their dogs. I am meeting my friend Ali. He is very funny and kind. We are talking about school. The birds are singing. The air is fresh and cool.</p>
-
-        <p>In the evening, I am at home again. My homework is ready. My books are on the table. I am reading a story. My little brother is watching TV. My parents are resting. The sun is setting. The sky is orange and pink.</p>
-
-        <p>At night, I am feeling happy. My family is together. The house is quiet. My cat is sleeping next to me. I am thinking about tomorrow. I am ready to study more. Life is beautiful. My friends are wonderful. My dreams are big. I am thankful for everything.</p>
-
-        <p>Tomorrow is a new day. I am excited. My school is important. My family is important. My friends are important. I am learning new things every day. The world is full of opportunities. I am ready to grow. I am strong. I am happy.</p>
     </div>
 
-    <button class="next-btn" onclick="goToIndex()">
-        Keyingi <i class="fas fa-arrow-right"></i>
-    </button>
+    <div class="audio-container">
+        <div class="progress-area">
+            <span class="time-text">00:04</span>
+            <div class="progress-bar">
+                <div class="progress-fill">
+                    <div class="progress-dot"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="player-controls">
+            <button class="icon-btn small-icon"><i class="fa-solid fa-up-down"></i></button>
+            
+            <button class="icon-btn"><i class="fa-solid fa-step-backward"></i></button>
+            
+            <button class="icon-btn play-pause-circle" onclick="goToIndex()">
+                <i class="fa-regular fa-circle-pause"></i>
+            </button>
+            
+            <button class="icon-btn"><i class="fa-solid fa-step-forward"></i></button>
+            
+            <button class="icon-btn small-icon"><i class="fa-solid fa-repeat"></i></button>
+        </div>
+    </div>
 </div>
 
 <script>
     function goToIndex() {
+        // Bu funksiya orqali foydalanuvchi "Keyingi" sahifaga o'tadi
         window.location.href = 'index.html';
     }
 </script>
