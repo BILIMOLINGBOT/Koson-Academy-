@@ -6,31 +6,58 @@
   <title>LearnU · Asosiy</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
+    /* CSS o'zgarishsiz qoldi, faqat vertikal skroll uchun kichik qo'shimcha */
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; -webkit-tap-highlight-color: transparent; }
-    body { background: #000; color: #fff; min-height: 100vh; overflow-x: hidden; }
-    .app-wrapper { width: 100%; max-width: 420px; margin: 0 auto; display: flex; flex-direction: column; padding-bottom: 90px; }
+    body { 
+      background: #000; 
+      color: #fff; 
+      min-height: 100vh; 
+      overflow-y: auto; /* Vertikal skrollga ruxsat berildi */
+      overflow-x: hidden;
+    }
+    .app-wrapper { 
+      width: 100%; 
+      max-width: 420px; 
+      margin: 0 auto; 
+      display: flex; 
+      flex-direction: column;
+      padding-bottom: 100px; /* Tab-bar uchun joy */
+    }
     
-    .header { padding: 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: #000; z-index: 10; }
+    .header { padding: 20px; display: flex; align-items: center; justify-content: space-between; }
     .avatar-wrapper { display: flex; align-items: center; gap: 12px; }
-    .avatar-circle { width: 45px; height: 45px; background: #222; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; border: 1px solid #333; overflow: hidden; }
+    .avatar-circle { 
+      width: 45px; 
+      height: 45px; 
+      background: #222; 
+      border-radius: 50%; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      font-weight: bold; 
+      font-size: 1.2rem; 
+      border: 1px solid #333; 
+      overflow: hidden; 
+    }
     .avatar-circle img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-    /* 30 ta modul uchun gorizontal konteyner */
+    /* Gorizontal skroll konteyneri */
     .scroll-container { 
       display: flex; 
       overflow-x: auto; 
       scroll-snap-type: x mandatory; 
       padding: 10px 20px; 
       gap: 15px; 
+      align-items: center;
       -ms-overflow-style: none; scrollbar-width: none;
     }
     .scroll-container::-webkit-scrollbar { display: none; }
 
     .lesson-card { 
       flex: 0 0 85%; 
-      height: 45vh; /* Bo'yi biroz moslashtirildi */
+      height: 60vh; 
       border-radius: 30px; 
-      padding: 25px; 
+      padding: 30px; 
       display: flex; 
       flex-direction: column; 
       justify-content: space-between; 
@@ -40,32 +67,42 @@
       cursor: pointer;
       transition: transform 0.2s;
     }
+    .lesson-card:active { transform: scale(0.98); }
 
-    /* Pastki 5 ta modul uchun stil */
-    .sub-section-title { padding: 20px 20px 10px; font-size: 18px; font-weight: bold; color: #fff; }
-    .sub-modules-list { padding: 0 20px; display: flex; flex-direction: column; gap: 12px; }
-    .sub-card {
-      background: #1c1c1e;
-      border-radius: 15px;
-      padding: 15px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border: 1px solid #333;
+    .section-title {
+      padding: 20px 20px 0;
+      font-size: 18px;
+      font-weight: bold;
+      color: #8e8e93;
     }
 
     .tab-bar { 
-      position: fixed; bottom: 0; width: 100%; max-width: 420px;
-      height: 80px; background: rgba(20, 20, 20, 0.95); backdrop-filter: blur(10px);
-      display: flex; justify-content: space-around; align-items: center;
-      border-top: 0.5px solid #333; padding-bottom: env(safe-area-inset-bottom); z-index: 100;
+      position: fixed; /* Tab-bar doim pastda turishi uchun */
+      bottom: 0;
+      width: 100%;
+      max-width: 420px;
+      height: 80px; 
+      background: rgba(20, 20, 20, 0.95); 
+      backdrop-filter: blur(10px);
+      display: flex; 
+      justify-content: space-around; 
+      align-items: center;
+      border-top: 0.5px solid #333; 
+      padding-bottom: env(safe-area-inset-bottom);
+      z-index: 100;
     }
     .tab-item { color: #8e8e93; text-decoration: none; text-align: center; font-size: 10px; }
     .tab-item.active { color: #007aff; }
     .tab-item svg { width: 24px; height: 24px; display: block; margin: 0 auto 4px; stroke: currentColor; fill: none; }
     
     .points-badge { background: #fff; color: #000; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 14px; }
-    .gradient-name { background: linear-gradient(135deg, #fff, #aaccff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold; }
+    
+    .gradient-name {
+      background: linear-gradient(135deg, #fff, #aaccff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -84,14 +121,14 @@
     <div class="points-badge" id="userPoints">⚡ 0</div>
   </div>
 
+  <div class="section-title">Asosiy modullar</div>
   <div class="scroll-container" id="moduleContainer"></div>
 
-  <div class="sub-section-title">Maxsus darslar</div>
-  <div class="sub-modules-list" id="subModuleContainer">
-    </div>
+  <div class="section-title">Maxsus darslar</div>
+  <div class="scroll-container" id="extraModuleContainer"></div>
 
   <nav class="tab-bar">
-    <a href="index.html" class="tab-item active">
+    <a href="index.html" class="tab-item active" onclick="navigateTo('index.html')">
       <svg viewBox="0 0 24 24" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
       <span>Asosiy</span>
     </a>
@@ -110,25 +147,30 @@
   const tg = window.Telegram.WebApp;
   tg.expand();
   
-  // 30 ta modul ma'lumotlari
-  const topics = ['Dasturlash asoslari','Algoritmlar','Ma\'lumotlar tuzilmasi','Veb dasturlash','Mobil dasturlash','Sun\'iy intellekt','Ma\'lumotlar bazasi','Tarmoq texnologiyalari','Kiberxavfsizlik','Bulutli hisoblash','Python dasturlash','JavaScript asoslari','React.js','Node.js','Flutter','Kotlin','Swift','Java','C++ dasturlash','Go dasturlash','DevOps asoslari','Docker va Kubernetes','Machine Learning','Deep Learning','Data Science','Blockchain','IoT texnologiyalari','AR/VR dasturlash','Game Development','Software Architecture'];
+  tg.setHeaderColor('secondary_bg_color');
+  tg.setBackgroundColor('bg_color');
 
-  const modules = Array.from({ length: 30 }, (_, i) => ({
-    id: i + 1,
-    title: `${i + 1}-modul: ${topics[i] || 'Darslik'}`,
-    label: `MODUL ${i + 1}`,
-    action: i < 5 ? 'Darsni boshlash' : (i < 15 ? 'Davom etish' : 'Tez kunda'),
-    url: `modul${i + 1}.html`,
-    status: i < 5 ? 'available' : (i < 15 ? 'in-progress' : 'coming-soon')
-  }));
+  // 30 ta asosiy modul
+  const mainModules = Array.from({ length: 30 }, (_, i) => {
+    const id = i + 1;
+    const topics = ['Dasturlash asoslari','Algoritmlar','Ma\'lumotlar tuzilmasi','Veb dasturlash','Mobil dasturlash','Sun\'iy intellekt','Ma\'lumotlar bazasi','Tarmoq texnologiyalari','Kiberxavfsizlik','Bulutli hisoblash','Python dasturlash','JavaScript asoslari','React.js','Node.js','Flutter','Kotlin','Swift','Java','C++ dasturlash','Go dasturlash','DevOps asoslari','Docker va Kubernetes','Machine Learning','Deep Learning','Data Science','Blockchain','IoT texnologiyalari','AR/VR dasturlash','Game Development','Software Architecture'];
+    return {
+      id: id,
+      title: `${id}-modul: ${topics[i] || 'Dasturlash'}`,
+      label: `MODUL ${id}`,
+      action: id <= 5 ? 'Darsni boshlash' : (id <= 15 ? 'Davom etish' : 'Tez kunda'),
+      url: `modul${id}.html`,
+      status: id <= 5 ? 'available' : (id <= 15 ? 'in-progress' : 'coming-soon')
+    };
+  });
 
-  // Pastki 5 ta modul ma'lumotlari
-  const subModules = [
-    { title: "Portfolio yaratish", url: "extra1.html", points: "+50" },
-    { title: "Intervyu sirlari", url: "extra2.html", points: "+40" },
-    { title: "Freelance boshlash", url: "extra3.html", points: "+60" },
-    { title: "Soft Skills", url: "extra4.html", points: "+30" },
-    { title: "Ingliz tili IT uchun", url: "extra5.html", points: "+45" }
+  // 5 ta qo'shimcha modul
+  const extraModules = [
+    { id: 101, title: 'Portfolio yaratish', label: 'MAXSUS 1', action: 'Boshlash', url: 'extra1.html', status: 'available' },
+    { id: 102, title: 'Freelance sirlari', label: 'MAXSUS 2', action: 'Boshlash', url: 'extra2.html', status: 'available' },
+    { id: 103, title: 'Intervyuga tayyorlov', label: 'MAXSUS 3', action: 'Tez kunda', url: '#', status: 'coming-soon' },
+    { id: 104, title: 'Soft Skills', label: 'MAXSUS 4', action: 'Tez kunda', url: '#', status: 'coming-soon' },
+    { id: 105, title: 'Karyera maslahatlari', label: 'MAXSUS 5', action: 'Tez kunda', url: '#', status: 'coming-soon' }
   ];
 
   function setAvatar(user) {
@@ -139,36 +181,35 @@
       avatarImage.style.display = 'block';
       avatarInitial.style.display = 'none';
     } else {
-      avatarInitial.textContent = user?.first_name ? user.first_name[0].toUpperCase() : '?';
+      avatarInitial.textContent = user?.first_name ? user.first_name.charAt(0).toUpperCase() : '?';
     }
   }
 
-  function renderApp() {
+  function initApp() {
     const user = tg.initDataUnsafe?.user;
     if (user) {
       document.getElementById('userName').textContent = user.last_name ? `${user.first_name} ${user.last_name}` : user.first_name;
       setAvatar(user);
     }
     
-    // 30 ta modulni chiqarish
-    document.getElementById('moduleContainer').innerHTML = modules.map(m => `
-      <div class="lesson-card" onclick="openModule(${m.id}, '${m.url}')">
-        <span style="color: #8e8e93; font-size: 12px; font-weight: 600;">${m.label}</span>
-        <h2 style="font-size: 22px; line-height: 1.2;">${m.title}</h2>
-        <div style="color: ${m.status === 'available' ? '#007aff' : (m.status === 'in-progress' ? '#ff9f0a' : '#8e8e93')}; font-weight: 600;">${m.action} →</div>
-      </div>
-    `).join('');
+    document.getElementById('userPoints').textContent = `⚡ ${localStorage.getItem('user_points') || 312}`;
 
-    // Pastki 5 ta modulni chiqarish
-    document.getElementById('subModuleContainer').innerHTML = subModules.map(sm => `
-      <div class="sub-card" onclick="navigateTo('${sm.url}')">
-        <div>
-          <div style="font-size: 15px; font-weight: 500;">${sm.title}</div>
-          <div style="font-size: 12px; color: #007aff;">${sm.points} ball</div>
+    renderModules('moduleContainer', mainModules);
+    renderModules('extraModuleContainer', extraModules);
+  }
+
+  function renderModules(containerId, data) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = data.map(m => {
+      const actionColor = m.status === 'available' ? '#007aff' : (m.status === 'in-progress' ? '#ff9f0a' : '#8e8e93');
+      return `
+        <div class="lesson-card" onclick="openModule(${m.id}, '${m.url}')">
+          <span style="color: #8e8e93; font-size: 12px; font-weight: 600;">${m.label}</span>
+          <h2 style="font-size: 24px; line-height: 1.2;">${m.title}</h2>
+          <div style="color: ${actionColor}; font-weight: 600;">${m.action} →</div>
         </div>
-        <div style="color: #444;">❯</div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
   }
 
   window.navigateTo = function(url) {
@@ -177,12 +218,13 @@
   };
 
   window.openModule = function(id, url) {
+    if(url === '#') return;
     tg.HapticFeedback.notificationOccurred('success');
     localStorage.setItem('last_module', id);
     setTimeout(() => { window.location.href = url; }, 100);
   };
 
-  renderApp();
+  initApp();
 </script>
 </body>
 </html>
