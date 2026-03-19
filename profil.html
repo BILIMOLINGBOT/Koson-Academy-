@@ -1,4 +1,5 @@
-<!DOCTYPE html>
+
+<!DOCTYPE html><!DOCTYPE html>
 <html lang="uz">
 <head>
   <meta charset="UTF-8">
@@ -6,17 +7,18 @@
   <title>LearnU · Profil</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
+    /* ── ASOSIY RESET ── */
     * { 
       margin: 0; 
       padding: 0; 
       box-sizing: border-box;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; 
       -webkit-tap-highlight-color: transparent;
     }
 
     body {
-      background: #000;
-      color: #fff;
+      background: #000000;
+      color: #ffffff;
       min-height: 100vh;
       display: flex;
       justify-content: center;
@@ -24,29 +26,52 @@
 
     .app-wrapper {
       width: 100%;
-      max-width: 480px;
+      max-width: 420px;
       min-height: 100vh;
-      background: #000;
+      background: #000000;
+      position: relative;
+      display: flex;
+      flex-direction: column;
     }
 
-    /* Profil header */
-    .profile-header {
-      padding: 30px 20px;
-      text-align: center;
-      border-bottom: 1px solid #222;
+    /* ── PROFIL SAHIFASI ── */
+    .profile-page {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      animation: fadeIn 0.3s ease-out;
+      overflow-y: auto;
+      padding-bottom: 20px;
       position: relative;
     }
-    
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .page-content {
+      padding: 30px 20px;
+      text-align: center;
+      overflow-y: auto;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    /* PROFIL SAHIFASI UCHUN STILLAR */
     .profile-avatar-large {
       width: 100px;
       height: 100px;
       background: linear-gradient(135deg, #333, #111);
       border-radius: 50%;
-      margin: 0 auto 16px;
+      margin: 0 auto 20px;
       display: flex;
       align-items: center;
       justify-content: center;
-      border: 3px solid #007aff;
+      border: 2px solid #007aff;
       overflow: hidden;
       font-size: 2.5rem;
       font-weight: bold;
@@ -59,305 +84,381 @@
     }
     
     .profile-name {
-      font-size: 24px;
+      font-size: 1.8rem;
       font-weight: 700;
-      margin-bottom: 8px;
-    }
-    
-    .profile-stats {
-      display: flex;
-      justify-content: center;
-      gap: 30px;
-      margin: 20px 0;
-      color: #888;
-      font-size: 14px;
-    }
-    
-    .profile-stats span {
-      display: block;
-      color: #fff;
-      font-size: 20px;
-      font-weight: 700;
-      margin-bottom: 4px;
+      margin-bottom: 40px;
+      background: linear-gradient(135deg, #fff, #aaccff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
 
-    /* Yuklash tugmasi */
-    .upload-button {
+    /* ── YUQORI O'NG BURCHAKDAGI + IKONKASI ── */
+    .plus-button-corner {
       position: absolute;
-      top: 20px;
-      right: 20px;
-      width: 50px;
-      height: 50px;
+      top: 16px;
+      right: 16px;
+      width: 44px;
+      height: 44px;
       background: #007aff;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0, 122, 255, 0.4);
+      transition: 0.2s;
+      box-shadow: 0 4px 10px rgba(0, 122, 255, 0.4);
       border: none;
       z-index: 10;
-      transition: 0.2s;
     }
 
-    .upload-button:active {
-      transform: scale(0.9);
+    .plus-button-corner:hover,
+    .plus-button-corner:active {
       background: #005bbf;
+      transform: scale(1.05);
     }
 
-    .upload-button svg {
+    .plus-button-corner svg {
       width: 24px;
       height: 24px;
       stroke: white;
       stroke-width: 2.5;
     }
+  </style>
+</head>
+<body>
 
-    /* Videolar bo'limi */
-    .videos-section {
-      padding: 20px;
+<div class="app-wrapper">
+  
+  <!-- PROFIL SAHIFASI (o'ng burchakda + ikonkasi bilan) -->
+  <div class="profile-page">
+    <!-- YUQORI O'NG BURCHAKDAGI + IKONKASI -->
+    <div class="plus-button-corner" onclick="handlePlusClick()">
+      <svg viewBox="0 0 24 24" stroke="currentColor" fill="none">
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
+    </div>
+    
+    <div class="page-content">
+      <div class="profile-avatar-large" id="profileAvatar">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+      </div>
+      <h1 class="profile-name" id="profileFullName">Javlonbek Rashidov</h1>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const tg = window.Telegram.WebApp;
+  tg.expand();
+  tg.setHeaderColor('secondary_bg_color');
+  tg.setBackgroundColor('bg_color');
+  
+  const haptic = tg.HapticFeedback;
+  
+  // Foydalanuvchi ma'lumotlari
+  let userData = {
+    firstName: 'Javlonbek',
+    lastName: 'Rashidov',
+    photoUrl: null
+  };
+  
+  // index.html ga qaytish (BackButton uchun)
+  function goToIndex() {
+    window.location.href = 'index.html';
+  }
+  
+  // Telegram ma'lumotlarini olish
+  function initTelegramData() {
+    const user = tg.initDataUnsafe?.user;
+    
+    if (user) {
+      userData = {
+        firstName: user.first_name || 'Javlonbek',
+        lastName: user.last_name || '',
+        photoUrl: user.photo_url || null
+      };
+      
+      // Profil ma'lumotlarini yangilash
+      updateProfileData();
+    }
+  }
+  
+  // Profil ma'lumotlarini yangilash
+  function updateProfileData() {
+    let fullName = userData.firstName;
+    
+    if (userData.lastName) {
+      fullName = `${userData.firstName} ${userData.lastName}`;
+    }
+    
+    document.getElementById('profileFullName').textContent = fullName;
+    
+    // Avatar (agar rasm bo'lsa)
+    const avatarEl = document.getElementById('profileAvatar');
+    if (userData.photoUrl) {
+      avatarEl.innerHTML = `<img src="${userData.photoUrl}" alt="avatar">`;
+    } else {
+      // Agar rasm bo'lmasa, ismning birinchi harfini ko'rsatish
+      avatarEl.innerHTML = `<span style="font-size: 2.5rem;">${userData.firstName.charAt(0).toUpperCase()}</span>`;
+    }
+  }
+  
+  // + ikonkasi bosilganda ishlaydigan funksiya
+  function handlePlusClick() {
+    haptic.impactOccurred('medium');
+    tg.showPopup({
+      title: 'Qoʻshish',
+      message: 'Bu yerda yangi element qoʻshish interfeysi boʻladi. (Tez orada)',
+      buttons: [{ type: 'close', text: 'Yopish' }]
+    });
+  }
+  
+  // BackButton boshqaruvi (orqaga qaytganda index.html ga o'tadi)
+  tg.BackButton.show();
+  tg.BackButton.onClick(() => {
+    goToIndex();
+  });
+  
+  // Sahifa yuklanganda
+  window.addEventListener('load', () => {
+    initTelegramData();
+  });
+</script>
+
+</body>
+</html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>LearnU · Profil</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    /* ── ASOSIY RESET ── */
+    * { 
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; 
+      -webkit-tap-highlight-color: transparent;
     }
 
-    .section-title {
-      font-size: 18px;
-      font-weight: 600;
-      margin-bottom: 16px;
-      color: #fff;
+    body {
+      background: #000000;
+      color: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
     }
 
-    .user-videos {
+    .app-wrapper {
+      width: 100%;
+      max-width: 420px;
+      min-height: 100vh;
+      background: #000000;
+      position: relative;
       display: flex;
       flex-direction: column;
-      gap: 16px;
     }
 
-    .video-item {
+    /* ── PROFIL SAHIFASI ── */
+    .profile-page {
+      flex: 1;
       display: flex;
-      gap: 12px;
-      background: #111;
-      border-radius: 12px;
+      flex-direction: column;
+      animation: fadeIn 0.3s ease-out;
+      overflow-y: auto;
+      padding-bottom: 20px;
+      position: relative;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .page-content {
+      padding: 30px 20px;
+      text-align: center;
+      overflow-y: auto;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    /* PROFIL SAHIFASI UCHUN STILLAR */
+    .profile-avatar-large {
+      width: 100px;
+      height: 100px;
+      background: linear-gradient(135deg, #333, #111);
+      border-radius: 50%;
+      margin: 0 auto 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #007aff;
       overflow: hidden;
-      border: 1px solid #222;
-      cursor: pointer;
+      font-size: 2.5rem;
+      font-weight: bold;
     }
-
-    .video-thumbnail {
-      width: 160px;
-      aspect-ratio: 16/9;
-      background: #000;
-    }
-
-    .video-thumbnail video {
+    
+    .profile-avatar-large img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      pointer-events: none;
+    }
+    
+    .profile-name {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 40px;
+      background: linear-gradient(135deg, #fff, #aaccff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
 
-    .video-details {
-      flex: 1;
-      padding: 12px;
-    }
-
-    .video-details h4 {
-      font-size: 16px;
-      margin-bottom: 6px;
-      color: #fff;
-    }
-
-    .video-details p {
-      color: #888;
-      font-size: 13px;
-      margin-bottom: 4px;
-    }
-
-    .video-meta {
-      display: flex;
-      gap: 12px;
-      color: #666;
-      font-size: 12px;
-    }
-
-    .empty-videos {
-      text-align: center;
-      color: #666;
-      padding: 40px 20px;
-      background: #111;
-      border-radius: 12px;
-    }
-
-    .back-btn {
+    /* ── YUQORI O'NG BURCHAKDAGI + IKONKASI ── */
+    .plus-button-corner {
       position: absolute;
-      top: 20px;
-      left: 20px;
-      width: 40px;
-      height: 40px;
-      background: #222;
+      top: 16px;
+      right: 16px;
+      width: 44px;
+      height: 44px;
+      background: #007aff;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
+      transition: 0.2s;
+      box-shadow: 0 4px 10px rgba(0, 122, 255, 0.4);
       border: none;
       z-index: 10;
     }
 
-    .back-btn svg {
-      width: 20px;
-      height: 20px;
-      stroke: #fff;
+    .plus-button-corner:hover,
+    .plus-button-corner:active {
+      background: #005bbf;
+      transform: scale(1.05);
+    }
+
+    .plus-button-corner svg {
+      width: 24px;
+      height: 24px;
+      stroke: white;
+      stroke-width: 2.5;
     }
   </style>
 </head>
 <body>
-  <div class="app-wrapper">
-    <!-- Profil header -->
-    <div class="profile-header">
-      <button class="back-btn" onclick="goBack()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path d="M19 12H5M12 19l-7-7 7-7"/>
-        </svg>
-      </button>
 
-      <button class="upload-button" onclick="navigateTo('videoupdate.html')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path d="M12 5v14M5 12h14"/>
-        </svg>
-      </button>
-
-      <div class="profile-avatar-large" id="profileAvatar">
-        <span id="avatarInitial">?</span>
-        <img id="avatarImage" src="" alt="avatar" style="display: none;">
-      </div>
-      
-      <h1 class="profile-name" id="profileFullName">Yuklanmoqda...</h1>
-      
-      <div class="profile-stats">
-        <div>
-          <span id="videosCount">0</span>
-          Videolar
-        </div>
-        <div>
-          <span id="totalViews">0</span>
-          Ko'rishlar
-        </div>
-      </div>
+<div class="app-wrapper">
+  
+  <!-- PROFIL SAHIFASI (o'ng burchakda + ikonkasi bilan) -->
+  <div class="profile-page">
+    <!-- YUQORI O'NG BURCHAKDAGI + IKONKASI -->
+    <div class="plus-button-corner" onclick="handlePlusClick()">
+      <svg viewBox="0 0 24 24" stroke="currentColor" fill="none">
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
     </div>
-
-    <!-- Videolar ro'yxati -->
-    <div class="videos-section">
-      <div class="section-title">Mening videolarim</div>
-      <div class="user-videos" id="userVideos">
-        <div class="empty-videos">
-          <p>Hali video yuklamagansiz</p>
-          <p style="font-size: 14px; margin-top: 8px;">+ tugmasini bosib video yuklang</p>
-        </div>
+    
+    <div class="page-content">
+      <div class="profile-avatar-large" id="profileAvatar">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
       </div>
+      <h1 class="profile-name" id="profileFullName">Javlonbek Rashidov</h1>
     </div>
   </div>
 
-  <script>
-    const tg = window.Telegram.WebApp;
-    tg.expand();
-    tg.setHeaderColor('secondary_bg_color');
-    tg.setBackgroundColor('bg_color');
+</div>
 
-    // BackButton
-    tg.BackButton.show();
-    tg.BackButton.onClick(() => {
-      window.location.href = 'index.html';
-    });
-
-    function goBack() {
-      window.location.href = 'index.html';
-    }
-
-    window.navigateTo = function(url) {
-      window.location.href = url;
-    };
-
-    // Telegram ma'lumotlarini olish
-    function initTelegramData() {
-      const user = tg.initDataUnsafe?.user;
+<script>
+  const tg = window.Telegram.WebApp;
+  tg.expand();
+  tg.setHeaderColor('secondary_bg_color');
+  tg.setBackgroundColor('bg_color');
+  
+  const haptic = tg.HapticFeedback;
+  
+  // Foydalanuvchi ma'lumotlari
+  let userData = {
+    firstName: 'Javlonbek',
+    lastName: 'Rashidov',
+    photoUrl: null
+  };
+  
+  // index.html ga qaytish (BackButton uchun)
+  function goToIndex() {
+    window.location.href = 'index.html';
+  }
+  
+  // Telegram ma'lumotlarini olish
+  function initTelegramData() {
+    const user = tg.initDataUnsafe?.user;
+    
+    if (user) {
+      userData = {
+        firstName: user.first_name || 'Javlonbek',
+        lastName: user.last_name || '',
+        photoUrl: user.photo_url || null
+      };
       
-      if (user) {
-        let fullName = user.first_name || 'Foydalanuvchi';
-        if (user.last_name) {
-          fullName = `${user.first_name} ${user.last_name}`;
-        }
-        document.getElementById('profileFullName').textContent = fullName;
-        
-        // Avatar
-        const avatarInitial = document.getElementById('avatarInitial');
-        const avatarImage = document.getElementById('avatarImage');
-        
-        if (user.photo_url) {
-          avatarImage.src = user.photo_url;
-          avatarImage.style.display = 'block';
-          avatarInitial.style.display = 'none';
-        } else {
-          avatarInitial.textContent = user.first_name?.charAt(0).toUpperCase() || '?';
-        }
-      }
+      // Profil ma'lumotlarini yangilash
+      updateProfileData();
     }
-
-    // Foydalanuvchi videolarini yuklash
-    function loadUserVideos() {
-      const allVideos = JSON.parse(localStorage.getItem('videos')) || [];
-      const userVideos = allVideos.filter(v => v.author === "Siz" || !v.author);
-      
-      // Statistika
-      document.getElementById('videosCount').textContent = userVideos.length;
-      const totalViews = userVideos.reduce((sum, v) => sum + (parseInt(v.views) || 0), 0);
-      document.getElementById('totalViews').textContent = totalViews;
-
-      const container = document.getElementById('userVideos');
-
-      if (userVideos.length === 0) {
-        container.innerHTML = `
-          <div class="empty-videos">
-            <p>Hali video yuklamagansiz</p>
-            <p style="font-size: 14px; margin-top: 8px;">+ tugmasini bosib video yuklang</p>
-          </div>
-        `;
-        return;
-      }
-
-      container.innerHTML = userVideos
-        .sort((a, b) => b.id - a.id)
-        .map(video => `
-          <div class="video-item" onclick="openVideo(${video.id})">
-            <div class="video-thumbnail">
-              <video muted preload="metadata">
-                <source src="${video.videoUrl}" type="video/mp4">
-              </video>
-            </div>
-            <div class="video-details">
-              <h4>${video.title || 'Nomsiz video'}</h4>
-              <p>${video.description?.substring(0, 50) || ''}${video.description?.length > 50 ? '...' : ''}</p>
-              <div class="video-meta">
-                <span>${video.views || 0} ko'rish</span>
-                <span>•</span>
-                <span>${video.timeAgo || 'hozirgina'}</span>
-              </div>
-            </div>
-          </div>
-        `).join('');
+  }
+  
+  // Profil ma'lumotlarini yangilash
+  function updateProfileData() {
+    let fullName = userData.firstName;
+    
+    if (userData.lastName) {
+      fullName = `${userData.firstName} ${userData.lastName}`;
     }
-
-    window.openVideo = function(videoId) {
-      const allVideos = JSON.parse(localStorage.getItem('videos')) || [];
-      const video = allVideos.find(v => v.id === videoId);
-      if (video) {
-        localStorage.setItem('currentVideo', JSON.stringify(video));
-        window.location.href = 'videoview.html';
-      }
-    };
-
-    // Ishga tushirish
-    window.addEventListener('load', () => {
-      initTelegramData();
-      loadUserVideos();
+    
+    document.getElementById('profileFullName').textContent = fullName;
+    
+    // Avatar (agar rasm bo'lsa)
+    const avatarEl = document.getElementById('profileAvatar');
+    if (userData.photoUrl) {
+      avatarEl.innerHTML = `<img src="${userData.photoUrl}" alt="avatar">`;
+    } else {
+      // Agar rasm bo'lmasa, ismning birinchi harfini ko'rsatish
+      avatarEl.innerHTML = `<span style="font-size: 2.5rem;">${userData.firstName.charAt(0).toUpperCase()}</span>`;
+    }
+  }
+  
+  // + ikonkasi bosilganda ishlaydigan funksiya
+  function handlePlusClick() {
+    haptic.impactOccurred('medium');
+    tg.showPopup({
+      title: 'Qoʻshish',
+      message: 'Bu yerda yangi element qoʻshish interfeysi boʻladi. (Tez orada)',
+      buttons: [{ type: 'close', text: 'Yopish' }]
     });
-  </script>
+  }
+  
+  // BackButton boshqaruvi (orqaga qaytganda index.html ga o'tadi)
+  tg.BackButton.show();
+  tg.BackButton.onClick(() => {
+    goToIndex();
+  });
+  
+  // Sahifa yuklanganda
+  window.addEventListener('load', () => {
+    initTelegramData();
+  });
+</script>
+
 </body>
 </html>
