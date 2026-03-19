@@ -1,223 +1,385 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video ko'rish - Video platformasi</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f9f9f9;
-        }
-        
-        header {
-            background-color: white;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        
-        .logo a {
-            font-size: 24px;
-            font-weight: bold;
-            color: #ff0000;
-            text-decoration: none;
-        }
-        
-        .nav-buttons {
-            display: flex;
-            gap: 15px;
-        }
-        
-        .btn {
-            padding: 8px 16px;
-            border-radius: 4px;
-            text-decoration: none;
-            font-weight: 500;
-            transition: background-color 0.3s;
-        }
-        
-        .btn-primary {
-            background-color: #ff0000;
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background-color: #cc0000;
-        }
-        
-        .btn-outline {
-            border: 1px solid #ddd;
-            color: #333;
-        }
-        
-        .btn-outline:hover {
-            background-color: #f5f5f5;
-        }
-        
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 30px;
-        }
-        
-        .video-player-container {
-            background: black;
-            border-radius: 8px;
-            overflow: hidden;
-            margin-bottom: 20px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-        }
-        
-        .video-wrapper {
-            position: relative;
-            width: 100%;
-            padding-top: 56.25%; /* 16:9 nisbat */
-            background-color: #000;
-        }
-        
-        #videoPlayer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #000;
-        }
-        
-        .video-info {
-            background: white;
-            border-radius: 8px;
-            padding: 25px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        
-        .video-title {
-            font-size: 24px;
-            color: #333;
-            margin-bottom: 10px;
-        }
-        
-        .video-description {
-            font-size: 16px;
-            color: #666;
-            line-height: 1.6;
-            margin-bottom: 20px;
-            white-space: pre-wrap;
-        }
-        
-        .video-meta {
-            display: flex;
-            gap: 20px;
-            color: #888;
-            font-size: 14px;
-            padding-top: 15px;
-            border-top: 1px solid #eee;
-        }
-        
-        .error-message {
-            text-align: center;
-            padding: 60px 20px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        
-        .error-message h2 {
-            color: #333;
-            margin-bottom: 15px;
-        }
-        
-        .error-message p {
-            color: #666;
-            margin-bottom: 25px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Video ko'rish</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background: #000;
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+    }
+
+    .app-wrapper {
+      width: 100%;
+      max-width: 480px;
+      min-height: 100vh;
+      background: #000;
+    }
+
+    /* Back button */
+    .back-btn {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      width: 40px;
+      height: 40px;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(10px);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.1);
+      z-index: 100;
+    }
+
+    .back-btn svg {
+      width: 24px;
+      height: 24px;
+      stroke: #fff;
+    }
+
+    /* Video player */
+    .video-container {
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: #000;
+      position: relative;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      outline: none;
+    }
+
+    /* Video info */
+    .video-info {
+      padding: 20px;
+    }
+
+    .video-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .video-stats {
+      display: flex;
+      gap: 16px;
+      color: #888;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+
+    .video-description {
+      background: #111;
+      padding: 16px;
+      border-radius: 12px;
+      color: #ccc;
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 20px;
+      border: 1px solid #222;
+    }
+
+    /* Actions */
+    .actions {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    .action-item {
+      background: #111;
+      border: 1px solid #222;
+      border-radius: 30px;
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #888;
+      cursor: pointer;
+    }
+
+    .action-item.active {
+      color: #007aff;
+      border-color: #007aff;
+    }
+
+    .action-item svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* Boshqa videolar */
+    .other-videos {
+      padding: 0 20px 20px;
+    }
+
+    .other-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: #fff;
+    }
+
+    .video-card {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+      background: #111;
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      border: 1px solid #222;
+    }
+
+    .video-thumb {
+      width: 160px;
+      aspect-ratio: 16/9;
+      background: #000;
+    }
+
+    .video-thumb video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      pointer-events: none;
+    }
+
+    .video-card-info {
+      flex: 1;
+      padding: 12px;
+    }
+
+    .video-card-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .video-card-meta {
+      color: #666;
+      font-size: 12px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+
+    .error {
+      text-align: center;
+      padding: 40px;
+      color: #ff4444;
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <div class="logo">
-            <a href="index.html">VideoPlatform</a>
+  <div class="app-wrapper">
+    <!-- Back button -->
+    <button class="back-btn" onclick="goBack()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>
+    </button>
+
+    <!-- Video player -->
+    <div class="video-container">
+      <video id="mainVideo" controls playsinline preload="metadata">
+        <source src="" type="video/mp4">
+      </video>
+    </div>
+
+    <!-- Video info -->
+    <div class="video-info">
+      <h1 class="video-title" id="videoTitle">Video yuklanmoqda...</h1>
+      
+      <div class="video-stats">
+        <span id="viewsCount">0</span> ko'rish
+        <span>•</span>
+        <span id="timeAgo">hozirgina</span>
+      </div>
+
+      <!-- Actions -->
+      <div class="actions">
+        <div class="action-item" id="likeBtn" onclick="toggleLike()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+          <span id="likesCount">0</span>
         </div>
-        <div class="nav-buttons">
-            <a href="index.html" class="btn btn-outline">Bosh sahifa</a>
-            <a href="profil.html" class="btn btn-outline">Profil</a>
-            <a href="videoupdate.html" class="btn btn-primary">Video yuklash</a>
+      </div>
+
+      <!-- Description -->
+      <div class="video-description" id="videoDescription">
+        Tavsif mavjud emas
+      </div>
+    </div>
+
+    <!-- Boshqa videolar -->
+    <div class="other-videos">
+      <div class="other-title">Boshqa videolar</div>
+      <div id="otherVideos"></div>
+    </div>
+  </div>
+
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+    tg.setHeaderColor('secondary_bg_color');
+    tg.setBackgroundColor('bg_color');
+
+    // BackButton
+    tg.BackButton.show();
+    tg.BackButton.onClick(() => {
+      goBack();
+    });
+
+    let currentVideo = null;
+    let allVideos = [];
+
+    function goBack() {
+      window.location.href = 'index.html';
+    }
+
+    // Video yuklash
+    function loadVideo() {
+      currentVideo = JSON.parse(localStorage.getItem('currentVideo'));
+      allVideos = JSON.parse(localStorage.getItem('videos')) || [];
+
+      if (!currentVideo) {
+        showError();
+        return;
+      }
+
+      // Update UI
+      document.getElementById('videoTitle').textContent = currentVideo.title || 'Nomsiz video';
+      document.getElementById('videoDescription').textContent = currentVideo.description || 'Tavsif mavjud emas';
+      document.getElementById('viewsCount').textContent = currentVideo.views || 0;
+      document.getElementById('timeAgo').textContent = currentVideo.timeAgo || 'hozirgina';
+      document.getElementById('likesCount').textContent = currentVideo.likes || 0;
+
+      // Video source
+      const video = document.getElementById('mainVideo');
+      const source = video.querySelector('source');
+      source.src = currentVideo.videoUrl;
+      video.load();
+
+      // Ko'rishlar sonini oshirish
+      updateViews();
+
+      // Boshqa videolarni ko'rsatish
+      showOtherVideos();
+    }
+
+    function showError() {
+      document.querySelector('.video-info').innerHTML = `
+        <div class="error">
+          <p>Video topilmadi</p>
+          <p style="font-size: 14px; margin-top: 10px;">Profil sahifasiga qayting</p>
         </div>
-    </header>
-    
-    <main class="container">
-        <div id="videoContainer">
-            <!-- Video ma'lumotlari JavaScript orqali yuklanadi -->
+      `;
+    }
+
+    function updateViews() {
+      const videoIndex = allVideos.findIndex(v => v.id === currentVideo.id);
+      if (videoIndex !== -1) {
+        allVideos[videoIndex].views = (parseInt(allVideos[videoIndex].views) || 0) + 1;
+        localStorage.setItem('videos', JSON.stringify(allVideos));
+        document.getElementById('viewsCount').textContent = allVideos[videoIndex].views;
+      }
+    }
+
+    function showOtherVideos() {
+      const otherVideos = allVideos
+        .filter(v => v.id !== currentVideo.id)
+        .slice(0, 5);
+
+      const container = document.getElementById('otherVideos');
+
+      if (otherVideos.length === 0) {
+        container.innerHTML = '<div style="color: #666; text-align: center; padding: 20px;">Boshqa videolar yo\'q</div>';
+        return;
+      }
+
+      container.innerHTML = otherVideos.map(video => `
+        <div class="video-card" onclick="openVideo(${video.id})">
+          <div class="video-thumb">
+            <video muted preload="metadata">
+              <source src="${video.videoUrl}" type="video/mp4">
+            </video>
+          </div>
+          <div class="video-card-info">
+            <div class="video-card-title">${video.title || 'Nomsiz video'}</div>
+            <div class="video-card-meta">
+              ${video.views || 0} ko'rish • ${video.timeAgo || 'hozirgina'}
+            </div>
+          </div>
         </div>
-    </main>
-    
-    <script>
-        // URL dan video ID ni olish
-        const urlParams = new URLSearchParams(window.location.search);
-        const videoId = urlParams.get('id');
-        
-        // LocalStorage dan videolarni olish
-        function getVideos() {
-            const videos = localStorage.getItem('videos');
-            return videos ? JSON.parse(videos) : [];
-        }
-        
-        // Videoni ko'rsatish
-        function displayVideo() {
-            const container = document.getElementById('videoContainer');
-            const videos = getVideos();
-            
-            if (!videoId || videoId < 0 || videoId >= videos.length) {
-                container.innerHTML = `
-                    <div class="error-message">
-                        <h2>Video topilmadi</h2>
-                        <p>Kechirasiz, so'ralgan video mavjud emas.</p>
-                        <a href="index.html" class="btn btn-primary">Bosh sahifaga qaytish</a>
-                    </div>
-                `;
-                return;
-            }
-            
-            const video = videos[videoId];
-            
-            container.innerHTML = `
-                <div class="video-player-container">
-                    <div class="video-wrapper">
-                        <video id="videoPlayer" controls autoplay>
-                            <source src="${video.videoUrl}" type="video/mp4">
-                            Sizning brauzeringiz video tegini qo'llab-quvvatlamaydi.
-                        </video>
-                    </div>
-                </div>
-                <div class="video-info">
-                    <h1 class="video-title">${video.title}</h1>
-                    <div class="video-description">${video.description || 'Tavsif mavjud emas'}</div>
-                    <div class="video-meta">
-                        <span>Yuklangan sana: ${new Date(video.uploadDate).toLocaleDateString('uz-UZ')}</span>
-                        <span>ID: #${parseInt(videoId) + 1}</span>
-                    </div>
-                </div>
-            `;
-            
-            // Video player ni sozlash
-            const player = document.getElementById('videoPlayer');
-            player.load();
-        }
-        
-        // Sahifa yuklanganda videoni ko'rsatish
-        displayVideo();
-    </script>
+      `).join('');
+
+      // Hover effekti
+      document.querySelectorAll('.video-card').forEach(card => {
+        const video = card.querySelector('video');
+        card.addEventListener('mouseenter', () => {
+          video.play().catch(() => {});
+        });
+        card.addEventListener('mouseleave', () => {
+          video.pause();
+          video.currentTime = 0;
+        });
+      });
+    }
+
+    window.openVideo = function(videoId) {
+      const video = allVideos.find(v => v.id === videoId);
+      if (video) {
+        localStorage.setItem('currentVideo', JSON.stringify(video));
+        window.location.reload();
+      }
+    };
+
+    // Like
+    window.toggleLike = function() {
+      const likeBtn = document.getElementById('likeBtn');
+      const likesCount = document.getElementById('likesCount');
+      
+      if (likeBtn.classList.contains('active')) {
+        likeBtn.classList.remove('active');
+        currentVideo.likes = (currentVideo.likes || 1) - 1;
+      } else {
+        likeBtn.classList.add('active');
+        currentVideo.likes = (currentVideo.likes || 0) + 1;
+      }
+      
+      likesCount.textContent = currentVideo.likes;
+
+      // LocalStorage'da yangilash
+      const videoIndex = allVideos.findIndex(v => v.id === currentVideo.id);
+      if (videoIndex !== -1) {
+        allVideos[videoIndex].likes = currentVideo.likes;
+        localStorage.setItem('videos', JSON.stringify(allVideos));
+      }
+    };
+
+    // Ishga tushirish
+    window.addEventListener('load', loadVideo);
+  </script>
 </body>
 </html>
