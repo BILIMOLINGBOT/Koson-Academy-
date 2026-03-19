@@ -1,682 +1,359 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Sahifa</title>
-    <style>
-        /* Barcha CSS kodlari o'zgarishsiz qoldi */
-        /* Faqat quyidagi qo'shimcha stillar qo'shiladi */
-        
-        .loading-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            z-index: 10;
-            border-radius: 12px;
-        }
-        
-        .loading-spinner-large {
-            width: 50px;
-            height: 50px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498db;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 15px;
-        }
-        
-        .error-message {
-            padding: 40px;
-            text-align: center;
-            color: #ff5555;
-        }
-        
-        .error-message button {
-            background-color: #1da1f2;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
-            margin-top: 15px;
-            cursor: pointer;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>LearnU · Video platforma</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * { 
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box; 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+      -webkit-tap-highlight-color: transparent; 
+    }
+    
+    body { 
+      background: #000; 
+      color: #fff; 
+      min-height: 100vh; 
+      display: flex; 
+      justify-content: center; 
+    }
+    
+    .app-wrapper { 
+      width: 100%; 
+      max-width: 480px; 
+      min-height: 100vh; 
+      background: #000; 
+      position: relative; 
+    }
+    
+    /* Header */
+    .header { 
+      padding: 16px 20px; 
+      display: flex; 
+      align-items: center; 
+      justify-content: space-between; 
+      background: #000;
+      border-bottom: 1px solid #222;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    
+    .avatar-wrapper { 
+      display: flex; 
+      align-items: center; 
+      gap: 12px; 
+      cursor: pointer;
+    }
+    
+    .avatar-circle { 
+      width: 45px; 
+      height: 45px; 
+      background: linear-gradient(135deg, #333, #111); 
+      border-radius: 50%; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      font-weight: bold; 
+      font-size: 1.2rem; 
+      border: 2px solid #007aff; 
+      overflow: hidden; 
+    }
+    
+    .avatar-circle img { 
+      width: 100%; 
+      height: 100%; 
+      object-fit: cover; 
+      display: block;
+    }
+    
+    .gradient-name {
+      background: linear-gradient(135deg, #fff, #aaccff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 600;
+    }
+    
+    .points-badge { 
+      background: #fff; 
+      color: #000; 
+      padding: 6px 14px; 
+      border-radius: 20px; 
+      font-weight: 600; 
+      font-size: 14px; 
+    }
+    
+    /* Videolar grid */
+    .videos-container {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    
+    .video-card {
+      background: #111;
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.2s;
+      border: 1px solid #222;
+    }
+    
+    .video-card:active {
+      transform: scale(0.98);
+    }
+    
+    .video-thumbnail {
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: #000;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .video-thumbnail video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      pointer-events: none;
+    }
+    
+    .video-info {
+      padding: 12px;
+    }
+    
+    .video-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .video-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #888;
+      font-size: 13px;
+    }
+    
+    .video-author {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .video-stats {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .empty-state {
+      text-align: center;
+      color: #666;
+      padding: 60px 20px;
+      font-size: 16px;
+    }
+    
+    .empty-state svg {
+      width: 60px;
+      height: 60px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+    
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid #333;
+      border-top: 3px solid #007aff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 40px auto;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .upload-prompt {
+      background: #1a1a1a;
+      border-radius: 12px;
+      padding: 32px 20px;
+      text-align: center;
+      border: 1px dashed #333;
+      margin: 20px;
+    }
+    
+    .upload-prompt button {
+      background: #007aff;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 24px;
+      font-size: 16px;
+      font-weight: 600;
+      margin-top: 16px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <button class="back-btn" onclick="window.location.href='profil.html'">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M19 12H5M12 19l-7-7 7-7"/>
+  <div class="app-wrapper">
+    <!-- Header -->
+    <div class="header" onclick="navigateTo('profil.html')">
+      <div class="avatar-wrapper">
+        <div class="avatar-circle" id="userAvatar">
+          <span id="avatarInitial">?</span>
+          <img id="avatarImage" src="" alt="avatar" style="display: none;">
+        </div>
+        <div>
+          <h4 id="userName" class="gradient-name">Yuklanmoqda...</h4>
+        </div>
+      </div>
+      <div class="points-badge" id="userPoints">⚡ 0</div>
+    </div>
+
+    <!-- Videolar ro'yxati -->
+    <div class="videos-container" id="videosContainer">
+      <div class="loading-spinner"></div>
+    </div>
+  </div>
+
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+    tg.setHeaderColor('secondary_bg_color');
+    tg.setBackgroundColor('bg_color');
+
+    let allVideos = [];
+
+    // Yuklash
+    function loadVideos() {
+      allVideos = JSON.parse(localStorage.getItem('videos')) || [];
+      renderVideos();
+    }
+
+    // Videolarni ko'rsatish
+    function renderVideos() {
+      const container = document.getElementById('videosContainer');
+      
+      if (allVideos.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="1.5">
+              <path d="M14 2H6C4.9 2 4.01 2.9 4.01 4L4 20C4 21.1 4.89 22 5.99 22H18C19.1 22 20 21.1 20 20V8L14 2Z" />
+              <path d="M8 12H16V14H8V12ZM8 16H16V18H8V16Z" />
             </svg>
-            Profilga qaytish
-        </button>
+            <p>Hozircha hech qanday video yo'q</p>
+            <div class="upload-prompt">
+              <p>Birinchi videongizni yuklang!</p>
+              <button onclick="navigateTo('videoupdate.html')">Video yuklash</button>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = allVideos
+        .sort((a, b) => b.id - a.id) // Yangilari tepada
+        .map(video => `
+          <div class="video-card" onclick="openVideo(${video.id})">
+            <div class="video-thumbnail">
+              <video muted preload="metadata">
+                <source src="${video.videoUrl}" type="video/mp4">
+              </video>
+            </div>
+            <div class="video-info">
+              <div class="video-title">${video.title || 'Nomsiz video'}</div>
+              <div class="video-meta">
+                <span class="video-author">${video.author || 'Foydalanuvchi'}</span>
+                <span>•</span>
+                <span>${video.views || 0} ko'rish</span>
+                <span>•</span>
+                <span>${video.timeAgo || 'hozirgina'}</span>
+              </div>
+            </div>
+          </div>
+        `).join('');
+
+      // Thumbnail videolarni hover effekti
+      document.querySelectorAll('.video-card').forEach(card => {
+        const video = card.querySelector('video');
+        if (video) {
+          card.addEventListener('mouseenter', () => {
+            video.play().catch(() => {});
+          });
+          card.addEventListener('mouseleave', () => {
+            video.pause();
+            video.currentTime = 0;
+          });
+        }
+      });
+    }
+
+    // Videoni ochish
+    window.openVideo = function(videoId) {
+      const video = allVideos.find(v => v.id === videoId);
+      if (video) {
+        // Ko'rishlar sonini oshirish
+        video.views = (parseInt(video.views) || 0) + 1;
+        localStorage.setItem('videos', JSON.stringify(allVideos));
         
-        <div class="main-content">
-            <div class="video-section">
-                <div class="video-player" id="videoPlayer">
-                    <!-- Video bu yerga yuklanadi -->
-                </div>
-                <div class="video-info">
-                    <div class="video-title" id="videoTitle">Video sarlavhasi</div>
-                    <div class="video-stats">
-                        <span id="viewsCount">0</span> namoyish · 
-                        <span id="uploadTime">hozirgina</span>
-                    </div>
-                    
-                    <div class="channel-info">
-                        <div class="channel-icon">A</div>
-                        <div class="channel-details">
-                            <div class="channel-name" id="channelName">Foydalanuvchi</div>
-                            <div class="video-stats" id="subscriberCount">0 obuna</div>
-                        </div>
-                        <button class="subscribe-btn" id="subscribe-btn">Obuna bo'lish</button>
-                    </div>
-                    
-                    <div class="actions">
-                        <button class="action-item" id="heart-btn">
-                            <div class="action-icon">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-                            </div>
-                            <div class="action-text"><span id="heart-count">0</span></div>
-                        </button>
-                        <button class="action-item" id="comments-btn">
-                            <div class="action-icon">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099 .092 10 10 0 1 0-4.777-4.719"/></svg>
-                            </div>
-                            <div class="action-text"><span id="comments-main-count">0</span></div>
-                        </button>
-                        <button class="action-item" id="save-btn">
-                            <div class="action-icon">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
-                            </div>
-                            <div class="action-text">Saqlash</div>
-                        </button>
-                        <button class="action-item" id="share-btn">
-                            <div class="action-icon">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/></svg>
-                            </div>
-                            <div class="action-text">Ulashish</div>
-                        </button>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="recommended-section">
-                <div class="recommended">
-                    <div class="recommended-title">Boshqa videolar</div>
-                    <div id="recommendedVideos">
-                        <!-- Videolar bu yerga yuklanadi -->
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+        // Joriy videoni saqlash
+        localStorage.setItem('currentVideo', JSON.stringify(video));
+        navigateTo('videoview.html');
+      }
+    };
 
-    <div id="commentsModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-video-section">
-                <div class="modal-video-player" id="modalVideoPlayer">
-                    <!-- Modal uchun video -->
-                </div>
-            </div>
-            
-            <div class="comments-section">
-                <div class="comments-header">
-                    <div class="comments-count"><span id="comments-modal-count">0</span> Fikr</div>
-                    <div class="close-comments-btn">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                    </div>
-                </div>
-                
-                <div class="add-comment">
-                    <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=880&q=80" alt="User Avatar" class="add-comment-avatar">
-                    <div class="comment-input-container">
-                        <div class="comment-input-wrapper">
-                            <textarea class="comment-input" placeholder="Fikr bildiring..." id="commentInput"></textarea>
-                            <button class="comment-send-btn" id="commentSendBtn" disabled>
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="commentsList" style="margin-top: 20px;">
-                </div>
-
-                <div class="no-comments" id="no-comments-indicator">
-                    <div class="no-comments-icon">💬</div>
-                    <div class="no-comments-text">Hozircha fikrlar yo'q</div>
-                    <div class="no-comments-subtext">Fikringizni bildirish orqali birinchi bo'ling</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // ========== GLOBAL VARIABLES ==========
-        let currentVideo = null;
-        let state = {
-            heartCount: 0,
-            isHearted: false,
-            isSubscribed: false,
-            isSaved: false,
-            comments: []
-        };
-
-        // ========== ELEMENT REFERENCES ==========
-        const videoPlayerContainer = document.getElementById('videoPlayer');
-        const modalVideoContainer = document.getElementById('modalVideoPlayer');
-        const videoTitleElement = document.getElementById('videoTitle');
-        const viewsCountElement = document.getElementById('viewsCount');
-        const uploadTimeElement = document.getElementById('uploadTime');
-        const recommendedVideosContainer = document.getElementById('recommendedVideos');
-        const heartBtn = document.getElementById('heart-btn');
-        const saveBtn = document.getElementById('save-btn');
-        const commentsBtn = document.getElementById('comments-btn');
-        const subscribeBtn = document.getElementById('subscribe-btn');
-        const shareBtn = document.getElementById('share-btn');
-        const modal = document.getElementById('commentsModal');
-        const closeCommentsBtn = document.querySelector('.close-comments-btn');
-        const commentInput = document.getElementById('commentInput');
-        const commentSendBtn = document.getElementById('commentSendBtn');
-        const commentsList = document.getElementById('commentsList');
-        const noCommentsIndicator = document.getElementById('no-comments-indicator');
-        const commentsMainCount = document.getElementById('comments-main-count');
-        const commentsModalCount = document.getElementById('comments-modal-count');
-        const heartCountDisplay = document.getElementById('heart-count');
-
+    // Telegram ma'lumotlarini olish
+    function initTelegramData() {
+      const user = tg.initDataUnsafe?.user;
+      
+      if (user) {
+        let fullName = user.first_name || 'Foydalanuvchi';
+        if (user.last_name) {
+          fullName = `${user.first_name} ${user.last_name}`;
+        }
+        document.getElementById('userName').textContent = fullName;
         
-        // ========== VIDEO LOADING FUNCTIONS ==========
-        function loadVideo() {
-            // LocalStorage'dan video ma'lumotlarini olish
-            const videoData = JSON.parse(localStorage.getItem('currentVideo'));
-            
-            if (!videoData) {
-                // Agar video ma'lumoti bo'lmasa, sahifani yopish
-                alert('Video topilmadi! Profil sahifasiga qayting.');
-                window.location.href = 'profil.html';
-                return;
-            }
-            
-            currentVideo = videoData;
-            
-            // Loading overlay ko'rsatish
-            showLoading();
-            
-            // Video elementini yaratish
-            createVideoElement();
-            
-            // UI ni yangilash
-            updateVideoUI();
-            
-            // Tavsiya etilgan videolarni yuklash
-            loadRecommendedVideos();
-            
-            // Like, comment holatlarini yuklash
-            loadVideoState();
+        // Avatar
+        const avatarInitial = document.getElementById('avatarInitial');
+        const avatarImage = document.getElementById('avatarImage');
+        
+        if (user.photo_url) {
+          avatarImage.src = user.photo_url;
+          avatarImage.style.display = 'block';
+          avatarInitial.style.display = 'none';
+        } else {
+          avatarInitial.textContent = user.first_name?.charAt(0).toUpperCase() || '?';
         }
+      }
+    }
 
-        function showLoading() {
-            const loadingHTML = `
-                <div class="loading-overlay">
-                    <div class="loading-spinner-large"></div>
-                    <div>Video yuklanmoqda...</div>
-                </div>
-            `;
-            videoPlayerContainer.innerHTML = loadingHTML;
-        }
+    // Navigatsiya
+    window.navigateTo = function(url) {
+      window.location.href = url;
+    };
 
-        function hideLoading() {
-            const loadingOverlay = videoPlayerContainer.querySelector('.loading-overlay');
-            if (loadingOverlay) {
-                loadingOverlay.remove();
-            }
-        }
+    // BackButton boshqaruvi
+    tg.BackButton.hide();
 
-        function createVideoElement() {
-            // Asosiy video pleerni tozalash
-            videoPlayerContainer.innerHTML = '';
-            
-            // Video elementini yaratish
-            const video = document.createElement('video');
-            video.id = 'mainVideo';
-            video.controls = true;
-            video.preload = 'metadata';
-            video.style.width = '100%';
-            video.style.height = 'auto';
-            video.style.borderRadius = '12px';
-            
-            // Video yuklash xatolari uchun
-            video.addEventListener('error', function(e) {
-                console.error('Video yuklashda xatolik:', e);
-                showVideoError();
-            });
-            
-            video.addEventListener('loadeddata', function() {
-                hideLoading();
-                console.log('Video muvaffaqiyatli yuklandi');
-            });
-            
-            video.addEventListener('canplay', function() {
-                hideLoading();
-            });
-            
-            // Agar video URL bo'lsa, source qo'shish
-            if (currentVideo.videoUrl) {
-                const source = document.createElement('source');
-                source.src = currentVideo.videoUrl;
-                
-                // URL turini aniqlash
-                if (currentVideo.videoUrl.startsWith('blob:') || 
-                    currentVideo.videoUrl.startsWith('http')) {
-                    source.type = 'video/mp4';
-                } else if (currentVideo.videoUrl.startsWith('data:')) {
-                    // Base64 video
-                    const match = currentVideo.videoUrl.match(/^data:video\/([^;]+);/);
-                    if (match) {
-                        source.type = `video/${match[1]}`;
-                    } else {
-                        source.type = 'video/mp4';
-                    }
-                }
-                
-                video.appendChild(source);
-                
-                // Video elementini container ga qo'shish
-                videoPlayerContainer.appendChild(video);
-            } else {
-                // Agar video URL bo'lmasa, xabar chiqarish
-                showVideoError();
-            }
-            
-            // Modal uchun ham video yaratish
-            createModalVideoElement();
-        }
-
-        function showVideoError() {
-            hideLoading();
-            videoPlayerContainer.innerHTML = `
-                <div class="error-message">
-                    <p>Video yuklashda xatolik yuz berdi</p>
-                    <p style="font-size: 14px; margin-top: 10px; color: #aaa;">
-                        Video fayli topilmadi yoki yuklanmagan
-                    </p>
-                    <button onclick="window.location.href='profil.html'">
-                        Profilga qaytish
-                    </button>
-                </div>
-            `;
-        }
-
-        function createModalVideoElement() {
-            modalVideoContainer.innerHTML = '';
-            
-            const video = document.createElement('video');
-            video.id = 'modalVideo';
-            video.controls = true;
-            video.preload = 'metadata';
-            video.style.width = '100%';
-            video.style.height = 'auto';
-            video.style.borderRadius = '12px';
-            
-            if (currentVideo.videoUrl) {
-                const source = document.createElement('source');
-                source.src = currentVideo.videoUrl;
-                
-                if (currentVideo.videoUrl.startsWith('blob:') || 
-                    currentVideo.videoUrl.startsWith('http')) {
-                    source.type = 'video/mp4';
-                } else if (currentVideo.videoUrl.startsWith('data:')) {
-                    const match = currentVideo.videoUrl.match(/^data:video\/([^;]+);/);
-                    if (match) {
-                        source.type = `video/${match[1]}`;
-                    } else {
-                        source.type = 'video/mp4';
-                    }
-                }
-                
-                video.appendChild(source);
-            }
-            
-            modalVideoContainer.appendChild(video);
-        }
-
-        function updateVideoUI() {
-            // Video ma'lumotlarini ko'rsatish
-            videoTitleElement.textContent = currentVideo.title || "Nomsiz video";
-            viewsCountElement.textContent = currentVideo.views || "0";
-            uploadTimeElement.textContent = currentVideo.timeAgo || "hozirgina";
-            
-            // Video tavsifini qo'shish
-            const descriptionDiv = document.createElement('div');
-            descriptionDiv.className = 'video-description';
-            descriptionDiv.style.marginTop = '16px';
-            descriptionDiv.style.color = '#aaa';
-            descriptionDiv.style.fontSize = '14px';
-            descriptionDiv.style.lineHeight = '1.5';
-            descriptionDiv.textContent = currentVideo.description || '';
-            
-            const videoInfo = document.querySelector('.video-info');
-            const existingDesc = videoInfo.querySelector('.video-description');
-            if (existingDesc) {
-                existingDesc.remove();
-            }
-            
-            const channelInfo = document.querySelector('.channel-info');
-            videoInfo.insertBefore(descriptionDiv, channelInfo);
-        }
-
-        function loadRecommendedVideos() {
-            // LocalStorage'dan barcha videolarni olish
-            const allVideos = JSON.parse(localStorage.getItem('videos')) || [];
-            
-            // Joriy videoni olib tashlash
-            const recommendedVideos = allVideos.filter(video => 
-                video.id !== currentVideo.id
-            ).slice(0, 5); // Faqat 5 ta video
-            
-            recommendedVideosContainer.innerHTML = '';
-            
-            if (recommendedVideos.length === 0) {
-                recommendedVideosContainer.innerHTML = `
-                    <div style="color: #aaa; text-align: center; padding: 20px;">
-                        <p>Hozircha boshqa videolar yo'q</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            // Har bir video uchun element yaratish
-            recommendedVideos.forEach(video => {
-                const videoElement = document.createElement('div');
-                videoElement.className = 'recommended-video';
-                videoElement.style.cursor = 'pointer';
-                
-                // Video elementini yaratish
-                const videoHTML = `
-                    <div class="recommended-thumbnail">
-                        <video muted loop playsinline>
-                            <source src="${video.videoUrl}" type="video/mp4">
-                        </video>
-                        <div style="position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.7); color: white; padding: 2px 6px; border-radius: 4px; font-size: 12px;">
-                            ${video.timeAgo || 'yangi'}
-                        </div>
-                    </div>
-                    <div class="recommended-info">
-                        <div class="recommended-video-title">${video.title || 'Nomsiz video'}</div>
-                        <div class="recommended-channel">${video.author || 'Foydalanuvchi'}</div>
-                        <div class="recommended-stats">
-                            ${video.views || '0'} koʻrish · ${video.likes || '0'} like
-                        </div>
-                    </div>
-                `;
-                
-                videoElement.innerHTML = videoHTML;
-                
-                // Video hover effektlari
-                const thumbnailVideo = videoElement.querySelector('video');
-                videoElement.addEventListener('mouseenter', () => {
-                    if (thumbnailVideo.paused) {
-                        thumbnailVideo.play().catch(e => console.log("Autoplay prevented"));
-                    }
-                });
-                
-                videoElement.addEventListener('mouseleave', () => {
-                    thumbnailVideo.pause();
-                    thumbnailVideo.currentTime = 0;
-                });
-                
-                // Video bosilganda o'sha videoni ochish
-                videoElement.addEventListener('click', function() {
-                    // Video ma'lumotlarini localStorage ga saqlash
-                    localStorage.setItem('currentVideo', JSON.stringify(video));
-                    
-                    // Sahifani yangilash
-                    location.reload();
-                });
-                
-                recommendedVideosContainer.appendChild(videoElement);
-            });
-        }
-
-        function loadVideoState() {
-            // LocalStorage'dan video holatini yuklash
-            const savedState = JSON.parse(localStorage.getItem(`videoState_${currentVideo.id}`));
-            if (savedState) {
-                state = savedState;
-            } else {
-                // Agar saqlangan holat bo'lmasa, video ma'lumotlaridan olish
-                state.heartCount = currentVideo.likes || 0;
-                state.comments = currentVideo.commentsData || [];
-            }
-            
-            // UI ni yangilash
-            updateUI();
-        }
-
-        // ========== UI FUNCTIONS ==========
-        function updateUI() {
-            // Like sonini ko'rsatish
-            heartCountDisplay.textContent = formatNumber(state.heartCount);
-            
-            // Like tugmasini holatini yangilash
-            if (state.isHearted) {
-                heartBtn.classList.add('active');
-            } else {
-                heartBtn.classList.remove('active');
-            }
-
-            // Save tugmasini holatini yangilash
-            if (state.isSaved) {
-                saveBtn.classList.add('active');
-            } else {
-                saveBtn.classList.remove('active');
-            }
-
-            // Obuna holatini yangilash
-            if (state.isSubscribed) {
-                subscribeBtn.textContent = "Obuna bo'lingan";
-                subscribeBtn.classList.add('subscribed');
-            } else {
-                subscribeBtn.textContent = "Obuna bo'lish";
-                subscribeBtn.classList.remove('subscribed');
-            }
-
-            // Comment sonini hisoblash
-            let totalComments = state.comments.length;
-            state.comments.forEach(c => totalComments += (c.replies ? c.replies.length : 0));
-            
-            // Comment sonlarini yangilash
-            const formattedComments = totalComments >= 1000 
-                ? (totalComments / 1000).toFixed(1).replace(/\.0$/, '') + 'K'
-                : totalComments.toString();
-            
-            commentsMainCount.textContent = formattedComments;
-            commentsModalCount.textContent = totalComments;
-            
-            // Comment tugmasini faollashtirish
-            if (totalComments > 0) {
-                commentsBtn.classList.add('active');
-            } else {
-                commentsBtn.classList.remove('active');
-            }
-        }
-
-        function formatNumber(num) {
-            if (num >= 1000000) return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
-            if (num >= 1000) return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
-            return num.toString();
-        }
-
-        function showNotification(message) {
-            const old = document.querySelector('.notification');
-            if (old) old.remove();
-            
-            const notification = document.createElement('div');
-            notification.className = 'notification';
-            notification.textContent = message;
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.style.opacity = '0';
-                setTimeout(() => notification.remove(), 300);
-            }, 3000);
-        }
-
-        // ========== EVENT HANDLERS ==========
-        // Like tugmasi
-        heartBtn.addEventListener('click', () => {
-            state.isHearted = !state.isHearted;
-            if (state.isHearted) {
-                state.heartCount++;
-                showNotification("Video yoqdi");
-            } else {
-                state.heartCount--;
-            }
-            updateUI();
-            saveVideoState();
-        });
-
-        // Save tugmasi
-        saveBtn.addEventListener('click', () => {
-            state.isSaved = !state.isSaved;
-            if (state.isSaved) {
-                showNotification("Video saqlandi");
-            } else {
-                showNotification("Video saqlanganlardan olib tashlandi");
-            }
-            updateUI();
-            saveVideoState();
-        });
-
-        // Obuna tugmasi
-        subscribeBtn.addEventListener('click', () => {
-            state.isSubscribed = !state.isSubscribed;
-            if (state.isSubscribed) {
-                showNotification("Obuna bo'ldingiz");
-            } else {
-                showNotification("Obuna bekor qilindi");
-            }
-            updateUI();
-            saveVideoState();
-        });
-
-        // Share tugmasi
-        shareBtn.addEventListener('click', () => {
-            if (navigator.share) {
-                navigator.share({
-                    title: videoTitleElement.textContent,
-                    text: 'Bu videoni ko\'ring!',
-                    url: window.location.href,
-                })
-                .then(() => console.log('Muvaffaqiyatli ulashildi'))
-                .catch((error) => console.log('Ulashishda xatolik:', error));
-            } else {
-                // Fallback for browsers that don't support Web Share API
-                navigator.clipboard.writeText(window.location.href)
-                    .then(() => {
-                        showNotification('Havola nusxalandi!');
-                    })
-                    .catch(err => {
-                        console.error('Nusxalashda xatolik:', err);
-                        showNotification('Havolani nusxalashda xatolik');
-                    });
-            }
-        });
-
-        // Comment tugmasi (modalni ochish)
-        commentsBtn.addEventListener('click', () => {
-            modal.classList.add('show');
-            document.body.style.overflow = 'hidden';
-        });
-
-        // Comment modalni yopish
-        closeCommentsBtn.addEventListener('click', () => {
-            modal.classList.remove('show');
-            document.body.style.overflow = 'auto';
-        });
-
-        // Modal tashqarisini bosganda yopish
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.classList.remove('show');
-                document.body.style.overflow = 'auto';
-            }
-        });
-
-        // Comment inputni kuzatish
-        commentInput.addEventListener('input', () => {
-            const text = commentInput.value.trim();
-            commentSendBtn.disabled = text.length === 0;
-            if (text.length > 0) {
-                commentSendBtn.classList.add('active');
-            } else {
-                commentSendBtn.classList.remove('active');
-            }
-        });
-
-        // Comment yuborish
-        commentSendBtn.addEventListener('click', addComment);
-
-        commentInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                if (!commentSendBtn.disabled) {
-                    addComment();
-                }
-            }
-        });
-
-        function addComment() {
-            const text = commentInput.value.trim();
-            if (text.length === 0) return;
-
-            const newComment = {
-                id: Date.now(),
-                text: text,
-                author: 'Siz',
-                avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=880&q=80',
-                time: 'hozirgina',
-                timestamp: Date.now(),
-                likes: 0,
-                isLiked: false,
-                replies: []
-            };
-            state.comments.unshift(newComment);
-            showNotification("Fikr qoldirildi");
-
-            // Clear input
-            commentInput.value = '';
-            commentSendBtn.disabled = true;
-            commentSendBtn.classList.remove('active');
-            
-            // Update UI and save
-            updateUI();
-            saveVideoState();
-        }
-
-        function saveVideoState() {
-            localStorage.setItem(`videoState_${currentVideo.id}`, JSON.stringify(state));
-        }
-
-        // ========== INITIALIZATION ==========
-        document.addEventListener('DOMContentLoaded', function() {
-            loadVideo();
-            
-            // Comment input focus
-            commentInput.addEventListener('focus', () => {
-                commentSendBtn.classList.add('active');
-            });
-        });
-    </script>
+    // Ishga tushirish
+    window.addEventListener('load', () => {
+      initTelegramData();
+      loadVideos();
+    });
+  </script>
 </body>
 </html>
