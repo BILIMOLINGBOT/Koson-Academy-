@@ -1,199 +1,346 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>LearnU · Rangli Kartalar</title>
-  <style>
-    /* ── ASOSIY RESET ── */
-    * { margin:0; padding:0; box-sizing:border-box;
-        font-family:'Inter', sans-serif; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>Language UI - Interactive Learning</title>
+    <style>
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #141414;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --border-light: #2a2a2a;
+            --border-dark: #333333;
+            --accent-dark: #ffffff;
+            --shadow-sm: rgba(255, 255, 255, 0.05);
+            --shadow-md: rgba(255, 255, 255, 0.1);
+            --shadow-lg: rgba(255, 255, 255, 0.15);
+        }
 
-    body {
-      background:#f5f5f5;
-      display:flex; align-items:center; justify-content:center;
-      min-height:100vh;
-    }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    /* ── ASOSIY KONTEYNER ── */
-    .container {
-      width: 100%;
-      max-width: 400px;
-      height: 100vh;
-      background: white;
-      position: relative;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+        body, html {
+            height: 100%;
+            background: var(--bg-primary);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            color: var(--text-primary);
+            -webkit-tap-highlight-color: transparent;
+            overflow: hidden;
+        }
 
-    /* ── STACK MAYDONI ── */
-    .stack-scene {
-      position: relative;
-      width: 100%;
-      height: 600px;
-      display: flex;
-      justify-content: center;
-    }
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom);
+            background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+        }
 
-    /* ── KARTA DIZAYNI ── */
-    .lesson-card {
-      position: absolute;
-      width: 100%;
-      height: 520px;
-      border-radius: 32px 32px 0 0;
-      box-shadow: 0 -10px 30px rgba(0,0,0,0.08);
-      display: flex;
-      flex-direction: column;
-      padding: 40px 30px;
-      cursor: grab;
-      user-select: none;
-      touch-action: none;
-      transform-origin: bottom center;
-      transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), 
-                  bottom 0.4s cubic-bezier(0.25, 1, 0.5, 1),
-                  filter 0.4s ease;
-    }
+        /* Markaziy qism */
+        .question-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            padding-bottom: 80px;
+        }
 
-    .card-tag {
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: rgba(0,0,0,0.5);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 12px;
-    }
+        .input-container {
+            position: relative;
+            width: 100%;
+            max-width: 300px;
+            margin-bottom: 30px;
+        }
 
-    .card-title {
-      font-size: 1.8rem;
-      font-weight: 700;
-      color: #222;
-      line-height: 1.3;
-    }
+        .single-input {
+            width: 100%;
+            height: 85px;
+            border-radius: 16px;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-light);
+            font-size: 40px;
+            font-weight: 600;
+            color: var(--text-primary);
+            text-align: center;
+            text-transform: uppercase;
+            box-shadow: 0 2px 8px var(--shadow-sm);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            outline: none;
+            padding: 0 20px;
+            letter-spacing: 10px;
+        }
 
-    /* Karta ranglari - har bir dars uchun alohida */
-    .lesson-card:nth-child(1) {
-      background: linear-gradient(135deg, #FFE5E5 0%, #FFB8B8 100%);
-    }
-    .lesson-card:nth-child(2) {
-      background: linear-gradient(135deg, #E5F0FF 0%, #B8D4FF 100%);
-    }
-    .lesson-card:nth-child(3) {
-      background: linear-gradient(135deg, #E5FFE5 0%, #B8FFB8 100%);
-    }
-    .lesson-card:nth-child(4) {
-      background: linear-gradient(135deg, #FFF0E5 0%, #FFD4B8 100%);
-    }
-    .lesson-card:nth-child(5) {
-      background: linear-gradient(135deg, #F0E5FF 0%, #D4B8FF 100%);
-    }
+        .single-input:focus {
+            border-color: var(--text-primary);
+            background: var(--bg-secondary);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px var(--shadow-md);
+        }
 
-    /* Matn rangi - quyuqroq va kontrastli */
-    .lesson-card:nth-child(1) .card-title { color: #8B3A3A; }
-    .lesson-card:nth-child(2) .card-title { color: #1A4C7A; }
-    .lesson-card:nth-child(3) .card-title { color: #1A6B1A; }
-    .lesson-card:nth-child(4) .card-title { color: #8B5A2E; }
-    .lesson-card:nth-child(5) .card-title { color: #4A3B8B; }
+        .single-input::placeholder {
+            color: var(--text-secondary);
+            letter-spacing: normal;
+        }
 
-    .lesson-card:nth-child(1) .card-tag { color: #8B3A3A; opacity: 0.7; }
-    .lesson-card:nth-child(2) .card-tag { color: #1A4C7A; opacity: 0.7; }
-    .lesson-card:nth-child(3) .card-tag { color: #1A6B1A; opacity: 0.7; }
-    .lesson-card:nth-child(4) .card-tag { color: #8B5A2E; opacity: 0.7; }
-    .lesson-card:nth-child(5) .card-tag { color: #4A3B8B; opacity: 0.7; }
-  </style>
+        /* Tugma qismi */
+        .check-btn-area {
+            padding: 0 0 40px 0;
+        }
+
+        .check-btn {
+            width: 100%;
+            height: 56px;
+            border: none;
+            border-radius: 16px;
+            background: var(--border-dark);
+            color: var(--text-secondary);
+            font-size: 18px;
+            font-weight: 600;
+            cursor: not-allowed;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px var(--shadow-sm);
+            letter-spacing: 0.3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .check-btn.active {
+            background: var(--text-primary);
+            color: var(--bg-primary);
+            cursor: pointer;
+            box-shadow: 0 8px 24px var(--shadow-lg);
+            transform: translateY(-1px);
+        }
+
+        .check-btn.active:active {
+            transform: translateY(0px);
+            box-shadow: 0 4px 12px var(--shadow-md);
+        }
+
+        .check-icon {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        /* Natija paneli */
+        .result-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--text-primary);
+            border-radius: 24px 24px 0 0;
+            padding: 30px 20px;
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 1000;
+            color: var(--bg-primary);
+            box-shadow: 0 -4px 32px var(--shadow-lg);
+        }
+
+        .result-panel.active { 
+            transform: translateY(0); 
+        }
+
+        .result-panel h2 {
+            font-size: 28px;
+            margin-bottom: 12px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .result-icon {
+            width: 32px;
+            height: 32px;
+            fill: currentColor;
+        }
+
+        .result-panel p {
+            font-size: 16px;
+            opacity: 0.9;
+            line-height: 1.5;
+        }
+
+        .continue-btn {
+            width: 100%;
+            height: 56px;
+            border: none;
+            border-radius: 16px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 24px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .continue-btn:active {
+            transform: scale(0.98);
+        }
+
+        .continue-icon {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        .sr-only { 
+            position: absolute; 
+            width: 1px; 
+            height: 1px; 
+            padding: 0; 
+            margin: -1px; 
+            overflow: hidden; 
+            clip: rect(0,0,0,0); 
+            border: 0; 
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1) translateY(-3px); }
+            50% { transform: scale(1.05) translateY(-3px); }
+            100% { transform: scale(1) translateY(-3px); }
+        }
+        
+        .pulse { 
+            animation: pulse 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+    </style>
 </head>
 <body>
 
-<div class="container">
-  <div class="stack-scene" id="stackScene">
+<!-- SVG Sprite Container -->
+<svg style="display: none;">
+    <symbol id="icon-check" viewBox="0 0 24 24">
+        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+    </symbol>
+    <symbol id="icon-arrow" viewBox="0 0 24 24">
+        <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
+    </symbol>
+    <symbol id="icon-celebration" viewBox="0 0 24 24">
+        <path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm-2-15l4.5 4.5L10 17l-4.5-4.5L10 7zm2 0l4.5 4.5L12 17l-4.5-4.5L12 7z"/>
+    </symbol>
+</svg>
 
-    <div class="lesson-card">
-      <div class="card-tag">1-dars</div>
-      <div class="card-title">Algebra asoslari va murakkab tenglamalar</div>
+<div class="app-container">
+    <div class="question-section">
+        <div class="input-container">
+            <input 
+                type="text" 
+                class="single-input" 
+                id="mainInput" 
+                maxlength="3" 
+                autocomplete="off" 
+                placeholder="?"
+                autofocus
+            >
+        </div>
     </div>
 
-    <div class="lesson-card">
-      <div class="card-tag">2-dars</div>
-      <div class="card-title">Ingliz tili: Grammatika va so'zlashuv</div>
+    <div class="check-btn-area">
+        <button class="check-btn" id="checkBtn" disabled>
+            <svg class="check-icon">
+                <use href="#icon-check"></use>
+            </svg>
+            Tekshirish
+        </button>
     </div>
 
-    <div class="lesson-card">
-      <div class="card-tag">3-dars</div>
-      <div class="card-title">Fizika: Kinematika va dinamika asoslari</div>
+    <div class="result-panel" id="resultPanel">
+        <div style="max-width: 500px; margin: 0 auto;">
+            <h2>
+                <svg class="result-icon">
+                    <use href="#icon-celebration"></use>
+                </svg>
+                Ajoyib! 🎉
+            </h2>
+            <p>Javobingiz to'g'ri qabul qilindi. Davom eting!</p>
+            <button class="continue-btn" id="continueBtn">
+                Keyingi savol
+                <svg class="continue-icon">
+                    <use href="#icon-arrow"></use>
+                </svg>
+            </button>
+        </div>
     </div>
-
-    <div class="lesson-card">
-      <div class="card-tag">4-dars</div>
-      <div class="card-title">Tarix: Jahon sivilizatsiyasi rivojlanishi</div>
-    </div>
-
-    <div class="lesson-card">
-      <div class="card-tag">5-dars</div>
-      <div class="card-title">Kimyo: Organik birikmalar va reaksiyalar</div>
-    </div>
-
-  </div>
 </div>
 
 <script>
-(function(){
-  const scene = document.getElementById('stackScene');
-  const cards = Array.from(scene.querySelectorAll('.lesson-card'));
-  const N = cards.length;
+    const mainInput = document.getElementById('mainInput');
+    const checkBtn = document.getElementById('checkBtn');
+    const resultPanel = document.getElementById('resultPanel');
 
-  /* Layout parametrlari */
-  const BOTTOM_START = 0;
-  const PEEK         = 35;
-  const SCALE_STEP   = 0.04;
+    // Avtomatik fokus
+    mainInput.focus();
 
-  let topIdx = 0;
-
-  function applyLayout() {
-    cards.forEach((card, i) => {
-      const depth  = (i - topIdx + N) % N;
-      const scale  = 1 - (depth * SCALE_STEP);
-      const z      = N - depth;
-
-      card.style.bottom    = (depth * PEEK) + 'px';
-      card.style.transform = `scale(${scale})`;
-      card.style.zIndex    = z;
-      card.style.filter    = `brightness(${1 - depth * 0.05})`;
-      
-      card.style.opacity = depth > 3 ? 0 : 1;
+    mainInput.addEventListener('input', (e) => {
+        const val = e.target.value.toUpperCase().slice(0, 3);
+        mainInput.value = val;
+        
+        const isReady = val.length === 3;
+        checkBtn.disabled = !isReady;
+        checkBtn.classList.toggle('active', isReady);
+        
+        if (val.length === 3) {
+            mainInput.classList.add('pulse');
+            setTimeout(() => mainInput.classList.remove('pulse'), 300);
+        }
     });
-  }
 
-  applyLayout();
+    mainInput.addEventListener('keypress', (e) => {
+        // Faqat harflar va raqamlarga ruxsat berish
+        const charCode = e.keyCode || e.which;
+        const charStr = String.fromCharCode(charCode);
+        
+        if (!/^[A-Za-z0-9]$/.test(charStr)) {
+            e.preventDefault();
+        }
+    });
 
-  /* ── SWIPE LOGIKASI ── */
-  let startY = null;
+    mainInput.addEventListener('keyup', (e) => {
+        // Enter tugmasi bilan tekshirish
+        if (e.key === 'Enter' && mainInput.value.length === 3) {
+            checkBtn.click();
+        }
+    });
 
-  function onDown(e) {
-    startY = e.touches ? e.touches[0].clientY : e.clientY;
-  }
+    checkBtn.addEventListener('click', () => {
+        if (mainInput.value.length === 3) {
+            resultPanel.classList.add('active');
+        }
+    });
 
-  function onUp(e) {
-    if (startY === null) return;
-    const endY = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
-    const diff = startY - endY;
+    document.getElementById('continueBtn').addEventListener('click', () => {
+        resultPanel.classList.remove('active');
+        mainInput.value = '';
+        checkBtn.disabled = true;
+        checkBtn.classList.remove('active');
+        mainInput.focus();
+    });
 
-    if (Math.abs(diff) > 50) {
-      if (diff > 0) {
-        topIdx = (topIdx + 1) % N;
-      } else {
-        topIdx = (topIdx - 1 + N) % N;
-      }
-      applyLayout();
-    }
-    startY = null;
-  }
-
-  scene.addEventListener('mousedown',  onDown);
-  scene.addEventListener('touchstart', onDown, { passive: true });
-  scene.addEventListener('mouseup',    onUp);
-  scene.addEventListener('touchend',   onUp);
-})();
+    // Ekranning istalgan joyiga bosganda inputga fokus qilish
+    document.addEventListener('click', (e) => {
+        if (e.target !== mainInput && !e.target.closest('.result-panel')) {
+            mainInput.focus();
+        }
+    });
 </script>
 
 </body>
