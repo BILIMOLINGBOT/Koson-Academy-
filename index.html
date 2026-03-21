@@ -6,23 +6,10 @@
   <title>LearnU · Asosiy</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    /* CSS o'zgarishsiz qoldi, faqat vertikal skroll uchun kichik qo'shimcha */
+    /* CSS o'zgarishsiz qoldi, faqat silliq o'tishlar qo'shildi */
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; -webkit-tap-highlight-color: transparent; }
-    body { 
-      background: #000; 
-      color: #fff; 
-      min-height: 100vh; 
-      overflow-y: auto; /* Vertikal skrollga ruxsat berildi */
-      overflow-x: hidden;
-    }
-    .app-wrapper { 
-      width: 100%; 
-      max-width: 420px; 
-      margin: 0 auto; 
-      display: flex; 
-      flex-direction: column;
-      padding-bottom: 100px; /* Tab-bar uchun joy */
-    }
+    body { background: #000; color: #fff; height: 100vh; overflow: hidden; }
+    .app-wrapper { width: 100%; max-width: 420px; height: 100vh; margin: 0 auto; display: flex; flex-direction: column; }
     
     .header { padding: 20px; display: flex; align-items: center; justify-content: space-between; }
     .avatar-wrapper { display: flex; align-items: center; gap: 12px; }
@@ -39,10 +26,15 @@
       border: 1px solid #333; 
       overflow: hidden; 
     }
-    .avatar-circle img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .avatar-circle img { 
+      width: 100%; 
+      height: 100%; 
+      object-fit: cover; 
+      display: block;
+    }
 
-    /* Gorizontal skroll konteyneri */
     .scroll-container { 
+      flex: 1;
       display: flex; 
       overflow-x: auto; 
       scroll-snap-type: x mandatory; 
@@ -67,29 +59,14 @@
       cursor: pointer;
       transition: transform 0.2s;
     }
-    .lesson-card:active { transform: scale(0.98); }
-
-    .section-title {
-      padding: 20px 20px 0;
-      font-size: 18px;
-      font-weight: bold;
-      color: #8e8e93;
+    .lesson-card:active {
+      transform: scale(0.98);
     }
 
     .tab-bar { 
-      position: fixed; /* Tab-bar doim pastda turishi uchun */
-      bottom: 0;
-      width: 100%;
-      max-width: 420px;
-      height: 80px; 
-      background: rgba(20, 20, 20, 0.95); 
-      backdrop-filter: blur(10px);
-      display: flex; 
-      justify-content: space-around; 
-      align-items: center;
-      border-top: 0.5px solid #333; 
-      padding-bottom: env(safe-area-inset-bottom);
-      z-index: 100;
+      height: 80px; background: rgba(20, 20, 20, 0.95); backdrop-filter: blur(10px);
+      display: flex; justify-content: space-around; align-items: center;
+      border-top: 0.5px solid #333; padding-bottom: env(safe-area-inset-bottom);
     }
     .tab-item { color: #8e8e93; text-decoration: none; text-align: center; font-size: 10px; }
     .tab-item.active { color: #007aff; }
@@ -97,6 +74,7 @@
     
     .points-badge { background: #fff; color: #000; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 14px; }
     
+    /* Gradient text for full name */
     .gradient-name {
       background: linear-gradient(135deg, #fff, #aaccff);
       -webkit-background-clip: text;
@@ -121,11 +99,8 @@
     <div class="points-badge" id="userPoints">⚡ 0</div>
   </div>
 
-  <div class="section-title">Asosiy modullar</div>
-  <div class="scroll-container" id="moduleContainer"></div>
-
-  <div class="section-title">Maxsus darslar</div>
-  <div class="scroll-container" id="extraModuleContainer"></div>
+  <div class="scroll-container" id="moduleContainer">
+    </div>
 
   <nav class="tab-bar">
     <a href="index.html" class="tab-item active" onclick="navigateTo('index.html')">
@@ -147,16 +122,52 @@
   const tg = window.Telegram.WebApp;
   tg.expand();
   
+  // Ranglarni Telegram mavzusiga moslash
   tg.setHeaderColor('secondary_bg_color');
   tg.setBackgroundColor('bg_color');
 
-  // 30 ta asosiy modul
-  const mainModules = Array.from({ length: 30 }, (_, i) => {
+  // Modullar ma'lumotlari (30 ta)
+  const moduleUrls = Array.from({ length: 30 }, (_, i) => `modul${i + 1}.html`);
+  
+  const modules = Array.from({ length: 30 }, (_, i) => {
     const id = i + 1;
-    const topics = ['Dasturlash asoslari','Algoritmlar','Ma\'lumotlar tuzilmasi','Veb dasturlash','Mobil dasturlash','Sun\'iy intellekt','Ma\'lumotlar bazasi','Tarmoq texnologiyalari','Kiberxavfsizlik','Bulutli hisoblash','Python dasturlash','JavaScript asoslari','React.js','Node.js','Flutter','Kotlin','Swift','Java','C++ dasturlash','Go dasturlash','DevOps asoslari','Docker va Kubernetes','Machine Learning','Deep Learning','Data Science','Blockchain','IoT texnologiyalari','AR/VR dasturlash','Game Development','Software Architecture'];
+    // Har bir modul uchun turli mavzular
+    const topics = [
+      'Dasturlash asoslari',
+      'Algoritmlar',
+      'Ma\'lumotlar tuzilmasi',
+      'Veb dasturlash',
+      'Mobil dasturlash',
+      'Sun\'iy intellekt',
+      'Ma\'lumotlar bazasi',
+      'Tarmoq texnologiyalari',
+      'Kiberxavfsizlik',
+      'Bulutli hisoblash',
+      'Python dasturlash',
+      'JavaScript asoslari',
+      'React.js',
+      'Node.js',
+      'Flutter',
+      'Kotlin',
+      'Swift',
+      'Java',
+      'C++ dasturlash',
+      'Go dasturlash',
+      'DevOps asoslari',
+      'Docker va Kubernetes',
+      'Machine Learning',
+      'Deep Learning',
+      'Data Science',
+      'Blockchain',
+      'IoT texnologiyalari',
+      'AR/VR dasturlash',
+      'Game Development',
+      'Software Architecture'
+    ];
+    
     return {
       id: id,
-      title: `${id}-modul: ${topics[i] || 'Dasturlash'}`,
+      title: `${id}-modul: ${topics[id-1] || 'Dasturlash asoslari'}`,
       label: `MODUL ${id}`,
       action: id <= 5 ? 'Darsni boshlash' : (id <= 15 ? 'Davom etish' : 'Tez kunda'),
       url: `modul${id}.html`,
@@ -164,44 +175,74 @@
     };
   });
 
-  // 5 ta qo'shimcha modul
-  const extraModules = [
-    { id: 101, title: 'Portfolio yaratish', label: 'MAXSUS 1', action: 'Boshlash', url: 'extra1.html', status: 'available' },
-    { id: 102, title: 'Freelance sirlari', label: 'MAXSUS 2', action: 'Boshlash', url: 'extra2.html', status: 'available' },
-    { id: 103, title: 'Intervyuga tayyorlov', label: 'MAXSUS 3', action: 'Tez kunda', url: '#', status: 'coming-soon' },
-    { id: 104, title: 'Soft Skills', label: 'MAXSUS 4', action: 'Tez kunda', url: '#', status: 'coming-soon' },
-    { id: 105, title: 'Karyera maslahatlari', label: 'MAXSUS 5', action: 'Tez kunda', url: '#', status: 'coming-soon' }
-  ];
-
   function setAvatar(user) {
     const avatarInitial = document.getElementById('avatarInitial');
     const avatarImage = document.getElementById('avatarImage');
+    
     if (user && user.photo_url) {
+      // Telegram profil rasmi mavjud
       avatarImage.src = user.photo_url;
       avatarImage.style.display = 'block';
       avatarInitial.style.display = 'none';
+      
+      // Rasm yuklanmasa, initial harfni ko'rsatish
+      avatarImage.onerror = function() {
+        avatarImage.style.display = 'none';
+        avatarInitial.style.display = 'block';
+        if (user.first_name) {
+          avatarInitial.textContent = user.first_name.charAt(0).toUpperCase();
+        }
+      };
     } else {
-      avatarInitial.textContent = user?.first_name ? user.first_name.charAt(0).toUpperCase() : '?';
+      // Profil rasmi yo'q, initial harfni ko'rsatish
+      avatarImage.style.display = 'none';
+      avatarInitial.style.display = 'block';
+      
+      if (user && user.first_name) {
+        avatarInitial.textContent = user.first_name.charAt(0).toUpperCase();
+      } else {
+        avatarInitial.textContent = '?';
+      }
     }
   }
 
   function initApp() {
     const user = tg.initDataUnsafe?.user;
-    if (user) {
-      document.getElementById('userName').textContent = user.last_name ? `${user.first_name} ${user.last_name}` : user.first_name;
-      setAvatar(user);
-    }
     
-    document.getElementById('userPoints').textContent = `⚡ ${localStorage.getItem('user_points') || 312}`;
+    // Foydalanuvchi ismi va familiyasi
+    if (user) {
+      // To'liq ismni yaratish (ism + familiya)
+      let fullName = user.first_name || 'Foydalanuvchi';
+      if (user.last_name) {
+        fullName = `${user.first_name} ${user.last_name}`;
+      }
+      document.getElementById('userName').textContent = fullName;
+      
+      // Avatar - Telegram profil rasmi yoki initial harf
+      setAvatar(user);
+      
+      // Konsolga ma'lumot chiqarish (test uchun)
+      console.log('Telegram user:', user);
+      console.log('Photo URL:', user.photo_url);
+    } else {
+      // Agar user ma'lumoti bo'lmasa
+      document.getElementById('userName').textContent = 'Mehmon';
+      setAvatar(null);
+    }
 
-    renderModules('moduleContainer', mainModules);
-    renderModules('extraModuleContainer', extraModules);
+    // Ballarni yuklash (Haqiqiy loyihada buni Backenddan fetch qilish kerak)
+    const points = localStorage.getItem('user_points') || 312;
+    document.getElementById('userPoints').textContent = `⚡ ${points}`;
+
+    renderModules();
   }
 
-  function renderModules(containerId, data) {
-    const container = document.getElementById(containerId);
-    container.innerHTML = data.map(m => {
+  function renderModules() {
+    const container = document.getElementById('moduleContainer');
+    container.innerHTML = modules.map(m => {
+      // Statusga qarab action rangini o'zgartirish
       const actionColor = m.status === 'available' ? '#007aff' : (m.status === 'in-progress' ? '#ff9f0a' : '#8e8e93');
+      
       return `
         <div class="lesson-card" onclick="openModule(${m.id}, '${m.url}')">
           <span style="color: #8e8e93; font-size: 12px; font-weight: 600;">${m.label}</span>
@@ -214,15 +255,32 @@
 
   window.navigateTo = function(url) {
     tg.HapticFeedback.impactOccurred('light');
-    setTimeout(() => { window.location.href = url; }, 100);
+    // Sahifa o'zgarishidan oldin biroz kechikish (visual feedback uchun)
+    setTimeout(() => {
+      window.location.href = url;
+    }, 100);
   };
 
   window.openModule = function(id, url) {
-    if(url === '#') return;
     tg.HapticFeedback.notificationOccurred('success');
     localStorage.setItem('last_module', id);
-    setTimeout(() => { window.location.href = url; }, 100);
+    localStorage.setItem(`module_${id}_status`, 'opened');
+    
+    // URL bo'yicha navigatsiya
+    setTimeout(() => {
+      window.location.href = url;
+    }, 100);
   };
+
+  // Telegram BackButton boshqarish
+  if (window.location.pathname.includes('modul') || window.location.pathname.includes('profil.html')) {
+    tg.BackButton.show();
+    tg.BackButton.onClick(() => {
+      window.history.back();
+    });
+  } else {
+    tg.BackButton.hide();
+  }
 
   initApp();
 </script>
