@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>LearnU · Asosiy</title>
+  <title>LearnU · Darslar</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     * {
@@ -92,7 +92,7 @@
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     }
 
-    /* VERTICAL SCROLL CONTAINER (kartalar vertikal) */
+    /* VERTICAL SCROLL CONTAINER */
     .vertical-container {
       flex: 1;
       overflow-y: auto;
@@ -104,7 +104,6 @@
       gap: 18px;
     }
 
-    /* Smooth scrollbar (optional) */
     .vertical-container::-webkit-scrollbar {
       width: 4px;
     }
@@ -117,27 +116,56 @@
       border-radius: 8px;
     }
 
-    /* VERTICAL LESSON CARD */
-    .lesson-card-vertical {
-      background: linear-gradient(135deg, #131313 0%, #0a0a0c 100%);
-      border-radius: 32px;
+    /* ========= OCHIQ KARTA (available / in-progress) ========= */
+    /* Yashil/ko'k rangli gradient - jonli, ochiq darslar */
+    .lesson-card-open {
+      background: linear-gradient(135deg, #0e2a1f 0%, #0a1f1a 100%);
+      border-left: 4px solid #2ecc71;
+      border-radius: 28px;
       padding: 22px 24px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       gap: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(46, 204, 113, 0.35);
       backdrop-filter: blur(2px);
       cursor: pointer;
-      transition: transform 0.18s ease, background 0.2s;
-      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.4);
+      transition: all 0.2s ease;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(46, 204, 113, 0.1);
     }
 
-    .lesson-card-vertical:active {
+    .lesson-card-open:active {
       transform: scale(0.98);
-      background: linear-gradient(135deg, #1c1c1e, #0f0f12);
+      background: linear-gradient(135deg, #143a28, #0e2a1f);
+      border-left-width: 5px;
     }
 
+    /* ========= YOPIQ KARTA (coming soon) ========= */
+    /* Kulrang, xira, qulflangan ko'rinish */
+    .lesson-card-closed {
+      background: linear-gradient(135deg, #161618 0%, #0e0e10 100%);
+      border-left: 4px solid #4a4a4e;
+      border-radius: 28px;
+      padding: 22px 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 16px;
+      border: 1px solid rgba(90, 90, 100, 0.3);
+      backdrop-filter: blur(2px);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.3);
+      opacity: 0.85;
+    }
+
+    .lesson-card-closed:active {
+      transform: scale(0.98);
+      background: linear-gradient(135deg, #202024, #121214);
+      opacity: 0.95;
+    }
+
+    /* in-progress uchun maxsus accent (yana ochiq karta ichida farqlash) */
     .card-header {
       display: flex;
       align-items: center;
@@ -145,52 +173,78 @@
     }
 
     .module-badge {
-      background: rgba(0, 122, 255, 0.2);
+      background: rgba(255, 255, 255, 0.1);
       padding: 5px 12px;
       border-radius: 40px;
       font-size: 12px;
       font-weight: 600;
-      color: #5e9eff;
       letter-spacing: 0.3px;
-      border: 0.3px solid rgba(0, 122, 255, 0.4);
+      backdrop-filter: blur(4px);
+    }
+
+    /* Ochiq kartadagi badge ranglari */
+    .lesson-card-open .module-badge {
+      background: rgba(46, 204, 113, 0.2);
+      color: #7bef9e;
+      border: 0.3px solid rgba(46, 204, 113, 0.4);
+    }
+
+    /* Yopiq kartadagi badge */
+    .lesson-card-closed .module-badge {
+      background: rgba(142, 142, 147, 0.2);
+      color: #9a9aa2;
+      border: 0.3px solid rgba(142, 142, 147, 0.3);
     }
 
     .module-status {
       font-size: 11px;
-      font-weight: 500;
+      font-weight: 600;
       padding: 4px 10px;
       border-radius: 20px;
-      background: rgba(255, 255, 255, 0.05);
     }
 
     .status-available {
-      background: rgba(52, 199, 89, 0.18);
-      color: #30d158;
+      background: rgba(46, 204, 113, 0.22);
+      color: #3ae374;
+      border: 0.3px solid #2ecc7155;
     }
 
     .status-progress {
-      background: rgba(255, 159, 10, 0.18);
-      color: #ff9f0a;
+      background: rgba(255, 159, 10, 0.22);
+      color: #ffb340;
+      border: 0.3px solid #ff9f0a55;
     }
 
     .status-soon {
-      background: rgba(142, 142, 147, 0.2);
-      color: #98989e;
+      background: rgba(142, 142, 147, 0.25);
+      color: #a8a8b0;
+      border: 0.3px solid #6c6c7055;
     }
 
-    .card-title {
+    /* Sarlavha rangi ochiq kartada yorqin, yopiqda xira */
+    .lesson-card-open .card-title {
       font-size: 1.65rem;
       font-weight: 700;
       line-height: 1.25;
       letter-spacing: -0.4px;
-      background: linear-gradient(115deg, #ffffff, #c0ddff);
+      background: linear-gradient(115deg, #ffffff, #b5ffcf);
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
     }
 
+    .lesson-card-closed .card-title {
+      font-size: 1.65rem;
+      font-weight: 700;
+      line-height: 1.25;
+      letter-spacing: -0.4px;
+      color: #6f6f78;
+      background: none;
+      -webkit-text-fill-color: #6f6f78;
+    }
+
     .card-action {
-      margin-top: 8px;
+      margin-top: 4px;
       display: flex;
       align-items: center;
       gap: 10px;
@@ -202,14 +256,30 @@
       transition: transform 0.2s;
     }
 
-    .lesson-card-vertical:active .action-arrow {
+    .lesson-card-open:active .action-arrow {
       transform: translateX(4px);
     }
 
     .divider-light {
       height: 1px;
-      background: rgba(255, 255, 255, 0.05);
+      background: rgba(255, 255, 255, 0.08);
       margin: 4px 0;
+    }
+
+    .lesson-card-closed .divider-light {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .text-muted {
+      font-size: 12px;
+    }
+
+    .lesson-card-open .text-muted {
+      color: #a2e0b0;
+    }
+
+    .lesson-card-closed .text-muted {
+      color: #6a6a72;
     }
 
     /* TAB BAR */
@@ -248,18 +318,6 @@
       fill: none;
       stroke-width: 1.8;
     }
-
-    /* mikrolayout */
-    .text-muted {
-      color: #8e8e93;
-      font-size: 13px;
-    }
-
-    /* bonus */
-    @keyframes gentlePulse {
-      0% { opacity: 0.7; }
-      100% { opacity: 1; }
-    }
   </style>
 </head>
 <body>
@@ -278,7 +336,7 @@
     <div class="points-badge" id="userPoints">⚡ 0</div>
   </div>
 
-  <!-- VERTICAL KARTALAR UCHUN KONTEYNER (endless scroll) -->
+  <!-- VERTICAL KARTALAR KONTEYNERI -->
   <div class="vertical-container" id="moduleVerticalContainer">
     <!-- Dinamik kartalar shu yerga joylanadi -->
   </div>
@@ -303,13 +361,12 @@
   const tg = window.Telegram.WebApp;
   tg.expand();
   
-  // Ranglar
   tg.setHeaderColor('secondary_bg_color');
   tg.setBackgroundColor('bg_color');
 
-  // -------------------------------
+  // ------------------------------
   // 30 ta modul (mavzu va status)
-  // -------------------------------
+  // ------------------------------
   const topicsList = [
     'Dasturlash asoslari', 'Algoritmlar', 'Ma\'lumotlar tuzilmasi', 'Veb dasturlash',
     'Mobil dasturlash', 'Sun\'iy intellekt', 'Ma\'lumotlar bazasi', 'Tarmoq texnologiyalari',
@@ -320,16 +377,16 @@
     'Game Development', 'Software Architecture'
   ];
 
-  // status: available (1-5), in-progress (6-15), coming-soon (16-30)
+  // status: available (1-5) -> OCHIQ, in-progress (6-15) -> OCHIQ, coming-soon (16-30) -> YOPIQ
   const modulesData = Array.from({ length: 30 }, (_, idx) => {
     const id = idx + 1;
     let status = 'coming-soon';
     if (id <= 5) status = 'available';
     else if (id <= 15) status = 'in-progress';
     
-    let actionText = 'Tez kunda';
-    if (status === 'available') actionText = 'Darsni boshlash';
-    else if (status === 'in-progress') actionText = 'Davom etish';
+    let actionText = '🔒 Yopiq';
+    if (status === 'available') actionText = '📘 Darsni boshlash';
+    else if (status === 'in-progress') actionText = '⚡ Davom etish';
     
     return {
       id: id,
@@ -338,7 +395,8 @@
       action: actionText,
       url: `modul${id}.html`,
       status: status,
-      topic: topicsList[idx]
+      topic: topicsList[idx],
+      isOpen: (status === 'available' || status === 'in-progress')  // OCHIQ => true, YOPIQ => false
     };
   });
 
@@ -373,38 +431,68 @@
     }
   }
 
-  // Ballarni olish (localStorage yoki default)
   function getUserPoints() {
     let points = localStorage.getItem('user_points');
     if (points === null) {
-      // test uchun 312 ball, real backend simulyatsiya
       points = '312';
       localStorage.setItem('user_points', points);
     }
     return points;
   }
 
-  // Vertikal kartalarni render qilish (har biri alohida block)
+  function updatePointsUI() {
+    const pointsSpan = document.getElementById('userPoints');
+    if (pointsSpan) {
+      const currentPoints = getUserPoints();
+      pointsSpan.textContent = `⚡ ${currentPoints}`;
+    }
+  }
+
+  // -------------------------------
+  // VERTICAL KARTALARNI RENDER QILISH
+  // OCHIQ va YOPIQ kartalar alohida rangda, butunlay farqli dizayn
+  // -------------------------------
   function renderVerticalModules() {
     const container = document.getElementById('moduleVerticalContainer');
     if (!container) return;
     
-    // Har bir modul uchun status badge klass va matni
     const statusConfig = {
-      'available': { class: 'status-available', text: '⭐ Ochiq' },
+      'available': { class: 'status-available', text: '✨ Ochiq' },
       'in-progress': { class: 'status-progress', text: '🔥 Davom etmoqda' },
-      'coming-soon': { class: 'status-soon', text: '🔒 Tez kunda' }
+      'coming-soon': { class: 'status-soon', text: '🔒 Yopiq' }
     };
     
-    const cardsHTML = modulesData.map(module => {
-      const statusInfo = statusConfig[module.status] || statusConfig['coming-soon'];
-      // Action rangini dinamik qilish
-      let actionColor = '#8e8e93';
-      if (module.status === 'available') actionColor = '#007aff';
-      else if (module.status === 'in-progress') actionColor = '#ff9f0a';
+    let cardsHTML = '';
+    
+    modulesData.forEach(module => {
+      const statusInfo = statusConfig[module.status];
+      const isOpen = module.isOpen;
       
-      return `
-        <div class="lesson-card-vertical" data-module-id="${module.id}" data-url="${module.url}">
+      // Ochiq kartalar uchun action rangi jonli, yopiq uchun kulrang
+      let actionColor = '#8e8e93';
+      let actionIcon = '→';
+      if (module.status === 'available') {
+        actionColor = '#2ecc71';
+        actionIcon = '🚀 →';
+      } else if (module.status === 'in-progress') {
+        actionColor = '#ff9f0a';
+        actionIcon = '⚡ →';
+      } else {
+        actionColor = '#6c6c74';
+        actionIcon = '🔒 →';
+      }
+      
+      // Qo'shimcha tavsif matni
+      let descriptionText = '';
+      if (module.status === 'available') descriptionText = '🎯 yangi bilimlar sizni kutmoqda';
+      else if (module.status === 'in-progress') descriptionText = '📚 davom ettirib, ball yig\'ing';
+      else descriptionText = '⏳ tez orada ochiladi';
+      
+      // Kartaning asosiy klassi: ochiq uchun "lesson-card-open", yopiq uchun "lesson-card-closed"
+      const cardClass = isOpen ? 'lesson-card-open' : 'lesson-card-closed';
+      
+      cardsHTML += `
+        <div class="${cardClass}" data-module-id="${module.id}" data-url="${module.url}" data-is-open="${isOpen}">
           <div class="card-header">
             <span class="module-badge">${module.label}</span>
             <span class="module-status ${statusInfo.class}">${statusInfo.text}</span>
@@ -413,23 +501,36 @@
           <div class="divider-light"></div>
           <div class="card-action" style="color: ${actionColor};">
             <span>${module.action}</span>
-            <span class="action-arrow" style="font-size: 1.2rem;">→</span>
+            <span class="action-arrow" style="font-size: 1.2rem;">${actionIcon}</span>
           </div>
-          <div class="text-muted" style="font-size: 12px; margin-top: 6px;">
-            ${module.status === 'available' ? '🎯 yangi bilimlar sizni kutmoqda' : (module.status === 'in-progress' ? '📚 davom ettirish orqali ball yig\'ing' : '✨ tez orada ochiladi')}
+          <div class="text-muted" style="margin-top: 6px;">
+            ${descriptionText}
           </div>
         </div>
       `;
-    }).join('');
+    });
     
     container.innerHTML = cardsHTML;
     
-    // Har bir kartaga click event attach qilish (delegatsiya ham ishlaydi, lekin to'g'ridan-to'g'ri qulay)
-    document.querySelectorAll('.lesson-card-vertical').forEach(card => {
+    // Har bir kartaga click event attach qilish (yopiq kartalar ham bosilganda faqat ochiq bo'lsa ishlaydi)
+    document.querySelectorAll('[data-module-id]').forEach(card => {
       card.addEventListener('click', (e) => {
-        // e.stopPropagation shart emas, lekin hodisani to'xtatmaymiz
+        e.stopPropagation();
         const moduleId = parseInt(card.getAttribute('data-module-id'));
         const url = card.getAttribute('data-url');
+        const isOpen = card.getAttribute('data-is-open') === 'true';
+        
+        if (!isOpen) {
+          // Yopiq kartalar uchun haptic va ogohlantirish (faqat bildirishnoma)
+          try {
+            tg.HapticFeedback.notificationOccurred('warning');
+          } catch(e) {}
+          // Chiroyli toast emulyatsiya (alert emas, yumshoq)
+          showComingSoonToast(moduleId);
+          return;
+        }
+        
+        // Ochiq kartalar uchun modulni ochish
         if (moduleId && url) {
           openModule(moduleId, url);
         }
@@ -437,23 +538,101 @@
     });
   }
   
-  // Open module funksiyasi (haptic + localStorage + navigatsiya)
+  // Yopiq modul uchun chiroyli vizual ogohlantirish (alert o'rniga)
+  function showComingSoonToast(moduleId) {
+    // Yengil toast xabari yaratish
+    let toast = document.getElementById('dynamic-toast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'dynamic-toast';
+      toast.style.position = 'fixed';
+      toast.style.bottom = '100px';
+      toast.style.left = '50%';
+      toast.style.transform = 'translateX(-50%)';
+      toast.style.backgroundColor = 'rgba(30,30,35,0.95)';
+      toast.style.backdropFilter = 'blur(12px)';
+      toast.style.padding = '10px 20px';
+      toast.style.borderRadius = '40px';
+      toast.style.color = '#ffb347';
+      toast.style.fontSize = '14px';
+      toast.style.fontWeight = '500';
+      toast.style.border = '1px solid rgba(255,180,70,0.3)';
+      toast.style.zIndex = '999';
+      toast.style.whiteSpace = 'nowrap';
+      toast.style.fontFamily = 'inherit';
+      toast.style.boxShadow = '0 6px 14px rgba(0,0,0,0.4)';
+      document.body.appendChild(toast);
+    }
+    toast.textContent = `🔐 ${modulesData.find(m => m.id === moduleId)?.title.split(':')[0]} hali yopiq. Tez orada!`;
+    toast.style.opacity = '1';
+    toast.style.transition = 'opacity 0.2s';
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      setTimeout(() => {
+        if (toast.parentNode) toast.remove();
+      }, 300);
+    }, 1800);
+  }
+  
+  // Modulni ochish funksiyasi (faqat ochiq kartalar uchun chaqiriladi)
   function openModule(moduleId, url) {
     try {
       tg.HapticFeedback.notificationOccurred('success');
-    } catch(e) { console.warn(e); }
+    } catch(e) {}
     
-    // modul ochilganini belgilash (oxirgi ochilgan)
+    // Ball qo'shish imitasi (faqat birinchi marta ochilganda yoki bonus)
+    addPointsIfNeeded(moduleId);
+    
     localStorage.setItem('last_module', moduleId);
     localStorage.setItem(`module_${moduleId}_status`, 'opened');
     
-    // Modulga o'tish (telegram webviewda silliq)
     setTimeout(() => {
       window.location.href = url;
     }, 80);
   }
   
-  // Navigatsiya (tablar va header profilga)
+  // Ball qo'shish funksiyasi (faqat ochiq modullar va bir marta)
+  function addPointsIfNeeded(moduleId) {
+    const module = modulesData.find(m => m.id === moduleId);
+    if (!module || !module.isOpen) return;
+    
+    const alreadyRewarded = localStorage.getItem(`module_${moduleId}_rewarded`);
+    if (!alreadyRewarded) {
+      let currentPoints = parseInt(getUserPoints());
+      const reward = module.status === 'available' ? 25 : 15;
+      const newPoints = currentPoints + reward;
+      localStorage.setItem('user_points', newPoints);
+      localStorage.setItem(`module_${moduleId}_rewarded`, 'true');
+      updatePointsUI();
+      
+      // Bonus animatsiyasi
+      const pointsBadge = document.getElementById('userPoints');
+      if (pointsBadge) {
+        pointsBadge.style.transform = 'scale(1.1)';
+        pointsBadge.style.transition = 'transform 0.15s';
+        setTimeout(() => { if(pointsBadge) pointsBadge.style.transform = ''; }, 200);
+      }
+      // Qisqa toast ko'rsatish
+      const bonusToast = document.createElement('div');
+      bonusToast.textContent = `✨ +${reward} ball!`;
+      bonusToast.style.position = 'fixed';
+      bonusToast.style.top = '80px';
+      bonusToast.style.right = '20px';
+      bonusToast.style.backgroundColor = '#2ecc71cc';
+      bonusToast.style.color = '#fff';
+      bonusToast.style.padding = '6px 14px';
+      bonusToast.style.borderRadius = '30px';
+      bonusToast.style.fontSize = '13px';
+      bonusToast.style.fontWeight = 'bold';
+      bonusToast.style.backdropFilter = 'blur(8px)';
+      bonusToast.style.zIndex = '1000';
+      document.body.appendChild(bonusToast);
+      setTimeout(() => bonusToast.remove(), 1500);
+    }
+  }
+  
+  
+  // Navigatsiya funksiyasi
   window.navigateTo = function(url) {
     try {
       tg.HapticFeedback.impactOccurred('light');
@@ -463,7 +642,6 @@
     }, 90);
   };
   
-  // Bosh sahifada BackButton boshqaruv (agar modul sahifasida bo'lmasa, yashirish)
   function manageBackButton() {
     if (window.location.pathname.includes('modul') || window.location.pathname.includes('profil.html')) {
       tg.BackButton.show();
@@ -475,16 +653,6 @@
     }
   }
   
-  // Ballarni yangilash va UI
-  function updatePointsUI() {
-    const pointsSpan = document.getElementById('userPoints');
-    if (pointsSpan) {
-      const currentPoints = getUserPoints();
-      pointsSpan.textContent = `⚡ ${currentPoints}`;
-    }
-  }
-  
-  // Foydalanuvchi ismi + avatar
   function initUserInterface() {
     const user = tg.initDataUnsafe?.user;
     const nameElement = document.getElementById('userName');
@@ -496,107 +664,43 @@
       }
       nameElement.textContent = fullName;
       setAvatar(user);
-      // console ma'lumot
-      console.log('Telegram user connected:', user);
-      if (user.photo_url) console.log('Profile photo exists');
     } else {
       nameElement.textContent = 'Mehmon';
       setAvatar(null);
     }
   }
   
-  // -------------------------------
-  // Qo'shimcha: ballarni sinxronlash (demo, foydalanuvchi modul tugatsa ball qo'shish imitasi)
-  // Aslida bu backend ishi, lekin bu yerda local storage orqali ballni oshiradigan "progress"
-  // funksiyani qo'shamiz (hech qanday avtomatik emas, faqat modul bosilganda ball qo'shishni simulyatsiya qilish mumkin)
-  // Lekin darslar faqat openModule, unda ball qo'shishni real backendga qoldiramiz. Faqat ko'rinish uchun ball o'zgarmaydi.
-  // Agar xohlasak, localStorage da ballni demo tarzda o'zgartirish mumkin. Qo'shimcha interaktivlik uchun:
-  // (Ammo kerakli funksional: kartalar vertikal va ochilish)
-  function simulatePointsUpdateOnModuleOpen(moduleId) {
-    // Agar modul 'available' yoki 'in-progress' bo'lsa va birinchi marta ochilgan bo'lsa ball qo'shish mumkin
-    // Bu yerda faqat bir marta modul ochilganda ball qo'shamiz (yangi foydalanuvchi tajribasi)
-    const module = modulesData.find(m => m.id === moduleId);
-    if (!module) return;
-    const alreadyOpened = localStorage.getItem(`module_${moduleId}_rewarded`);
-    if (!alreadyOpened && (module.status === 'available' || module.status === 'in-progress')) {
-      let currentPoints = parseInt(getUserPoints());
-      const reward = module.status === 'available' ? 25 : 15;
-      const newPoints = currentPoints + reward;
-      localStorage.setItem('user_points', newPoints);
-      localStorage.setItem(`module_${moduleId}_rewarded`, 'true');
-      updatePointsUI();
-      // kichik vizual efekt
-      const pointsBadge = document.getElementById('userPoints');
-      if (pointsBadge) {
-        pointsBadge.style.transform = 'scale(1.05)';
-        setTimeout(() => { if(pointsBadge) pointsBadge.style.transform = ''; }, 200);
-      }
-      // faqat konsolga
-      console.log(`+${reward} ball, jami: ${newPoints}`);
-    }
-  }
+  // Global openModule ni window ga qo'shamiz (ba'zi joylarda ishlatilsa)
+  window.openModule = openModule;
   
-  // OpenModule ni override qilish: ball qo'shish bilan boyitilgan
-  const originalOpenModule = openModule;
-  window.openModule = function(moduleId, url) {
-    simulatePointsUpdateOnModuleOpen(moduleId);
-    originalOpenModule(moduleId, url);
-  };
-  
-  // Eski openModule funksiyasini yangilash
-  function bindOpenModuleToGlobal() {
-    window.openModule = function(moduleId, url) {
-      simulatePointsUpdateOnModuleOpen(moduleId);
-      try {
-        tg.HapticFeedback.notificationOccurred('success');
-      } catch(e) {}
-      localStorage.setItem('last_module', moduleId);
-      localStorage.setItem(`module_${moduleId}_status`, 'opened');
-      setTimeout(() => {
-        window.location.href = url;
-      }, 80);
-    };
-  }
-  
-  // Avatarda va headerda click bilan profilga o'tish mavjud (navigateTo)
-  // Shuningdek modul kartalari uchun click handler allaqachon renderVerticalModules da mavjud
-  
-  // Agar modul sahifasiga kirilgan bo'lsa back button
-  manageBackButton();
-  
-  // Asosiy init
+  // Scroll va init
   function init() {
     initUserInterface();
     updatePointsUI();
     renderVerticalModules();
-    bindOpenModuleToGlobal();
+    manageBackButton();
     
-    // Agar vertikal konteynerda har qanday dinamik elementlar uchun kartalarni qayta bog'lash (allaqachon render ichida)
-    // Qo'shimcha: Telegram theme moslash
-    const metaTheme = document.querySelector('meta[name="theme-color"]');
-    if (metaTheme && tg.themeParams.bg_color) {
-      metaTheme.setAttribute('content', tg.themeParams.bg_color);
+    // Telegram theme moslash
+    if (tg.themeParams.bg_color) {
+      document.body.style.backgroundColor = tg.themeParams.bg_color || '#000';
     }
   }
   
   init();
   
-  // Eslatma: Safari/ios uchun scroll silliq
-  if ('scrollBehavior' in document.documentElement.style) {
-    document.documentElement.style.scrollBehavior = 'smooth';
-  }
-  
-  // Ballarni yangilash uchun qo'shimcha event (agar boshqa joyda o'zgartirilsa)
+  // Storage o'zgarishlarini kuzatish (ball uchun)
   window.addEventListener('storage', (e) => {
     if (e.key === 'user_points') {
       updatePointsUI();
     }
   });
   
-  // Telegram WebApp resize event
   tg.onEvent('viewportChanged', () => {
     document.body.style.height = window.innerHeight + 'px';
   });
+  
+  // Yopiq kartalar uchun qo'shimcha: tooltip effekti (hech qanday xatolik yo'q)
+  console.log('LearnU: Ochiq kartalar (yashil/koʻk rangli), yopiq kartalar (kulrang)');
 </script>
 </body>
 </html>
