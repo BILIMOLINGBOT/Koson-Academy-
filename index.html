@@ -88,7 +88,7 @@
 
     .lesson-card {
       position: relative;
-      min-height: 260px;
+      min-height: 240px;
       border-radius: var(--card-radius);
       padding: 28px;
       display: flex;
@@ -128,38 +128,27 @@
     }
 
     .card-title {
-      font-size: 28px;
+      font-size: 32px;
       font-weight: 800;
       line-height: 1.1;
-      margin-top: 8px;
-      background: linear-gradient(to bottom, #fff, #bbb);
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .card-desc {
-      font-size: 15px;
-      color: var(--ios-gray);
       margin-top: 12px;
-      line-height: 1.4;
-      max-width: 85%;
+      color: #fff;
     }
 
     .card-footer {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-top: 24px;
+      margin-top: 28px;
     }
 
     .btn-start {
       background: #fff;
       color: #000;
-      padding: 12px 24px;
+      padding: 12px 28px;
       border-radius: 30px;
       font-weight: 700;
-      font-size: 15px;
+      font-size: 16px;
       box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
       transition: 0.2s;
     }
@@ -170,13 +159,12 @@
     }
 
     .reward-badge {
-      font-size: 14px;
+      font-size: 16px;
       font-weight: 700;
       color: #34C759;
-      background: rgba(52,199,89,0.12);
-      padding: 6px 14px;
+      background: rgba(52,199,89,0.15);
+      padding: 8px 18px;
       border-radius: 30px;
-      backdrop-filter: blur(4px);
     }
 
     .tab-bar {
@@ -223,9 +211,10 @@
     }
     
     @media (max-width: 420px) {
-      .card-title { font-size: 24px; }
-      .lesson-card { padding: 22px; min-height: 240px; }
-      .card-desc { max-width: 100%; font-size: 14px; }
+      .card-title { font-size: 28px; }
+      .lesson-card { padding: 24px; min-height: 220px; }
+      .btn-start { padding: 10px 22px; font-size: 15px; }
+      .reward-badge { font-size: 15px; padding: 6px 16px; }
     }
   </style>
 </head>
@@ -244,7 +233,7 @@
   </div>
 
   <div class="vertical-container" id="cards-list">
-    <!-- 30 kunlik kartalar dinamik yuklanadi -->
+    <!-- 30 kunlik kartalar -->
   </div>
 
   <nav class="tab-bar">
@@ -278,56 +267,15 @@
     } catch(e) { console.log('haptic error'); }
   };
   
-  // 30 kunlik dastur - har bir kuni
-  const generateDailyLessons = () => {
-    const lessonsArray = [];
-    for (let i = 1; i <= 30; i++) {
-      let title = `${i}-Kuni`;
-      let description = '';
-      if (i === 1) description = "Dasturlashga birinchi qadam";
-      else if (i === 2) description = "O'zgaruvchilar va ma'lumot turlari";
-      else if (i === 3) description = "Shart operatorlari: if, else";
-      else if (i === 4) description = "Sikllar: for, while";
-      else if (i === 5) description = "Funksiyalar bilan ishlash";
-      else if (i === 6) description = "Massivlar va ro'yxatlar";
-      else if (i === 7) description = "Ob'ektlar va JSON";
-      else if (i === 8) description = "DOM manipulyatsiyasi";
-      else if (i === 9) description = "Eventlar va interaktivlik";
-      else if (i === 10) description = "Asinxron JavaScript";
-      else if (i === 11) description = "Fetch API va tashqi ma'lumotlar";
-      else if (i === 12) description = "Node.js asoslari";
-      else if (i === 13) description = "Express.js server";
-      else if (i === 14) description = "REST API loyihasi";
-      else if (i === 15) description = "Ma'lumotlar bazasi";
-      else if (i === 16) description = "Autentifikatsiya";
-      else if (i === 17) description = "React boshlang'ich";
-      else if (i === 18) description = "Komponentlar va props";
-      else if (i === 19) description = "State boshqaruvi";
-      else if (i === 20) description = "React Router";
-      else if (i === 21) description = "TailwindCSS dizayn";
-      else if (i === 22) description = "Mobil dasturlash";
-      else if (i === 23) description = "SwiftUI asoslari";
-      else if (i === 24) description = "Flutter bilan ilovalar";
-      else if (i === 25) description = "Sun'iy intellekt";
-      else if (i === 26) description = "Machine Learning";
-      else if (i === 27) description = "Kiberxavfsizlik";
-      else if (i === 28) description = "DevOps asoslari";
-      else if (i === 29) description = "Katta loyiha arxitekturasi";
-      else if (i === 30) description = "Bitiruv loyihasi";
-      else description = "Kunning darsini o'rganing";
-      
-      lessonsArray.push({
-        id: i,
-        title: title,
-        desc: description,
-        status: "open",
-        points: 100  // har bir dars uchun 100 ball
-      });
-    }
-    return lessonsArray;
-  };
-  
-  const dailyCourses = generateDailyLessons();
+  // 30 kun - faqat kuni raqami
+  const dailyCourses = [];
+  for (let i = 1; i <= 30; i++) {
+    dailyCourses.push({
+      id: i,
+      title: `${i}-Kuni`,
+      points: 100
+    });
+  }
   
   let userPoints = 1250;
   const POINTS_KEY = 'learnu_points';
@@ -366,7 +314,6 @@
     if (!container) return;
     
     const cardsHTML = dailyCourses.map(lesson => {
-      const isCompleted = completedLessons.has(lesson.id);
       const lessonPage = `dars${lesson.id}.html`;
       
       return `
@@ -374,10 +321,9 @@
           <div>
             <div class="module-num">KUN ${lesson.id} / 30</div>
             <div class="card-title">${lesson.title}</div>
-            <div class="card-desc">${lesson.desc}</div>
           </div>
           <div class="card-footer">
-            <div class="btn-start" data-id="${lesson.id}">Boshlash</div>
+            <div class="btn-start">Boshlash</div>
             <div class="reward-badge">100 ball</div>
           </div>
         </div>
@@ -415,21 +361,17 @@
     
     const alreadyCompleted = completedLessons.has(lessonId);
     if (!alreadyCompleted) {
-      const lesson = dailyCourses.find(l => l.id === lessonId);
-      if (lesson) {
-        const reward = 100;
-        userPoints += reward;
-        completedLessons.add(lessonId);
-        saveUserData();
-        updatePointsUI();
-        renderCards();
-        haptic('success');
-        tg.showPopup({
-          title: "🎉 Tabriklaymiz!",
-          message: `"${lesson.title}" darsini ochdingiz! +100 ball qo'shildi. Jami: ${userPoints} ball`,
-          buttons: [{type: "ok"}]
-        });
-      }
+      const reward = 100;
+      userPoints += reward;
+      completedLessons.add(lessonId);
+      saveUserData();
+      updatePointsUI();
+      haptic('success');
+      tg.showPopup({
+        title: "🎉 Tabriklaymiz!",
+        message: `${lessonId}-Kuni darsini ochdingiz! +100 ball qo'shildi. Jami: ${userPoints} ball`,
+        buttons: [{type: "ok"}]
+      });
     } else {
       haptic('light');
     }
@@ -459,16 +401,16 @@
         } else if (tabType === 'rank') {
           const completedCount = completedLessons.size;
           const totalLessons = 30;
-          const message = `📊 Sizning statistikangiz:\n🏆 Ball: ${userPoints}\n📚 O'zlashtirilgan darslar: ${completedCount}/${totalLessons}\n🎯 Har bir dars 100 ball!`;
+          const message = `📊 Statistikangiz:\n🏆 Ball: ${userPoints}\n📚 O'zlashtirilgan: ${completedCount}/${totalLessons}\n⭐ Har bir dars 100 ball`;
           tg.showPopup({
-            title: "🏅 Reyting va yutuqlar",
+            title: "🏅 Reyting",
             message: message,
             buttons: [{type: "close"}]
           });
         } else if (tabType === 'help') {
           tg.showPopup({
             title: "📘 Yordam",
-            message: "LearnU 30 kunlik dastur. Har bir karta 'Boshlash' tugmasi orqali dars1.html ... dars30.html sahifalariga o'tadi.\nDarsni birinchi marta ochsangiz 100 ball qo'shiladi. Barcha darslar ochiq!",
+            message: "LearnU 30 kunlik dastur. Har bir kartada 'Boshlash' tugmasi va '100 ball' ko'rsatilgan.\nDarsni birinchi marta ochsangiz 100 ball qo'shiladi. Barcha darslar ochiq!",
             buttons: [{type: "ok"}]
           });
         }
