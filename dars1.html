@@ -161,15 +161,13 @@
     } catch(e) { console.log('haptic error'); }
   };
   
-  // 4 kun - faqat kuni raqami
-  const dailyCourses = [];
-  for (let i = 1; i <= 4; i++) {
-    dailyCourses.push({
-      id: i,
-      title: `${i}-Kuni`,
-      points: 100
-    });
-  }
+  // 4 kun maxsus nomlar bilan
+  const dailyCourses = [
+    { id: 1, title: "Grammar", points: null, showPoints: false },
+    { id: 2, title: "Exercise", points: 5, showPoints: true, pointLabel: "⚡5" },
+    { id: 3, title: "Exercise", points: 5, showPoints: true, pointLabel: "⚡5" },
+    { id: 4, title: "Listening, Reading", points: null, showPoints: false }
+  ];
   
   let userPoints = 1750;
   const POINTS_KEY = 'learnu_points';
@@ -204,12 +202,20 @@
     const cardsHTML = dailyCourses.map(lesson => {
       const lessonPage = `dars${lesson.id}.html`;
       
+      // Ballarni ko'rsatish
+      let badgeHtml = '';
+      if (lesson.showPoints && lesson.pointLabel) {
+        badgeHtml = `<div class="reward-badge">${lesson.pointLabel}</div>`;
+      } else if (!lesson.showPoints) {
+        badgeHtml = `<div class="reward-badge" style="opacity:0; visibility:hidden;"></div>`;
+      }
+      
       return `
-        <div class="lesson-card" data-lesson-id="${lesson.id}" data-page="${lessonPage}">
+        <div class="lesson-card" data-lesson-id="${lesson.id}" data-page="${lessonPage}" data-show-points="${lesson.showPoints}" data-points="${lesson.points || 0}">
           <div class="card-title">${lesson.title}</div>
           <div class="card-footer">
             <div class="btn-start">Boshlash</div>
-            <div class="reward-badge">100 ball</div>
+            ${badgeHtml}
           </div>
         </div>
       `;
@@ -222,8 +228,10 @@
         e.stopPropagation();
         const lessonId = parseInt(card.getAttribute('data-lesson-id'));
         const pageUrl = card.getAttribute('data-page');
+        const showPoints = card.getAttribute('data-show-points') === 'true';
+        const points = parseInt(card.getAttribute('data-points'));
         if (lessonId && pageUrl) {
-          openLesson(lessonId, pageUrl);
+          openLesson(lessonId, pageUrl, showPoints, points);
         }
       });
     });
@@ -235,28 +243,40 @@
         if (parentCard) {
           const lessonId = parseInt(parentCard.getAttribute('data-lesson-id'));
           const pageUrl = parentCard.getAttribute('data-page');
-          if (lessonId && pageUrl) openLesson(lessonId, pageUrl);
+          const showPoints = parentCard.getAttribute('data-show-points') === 'true';
+          const points = parseInt(parentCard.getAttribute('data-points'));
+          if (lessonId && pageUrl) openLesson(lessonId, pageUrl, showPoints, points);
         }
       });
     });
   }
   
-  function openLesson(lessonId, pageUrl) {
+  function openLesson(lessonId, pageUrl, showPoints, points) {
     haptic('light');
     
     const alreadyCompleted = completedLessons.has(lessonId);
-    if (!alreadyCompleted) {
-      const reward = 100;
+    
+    // Faqat ball tizimi mavjud bo'lgan kartalar uchun (2 va 3-kunlar)
+    if (showPoints && !alreadyCompleted) {
+      const reward = points;
       userPoints += reward;
       completedLessons.add(lessonId);
       saveUserData();
       haptic('success');
+      
+      let lessonTitle = "";
+      if (lessonId === 2) lessonTitle = "Exercise";
+      if (lessonId === 3) lessonTitle = "Exercise";
+      
       tg.showPopup({
         title: "🎉 Tabriklaymiz!",
-        message: `${lessonId}-Kuni darsini ochdingiz! +100 ball qo'shildi. Jami: ${userPoints} ball`,
+        message: `${lessonTitle} darsini ochdingiz! +${reward} ball qo'shildi. Jami: ${userPoints} ball`,
         buttons: [{type: "ok"}]
       });
+    } else if (showPoints && alreadyCompleted) {
+      haptic('light');
     } else {
+      // Ball tizimi kerak bo'lmagan kartalar (1 va 4-kunlar)
       haptic('light');
     }
     
