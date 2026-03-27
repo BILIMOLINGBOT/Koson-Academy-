@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>VideoFlow iOS</title>
+  <title>Dono - Video Platform</title>
   <style>
-    /* iOS Tizim Ranglari */
     :root {
       --ios-blue: #007AFF;
       --ios-bg: #ffffff;
       --ios-secondary-bg: #f2f2f7;
       --ios-text: #000000;
       --ios-gray: #8e8e93;
+      --ios-red: #FF3B30;
       --safe-top: env(safe-area-inset-top);
       --safe-bottom: env(safe-area-inset-bottom);
     }
@@ -25,17 +25,18 @@
 
     body {
       background-color: var(--ios-bg);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
       color: var(--ios-text);
-      padding-bottom: calc(80px + var(--safe-bottom)); /* Pastki menyu uchun joy */
+      padding-bottom: calc(85px + var(--safe-bottom));
+      line-height: 1.4;
     }
 
-    /* ===== HEADER (Sticky with Blur) ===== */
+    /* ===== HEADER (iOS Style with Blur) ===== */
     .header {
       position: sticky;
       top: 0;
-      z-index: 100;
-      background: rgba(255, 255, 255, 0.8);
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.85);
       backdrop-filter: blur(20px) saturate(180%);
       -webkit-backdrop-filter: blur(20px) saturate(180%);
       padding: calc(var(--safe-top) + 10px) 16px 10px 16px;
@@ -46,30 +47,84 @@
     }
 
     .app-title {
-      font-size: 22px;
+      font-size: 24px;
       font-weight: 800;
-      letter-spacing: -0.5px;
+      letter-spacing: -0.8px;
+      background: linear-gradient(45deg, #007AFF, #5856D6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
 
     .header-right {
       display: flex;
+      align-items: center;
       gap: 18px;
     }
 
     .header-icon {
-      color: var(--ios-blue);
+      position: relative;
+      color: var(--ios-text);
+      display: flex;
+      align-items: center;
       cursor: pointer;
+      transition: transform 0.1s ease;
     }
 
-    /* ===== AVATAR ===== */
-    .avatar {
+    .header-icon:active {
+      transform: scale(0.9);
+      opacity: 0.6;
+    }
+
+    .notification-badge {
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      width: 9px;
+      height: 9px;
+      background-color: var(--ios-red);
+      border-radius: 50%;
+      border: 1.5px solid white;
+    }
+
+    .avatar-wrapper {
       width: 32px;
       height: 32px;
       border-radius: 50%;
+      overflow: hidden;
+      border: 0.5px solid rgba(0,0,0,0.1);
+    }
+
+    .avatar-wrapper img {
+      width: 100%;
+      height: 100%;
       object-fit: cover;
     }
 
-    /* ===== VIDEO FEED ===== */
+    /* ===== SEARCH BAR (Hidden by default) ===== */
+    .search-overlay {
+      display: none;
+      padding: 10px 16px;
+      background: var(--ios-bg);
+    }
+    
+    .search-input-container {
+      background: var(--ios-secondary-bg);
+      border-radius: 10px;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .search-input-container input {
+      border: none;
+      background: transparent;
+      outline: none;
+      width: 100%;
+      font-size: 16px;
+    }
+
+    /* ===== FEED ===== */
     .feed {
       display: flex;
       flex-direction: column;
@@ -77,20 +132,37 @@
 
     .video-item {
       width: 100%;
-      margin-bottom: 24px;
+      margin-bottom: 12px;
+      transition: background 0.2s;
+    }
+
+    .video-item:active {
+      background: var(--ios-secondary-bg);
     }
 
     .thumbnail-container {
       width: 100%;
       aspect-ratio: 16 / 9;
       position: relative;
+      background: #eee;
     }
 
     .thumbnail-container img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      /* iPhone uslubida rasm qirralari o'tkir bo'lmasligi uchun */
+    }
+
+    .video-duration {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      background: rgba(0,0,0,0.75);
+      color: white;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
     }
 
     .video-details {
@@ -103,20 +175,18 @@
       width: 40px;
       height: 40px;
       border-radius: 50%;
-      background: #eee;
       flex-shrink: 0;
+      object-fit: cover;
     }
 
     .video-text {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
+      flex: 1;
     }
 
     .video-title {
       font-size: 16px;
       font-weight: 600;
-      line-height: 1.3;
+      margin-bottom: 4px;
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
@@ -128,7 +198,7 @@
       color: var(--ios-gray);
     }
 
-    /* ===== BOTTOM TAB BAR (iOS Style) ===== */
+    /* ===== TAB BAR ===== */
     .tab-bar {
       position: fixed;
       bottom: 0;
@@ -143,7 +213,7 @@
       justify-content: space-around;
       padding-top: 8px;
       padding-bottom: var(--safe-bottom);
-      z-index: 100;
+      z-index: 1000;
     }
 
     .tab-item {
@@ -155,6 +225,7 @@
       text-decoration: none;
       font-size: 10px;
       font-weight: 500;
+      flex: 1;
     }
 
     .tab-item.active {
@@ -166,60 +237,79 @@
       height: 24px;
     }
 
-    /* Interaktivlik */
-    .video-item:active {
-      background-color: rgba(0, 0, 0, 0.05);
+    /* iOS Ripple Effect o'rniga oddiy bosish effekti */
+    .tab-item:active {
+      opacity: 0.5;
     }
   </style>
 </head>
 <body>
 
   <header class="header">
-    <div class="app-title">VideoFlow</div>
+    <div class="app-title">Dono</div>
     <div class="header-right">
-      <div class="header-icon">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      <div class="header-icon" id="search-btn">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
       </div>
-      <img class="avatar" src="https://ui-avatars.com/api/?name=User&background=007AFF&color=fff" alt="Profil">
+      <div class="header-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+        </svg>
+        <span class="notification-badge"></span>
+      </div>
+      <div class="header-icon avatar-wrapper">
+        <img src="https://ui-avatars.com/api/?name=Javlonbek&background=007AFF&color=fff" alt="User">
+      </div>
     </div>
   </header>
+
+  <div class="search-overlay" id="search-bar">
+    <div class="search-input-container">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ios-gray)" stroke-width="3"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      <input type="text" placeholder="Video qidirish...">
+    </div>
+  </div>
 
   <main class="feed">
     <div class="video-item">
       <div class="thumbnail-container">
-        <img src="https://picsum.photos/id/1011/800/450" alt="Video">
+        <img src="https://picsum.photos/id/1/800/450" alt="Tech">
+        <span class="video-duration">12:45</span>
       </div>
       <div class="video-details">
-        <div class="channel-icon" style="background-image: url('https://picsum.photos/id/64/100/100'); background-size: cover;"></div>
+        <img class="channel-icon" src="https://ui-avatars.com/api/?name=IT&background=333" alt="CH">
         <div class="video-text">
-          <h2 class="video-title">Tabiatning go'zal manzaralari va sokinlik</h2>
-          <p class="video-meta">Nature Channel • 12K ko'rilgan • 5 soat oldin</p>
+          <h2 class="video-title">JavaScript'da Telegram Mini Apps yaratish darsi</h2>
+          <p class="video-meta">IT Academy • 15K ko'rildi • 2 soat oldin</p>
         </div>
       </div>
     </div>
 
     <div class="video-item">
       <div class="thumbnail-container">
-        <img src="https://picsum.photos/id/1025/800/450" alt="Video">
+        <img src="https://picsum.photos/id/10/800/450" alt="Nature">
+        <span class="video-duration">05:20</span>
       </div>
       <div class="video-details">
-        <div class="channel-icon" style="background-image: url('https://picsum.photos/id/100/100/100'); background-size: cover;"></div>
+        <img class="channel-icon" src="https://ui-avatars.com/api/?name=N&background=4CD964" alt="CH">
         <div class="video-text">
-          <h2 class="video-title">Mushuklar hayoti: Qiziqarli va kulgili vaziyatlar</h2>
-          <p class="video-meta">Cat World • 45K ko'rilgan • 1 kun oldin</p>
+          <h2 class="video-title">Tabiatning eng sokin burchaklari: 4K manzara</h2>
+          <p class="video-meta">Nature Lab • 8K ko'rildi • 1 kun oldin</p>
         </div>
       </div>
     </div>
 
     <div class="video-item">
       <div class="thumbnail-container">
-        <img src="https://picsum.photos/id/1062/800/450" alt="Video">
+        <img src="https://picsum.photos/id/20/800/450" alt="Education">
+        <span class="video-duration">08:15</span>
       </div>
       <div class="video-details">
-        <div class="channel-icon" style="background-image: url('https://picsum.photos/id/200/100/100'); background-size: cover;"></div>
+        <img class="channel-icon" src="https://ui-avatars.com/api/?name=E&background=FF9500" alt="CH">
         <div class="video-text">
-          <h2 class="video-title">Dasturlashni qanday o'rganish kerak? (2026)</h2>
-          <p class="video-meta">IT Academy • 8K ko'rilgan • 2 kun oldin</p>
+          <h2 class="video-title">Ingliz tili grammatikasini 8 haftada o'rganish</h2>
+          <p class="video-meta">Language Pro • 22K ko'rildi • 3 kun oldin</p>
         </div>
       </div>
     </div>
@@ -231,18 +321,38 @@
       <span>Asosiy</span>
     </a>
     <a href="#" class="tab-item">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-      <span>Qidiruv</span>
-    </a>
-    <a href="#" class="tab-item">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
       <span>Yaratish</span>
     </a>
     <a href="#" class="tab-item">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 12-2h11l5 5v11a2 2 0 0 1-2 2z"/></svg>
       <span>Kutubxona</span>
     </a>
   </nav>
 
+  <script>
+    // Qidiruv tugmasini bosganda qidiruv satrini chiqarish
+    const searchBtn = document.getElementById('search-btn');
+    const searchBar = document.getElementById('search-bar');
+    
+    searchBtn.addEventListener('click', () => {
+      if (searchBar.style.display === 'block') {
+        searchBar.style.display = 'none';
+      } else {
+        searchBar.style.display = 'block';
+        searchBar.querySelector('input').focus();
+      }
+    });
+
+    // Scroll qilganda header blur effekti uchun (ixtiyoriy qo'shimcha)
+    window.addEventListener('scroll', () => {
+      const header = document.querySelector('.header');
+      if (window.scrollY > 10) {
+        header.style.boxShadow = '0 4px 30px rgba(0, 0, 0, 0.05)';
+      } else {
+        header.style.boxShadow = 'none';
+      }
+    });
+  </script>
 </body>
 </html>
