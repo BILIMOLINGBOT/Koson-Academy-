@@ -2,300 +2,287 @@
 <html lang="uz">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Dono - Video Platform</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>LearnU · Asosiy</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    :root {
-      --ios-blue: #007AFF;
-      --ios-bg: #ffffff;
-      --ios-secondary-bg: #f2f2f7;
-      --ios-text: #000000;
-      --ios-gray: #8e8e93;
-      --ios-red: #FF3B30;
-      --safe-top: env(safe-area-inset-top);
-      --safe-bottom: env(safe-area-inset-bottom);
+    /* CSS o'zgarishsiz qoldi, faqat silliq o'tishlar qo'shildi */
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background: #000; color: #fff; height: 100vh; overflow: hidden; }
+    .app-wrapper { width: 100%; max-width: 420px; height: 100vh; margin: 0 auto; display: flex; flex-direction: column; }
+    
+    .header { padding: 20px; display: flex; align-items: center; justify-content: space-between; }
+    .avatar-wrapper { display: flex; align-items: center; gap: 12px; }
+    .avatar-circle { 
+      width: 45px; 
+      height: 45px; 
+      background: #222; 
+      border-radius: 50%; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      font-weight: bold; 
+      font-size: 1.2rem; 
+      border: 1px solid #333; 
+      overflow: hidden; 
+    }
+    .avatar-circle img { 
+      width: 100%; 
+      height: 100%; 
+      object-fit: cover; 
+      display: block;
     }
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    body {
-      background-color: var(--ios-bg);
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
-      color: var(--ios-text);
-      /* Pastki navigatsiya olib tashlangan — body pastki bo‘shliqsiz */
-      padding-bottom: 0;
-      line-height: 1.4;
-    }
-
-    /* ===== HEADER (iOS Style with Blur) ===== */
-    .header {
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-      background: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(20px) saturate(180%);
-      -webkit-backdrop-filter: blur(20px) saturate(180%);
-      padding: calc(var(--safe-top) + 10px) 16px 10px 16px;
-      display: flex;
+    .scroll-container { 
+      flex: 1;
+      display: flex; 
+      overflow-x: auto; 
+      scroll-snap-type: x mandatory; 
+      padding: 10px 20px; 
+      gap: 15px; 
       align-items: center;
-      justify-content: space-between;
-      border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
+      -ms-overflow-style: none; scrollbar-width: none;
+    }
+    .scroll-container::-webkit-scrollbar { display: none; }
+
+    .lesson-card { 
+      flex: 0 0 85%; 
+      height: 60vh; 
+      border-radius: 30px; 
+      padding: 30px; 
+      display: flex; 
+      flex-direction: column; 
+      justify-content: space-between; 
+      scroll-snap-align: center; 
+      background: linear-gradient(145deg, #1c1c1e, #0a0a0a); 
+      border: 1px solid rgba(255,255,255,0.1);
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .lesson-card:active {
+      transform: scale(0.98);
     }
 
-    .app-title {
-      font-size: 24px;
-      font-weight: 800;
-      letter-spacing: -0.8px;
-      background: linear-gradient(45deg, #007AFF, #5856D6);
+    .tab-bar { 
+      height: 80px; background: rgba(20, 20, 20, 0.95); backdrop-filter: blur(10px);
+      display: flex; justify-content: space-around; align-items: center;
+      border-top: 0.5px solid #333; padding-bottom: env(safe-area-inset-bottom);
+    }
+    .tab-item { color: #8e8e93; text-decoration: none; text-align: center; font-size: 10px; }
+    .tab-item.active { color: #007aff; }
+    .tab-item svg { width: 24px; height: 24px; display: block; margin: 0 auto 4px; stroke: currentColor; fill: none; }
+    
+    .points-badge { background: #fff; color: #000; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 14px; }
+    
+    /* Gradient text for full name */
+    .gradient-name {
+      background: linear-gradient(135deg, #fff, #aaccff);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-    }
-
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 18px;
-    }
-
-    .header-icon {
-      position: relative;
-      color: var(--ios-text);
-      display: flex;
-      align-items: center;
-      cursor: pointer;
-      transition: transform 0.1s ease;
-    }
-
-    .header-icon:active {
-      transform: scale(0.9);
-      opacity: 0.6;
-    }
-
-    .notification-badge {
-      position: absolute;
-      top: -2px;
-      right: -2px;
-      width: 9px;
-      height: 9px;
-      background-color: var(--ios-red);
-      border-radius: 50%;
-      border: 1.5px solid white;
-    }
-
-    .avatar-wrapper {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      overflow: hidden;
-      border: 0.5px solid rgba(0,0,0,0.1);
-    }
-
-    .avatar-wrapper img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    /* ===== SEARCH BAR (Hidden by default) ===== */
-    .search-overlay {
-      display: none;
-      padding: 10px 16px;
-      background: var(--ios-bg);
-    }
-    
-    .search-input-container {
-      background: var(--ios-secondary-bg);
-      border-radius: 10px;
-      padding: 8px 12px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .search-input-container input {
-      border: none;
-      background: transparent;
-      outline: none;
-      width: 100%;
-      font-size: 16px;
-    }
-
-    /* ===== FEED ===== */
-    .feed {
-      display: flex;
-      flex-direction: column;
-      margin-bottom: 16px; /* faqat ozgina pastki havo, tab-bar yo‘q */
-    }
-
-    .video-item {
-      width: 100%;
-      margin-bottom: 12px;
-      transition: background 0.2s;
-    }
-
-    .video-item:active {
-      background: var(--ios-secondary-bg);
-    }
-
-    .thumbnail-container {
-      width: 100%;
-      aspect-ratio: 16 / 9;
-      position: relative;
-      background: #eee;
-    }
-
-    .thumbnail-container img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .video-duration {
-      position: absolute;
-      bottom: 8px;
-      right: 8px;
-      background: rgba(0,0,0,0.75);
-      color: white;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 11px;
-      font-weight: 600;
-    }
-
-    .video-details {
-      padding: 12px 16px;
-      display: flex;
-      gap: 12px;
-    }
-
-    .channel-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      flex-shrink: 0;
-      object-fit: cover;
-    }
-
-    .video-text {
-      flex: 1;
-    }
-
-    .video-title {
-      font-size: 16px;
-      font-weight: 600;
-      margin-bottom: 4px;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    .video-meta {
-      font-size: 13px;
-      color: var(--ios-gray);
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
 
-  <header class="header">
-    <div class="app-title">Dono</div>
-    <div class="header-right">
-      <div class="header-icon" id="search-btn">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+<div class="app-wrapper">
+  <div class="header" onclick="navigateTo('profil.html')">
+    <div class="avatar-wrapper">
+      <div class="avatar-circle" id="userAvatar">
+        <span id="avatarInitial">?</span>
+        <img id="avatarImage" src="" alt="avatar" style="display: none;">
       </div>
-      <div class="header-icon">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-        </svg>
-        <span class="notification-badge"></span>
-      </div>
-      <div class="header-icon avatar-wrapper">
-        <img src="https://ui-avatars.com/api/?name=Javlonbek&background=007AFF&color=fff" alt="User">
+      <div>
+        <h4 id="userName" class="gradient-name">Yuklanmoqda...</h4>
       </div>
     </div>
-  </header>
-
-  <div class="search-overlay" id="search-bar">
-    <div class="search-input-container">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ios-gray)" stroke-width="3"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-      <input type="text" placeholder="Video qidirish...">
-    </div>
+    <div class="points-badge" id="userPoints">⚡ 0</div>
   </div>
 
-  <main class="feed">
-    <div class="video-item">
-      <div class="thumbnail-container">
-        <img src="https://picsum.photos/id/1/800/450" alt="Tech">
-        <span class="video-duration">12:45</span>
-      </div>
-      <div class="video-details">
-        <img class="channel-icon" src="https://ui-avatars.com/api/?name=IT&background=333" alt="CH">
-        <div class="video-text">
-          <h2 class="video-title">JavaScript'da Telegram Mini Apps yaratish darsi</h2>
-          <p class="video-meta">IT Academy • 15K ko'rildi • 2 soat oldin</p>
-        </div>
-      </div>
+  <div class="scroll-container" id="moduleContainer">
     </div>
 
-    <div class="video-item">
-      <div class="thumbnail-container">
-        <img src="https://picsum.photos/id/10/800/450" alt="Nature">
-        <span class="video-duration">05:20</span>
-      </div>
-      <div class="video-details">
-        <img class="channel-icon" src="https://ui-avatars.com/api/?name=N&background=4CD964" alt="CH">
-        <div class="video-text">
-          <h2 class="video-title">Tabiatning eng sokin burchaklari: 4K manzara</h2>
-          <p class="video-meta">Nature Lab • 8K ko'rildi • 1 kun oldin</p>
-        </div>
-      </div>
-    </div>
+  <nav class="tab-bar">
+    <a href="index.html" class="tab-item active" onclick="navigateTo('index.html')">
+      <svg viewBox="0 0 24 24" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      <span>Asosiy</span>
+    </a>
+    <a href="reyting.html" class="tab-item" onclick="navigateTo('reyting.html')">
+      <svg viewBox="0 0 24 24" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span>Reyting</span>
+    </a>
+    <a href="gift.html" class="tab-item" onclick="navigateTo('gift.html')">
+      <svg viewBox="0 0 24 24" stroke-width="2"><rect x="2" y="7" width="20" height="5"/><path d="M20 12v10H4V12M12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+      <span>Sovg'alar</span>
+    </a>
+  </nav>
+</div>
 
-    <div class="video-item">
-      <div class="thumbnail-container">
-        <img src="https://picsum.photos/id/20/800/450" alt="Education">
-        <span class="video-duration">08:15</span>
-      </div>
-      <div class="video-details">
-        <img class="channel-icon" src="https://ui-avatars.com/api/?name=E&background=FF9500" alt="CH">
-        <div class="video-text">
-          <h2 class="video-title">Ingliz tili grammatikasini 8 haftada o'rganish</h2>
-          <p class="video-meta">Language Pro • 22K ko'rildi • 3 kun oldin</p>
-        </div>
-      </div>
-    </div>
-  </main>
+<script>
+  const tg = window.Telegram.WebApp;
+  tg.expand();
+  
+  // Ranglarni Telegram mavzusiga moslash
+  tg.setHeaderColor('secondary_bg_color');
+  tg.setBackgroundColor('bg_color');
 
-  <script>
-    // Qidiruv tugmasini bosganda qidiruv satrini chiqarish
-    const searchBtn = document.getElementById('search-btn');
-    const searchBar = document.getElementById('search-bar');
+  // Modullar ma'lumotlari (30 ta)
+  const moduleUrls = Array.from({ length: 30 }, (_, i) => `modul${i + 1}.html`);
+  
+  const modules = Array.from({ length: 30 }, (_, i) => {
+    const id = i + 1;
+    // Har bir modul uchun turli mavzular
+    const topics = [
+      'Dasturlash asoslari',
+      'Algoritmlar',
+      'Ma\'lumotlar tuzilmasi',
+      'Veb dasturlash',
+      'Mobil dasturlash',
+      'Sun\'iy intellekt',
+      'Ma\'lumotlar bazasi',
+      'Tarmoq texnologiyalari',
+      'Kiberxavfsizlik',
+      'Bulutli hisoblash',
+      'Python dasturlash',
+      'JavaScript asoslari',
+      'React.js',
+      'Node.js',
+      'Flutter',
+      'Kotlin',
+      'Swift',
+      'Java',
+      'C++ dasturlash',
+      'Go dasturlash',
+      'DevOps asoslari',
+      'Docker va Kubernetes',
+      'Machine Learning',
+      'Deep Learning',
+      'Data Science',
+      'Blockchain',
+      'IoT texnologiyalari',
+      'AR/VR dasturlash',
+      'Game Development',
+      'Software Architecture'
+    ];
     
-    searchBtn.addEventListener('click', () => {
-      if (searchBar.style.display === 'block') {
-        searchBar.style.display = 'none';
-      } else {
-        searchBar.style.display = 'block';
-        searchBar.querySelector('input').focus();
-      }
-    });
+    return {
+      id: id,
+      title: `${id}-modul: ${topics[id-1] || 'Dasturlash asoslari'}`,
+      label: `MODUL ${id}`,
+      action: id <= 5 ? 'Darsni boshlash' : (id <= 15 ? 'Davom etish' : 'Tez kunda'),
+      url: `modul${id}.html`,
+      status: id <= 5 ? 'available' : (id <= 15 ? 'in-progress' : 'coming-soon')
+    };
+  });
 
-    // Scroll qilganda header blur effekti uchun
-    window.addEventListener('scroll', () => {
-      const header = document.querySelector('.header');
-      if (window.scrollY > 10) {
-        header.style.boxShadow = '0 4px 30px rgba(0, 0, 0, 0.05)';
+  function setAvatar(user) {
+    const avatarInitial = document.getElementById('avatarInitial');
+    const avatarImage = document.getElementById('avatarImage');
+    
+    if (user && user.photo_url) {
+      // Telegram profil rasmi mavjud
+      avatarImage.src = user.photo_url;
+      avatarImage.style.display = 'block';
+      avatarInitial.style.display = 'none';
+      
+      // Rasm yuklanmasa, initial harfni ko'rsatish
+      avatarImage.onerror = function() {
+        avatarImage.style.display = 'none';
+        avatarInitial.style.display = 'block';
+        if (user.first_name) {
+          avatarInitial.textContent = user.first_name.charAt(0).toUpperCase();
+        }
+      };
+    } else {
+      // Profil rasmi yo'q, initial harfni ko'rsatish
+      avatarImage.style.display = 'none';
+      avatarInitial.style.display = 'block';
+      
+      if (user && user.first_name) {
+        avatarInitial.textContent = user.first_name.charAt(0).toUpperCase();
       } else {
-        header.style.boxShadow = 'none';
+        avatarInitial.textContent = '?';
       }
+    }
+  }
+
+  function initApp() {
+    const user = tg.initDataUnsafe?.user;
+    
+    // Foydalanuvchi ismi va familiyasi
+    if (user) {
+      // To'liq ismni yaratish (ism + familiya)
+      let fullName = user.first_name || 'Foydalanuvchi';
+      if (user.last_name) {
+        fullName = `${user.first_name} ${user.last_name}`;
+      }
+      document.getElementById('userName').textContent = fullName;
+      
+      // Avatar - Telegram profil rasmi yoki initial harf
+      setAvatar(user);
+      
+      // Konsolga ma'lumot chiqarish (test uchun)
+      console.log('Telegram user:', user);
+      console.log('Photo URL:', user.photo_url);
+    } else {
+      // Agar user ma'lumoti bo'lmasa
+      document.getElementById('userName').textContent = 'Mehmon';
+      setAvatar(null);
+    }
+
+    // Ballarni yuklash (Haqiqiy loyihada buni Backenddan fetch qilish kerak)
+    const points = localStorage.getItem('user_points') || 312;
+    document.getElementById('userPoints').textContent = `⚡ ${points}`;
+
+    renderModules();
+  }
+
+  function renderModules() {
+    const container = document.getElementById('moduleContainer');
+    container.innerHTML = modules.map(m => {
+      // Statusga qarab action rangini o'zgartirish
+      const actionColor = m.status === 'available' ? '#007aff' : (m.status === 'in-progress' ? '#ff9f0a' : '#8e8e93');
+      
+      return `
+        <div class="lesson-card" onclick="openModule(${m.id}, '${m.url}')">
+          <span style="color: #8e8e93; font-size: 12px; font-weight: 600;">${m.label}</span>
+          <h2 style="font-size: 24px; line-height: 1.2;">${m.title}</h2>
+          <div style="color: ${actionColor}; font-weight: 600;">${m.action} →</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  window.navigateTo = function(url) {
+    tg.HapticFeedback.impactOccurred('light');
+    // Sahifa o'zgarishidan oldin biroz kechikish (visual feedback uchun)
+    setTimeout(() => {
+      window.location.href = url;
+    }, 100);
+  };
+
+  window.openModule = function(id, url) {
+    tg.HapticFeedback.notificationOccurred('success');
+    localStorage.setItem('last_module', id);
+    localStorage.setItem(`module_${id}_status`, 'opened');
+    
+    // URL bo'yicha navigatsiya
+    setTimeout(() => {
+      window.location.href = url;
+    }, 100);
+  };
+
+  // Telegram BackButton boshqarish
+  if (window.location.pathname.includes('modul') || window.location.pathname.includes('profil.html')) {
+    tg.BackButton.show();
+    tg.BackButton.onClick(() => {
+      window.history.back();
     });
-  </script>
+  } else {
+    tg.BackButton.hide();
+  }
+
+  initApp();
+</script>
 </body>
 </html>
