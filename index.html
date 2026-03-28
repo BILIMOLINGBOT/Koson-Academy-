@@ -4,8 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Dono - Video Platform</title>
-  <!-- Telegram WebApp scripti faqat funksionallik uchun (dizayn o'zgartirilmaydi) -->
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
       --ios-blue: #007AFF;
@@ -14,6 +12,7 @@
       --ios-text: #000000;
       --ios-gray: #8e8e93;
       --ios-red: #FF3B30;
+      --ios-green: #34C759;
       --safe-top: env(safe-area-inset-top);
       --safe-bottom: env(safe-area-inset-bottom);
     }
@@ -29,7 +28,7 @@
       background-color: var(--ios-bg);
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
       color: var(--ios-text);
-      padding-bottom: 0;
+      padding-bottom: var(--safe-bottom);
       line-height: 1.4;
     }
 
@@ -94,10 +93,12 @@
       border-radius: 50%;
       overflow: hidden;
       border: 0.5px solid rgba(0,0,0,0.1);
-      background-color: #e1e1e1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.1s ease;
+    }
+
+    .avatar-wrapper:active {
+      transform: scale(0.95);
     }
 
     .avatar-wrapper img {
@@ -105,20 +106,12 @@
       height: 100%;
       object-fit: cover;
     }
-    
-    .avatar-initial {
-      font-size: 14px;
-      font-weight: 600;
-      color: #007AFF;
-      text-transform: uppercase;
-    }
 
     /* ===== SEARCH BAR (Hidden by default) ===== */
     .search-overlay {
       display: none;
       padding: 10px 16px;
       background: var(--ios-bg);
-      border-bottom: 0.5px solid rgba(0,0,0,0.05);
     }
     
     .search-input-container {
@@ -136,21 +129,18 @@
       outline: none;
       width: 100%;
       font-size: 16px;
-      font-family: inherit;
     }
 
-    /* ===== FEED (Video kartalar) ===== */
+    /* ===== FEED ===== */
     .feed {
       display: flex;
       flex-direction: column;
-      margin-bottom: 20px;
     }
 
     .video-item {
       width: 100%;
       margin-bottom: 12px;
       transition: background 0.2s;
-      cursor: pointer;
     }
 
     .video-item:active {
@@ -161,7 +151,7 @@
       width: 100%;
       aspect-ratio: 16 / 9;
       position: relative;
-      background: #e9e9ef;
+      background: #eee;
     }
 
     .thumbnail-container img {
@@ -180,7 +170,6 @@
       border-radius: 4px;
       font-size: 11px;
       font-weight: 600;
-      font-family: monospace;
     }
 
     .video-details {
@@ -195,7 +184,6 @@
       border-radius: 50%;
       flex-shrink: 0;
       object-fit: cover;
-      background: #ddd;
     }
 
     .video-text {
@@ -216,10 +204,145 @@
       font-size: 13px;
       color: var(--ios-gray);
     }
-    
-    /* Qo'shimcha: pastki bo'shliq */
-    .safe-bottom-placeholder {
-      height: calc(12px + var(--safe-bottom));
+
+    /* ===== PROFILE MODAL (iOS Style) ===== */
+    .profile-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(8px);
+      z-index: 2000;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .profile-modal.active {
+      display: flex;
+    }
+
+    .profile-sheet {
+      background: var(--ios-bg);
+      width: 100%;
+      max-width: 500px;
+      border-radius: 20px 20px 0 0;
+      padding: 24px 20px 32px;
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(100%);
+      }
+      to {
+        transform: translateY(0);
+      }
+    }
+
+    .profile-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .profile-avatar-large {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      margin: 0 auto 16px;
+      background: linear-gradient(135deg, #007AFF, #5856D6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+      font-weight: 600;
+      color: white;
+      overflow: hidden;
+    }
+
+    .profile-avatar-large img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .profile-name {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .profile-username {
+      font-size: 15px;
+      color: var(--ios-gray);
+      margin-bottom: 8px;
+    }
+
+    .profile-info {
+      background: var(--ios-secondary-bg);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      font-size: 15px;
+    }
+
+    .info-label {
+      color: var(--ios-gray);
+    }
+
+    .info-value {
+      font-weight: 500;
+      color: var(--ios-text);
+    }
+
+    .profile-buttons {
+      display: flex;
+      gap: 12px;
+    }
+
+    .profile-btn {
+      flex: 1;
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      text-align: center;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .profile-btn:active {
+      opacity: 0.6;
+    }
+
+    .btn-primary {
+      background: var(--ios-blue);
+      color: white;
+      border: none;
+    }
+
+    .btn-secondary {
+      background: var(--ios-secondary-bg);
+      color: var(--ios-text);
+      border: none;
+    }
+
+    .close-modal {
+      margin-top: 12px;
+      background: var(--ios-secondary-bg);
+    }
+
+    /* Telegram MainButton uchun placeholder (aslida Telegram o'zi boshqaradi) */
+    .main-button-placeholder {
+      display: none;
     }
   </style>
 </head>
@@ -231,16 +354,15 @@
       <div class="header-icon" id="search-btn">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
       </div>
-      <div class="header-icon" id="notification-icon">
+      <div class="header-icon" id="notification-btn">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
           <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
         </svg>
         <span class="notification-badge"></span>
       </div>
-      <div class="header-icon avatar-wrapper" id="userAvatarBtn">
-        <img id="userAvatarImg" src="https://ui-avatars.com/api/?name=User&background=007AFF&color=fff&bold=true" alt="User">
-        <span id="avatarInitialText" class="avatar-initial" style="display: none;"></span>
+      <div class="header-icon avatar-wrapper" id="profile-btn">
+        <img id="header-avatar" src="" alt="User">
       </div>
     </div>
   </header>
@@ -248,268 +370,323 @@
   <div class="search-overlay" id="search-bar">
     <div class="search-input-container">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ios-gray)" stroke-width="3"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-      <input type="text" id="searchInput" placeholder="Video qidirish...">
+      <input type="text" placeholder="Video qidirish...">
     </div>
   </div>
 
-  <main class="feed" id="videoFeed">
-    <!-- Video kartalar dinamik tarzda JavaScript orqali yuklanadi (asl tarkibni saqlab, 30+ modul mavzusiga mos) -->
+  <main class="feed">
+    <div class="video-item">
+      <div class="thumbnail-container">
+        <img src="https://picsum.photos/id/1/800/450" alt="Tech">
+        <span class="video-duration">12:45</span>
+      </div>
+      <div class="video-details">
+        <img class="channel-icon" src="https://ui-avatars.com/api/?name=IT&background=333" alt="CH">
+        <div class="video-text">
+          <h2 class="video-title">JavaScript'da Telegram Mini Apps yaratish darsi</h2>
+          <p class="video-meta">IT Academy • 15K ko'rildi • 2 soat oldin</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="video-item">
+      <div class="thumbnail-container">
+        <img src="https://picsum.photos/id/10/800/450" alt="Nature">
+        <span class="video-duration">05:20</span>
+      </div>
+      <div class="video-details">
+        <img class="channel-icon" src="https://ui-avatars.com/api/?name=N&background=4CD964" alt="CH">
+        <div class="video-text">
+          <h2 class="video-title">Tabiatning eng sokin burchaklari: 4K manzara</h2>
+          <p class="video-meta">Nature Lab • 8K ko'rildi • 1 kun oldin</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="video-item">
+      <div class="thumbnail-container">
+        <img src="https://picsum.photos/id/20/800/450" alt="Education">
+        <span class="video-duration">08:15</span>
+      </div>
+      <div class="video-details">
+        <img class="channel-icon" src="https://ui-avatars.com/api/?name=E&background=FF9500" alt="CH">
+        <div class="video-text">
+          <h2 class="video-title">Ingliz tili grammatikasini 8 haftada o'rganish</h2>
+          <p class="video-meta">Language Pro • 22K ko'rildi • 3 kun oldin</p>
+        </div>
+      </div>
+    </div>
   </main>
-  
-  <div class="safe-bottom-placeholder"></div>
+
+  <!-- Profile Modal -->
+  <div class="profile-modal" id="profile-modal">
+    <div class="profile-sheet">
+      <div class="profile-header">
+        <div class="profile-avatar-large" id="modal-avatar">
+          <img id="modal-avatar-img" src="" alt="Avatar">
+        </div>
+        <h2 class="profile-name" id="profile-name">Loading...</h2>
+        <p class="profile-username" id="profile-username">@username</p>
+      </div>
+      
+      <div class="profile-info">
+        <div class="info-row">
+          <span class="info-label">Telegram ID</span>
+          <span class="info-value" id="user-id">-</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">First Name</span>
+          <span class="info-value" id="first-name">-</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Last Name</span>
+          <span class="info-value" id="last-name">-</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Language</span>
+          <span class="info-value" id="user-lang">uz</span>
+        </div>
+      </div>
+      
+      <div class="profile-buttons">
+        <button class="profile-btn btn-secondary" id="close-webapp-btn">Yopish</button>
+        <button class="profile-btn btn-primary" id="expand-webapp-btn">Kengaytirish</button>
+      </div>
+      <button class="profile-btn btn-secondary close-modal" id="close-modal-btn">Yopish</button>
+    </div>
+  </div>
 
   <script>
-    // Telegram WebApp imkoniyatlarini ishga tushirish (dizaynni buzmaydi, funksional integratsiya)
-    const tg = window.Telegram?.WebApp;
-    if (tg) {
-      tg.expand();
-      try {
-        tg.setHeaderColor('bg_color');
-        tg.setBackgroundColor('bg_color');
-      } catch(e) { console.warn(e); }
-    }
-    
-    // ========================
-    // 1. MODULLAR / VIDEO MA'LUMOTLARI (30 ta dars / video)
-    // Asl LearnU dagi modullar mavzusini saqlab, Dono video platformasiga moslashtirildi.
-    // Har bir video: sarlavha, kanal nomi, ko'rishlar soni, vaqt, rasm ID
-    // ========================
-    const videoModules = [
-      { title: "Dasturlash asoslari: Kirish", channel: "IT Academy", views: "23K", time: "2 soat oldin", duration: "12:45", imgId: "1", topic: "Dasturlash" },
-      { title: "Algoritmlar: Sorting va Search", channel: "AlgoMaster", views: "18K", time: "1 kun oldin", duration: "08:22", imgId: "2", topic: "Algoritmlar" },
-      { title: "Ma'lumotlar tuzilmasi: Linked List", channel: "DataLab", views: "14K", time: "2 kun oldin", duration: "15:10", imgId: "3", topic: "Data Structure" },
-      { title: "Veb dasturlash: HTML/CSS asoslari", channel: "WebAcademy", views: "31K", time: "5 soat oldin", duration: "09:45", imgId: "4", topic: "Veb" },
-      { title: "Mobil dasturlash: Flutter kirish", channel: "MobileDev", views: "12K", time: "3 kun oldin", duration: "11:30", imgId: "5", topic: "Mobil" },
-      { title: "Sun'iy intellekt: Nima?", channel: "AI Hub", views: "45K", time: "1 hafta oldin", duration: "14:20", imgId: "6", topic: "AI" },
-      { title: "Ma'lumotlar bazasi: SQL asoslari", channel: "DataBase Pro", views: "9K", time: "4 kun oldin", duration: "10:15", imgId: "7", topic: "DB" },
-      { title: "Tarmoq texnologiyalari: TCP/IP", channel: "NetTech", views: "7.2K", time: "6 kun oldin", duration: "13:40", imgId: "8", topic: "Network" },
-      { title: "Kiberxavfsizlik: asosiy tushunchalar", channel: "CyberSafe", views: "19K", time: "2 kun oldin", duration: "17:05", imgId: "9", topic: "Security" },
-      { title: "Bulutli hisoblash: AWS boshlang'ich", channel: "CloudExpert", views: "11K", time: "1 hafta oldin", duration: "22:10", imgId: "10", topic: "Cloud" },
-      { title: "Python dasturlash: OOP", channel: "Python Lab", views: "28K", time: "3 soat oldin", duration: "16:30", imgId: "11", topic: "Python" },
-      { title: "JavaScript asoslari: ES6+", channel: "JS Ninja", views: "34K", time: "1 kun oldin", duration: "19:45", imgId: "12", topic: "JavaScript" },
-      { title: "React.js: Komponentlar", channel: "React Masters", views: "26K", time: "5 kun oldin", duration: "21:20", imgId: "13", topic: "React" },
-      { title: "Node.js: Backend asoslari", channel: "NodeSkills", views: "15K", time: "3 kun oldin", duration: "14:55", imgId: "14", topic: "Node" },
-      { title: "Flutter: UI yaratish", channel: "FlutterWay", views: "9.8K", time: "2 hafta oldin", duration: "18:30", imgId: "15", topic: "Flutter" },
-      { title: "Kotlin: Android dasturlash", channel: "AndroidDev", views: "13K", time: "4 kun oldin", duration: "12:12", imgId: "16", topic: "Kotlin" },
-      { title: "Swift: iOS kirish", channel: "iOS Academy", views: "10K", time: "1 hafta oldin", duration: "20:05", imgId: "17", topic: "Swift" },
-      { title: "Java: Spring Boot", channel: "JavaZone", views: "8K", time: "5 kun oldin", duration: "25:00", imgId: "18", topic: "Java" },
-      { title: "C++ dasturlash: Pointerlar", channel: "C++ Experts", views: "17K", time: "2 kun oldin", duration: "19:15", imgId: "19", topic: "C++" },
-      { title: "Go dasturlash: Concurrency", channel: "GolangHub", views: "6.5K", time: "1 hafta oldin", duration: "15:40", imgId: "20", topic: "Go" },
-      { title: "DevOps asoslari: CI/CD", channel: "DevOpsLife", views: "12K", time: "3 kun oldin", duration: "23:10", imgId: "21", topic: "DevOps" },
-      { title: "Docker va Kubernetes", channel: "ContainerPro", views: "21K", time: "6 kun oldin", duration: "27:30", imgId: "22", topic: "Docker" },
-      { title: "Machine Learning: Regression", channel: "ML Masters", views: "33K", time: "1 kun oldin", duration: "31:20", imgId: "23", topic: "ML" },
-      { title: "Deep Learning: Neural Networks", channel: "DeepMind", views: "29K", time: "2 kun oldin", duration: "28:45", imgId: "24", topic: "DL" },
-      { title: "Data Science: Pandas", channel: "DataSciLab", views: "16K", time: "4 kun oldin", duration: "18:55", imgId: "25", topic: "Data Science" },
-      { title: "Blockchain: Smart Contracts", channel: "BlockchainHub", views: "24K", time: "1 hafta oldin", duration: "22:30", imgId: "26", topic: "Blockchain" },
-      { title: "IoT texnologiyalari: Kirish", channel: "IoT World", views: "7K", time: "3 hafta oldin", duration: "14:10", imgId: "27", topic: "IoT" },
-      { title: "AR/VR dasturlash: Unity", channel: "XR Creators", views: "5.8K", time: "2 hafta oldin", duration: "26:15", imgId: "28", topic: "AR/VR" },
-      { title: "Game Development: Unreal Engine", channel: "GameDevPro", views: "19K", time: "5 kun oldin", duration: "33:20", imgId: "29", topic: "GameDev" },
-      { title: "Software Architecture: Microservices", channel: "ArchitectMind", views: "11K", time: "8 kun oldin", duration: "24:40", imgId: "30", topic: "Architecture" }
-    ];
-    
-    // Foydalanuvchi ma'lumotlarini Telegram'dan olish va avatarni yangilash
-    function updateUserProfile() {
-      const user = tg && tg.initDataUnsafe ? tg.initDataUnsafe.user : null;
-      const avatarImg = document.getElementById('userAvatarImg');
-      const initialSpan = document.getElementById('avatarInitialText');
+    // Telegram WebApp API ni kutib olish
+    let tg = window.Telegram?.WebApp;
+    let userData = null;
+
+    // Avatar yaratish funksiyasi (agar avatar bo'lmasa, ismning birinchi harfidan)
+    function generateAvatar(firstName, lastName, photoUrl = null) {
+      const avatarContainer = document.getElementById('modal-avatar');
+      const avatarImg = document.getElementById('modal-avatar-img');
+      const headerAvatar = document.getElementById('header-avatar');
       
-      if (user && user.first_name) {
-        let fullName = user.first_name;
-        if (user.last_name) fullName = `${user.first_name} ${user.last_name}`;
-        // App-title yonida emas, headerda faqat avatar. Lekin qulaylik: title o'zgarishsiz "Dono"
-        if (user.photo_url) {
-          avatarImg.src = user.photo_url;
-          avatarImg.style.display = 'block';
-          initialSpan.style.display = 'none';
-          avatarImg.onerror = () => {
-            avatarImg.style.display = 'none';
-            initialSpan.style.display = 'flex';
-            initialSpan.textContent = user.first_name.charAt(0).toUpperCase();
-          };
-        } else {
-          avatarImg.style.display = 'none';
-          initialSpan.style.display = 'flex';
-          initialSpan.textContent = user.first_name.charAt(0).toUpperCase();
-        }
-      } else {
-        // Demo foydalanuvchi: default avatar saqlanadi
+      if (photoUrl && photoUrl !== '') {
+        // Agar Telegram avatari bo'lsa
         avatarImg.style.display = 'block';
-        initialSpan.style.display = 'none';
-        avatarImg.src = "https://ui-avatars.com/api/?name=Javlonbek&background=007AFF&color=fff&bold=true";
+        avatarImg.src = photoUrl;
+        headerAvatar.innerHTML = `<img src="${photoUrl}" alt="Avatar">`;
+        avatarContainer.innerHTML = '';
+        avatarContainer.appendChild(avatarImg);
+        avatarImg.style.display = 'block';
+      } else {
+        // Avatar yo'q, ismning birinchi harfidan avatar yaratish
+        const initial = (firstName && firstName.length > 0) ? firstName.charAt(0).toUpperCase() : 'U';
+        const colors = ['#007AFF', '#5856D6', '#FF3B30', '#34C759', '#FF9500', '#AF52DE'];
+        const colorIndex = (firstName?.charCodeAt(0) || 0) % colors.length;
+        const bgColor = colors[colorIndex];
+        
+        avatarContainer.style.background = bgColor;
+        avatarContainer.innerHTML = `<span style="font-size: 48px; font-weight: 600;">${initial}</span>`;
+        avatarContainer.style.display = 'flex';
+        
+        // Header avatari uchun ham harf
+        headerAvatar.innerHTML = `<div style="width: 100%; height: 100%; background: ${bgColor}; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 16px;">${initial}</div>`;
+      }
+    }
+
+    // Foydalanuvchi ma'lumotlarini olish va UI ni yangilash
+    function loadUserData() {
+      if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+        userData = tg.initDataUnsafe.user;
+        
+        const firstName = userData.first_name || 'User';
+        const lastName = userData.last_name || '';
+        const username = userData.username ? `@${userData.username}` : 'no username';
+        const userId = userData.id || '-';
+        const languageCode = userData.language_code || 'uz';
+        
+        // Profile modal ma'lumotlarini to'ldirish
+        document.getElementById('profile-name').textContent = `${firstName} ${lastName}`.trim();
+        document.getElementById('profile-username').textContent = username;
+        document.getElementById('user-id').textContent = userId;
+        document.getElementById('first-name').textContent = firstName;
+        document.getElementById('last-name').textContent = lastName || '-';
+        document.getElementById('user-lang').textContent = languageCode.toUpperCase();
+        
+        // Avatar yaratish (Telegram avatari yo'q, chunki API avatarni bermaydi, shuning uchun ism harfidan)
+        // Agar userda photo_url bo'lsa (faqat bot orqali uzatilgan bo'lsa), lekin standart Telegram WebApp da yo'q
+        generateAvatar(firstName, lastName, null);
+        
+        return userData;
+      } else {
+        // Agar Telegram muhitida emas yoki user ma'lumoti yo'q bo'lsa, demo ma'lumot
+        console.log('Telegram WebApp muhitida emas yoki user maʼlumoti yoʻq');
+        const demoUser = {
+          first_name: 'Javlonbek',
+          last_name: 'Developer',
+          username: 'javlonbek_dev',
+          id: 123456789,
+          language_code: 'uz'
+        };
+        
+        document.getElementById('profile-name').textContent = `${demoUser.first_name} ${demoUser.last_name}`;
+        document.getElementById('profile-username').textContent = `@${demoUser.username}`;
+        document.getElementById('user-id').textContent = demoUser.id;
+        document.getElementById('first-name').textContent = demoUser.first_name;
+        document.getElementById('last-name').textContent = demoUser.last_name;
+        document.getElementById('user-lang').textContent = demoUser.language_code.toUpperCase();
+        
+        generateAvatar(demoUser.first_name, demoUser.last_name, null);
+        return demoUser;
+      }
+    }
+
+    // Telegram WebApp API ni sozlash
+    function initTelegramWebApp() {
+      if (tg) {
+        // WebApp tayyorligini bildirish
+        tg.ready();
+        
+        // Oynani to'liq kengaytirish (expand)
+        tg.expand();
+        
+        // MainButton ni sozlash (agar kerak bo'lsa)
+        if (tg.MainButton) {
+          tg.MainButton.setText("Dono ga xush kelibsiz!");
+          tg.MainButton.show();
+          tg.MainButton.onClick(() => {
+            console.log("MainButton bosildi");
+            if (tg.showAlert) {
+              tg.showAlert("Salom! Dono video platformasiga xush kelibsiz!");
+            }
+          });
+        }
+        
+        // Foydalanuvchi ma'lumotlarini yuklash
+        loadUserData();
+        
+        console.log('Telegram WebApp API tayyor');
+        console.log('initData:', tg.initData);
+        console.log('initDataUnsafe:', tg.initDataUnsafe);
+      } else {
+        console.warn('Telegram WebApp API topilmadi, demo rejimda ishlayapti');
+        // Demo rejimda ishlash
+        loadUserData();
+      }
+    }
+
+    // Profile modalni ochish
+    function openProfileModal() {
+      const modal = document.getElementById('profile-modal');
+      modal.classList.add('active');
+      // Modal ochilganda MainButton ni yashirish (ixtiyoriy)
+      if (tg && tg.MainButton) {
+        tg.MainButton.hide();
       }
     }
     
-    // Video kartani yaratish funksiyasi (Dono dizayniga mos)
-    function renderVideoCards(filterText = "") {
-      const feedContainer = document.getElementById('videoFeed');
-      if (!feedContainer) return;
+    // Profile modalni yopish
+    function closeProfileModal() {
+      const modal = document.getElementById('profile-modal');
+      modal.classList.remove('active');
+      // Modal yopilganda MainButton ni qayta ko'rsatish
+      if (tg && tg.MainButton) {
+        tg.MainButton.show();
+      }
+    }
+    
+    // WebApp ni yopish
+    function closeWebApp() {
+      if (tg) {
+        tg.close();
+      } else {
+        alert("Telegram muhitida emas, yopish mumkin emas");
+      }
+    }
+    
+    // WebApp ni kengaytirish
+    function expandWebApp() {
+      if (tg) {
+        tg.expand();
+        closeProfileModal();
+      } else {
+        alert("Kengaytirish faqat Telegram ichida ishlaydi");
+      }
+    }
+
+    // Event listenerlar
+    document.addEventListener('DOMContentLoaded', () => {
+      // Telegram WebApp ni ishga tushirish
+      initTelegramWebApp();
       
-      // Filtrlash (title yoki channel bo'yicha)
-      let filteredVideos = videoModules;
-      if (filterText.trim() !== "") {
-        const lowerQuery = filterText.toLowerCase();
-        filteredVideos = videoModules.filter(video => 
-          video.title.toLowerCase().includes(lowerQuery) || 
-          video.channel.toLowerCase().includes(lowerQuery) ||
-          video.topic.toLowerCase().includes(lowerQuery)
-        );
+      // Profile tugmasi
+      const profileBtn = document.getElementById('profile-btn');
+      const closeModalBtn = document.getElementById('close-modal-btn');
+      const closeWebappBtn = document.getElementById('close-webapp-btn');
+      const expandWebappBtn = document.getElementById('expand-webapp-btn');
+      
+      if (profileBtn) {
+        profileBtn.addEventListener('click', openProfileModal);
       }
       
-      if (filteredVideos.length === 0) {
-        feedContainer.innerHTML = `<div style="padding: 40px 20px; text-align: center; color: var(--ios-gray);">Hech qanday video topilmadi 😢</div>`;
-        return;
+      if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', closeProfileModal);
       }
       
-      let html = '';
-      for (let i = 0; i < filteredVideos.length; i++) {
-        const v = filteredVideos[i];
-        // Kanali iconsi uchun UI avatarlar (rangli)
-        const channelInitial = v.channel.charAt(0).toUpperCase();
-        const channelBgColor = getColorFromString(v.channel);
-        
-        html += `
-          <div class="video-item" data-video-idx="${i}" data-video-title="${v.title.replace(/"/g, '&quot;')}">
-            <div class="thumbnail-container">
-              <img src="https://picsum.photos/id/${v.imgId % 30 + 10}/800/450" alt="${v.title}" loading="lazy">
-              <span class="video-duration">${v.duration}</span>
-            </div>
-            <div class="video-details">
-              <img class="channel-icon" src="https://ui-avatars.com/api/?name=${channelInitial}&background=${channelBgColor}&color=fff&bold=true&size=40" alt="${v.channel}">
-              <div class="video-text">
-                <h2 class="video-title">${v.title}</h2>
-                <p class="video-meta">${v.channel} • ${v.views} ko'rildi • ${v.time}</p>
-              </div>
-            </div>
-          </div>
-        `;
+      if (closeWebappBtn) {
+        closeWebappBtn.addEventListener('click', closeWebApp);
       }
-      feedContainer.innerHTML = html;
       
-      // Har bir video-itemga bosish funksiyasini qo'shamiz (LearnU'da openModule o'rnida)
-      document.querySelectorAll('.video-item').forEach((el, idx) => {
-        el.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const originalIndex = el.getAttribute('data-video-idx');
-          const videoData = filteredVideos[originalIndex];
-          if (videoData) {
-            if (tg) tg.HapticFeedback?.impactOccurred('light');
-            // Real loyihada video player yoki modul sahifasiga o'tish mumkin
-            alert(`"${videoData.title}" darsi ochilmoqda (to'liq video player keyingi versiyada).`);
-            // localStorage da oxirgi modulni saqlab qo'yish (learnU'dan meros)
-            localStorage.setItem('last_module', videoData.title);
-            localStorage.setItem(`module_${videoData.title}_status`, 'opened');
-            // Ixtiyoriy: window.location = `modul.html?video=${encodeURIComponent(videoData.title)}`;
+      if (expandWebappBtn) {
+        expandWebappBtn.addEventListener('click', expandWebApp);
+      }
+      
+      // Modalni tashqariga bosganda yopish
+      const modal = document.getElementById('profile-modal');
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          closeProfileModal();
+        }
+      });
+      
+      // Qidiruv funksiyasi
+      const searchBtn = document.getElementById('search-btn');
+      const searchBar = document.getElementById('search-bar');
+      
+      if (searchBtn) {
+        searchBtn.addEventListener('click', () => {
+          if (searchBar.style.display === 'block') {
+            searchBar.style.display = 'none';
+          } else {
+            searchBar.style.display = 'block';
+            searchBar.querySelector('input').focus();
           }
         });
-      });
-    }
-    
-    // Kanal rangi uchun oddiy funksiya
-    function getColorFromString(str) {
-      let hash = 0;
-      for (let i = 0; i < str.length; i++) {
-        hash = ((hash << 5) - hash) + str.charCodeAt(i);
-        hash |= 0;
       }
-      const colors = ['007AFF', '5856D6', 'FF9500', 'FF3B30', '4CD964', 'AF52DE', 'FF2D55', '5E5CE0', '32ADE6', 'E8432F'];
-      return colors[Math.abs(hash) % colors.length];
-    }
-    
-    // Qidiruv funksiyasi
-    let searchActive = false;
-    const searchBtn = document.getElementById('search-btn');
-    const searchBarDiv = document.getElementById('search-bar');
-    const searchInputElem = document.getElementById('searchInput');
-    
-    if (searchBtn && searchBarDiv) {
-      searchBtn.addEventListener('click', () => {
-        if (searchBarDiv.style.display === 'block') {
-          searchBarDiv.style.display = 'none';
-          // Qidiruvni tozalab, barcha videolarni qayta ko'rsatish
-          if (searchInputElem) searchInputElem.value = '';
-          renderVideoCards('');
+      
+      
+      // Bildirishnomalar tugmasi (demo)
+      const notificationBtn = document.getElementById('notification-btn');
+      if (notificationBtn) {
+        notificationBtn.addEventListener('click', () => {
+          if (tg && tg.showAlert) {
+            tg.showAlert("Hozircha yangi bildirishnomalar yo'q");
+          } else {
+            alert("Hozircha yangi bildirishnomalar yo'q");
+          }
+        });
+      }
+      
+      // Scroll effekti
+      window.addEventListener('scroll', () => {
+        const header = document.querySelector('.header');
+        if (window.scrollY > 10) {
+          header.style.boxShadow = '0 4px 30px rgba(0, 0, 0, 0.05)';
         } else {
-          searchBarDiv.style.display = 'block';
-          searchInputElem?.focus();
+          header.style.boxShadow = 'none';
         }
       });
-    }
-    
-    if (searchInputElem) {
-      searchInputElem.addEventListener('input', (e) => {
-        const query = e.target.value;
-        renderVideoCards(query);
-      });
-      // Qidiruvni yopish uchun boshqa joyga bosganda emas, lekin ESC bosganda yopish qulay
-      searchInputElem.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-          if (searchBarDiv) searchBarDiv.style.display = 'none';
-          searchInputElem.value = '';
-          renderVideoCards('');
-        }
-      });
-    }
-    
-    // Scroll header effekti (iOS blur shadow)
-    window.addEventListener('scroll', () => {
-      const header = document.querySelector('.header');
-      if (window.scrollY > 10) {
-        header.style.boxShadow = '0 4px 30px rgba(0, 0, 0, 0.05)';
-      } else {
-        header.style.boxShadow = 'none';
-      }
     });
-    
-    // Bildirishnoma bosilganda (faqat haptic)
-    const notifIcon = document.getElementById('notification-icon');
-    if (notifIcon) {
-      notifIcon.addEventListener('click', () => {
-        if (tg) tg.HapticFeedback?.notificationOccurred('warning');
-        alert("Bildirishnomalar: Yangi videolar va darslar haqida xabar olasiz.");
-      });
-    }
-    
-    // Avatar bosilganda profilga o'tish (ixtiyoriy, LearnU'dagi header navigatsiyasiga o'xshash)
-    const avatarBtn = document.getElementById('userAvatarBtn');
-    if (avatarBtn) {
-      avatarBtn.addEventListener('click', () => {
-        if (tg) tg.HapticFeedback?.impactOccurred('light');
-        // Profil ma'lumotlari (real loyihada profil.html)
-        const user = tg && tg.initDataUnsafe ? tg.initDataUnsafe.user : null;
-        let nameInfo = "Mehmon";
-        if (user && user.first_name) {
-          nameInfo = user.first_name + (user.last_name ? ` ${user.last_name}` : '');
-        }
-        alert(`👤 ${nameInfo}\n🎓 Ballar: ${localStorage.getItem('user_points') || 312}\n🎥 Dono platformasida videolar tomosha qiling.`);
-      });
-    }
-    
-    // LocalStorage'dan ballarni o'qish va konsolga chiqarish (dizayn talabi emas, lekin LearnU funksiyasini eslatadi)
-    const points = localStorage.getItem('user_points') || 312;
-    // Ixtiyoriy: ballni headerda ko'rsatish uchun kichik element qo'shish mumkin, lekin asl Dono dizaynida ball ko'rinmaydi.
-    // Shuning uchun faqat internal ishlatamiz.
-    
-    // Telefon uchun safe area va Telegram back button (faqat moslashuv)
-    if (tg && tg.BackButton) {
-      tg.BackButton.hide();
-    }
-    
-    // Sahifa yuklanganda videolarni render qilish + profilni yangilash
-    updateUserProfile();
-    renderVideoCards('');
-    
-    // Agar modul URL parametrlari orqali qidiruv bo'lsa (ixtiyoriy)
-    if (window.location.search.includes('search=')) {
-      const urlParams = new URLSearchParams(window.location.search);
-      const searchTerm = urlParams.get('search');
-      if (searchTerm && searchBarDiv) {
-        searchBarDiv.style.display = 'block';
-        if (searchInputElem) {
-          searchInputElem.value = searchTerm;
-          renderVideoCards(searchTerm);
-        }
-      }
-    }
   </script>
+  
+  <!-- Telegram WebApp JS ni yuklash -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </body>
 </html>
