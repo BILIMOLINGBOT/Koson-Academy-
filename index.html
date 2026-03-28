@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="uz">
 <head>
@@ -101,7 +102,7 @@
       transform: scale(0.95);
     }
 
-    .avatar-wrapper img {
+    .avatar-wrapper img, .avatar-initial {
       width: 100%;
       height: 100%;
       object-fit: cover;
@@ -317,6 +318,7 @@
       text-align: center;
       cursor: pointer;
       transition: opacity 0.2s;
+      border: none;
     }
 
     .profile-btn:active {
@@ -326,23 +328,44 @@
     .btn-primary {
       background: var(--ios-blue);
       color: white;
-      border: none;
     }
 
     .btn-secondary {
       background: var(--ios-secondary-bg);
       color: var(--ios-text);
-      border: none;
     }
 
     .close-modal {
       margin-top: 12px;
-      background: var(--ios-secondary-bg);
     }
 
-    /* Telegram MainButton uchun placeholder (aslida Telegram o'zi boshqaradi) */
-    .main-button-placeholder {
-      display: none;
+    /* Loading state */
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: var(--ios-gray);
+    }
+
+    /* Toast message */
+    .toast-message {
+      position: fixed;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.8);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 25px;
+      font-size: 14px;
+      z-index: 3000;
+      animation: fadeInOut 2s ease;
+    }
+
+    @keyframes fadeInOut {
+      0% { opacity: 0; transform: translateX(-50%) translateY(20px); }
+      15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+      85% { opacity: 1; transform: translateX(-50%) translateY(0); }
+      100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
     }
   </style>
 </head>
@@ -352,17 +375,17 @@
     <div class="app-title">Dono</div>
     <div class="header-right">
       <div class="header-icon" id="search-btn">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
       </div>
       <div class="header-icon" id="notification-btn">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
           <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
           <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
         </svg>
         <span class="notification-badge"></span>
       </div>
       <div class="header-icon avatar-wrapper" id="profile-btn">
-        <img id="header-avatar" src="" alt="User">
+        <div id="header-avatar-initial" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #007AFF; color: white; font-weight: 600;">U</div>
       </div>
     </div>
   </header>
@@ -370,52 +393,13 @@
   <div class="search-overlay" id="search-bar">
     <div class="search-input-container">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ios-gray)" stroke-width="3"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-      <input type="text" placeholder="Video qidirish...">
+      <input type="text" id="search-input" placeholder="Video qidirish...">
     </div>
   </div>
 
-  <main class="feed">
-    <div class="video-item">
-      <div class="thumbnail-container">
-        <img src="https://picsum.photos/id/1/800/450" alt="Tech">
-        <span class="video-duration">12:45</span>
-      </div>
-      <div class="video-details">
-        <img class="channel-icon" src="https://ui-avatars.com/api/?name=IT&background=333" alt="CH">
-        <div class="video-text">
-          <h2 class="video-title">JavaScript'da Telegram Mini Apps yaratish darsi</h2>
-          <p class="video-meta">IT Academy • 15K ko'rildi • 2 soat oldin</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="video-item">
-      <div class="thumbnail-container">
-        <img src="https://picsum.photos/id/10/800/450" alt="Nature">
-        <span class="video-duration">05:20</span>
-      </div>
-      <div class="video-details">
-        <img class="channel-icon" src="https://ui-avatars.com/api/?name=N&background=4CD964" alt="CH">
-        <div class="video-text">
-          <h2 class="video-title">Tabiatning eng sokin burchaklari: 4K manzara</h2>
-          <p class="video-meta">Nature Lab • 8K ko'rildi • 1 kun oldin</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="video-item">
-      <div class="thumbnail-container">
-        <img src="https://picsum.photos/id/20/800/450" alt="Education">
-        <span class="video-duration">08:15</span>
-      </div>
-      <div class="video-details">
-        <img class="channel-icon" src="https://ui-avatars.com/api/?name=E&background=FF9500" alt="CH">
-        <div class="video-text">
-          <h2 class="video-title">Ingliz tili grammatikasini 8 haftada o'rganish</h2>
-          <p class="video-meta">Language Pro • 22K ko'rildi • 3 kun oldin</p>
-        </div>
-      </div>
-    </div>
+  <main class="feed" id="feed">
+    <!-- Video items will be loaded dynamically -->
+    <div class="loading">Videolar yuklanmoqda...</div>
   </main>
 
   <!-- Profile Modal -->
@@ -423,9 +407,9 @@
     <div class="profile-sheet">
       <div class="profile-header">
         <div class="profile-avatar-large" id="modal-avatar">
-          <img id="modal-avatar-img" src="" alt="Avatar">
+          <span id="modal-avatar-initial" style="font-size: 48px; font-weight: 600;">U</span>
         </div>
-        <h2 class="profile-name" id="profile-name">Loading...</h2>
+        <h2 class="profile-name" id="profile-name">Yuklanmoqda...</h2>
         <p class="profile-username" id="profile-username">@username</p>
       </div>
       
@@ -435,258 +419,288 @@
           <span class="info-value" id="user-id">-</span>
         </div>
         <div class="info-row">
-          <span class="info-label">First Name</span>
+          <span class="info-label">Ism</span>
           <span class="info-value" id="first-name">-</span>
         </div>
         <div class="info-row">
-          <span class="info-label">Last Name</span>
+          <span class="info-label">Familiya</span>
           <span class="info-value" id="last-name">-</span>
         </div>
         <div class="info-row">
-          <span class="info-label">Language</span>
+          <span class="info-label">Til</span>
           <span class="info-value" id="user-lang">uz</span>
         </div>
       </div>
       
       <div class="profile-buttons">
-        <button class="profile-btn btn-secondary" id="close-webapp-btn">Yopish</button>
-        <button class="profile-btn btn-primary" id="expand-webapp-btn">Kengaytirish</button>
+        <button class="profile-btn btn-secondary" id="close-webapp-btn">❌ Yopish</button>
+        <button class="profile-btn btn-primary" id="expand-webapp-btn">🖥️ Kengaytirish</button>
       </div>
       <button class="profile-btn btn-secondary close-modal" id="close-modal-btn">Yopish</button>
     </div>
   </div>
 
   <script>
-    // Telegram WebApp API ni kutib olish
-    let tg = window.Telegram?.WebApp;
-    let userData = null;
+    // Video ma'lumotlar
+    const videos = [
+      {
+        id: 1,
+        thumbnail: "https://picsum.photos/id/1/800/450",
+        duration: "12:45",
+        channelIcon: "https://ui-avatars.com/api/?name=IT&background=333&color=fff",
+        title: "JavaScript'da Telegram Mini Apps yaratish darsi",
+        meta: "IT Academy • 15K ko'rildi • 2 soat oldin"
+      },
+      {
+        id: 2,
+        thumbnail: "https://picsum.photos/id/10/800/450",
+        duration: "05:20",
+        channelIcon: "https://ui-avatars.com/api/?name=N&background=4CD964&color=fff",
+        title: "Tabiatning eng sokin burchaklari: 4K manzara",
+        meta: "Nature Lab • 8K ko'rildi • 1 kun oldin"
+      },
+      {
+        id: 3,
+        thumbnail: "https://picsum.photos/id/20/800/450",
+        duration: "08:15",
+        channelIcon: "https://ui-avatars.com/api/?name=E&background=FF9500&color=fff",
+        title: "Ingliz tili grammatikasini 8 haftada o'rganish",
+        meta: "Language Pro • 22K ko'rildi • 3 kun oldin"
+      },
+      {
+        id: 4,
+        thumbnail: "https://picsum.photos/id/26/800/450",
+        duration: "15:30",
+        channelIcon: "https://ui-avatars.com/api/?name=AI&background=5856D6&color=fff",
+        title: "Sun'iy intellekt asoslari - to'liq kurs",
+        meta: "AI Academy • 45K ko'rildi • 1 hafta oldin"
+      }
+    ];
 
-    // Avatar yaratish funksiyasi (agar avatar bo'lmasa, ismning birinchi harfidan)
-    function generateAvatar(firstName, lastName, photoUrl = null) {
-      const avatarContainer = document.getElementById('modal-avatar');
-      const avatarImg = document.getElementById('modal-avatar-img');
-      const headerAvatar = document.getElementById('header-avatar');
+    let tg = null;
+    let currentUser = null;
+
+    // Toast xabar ko'rsatish
+    function showToast(message) {
+      const toast = document.createElement('div');
+      toast.className = 'toast-message';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 2000);
+    }
+
+    // Avatar yaratish (ismning birinchi harfidan)
+    function updateAvatar(firstName) {
+      const initial = (firstName && firstName.length > 0) ? firstName.charAt(0).toUpperCase() : 'U';
+      const colors = ['#007AFF', '#5856D6', '#FF3B30', '#34C759', '#FF9500', '#AF52DE'];
+      const colorIndex = (firstName?.charCodeAt(0) || 0) % colors.length;
+      const bgColor = colors[colorIndex];
       
-      if (photoUrl && photoUrl !== '') {
-        // Agar Telegram avatari bo'lsa
-        avatarImg.style.display = 'block';
-        avatarImg.src = photoUrl;
-        headerAvatar.innerHTML = `<img src="${photoUrl}" alt="Avatar">`;
-        avatarContainer.innerHTML = '';
-        avatarContainer.appendChild(avatarImg);
-        avatarImg.style.display = 'block';
-      } else {
-        // Avatar yo'q, ismning birinchi harfidan avatar yaratish
-        const initial = (firstName && firstName.length > 0) ? firstName.charAt(0).toUpperCase() : 'U';
-        const colors = ['#007AFF', '#5856D6', '#FF3B30', '#34C759', '#FF9500', '#AF52DE'];
-        const colorIndex = (firstName?.charCodeAt(0) || 0) % colors.length;
-        const bgColor = colors[colorIndex];
-        
-        avatarContainer.style.background = bgColor;
-        avatarContainer.innerHTML = `<span style="font-size: 48px; font-weight: 600;">${initial}</span>`;
-        avatarContainer.style.display = 'flex';
-        
-        // Header avatari uchun ham harf
-        headerAvatar.innerHTML = `<div style="width: 100%; height: 100%; background: ${bgColor}; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 16px;">${initial}</div>`;
+      // Header avatar
+      const headerAvatar = document.getElementById('header-avatar-initial');
+      if (headerAvatar) {
+        headerAvatar.style.backgroundColor = bgColor;
+        headerAvatar.textContent = initial;
+      }
+      
+      // Modal avatar
+      const modalAvatar = document.getElementById('modal-avatar-initial');
+      if (modalAvatar) {
+        modalAvatar.textContent = initial;
+        document.getElementById('modal-avatar').style.background = bgColor;
       }
     }
 
-    // Foydalanuvchi ma'lumotlarini olish va UI ni yangilash
-    function loadUserData() {
-      if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
-        userData = tg.initDataUnsafe.user;
-        
-        const firstName = userData.first_name || 'User';
-        const lastName = userData.last_name || '';
-        const username = userData.username ? `@${userData.username}` : 'no username';
-        const userId = userData.id || '-';
-        const languageCode = userData.language_code || 'uz';
-        
-        // Profile modal ma'lumotlarini to'ldirish
-        document.getElementById('profile-name').textContent = `${firstName} ${lastName}`.trim();
-        document.getElementById('profile-username').textContent = username;
-        document.getElementById('user-id').textContent = userId;
-        document.getElementById('first-name').textContent = firstName;
-        document.getElementById('last-name').textContent = lastName || '-';
-        document.getElementById('user-lang').textContent = languageCode.toUpperCase();
-        
-        // Avatar yaratish (Telegram avatari yo'q, chunki API avatarni bermaydi, shuning uchun ism harfidan)
-        // Agar userda photo_url bo'lsa (faqat bot orqali uzatilgan bo'lsa), lekin standart Telegram WebApp da yo'q
-        generateAvatar(firstName, lastName, null);
-        
-        return userData;
-      } else {
-        // Agar Telegram muhitida emas yoki user ma'lumoti yo'q bo'lsa, demo ma'lumot
-        console.log('Telegram WebApp muhitida emas yoki user maʼlumoti yoʻq');
-        const demoUser = {
-          first_name: 'Javlonbek',
-          last_name: 'Developer',
-          username: 'javlonbek_dev',
-          id: 123456789,
-          language_code: 'uz'
-        };
-        
-        document.getElementById('profile-name').textContent = `${demoUser.first_name} ${demoUser.last_name}`;
-        document.getElementById('profile-username').textContent = `@${demoUser.username}`;
-        document.getElementById('user-id').textContent = demoUser.id;
-        document.getElementById('first-name').textContent = demoUser.first_name;
-        document.getElementById('last-name').textContent = demoUser.last_name;
-        document.getElementById('user-lang').textContent = demoUser.language_code.toUpperCase();
-        
-        generateAvatar(demoUser.first_name, demoUser.last_name, null);
-        return demoUser;
+    // Videolarni yuklash
+    function loadVideos(searchTerm = '') {
+      const feed = document.getElementById('feed');
+      const filteredVideos = searchTerm 
+        ? videos.filter(v => v.title.toLowerCase().includes(searchTerm.toLowerCase()))
+        : videos;
+      
+      if (filteredVideos.length === 0) {
+        feed.innerHTML = '<div class="loading" style="padding: 40px;">Hech qanday video topilmadi</div>';
+        return;
       }
+      
+      feed.innerHTML = filteredVideos.map(video => `
+        <div class="video-item" data-id="${video.id}">
+          <div class="thumbnail-container">
+            <img src="${video.thumbnail}" alt="${video.title}" loading="lazy">
+            <span class="video-duration">${video.duration}</span>
+          </div>
+          <div class="video-details">
+            <img class="channel-icon" src="${video.channelIcon}" alt="Channel">
+            <div class="video-text">
+              <h2 class="video-title">${video.title}</h2>
+              <p class="video-meta">${video.meta}</p>
+            </div>
+          </div>
+        </div>
+      `).join('');
+      
+      // Video itemlarga click event qo'shish
+      document.querySelectorAll('.video-item').forEach(item => {
+        item.addEventListener('click', () => {
+          if (tg && tg.showAlert) {
+            const title = item.querySelector('.video-title')?.textContent || 'Video';
+            tg.showAlert(`${title}\n\nBu video hozircha faqat namuna uchun`);
+          } else {
+            showToast('Video player tez orada qo\'shiladi');
+          }
+        });
+      });
     }
 
-    // Telegram WebApp API ni sozlash
+    // Telegram WebApp ni sozlash
     function initTelegramWebApp() {
-      if (tg) {
-        // WebApp tayyorligini bildirish
+      if (window.Telegram?.WebApp) {
+        tg = window.Telegram.WebApp;
+        
+        // WebApp tayyor
         tg.ready();
         
-        // Oynani to'liq kengaytirish (expand)
+        // Oynani kengaytirish
         tg.expand();
         
-        // MainButton ni sozlash (agar kerak bo'lsa)
+        // MainButton
         if (tg.MainButton) {
           tg.MainButton.setText("Dono ga xush kelibsiz!");
           tg.MainButton.show();
           tg.MainButton.onClick(() => {
-            console.log("MainButton bosildi");
-            if (tg.showAlert) {
-              tg.showAlert("Salom! Dono video platformasiga xush kelibsiz!");
-            }
+            showToast("Dono video platformasiga xush kelibsiz! 🎬");
           });
         }
         
-        // Foydalanuvchi ma'lumotlarini yuklash
-        loadUserData();
+        // Foydalanuvchi ma'lumotlarini olish
+        if (tg.initDataUnsafe?.user) {
+          currentUser = tg.initDataUnsafe.user;
+          
+          const firstName = currentUser.first_name || 'User';
+          const lastName = currentUser.last_name || '';
+          const username = currentUser.username || 'telegram_user';
+          const userId = currentUser.id;
+          const languageCode = currentUser.language_code || 'uz';
+          
+          // Profile modalni to'ldirish
+          document.getElementById('profile-name').textContent = `${firstName} ${lastName}`.trim();
+          document.getElementById('profile-username').textContent = `@${username}`;
+          document.getElementById('user-id').textContent = userId;
+          document.getElementById('first-name').textContent = firstName;
+          document.getElementById('last-name').textContent = lastName || '-';
+          document.getElementById('user-lang').textContent = languageCode.toUpperCase();
+          
+          // Avatar yaratish
+          updateAvatar(firstName);
+        } else {
+          // Demo user
+          currentUser = { first_name: 'Mehmon', last_name: '', username: 'guest' };
+          document.getElementById('profile-name').textContent = 'Mehmon Foydalanuvchi';
+          document.getElementById('profile-username').textContent = '@guest';
+          document.getElementById('user-id').textContent = 'Telegram orqali kiring';
+          document.getElementById('first-name').textContent = 'Mehmon';
+          document.getElementById('last-name').textContent = '-';
+          updateAvatar('Mehmon');
+        }
         
         console.log('Telegram WebApp API tayyor');
-        console.log('initData:', tg.initData);
-        console.log('initDataUnsafe:', tg.initDataUnsafe);
       } else {
-        console.warn('Telegram WebApp API topilmadi, demo rejimda ishlayapti');
-        // Demo rejimda ishlash
-        loadUserData();
+        console.log('Telegram WebApp muhitida emas, demo rejim');
+        // Demo rejim
+        currentUser = { first_name: 'Demo', last_name: 'User', username: 'demo_user' };
+        document.getElementById('profile-name').textContent = 'Demo Foydalanuvchi';
+        document.getElementById('profile-username').textContent = '@demo_user';
+        document.getElementById('user-id').textContent = '123456789';
+        document.getElementById('first-name').textContent = 'Demo';
+        document.getElementById('last-name').textContent = 'User';
+        updateAvatar('Demo');
       }
+      
+      // Videolarni yuklash
+      loadVideos();
     }
 
-    // Profile modalni ochish
+    // Profile modal
     function openProfileModal() {
-      const modal = document.getElementById('profile-modal');
-      modal.classList.add('active');
-      // Modal ochilganda MainButton ni yashirish (ixtiyoriy)
-      if (tg && tg.MainButton) {
-        tg.MainButton.hide();
-      }
+      document.getElementById('profile-modal').classList.add('active');
+      if (tg?.MainButton) tg.MainButton.hide();
     }
     
-    // Profile modalni yopish
     function closeProfileModal() {
-      const modal = document.getElementById('profile-modal');
-      modal.classList.remove('active');
-      // Modal yopilganda MainButton ni qayta ko'rsatish
-      if (tg && tg.MainButton) {
-        tg.MainButton.show();
-      }
+      document.getElementById('profile-modal').classList.remove('active');
+      if (tg?.MainButton) tg.MainButton.show();
     }
     
-    // WebApp ni yopish
     function closeWebApp() {
       if (tg) {
         tg.close();
       } else {
-        alert("Telegram muhitida emas, yopish mumkin emas");
+        showToast("Bu amal faqat Telegram ichida ishlaydi");
       }
     }
     
-    // WebApp ni kengaytirish
     function expandWebApp() {
       if (tg) {
         tg.expand();
         closeProfileModal();
+        showToast("Oyna kengaytirildi");
       } else {
-        alert("Kengaytirish faqat Telegram ichida ishlaydi");
+        showToast("Kengaytirish faqat Telegram ichida mumkin");
       }
     }
 
     // Event listenerlar
     document.addEventListener('DOMContentLoaded', () => {
-      // Telegram WebApp ni ishga tushirish
       initTelegramWebApp();
       
+      
       // Profile tugmasi
-      const profileBtn = document.getElementById('profile-btn');
-      const closeModalBtn = document.getElementById('close-modal-btn');
-      const closeWebappBtn = document.getElementById('close-webapp-btn');
-      const expandWebappBtn = document.getElementById('expand-webapp-btn');
-      
-      if (profileBtn) {
-        profileBtn.addEventListener('click', openProfileModal);
-      }
-      
-      if (closeModalBtn) {
-        closeModalBtn.addEventListener('click', closeProfileModal);
-      }
-      
-      if (closeWebappBtn) {
-        closeWebappBtn.addEventListener('click', closeWebApp);
-      }
-      
-      if (expandWebappBtn) {
-        expandWebappBtn.addEventListener('click', expandWebApp);
-      }
+      document.getElementById('profile-btn').addEventListener('click', openProfileModal);
+      document.getElementById('close-modal-btn').addEventListener('click', closeProfileModal);
+      document.getElementById('close-webapp-btn').addEventListener('click', closeWebApp);
+      document.getElementById('expand-webapp-btn').addEventListener('click', expandWebApp);
       
       // Modalni tashqariga bosganda yopish
-      const modal = document.getElementById('profile-modal');
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-          closeProfileModal();
+      document.getElementById('profile-modal').addEventListener('click', (e) => {
+        if (e.target === document.getElementById('profile-modal')) closeProfileModal();
+      });
+      
+      // Qidiruv
+      const searchBtn = document.getElementById('search-btn');
+      const searchBar = document.getElementById('search-bar');
+      const searchInput = document.getElementById('search-input');
+      
+      searchBtn.addEventListener('click', () => {
+        if (searchBar.style.display === 'block') {
+          searchBar.style.display = 'none';
+          loadVideos('');
+        } else {
+          searchBar.style.display = 'block';
+          searchInput.focus();
         }
       });
       
-      // Qidiruv funksiyasi
-      const searchBtn = document.getElementById('search-btn');
-      const searchBar = document.getElementById('search-bar');
+      searchInput.addEventListener('input', (e) => {
+        loadVideos(e.target.value);
+      });
       
-      if (searchBtn) {
-        searchBtn.addEventListener('click', () => {
-          if (searchBar.style.display === 'block') {
-            searchBar.style.display = 'none';
-          } else {
-            searchBar.style.display = 'block';
-            searchBar.querySelector('input').focus();
-          }
-        });
-      }
-      
-      
-      // Bildirishnomalar tugmasi (demo)
-      const notificationBtn = document.getElementById('notification-btn');
-      if (notificationBtn) {
-        notificationBtn.addEventListener('click', () => {
-          if (tg && tg.showAlert) {
-            tg.showAlert("Hozircha yangi bildirishnomalar yo'q");
-          } else {
-            alert("Hozircha yangi bildirishnomalar yo'q");
-          }
-        });
-      }
+      // Bildirishnomalar
+      document.getElementById('notification-btn').addEventListener('click', () => {
+        if (tg?.showAlert) {
+          tg.showAlert("📢 Hozircha yangi bildirishnomalar yo'q");
+        } else {
+          showToast("📢 Hozircha yangi bildirishnomalar yo'q");
+        }
+      });
       
       // Scroll effekti
       window.addEventListener('scroll', () => {
         const header = document.querySelector('.header');
-        if (window.scrollY > 10) {
-          header.style.boxShadow = '0 4px 30px rgba(0, 0, 0, 0.05)';
-        } else {
-          header.style.boxShadow = 'none';
-        }
+        header.style.boxShadow = window.scrollY > 10 ? '0 4px 30px rgba(0, 0, 0, 0.05)' : 'none';
       });
     });
   </script>
   
-  <!-- Telegram WebApp JS ni yuklash -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </body>
 </html>
