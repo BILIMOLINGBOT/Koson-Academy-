@@ -2,94 +2,75 @@
 <html lang="uz">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Video Yuklash</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Video Yuklash — Yangi video</title>
   <style>
-    /* CSS kodlari o'zgarishsiz, faqat header va form maydonlari sozlamalari yangilandi */
+    /* RESET & BASE */
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 
     body {
       background-color: #000;
-      color: #fff;
       display: flex;
       justify-content: center;
-      min-height: 100vh;
       align-items: flex-start;
-      padding: 20px 0;
+      min-height: 100vh;
+      padding: 24px 16px;
     }
 
+    /* Asosiy karta — header butunlay yo'q (hech qanday header qismi mavjud emas) */
     .video-modal-content {
       background-color: #000;
-      width: 600px;
-      border-radius: 16px;
+      width: 100%;
+      max-width: 600px;
+      border-radius: 24px;
       border: 1px solid #2f3336;
       overflow: hidden;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.6);
     }
 
-    .video-modal-header {
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      padding: 10px 15px;
-      border-bottom: 1px solid #2f3336;
-    }
-
-    .video-cancel-btn {
-      background: none;
-      border: none;
-      color: #1da1f2;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      padding: 8px 16px;
-      border-radius: 4px;
-      transition: background-color 0.2s;
-    }
-
-    .video-cancel-btn:hover {
-      background-color: rgba(29, 161, 242, 0.1);
-    }
-
-    /* Sarlavha (Video Yuklash) olib tashlandi, shuning uchun bu class endi ishlatilmaydi, 
-       lekin kodni buzmaslik uchun saqlab qo'yilgan */
-    .video-modal-title {
-      display: none;
-    }
+    /* HEADER TAMOMAN OLIB TASHLANDI: hech qanday header/sarlavha/qator mavjud emas */
+    /* video-modal-header va video-cancel-btn CSS i butunlay ishlatilmaydi, faqat eski kod qoldiqlari yo'q */
 
     .video-form-container {
-      padding: 15px;
+      padding: 20px 20px 24px;
     }
 
+    /* PREVIEW BOX */
     .video-preview {
       width: 100%;
-      height: 0;
-      padding-bottom: 56.25%; /* 16:9 nisbat */
-      background-color: #000;
+      background-color: #0a0a0a;
+      border-radius: 20px;
+      overflow: hidden;
+      position: relative;
+      border: 1.5px solid #2f3336;
+      transition: border-color 0.2s;
+      aspect-ratio: 16 / 9; /* 16:9 aniq nisbat, padding-bottom usuliga alternativ */
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 15px;
-      border-radius: 8px;
-      overflow: hidden;
-      position: relative;
-      border: 2px dashed #2f3336;
+      cursor: pointer;
+      margin-bottom: 20px;
     }
 
+    .video-preview:hover {
+      border-color: #1da1f2;
+    }
+
+    /* video elementi preview ichida */
     .video-preview video {
-      position: absolute;
-      top: 0;
-      left: 0;
       width: 100%;
       height: 100%;
       object-fit: contain;
-      border-radius: 8px;
+      background: #000;
+      display: block;
     }
 
+    /* Placeholder (video tanlanmagan) */
     .video-preview-placeholder {
       position: absolute;
       top: 0;
@@ -100,88 +81,125 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      background-color: #0a0a0a;
       color: #8b98a5;
       cursor: pointer;
+      gap: 12px;
+      transition: background 0.2s;
     }
 
     .video-preview-placeholder svg {
-      margin-bottom: 10px;
-      opacity: 0.7;
+      width: 56px;
+      height: 56px;
+      stroke-width: 1.2;
+      color: #5e6f7e;
     }
 
-    .video-form-group {
-      margin-bottom: 20px;
-    }
-
-    .video-form-group label {
-      display: block;
-      margin-bottom: 5px;
-      color: #8b98a5;
-      font-size: 14px;
-    }
-
-    .video-form-group input,
-    .video-form-group textarea {
-      width: 100%;
-      background-color: transparent;
-      border: 1px solid #333;
-      border-radius: 4px;
-      padding: 10px;
-      color: #fff;
-      font-size: 16px;
-    }
-
-    /* Tavsif maydoni butunlay olib tashlanganligi sababli textarea uslublari saqlanib qoladi,
-       lekin hech qanday maydonda ishlatilmaydi. Agar kerak bo'lmasa ushbu qismni olib tashlash mumkin,
-       loyihaga ta'siri yo'q */
-    .video-form-group textarea {
-      resize: vertical;
-      min-height: 80px;
-    }
-
-    .video-form-group input:focus {
-      border-color: #1da1f2;
-      outline: none;
+    .video-preview-placeholder span {
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: -0.2px;
     }
 
     .upload-video-btn {
       background-color: #1da1f2;
-      color: #fff;
+      color: white;
       border: none;
-      border-radius: 20px;
-      padding: 10px 20px;
+      border-radius: 40px;
+      padding: 8px 20px;
       font-size: 14px;
-      font-weight: 700;
+      font-weight: 600;
       cursor: pointer;
-      transition: background-color 0.2s;
-      margin-top: 10px;
+      transition: background 0.2s, transform 0.05s;
+      margin-top: 8px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.2);
     }
 
     .upload-video-btn:hover {
       background-color: #0c84d1;
     }
 
-    .upload-video-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      background-color: #1da1f2;
+    /* Sarlavha maydoni */
+    .video-form-group {
+      margin-bottom: 24px;
     }
 
+    .video-form-group input {
+      width: 100%;
+      background-color: #000;
+      border: 1px solid #2f3336;
+      border-radius: 16px;
+      padding: 14px 18px;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 500;
+      transition: all 0.2s;
+      outline: none;
+    }
+
+    .video-form-group input:focus {
+      border-color: #1da1f2;
+      box-shadow: 0 0 0 2px rgba(29, 161, 242, 0.2);
+    }
+
+    .video-form-group input::placeholder {
+      color: #6e767d;
+      font-weight: 400;
+    }
+
+    /* Fayl ma'lumotlari */
+    .video-info {
+      background-color: #16181c;
+      border-radius: 14px;
+      padding: 10px 14px;
+      margin-top: 12px;
+      font-size: 13px;
+      color: #b0b8c0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .file-name {
+      color: #1da1f2;
+      font-weight: 500;
+      max-width: 220px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .file-size {
+      background: #2f3336;
+      padding: 2px 10px;
+      border-radius: 30px;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.2px;
+    }
+
+    /* YUKLASH ASOSIY TUGMA */
     .upload-action-btn {
       background-color: #1da1f2;
       color: #fff;
       border: none;
-      border-radius: 20px;
-      padding: 12px 30px;
-      font-size: 16px;
+      border-radius: 40px;
+      padding: 14px 0;
+      font-size: 17px;
       font-weight: 700;
       cursor: pointer;
-      transition: background-color 0.2s;
+      transition: background 0.2s;
       width: 100%;
-      margin-top: 20px;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     }
 
-    .upload-action-btn:hover {
+    .upload-action-btn:hover:not(:disabled) {
       background-color: #0c84d1;
     }
 
@@ -191,212 +209,321 @@
       background-color: #1da1f2;
     }
 
-    .video-info {
-      color: #8b98a5;
+    /* Qo'shimcha kichik yozuv */
+    .helper-text {
+      text-align: center;
       font-size: 12px;
-      margin-top: 5px;
-      text-align: center;
+      color: #5b6773;
+      margin-top: 20px;
+      border-top: 1px solid #1e252b;
+      padding-top: 16px;
     }
 
-    .file-name {
-      color: #1da1f2;
-      font-weight: 500;
-      margin-top: 10px;
-      text-align: center;
-    }
-
-    @media (max-width: 640px) {
-      .video-modal-content {
-        width: 95%;
+    @media (max-width: 520px) {
+      .video-form-container {
+        padding: 16px;
       }
-      
-      body {
-        padding: 10px 0;
+      .upload-action-btn {
+        font-size: 15px;
+        padding: 12px 0;
+      }
+      .video-preview {
+        border-radius: 18px;
+      }
+      .video-form-group input {
+        padding: 12px 16px;
       }
     }
   </style>
 </head>
 <body>
 
-  <div class="video-modal-content">
-    <div class="video-modal-header">
-      <button class="video-cancel-btn" id="videoCancelBtn">Bekor qilish</button>
-      <!-- "Video Yuklash" sarlavhasi olib tashlandi -->
-    </div>
-    <div class="video-form-container">
-      <div class="video-form-group">
-        <div class="video-preview" id="videoPreview">
-          <div class="video-preview-placeholder" id="uploadPlaceholder">
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M14 2H6C4.9 2 4.01 2.9 4.01 4L4 20C4 21.1 4.89 22 5.99 22H18C19.1 22 20 21.1 20 20V8L14 2ZM6 20V4H13V9H18V20H6Z" fill="currentColor"/>
-              <path d="M8 12H16V14H8V12ZM8 16H16V18H8V16Z" fill="currentColor"/>
-            </svg>
-            Video yuklang
-            <button class="upload-video-btn" id="uploadVideoBtn">Video tanlash</button>
-          </div>
+<div class="video-modal-content">
+  <!-- HEADER TAMOMAN YO'Q: Bekor qilish tugmasi, sarlavha qatori, hech narsa mavjud emas -->
+  <!-- Faqat forma va video yuklash interfeysi -->
+  
+  <div class="video-form-container">
+    <!-- Video preview va tanlash maydoni -->
+    <div class="video-form-group">
+      <div class="video-preview" id="videoPreview">
+        <div class="video-preview-placeholder" id="uploadPlaceholder">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2ZM6 20V4H13V9H18V20H6Z" fill="currentColor"/>
+            <path d="M8 12H16V14H8V12ZM8 16H16V18H8V16Z" fill="currentColor"/>
+          </svg>
+          <span>Video yuklang</span>
+          <button type="button" class="upload-video-btn" id="uploadVideoBtn">Fayl tanlash</button>
         </div>
-        <div class="video-info" id="fileInfo"></div>
       </div>
-      
-      <div class="video-form-group">
-        <input type="text" id="videoTitle" placeholder="Video sarlavhasi..." required>
-      </div>
-      
-      <!-- Video tavsifi bo'limi butunlay olib tashlandi -->
-      
-      <button class="upload-action-btn" id="finalUploadBtn" disabled>Yuklash</button>
+      <div id="fileInfo" class="video-info" style="display: none;"></div>
     </div>
+    
+    <!-- Sarlavha maydoni (majburiy) -->
+    <div class="video-form-group">
+      <input type="text" id="videoTitle" placeholder="Video sarlavhasi (masalan: Eng zo‘r lavhalar)" autocomplete="off">
+    </div>
+    
+    <!-- Tavsif maydoni butunlay olib tashlandi (textarea yo'q) -->
+    
+    <!-- Asosiy yuklash tugmasi -->
+    <button class="upload-action-btn" id="finalUploadBtn" disabled>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 4px;">
+        <path d="M19 13H5V11H19V13ZM12 4L7 9H11V15H13V9H17L12 4Z" fill="currentColor"/>
+      </svg>
+      Yuklash
+    </button>
+    <div class="helper-text">Maksimal hajm: 500 MB | MP4, MOV va boshqa formatlar</div>
   </div>
+</div>
 
-  <input type="file" id="videoInput" accept="video/*" style="display: none;">
+<!-- Yashirin file input -->
+<input type="file" id="videoInput" accept="video/*" style="display: none;">
 
-  <script>
-    const videoCancelBtn = document.getElementById('videoCancelBtn');
+<script>
+  (function() {
+    // DOM elementlari
     const uploadVideoBtn = document.getElementById('uploadVideoBtn');
     const videoInput = document.getElementById('videoInput');
     const videoPreview = document.getElementById('videoPreview');
     const uploadPlaceholder = document.getElementById('uploadPlaceholder');
     const videoTitle = document.getElementById('videoTitle');
-    // videoDescription elementi olib tashlanganligi sababli o'zgaruvchi mavjud emas
     const finalUploadBtn = document.getElementById('finalUploadBtn');
-    const fileInfo = document.getElementById('fileInfo');
+    const fileInfoDiv = document.getElementById('fileInfo');
 
-    let selectedVideoFile = null;
-    let videoURL = null;
-
-    // Video tanlash tugmasi
-    uploadVideoBtn.addEventListener('click', () => videoInput.click());
-    uploadPlaceholder.addEventListener('click', () => videoInput.click());
-
-    videoInput.addEventListener('change', (e) => {
-      selectedVideoFile = e.target.files[0];
-      if (selectedVideoFile) {
-        // Fayl hajmini tekshirish (max 500MB)
-        if (selectedVideoFile.size > 500 * 1024 * 1024) {
-          alert('Video hajmi 500MB dan katta bo\'lmasligi kerak!');
-          videoInput.value = '';
-          selectedVideoFile = null;
-          // Fayl info tozalanadi
-          fileInfo.innerHTML = '';
-          // Preview joyini asl holatiga qaytarish
-          resetPreviewPlaceholder();
-          checkForm();
-          return;
-        }
-
-        // Fayl nomi va hajmini ko'rsatish
-        const fileSizeMB = (selectedVideoFile.size / (1024 * 1024)).toFixed(2);
-        fileInfo.innerHTML = `
-          <div class="file-name">${selectedVideoFile.name}</div>
-          <div>${fileSizeMB} MB</div>
+    // State
+    let selectedVideoFile = null;      // tanlangan fayl obyekti
+    let videoObjectURL = null;         // blob URL (tozalash uchun)
+    
+    // Helper: previewni placeholder holatiga qaytarish (header yo'q, faqat vizual)
+    function resetToPlaceholder() {
+      // Agar videoPreview ichida video elementi mavjud bo'lsa, uni o'chirib placeholder qo'shamiz
+      const existingVideo = videoPreview.querySelector('video');
+      if (existingVideo) {
+        existingVideo.remove();
+      }
+      // placeholder mavjudmi? agar yo'q yoki buzilgan bo'lsa yaratamiz
+      let placeholder = document.getElementById('uploadPlaceholder');
+      if (!placeholder || !videoPreview.contains(placeholder)) {
+        // agar placeholder mavjud bo'lmasa, yangisini yaratamiz
+        if (placeholder && placeholder.parentNode) placeholder.remove();
+        const newPlaceholder = document.createElement('div');
+        newPlaceholder.className = 'video-preview-placeholder';
+        newPlaceholder.id = 'uploadPlaceholder';
+        newPlaceholder.innerHTML = `
+          <svg width="56" height="56" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2ZM6 20V4H13V9H18V20H6Z" fill="currentColor"/>
+            <path d="M8 12H16V14H8V12ZM8 16H16V18H8V16Z" fill="currentColor"/>
+          </svg>
+          <span>Video yuklang</span>
+          <button type="button" class="upload-video-btn" id="uploadVideoBtn">Fayl tanlash</button>
         `;
-
-        // Videoni preview qilish
-        if (videoURL) {
-          URL.revokeObjectURL(videoURL);
-        }
-        videoURL = URL.createObjectURL(selectedVideoFile);
-        const videoElement = document.createElement('video');
-        videoElement.src = videoURL;
-        videoElement.controls = true;
-        videoElement.style.width = '100%';
-        videoElement.style.height = '100%';
-        videoElement.style.objectFit = 'contain';
-        
-        // Eski previewni tozalash
         videoPreview.innerHTML = '';
-        videoPreview.appendChild(videoElement);
-        
-        // Agar sarlavha kiritilmagan bo'lsa, fayl nomidan foydalanish
-        if (!videoTitle.value.trim()) {
-          const fileName = selectedVideoFile.name.replace(/\.[^/.]+$/, "");
-          videoTitle.value = fileName;
-        }
-        
-        // Yuklash tugmasini aktivlashtirish
-        checkForm();
-      } else {
-        // Hech qanday fayl tanlanmagan bo'lsa
-        resetPreviewPlaceholder();
-        fileInfo.innerHTML = '';
-        checkForm();
+        videoPreview.appendChild(newPlaceholder);
+        placeholder = newPlaceholder;
       }
-    });
-
-    // Preview joyini placeholder ko'rinishiga qaytarish funksiyasi (agar fayl tanlanmasa yoki xatolik bo'lsa)
-    function resetPreviewPlaceholder() {
-      videoPreview.innerHTML = '';
-      const placeholderDiv = document.createElement('div');
-      placeholderDiv.className = 'video-preview-placeholder';
-      placeholderDiv.id = 'uploadPlaceholder';
-      placeholderDiv.innerHTML = `
-        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M14 2H6C4.9 2 4.01 2.9 4.01 4L4 20C4 21.1 4.89 22 5.99 22H18C19.1 22 20 21.1 20 20V8L14 2ZM6 20V4H13V9H18V20H6Z" fill="currentColor"/>
-          <path d="M8 12H16V14H8V12ZM8 16H16V18H8V16Z" fill="currentColor"/>
-        </svg>
-        Video yuklang
-        <button class="upload-video-btn" id="uploadVideoBtn">Video tanlash</button>
-      `;
-      videoPreview.appendChild(placeholderDiv);
-      
-      // Yangi tugmaga event listener qayta biriktiramiz
-      const newUploadBtn = placeholderDiv.querySelector('#uploadVideoBtn');
-      if (newUploadBtn) {
-        newUploadBtn.addEventListener('click', () => videoInput.click());
+      // Tugma va placeholder eventlarini qayta bog'lash
+      const btnInside = placeholder.querySelector('#uploadVideoBtn');
+      if (btnInside) {
+        // eski eventlarni tozalash uchun yangi nusxa yoki clone? oddiy usul: listener qo'shishdan oldin removeEventListener xavfi, lekin yangi element, to'g'ridan to'g'ri qo'shamiz
+        btnInside.replaceWith(btnInside.cloneNode(true));
+        const freshBtn = placeholder.querySelector('#uploadVideoBtn');
+        freshBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          videoInput.click();
+        });
       }
-      placeholderDiv.addEventListener('click', (e) => {
-        // Agar tugma ustiga bosilgan bo'lsa, event ikki marta ishlamasligi uchun
+      // placeholder ustiga bosganda ham videoInput ochilishi
+      placeholder.addEventListener('click', (e) => {
         if (e.target.tagName !== 'BUTTON') {
           videoInput.click();
         }
       });
+      // fileInfo yashirish
+      if (fileInfoDiv) fileInfoDiv.style.display = 'none';
     }
-
-    // Bekor qilish: URL tozalanadi va profilga qaytadi
-    videoCancelBtn.addEventListener('click', () => {
-      if (videoURL) {
-        URL.revokeObjectURL(videoURL);
-        videoURL = null;
+    
+    // Previewda video ko'rsatish (fayl tanlanganda)
+    function displayVideoPreview(file) {
+      if (!file) return;
+      // eski URL ni tozalash
+      if (videoObjectURL) {
+        URL.revokeObjectURL(videoObjectURL);
+        videoObjectURL = null;
       }
-      window.location.href = 'profil.html';
-    });
-
-    // Yuklash tugmasi
-    finalUploadBtn.addEventListener('click', async () => {
-      // Ma'lumotlarni tekshirish
-      const title = videoTitle.value.trim();
-      
-      if (!selectedVideoFile) {
-        alert('Iltimos, video faylini tanlang!');
+      videoObjectURL = URL.createObjectURL(file);
+      const videoElement = document.createElement('video');
+      videoElement.src = videoObjectURL;
+      videoElement.controls = true;
+      videoElement.setAttribute('controlslist', 'nodownload');
+      videoElement.style.width = '100%';
+      videoElement.style.height = '100%';
+      videoElement.style.objectFit = 'contain';
+      videoElement.style.backgroundColor = '#000';
+      // videoPreview ichidagi barcha narsalarni tozalab, videoni joylashtirish
+      videoPreview.innerHTML = '';
+      videoPreview.appendChild(videoElement);
+      videoElement.addEventListener('loadedmetadata', () => {
+        // video yuklangan, hech qanday header yo'q, faqat vizual
+      });
+    }
+    
+    // Fayl tanlanganda validatsiya va preview
+    function handleFileSelect(file) {
+      if (!file) {
+        selectedVideoFile = null;
+        resetToPlaceholder();
+        if (fileInfoDiv) fileInfoDiv.style.display = 'none';
+        checkForm();
+        return;
+      }
+      // Hajm tekshiruvi (500 MB)
+      const maxSize = 500 * 1024 * 1024;
+      if (file.size > maxSize) {
+        alert('Video hajmi 500 MB dan oshmasligi kerak! Iltimos, kichikroq fayl tanlang.');
+        videoInput.value = '';
+        selectedVideoFile = null;
+        resetToPlaceholder();
+        if (fileInfoDiv) fileInfoDiv.style.display = 'none';
+        checkForm();
         return;
       }
       
-      if (!title) {
-        alert('Iltimos, video sarlavhasini kiriting!');
+      // Fayl turi (video) qabul qilamiz
+      if (!file.type.startsWith('video/')) {
+        alert('Faqat video fayllar qabul qilinadi (MP4, MOV, AVI va boshqalar).');
+        videoInput.value = '';
+        selectedVideoFile = null;
+        resetToPlaceholder();
+        if (fileInfoDiv) fileInfoDiv.style.display = 'none';
+        checkForm();
+        return;
+      }
+      
+      selectedVideoFile = file;
+      // Videoni preview qilish
+      displayVideoPreview(file);
+      
+      // Fayl hajmi va nomi ma'lumotlarini ko'rsatish
+      const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+      const fileNameShort = file.name.length > 35 ? file.name.substring(0, 32) + '...' : file.name;
+      if (fileInfoDiv) {
+        fileInfoDiv.style.display = 'flex';
+        fileInfoDiv.innerHTML = `
+          <span class="file-name" title="${escapeHtml(file.name)}">📹 ${escapeHtml(fileNameShort)}</span>
+          <span class="file-size">${fileSizeMB} MB</span>
+        `;
+      }
+      
+      // Agar sarlavha maydoni bo'sh bo'lsa, fayl nomidan (kengaytmasiz) sarlavha qilib qo'yamiz
+      if (!videoTitle.value.trim()) {
+        let baseName = file.name.replace(/\.[^/.]+$/, "");
+        if (baseName.length > 60) baseName = baseName.substring(0, 57) + '...';
+        videoTitle.value = baseName;
+      }
+      
+      checkForm();
+    }
+    
+    // XSS oldini olish uchun oddiy escape
+    function escapeHtml(str) {
+      return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+      }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+        return c;
+      });
+    }
+    
+    // VideoInput o'zgarishi
+    videoInput.addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (file) {
+        handleFileSelect(file);
+      } else {
+        handleFileSelect(null);
+      }
+    });
+    
+    // Tugma orqali fayl tanlash (ikkala joy)
+    function attachUploadButtonEvents() {
+      // Har qanday dinamik tugmaga ishlov berish uchun delegatsiya yoki qayta bog'lash
+      const btn = document.querySelector('#uploadVideoBtn');
+      if (btn) {
+        // oldingi listenerlarni to'xtatish uchun yangi nusxa yoki removeEventListener aniq emas, oddiy usul: clone + event
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+        newBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          videoInput.click();
+        });
+      }
+    }
+    
+    // Placeholder va tugmalar uchun umumiy init (DOM o'zgarishlari va dastlabki)
+    function initEventDelegation() {
+      // videoPreview ustiga bosilganda ham fayl tanlash (agar placeholder ko'rinishda bo'lsa)
+      videoPreview.addEventListener('click', (e) => {
+        // agar bosilgan element video yoki uning ichidagi tugma bo'lmasa va placeholder ko'rinadigan bo'lsa (video element mavjud emas) -> fayl tanlash
+        const hasVideoElem = videoPreview.querySelector('video');
+        if (!hasVideoElem) {
+          // Agar placeholder ko'rinishda bo'lsa, input ochiladi
+          if (e.target.closest('#uploadVideoBtn')) return; // tugma o'z ishini qiladi
+          videoInput.click();
+        }
+      });
+      // global uploadVideoBtn mavjud bo'lsa
+      attachUploadButtonEvents();
+    }
+    
+    // Form tekshiruvi: video fayl va sarlavha mavjudligi
+    function checkForm() {
+      const titleValid = videoTitle.value.trim().length > 0;
+      const hasFile = selectedVideoFile !== null;
+      finalUploadBtn.disabled = !(titleValid && hasFile);
+    }
+    
+    // Sarlavha kiritilganda tugmani yangilash
+    videoTitle.addEventListener('input', () => {
+      checkForm();
+    });
+    
+    // YUKLASH JARAYONI (localStorage + videopage)
+    async function uploadVideoProcess() {
+      if (!selectedVideoFile) {
+        alert('Iltimos, videoni tanlang!');
+        return;
+      }
+      const titleRaw = videoTitle.value.trim();
+      if (!titleRaw) {
+        alert('Video sarlavhasini kiriting.');
         videoTitle.focus();
         return;
       }
       
-      // Yuklash jarayoni
-      finalUploadBtn.textContent = 'Yuklanmoqda...';
+      // Yuklash tugmasini bloklash va matnni o'zgartirish
       finalUploadBtn.disabled = true;
+      const originalText = finalUploadBtn.innerHTML;
+      finalUploadBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="animation: spin 1s linear infinite; transform-origin: center;"><circle cx="12" cy="12" r="10" stroke="white" stroke-width="2" fill="none" stroke-dasharray="30 30"/><path d="M12 2 L12 6 M12 12 L12 18" stroke="white" stroke-width="2"/></svg> Yuklanmoqda...`;
+      finalUploadBtn.style.opacity = '0.9';
       
       try {
-        // Faylni base64 ga o'tkazish
-        const videoDataUrl = await fileToBase64(selectedVideoFile);
+        // Faylni base64 ga o'tkazish (katta videolar uchun biroz vaqt talab qiladi, lekin local storage demo uchun)
+        const videoBase64 = await fileToBase64(selectedVideoFile);
         
-        // Video URL ni tozalash (oldin yaratilgan blob URL)
-        if (videoURL) {
-          URL.revokeObjectURL(videoURL);
-          videoURL = null;
+        // Video URL ni tozalash (blob URL)
+        if (videoObjectURL) {
+          URL.revokeObjectURL(videoObjectURL);
+          videoObjectURL = null;
         }
         
-        // Yangi video obyekti yaratish (tavsif maydoni endi mavjud emas, description bo'sh qator)
+        // Yangi video obyekti yaratish (tavsif yo'q, description bo'sh string)
         const newVideo = {
           id: Date.now(),
-          title: title,
-          description: "",   // Tavsif bo'limi olib tashlanganligi sababli bo'sh qator
-          videoUrl: videoDataUrl,
+          title: titleRaw,
+          description: "",    // Tavsif maydoni butunlay olib tashlanganligi sababli bo'sh
+          videoUrl: videoBase64,
           status: 'uploaded',
           createdAt: new Date().toISOString(),
           views: "0",
@@ -410,29 +537,31 @@
           channel: "Shaxsiy kanal"
         };
         
-        // LocalStorage ga video qo'shish
+        // LocalStorage dan mavjud videolarni olish
         let videos = JSON.parse(localStorage.getItem('videos')) || [];
-        videos.push(newVideo);
+        videos.unshift(newVideo);   // yangi videoni eng yuqoriga qo'shish
         localStorage.setItem('videos', JSON.stringify(videos));
         
-        // Yangi videoni joriy video qilish
+        // Hozirgi ko'rilayotgan video sifatida saqlash (videopage uchun)
         localStorage.setItem('currentVideo', JSON.stringify(newVideo));
         
-        // Muvaffaqiyatli xabar va videopage.html ga o'tish
+        // Muvaffaqiyatli yuklandi, videopage.html ga o'tish
         setTimeout(() => {
-          alert('Video muvaffaqiyatli yuklandi!');
+          alert('Video muvaffaqiyatli yuklandi! Videopage ochiladi.');
           window.location.href = 'videopage.html';
-        }, 1000);
+        }, 600);
         
-      } catch (error) {
-        console.error('Yuklashda xatolik:', error);
-        alert('Video yuklashda xatolik yuz berdi. Qayta urinib ko\'ring.');
-        finalUploadBtn.textContent = 'Yuklash';
+      } catch (err) {
+        console.error('Yuklash xatoligi:', err);
+        alert('Video yuklashda xatolik yuz berdi. Internet aloqasini tekshiring yoki qayta urinib ko‘ring.');
         finalUploadBtn.disabled = false;
+        finalUploadBtn.innerHTML = originalText;
+        finalUploadBtn.style.opacity = '1';
+        checkForm(); // tugma holatini tiklash
       }
-    });
-
-    // Faylni base64 ga o'tkazish funksiyasi
+    }
+    
+    // Base64 converter
     function fileToBase64(file) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -441,40 +570,45 @@
         reader.readAsDataURL(file);
       });
     }
-
-    // Inputlarni tekshirish (faqat sarlavha va video mavjudligi)
-    videoTitle.addEventListener('input', checkForm);
-
-    function checkForm() {
-      const title = videoTitle.value.trim();
-      const hasVideo = selectedVideoFile !== null;
-      
-      finalUploadBtn.disabled = !(title && hasVideo);
+    
+    // Final upload tugmasi bosilganda
+    finalUploadBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (finalUploadBtn.disabled) return;
+      uploadVideoProcess();
+    });
+    
+    // Bekor qilish funksiyasi YO'Q, header butunlay olib tashlangan.
+    // Foydalanuvchi sahifadan chiqish uchun brauzer orqasiga o'tishi mumkin yoki biz "Orqaga" opsiyasini bermaymiz,
+    // chunki talabda header (bekor qilish tugmasi) yo'q qilingan. 
+    // Agar istalmasa, hech qanday navigatsiya tugmasi mavjud emas.
+    // Profilga qaytish uchun hech qanday tugma yo'q — bu dizayn to'liq header'siz.
+    
+    
+    // Dastlabki holatni sozlash: placeholder ko'rinishi va eventlar
+    function initialize() {
+      // agar placeholder mavjud bo'lsa, uning tugmasini bog'lash
+      resetToPlaceholder();  // previewni placeholder holatiga keltirish
+      attachUploadButtonEvents();
+      initEventDelegation();
+      // sarlavha bo'sh, video yo'q, tugma disabled
+      checkForm();
+      // fileInfo dastlab yashirin
+      if (fileInfoDiv) fileInfoDiv.style.display = 'none';
+      selectedVideoFile = null;
+      if (videoObjectURL) {
+        URL.revokeObjectURL(videoObjectURL);
+        videoObjectURL = null;
+      }
     }
     
-    // Agar fayl tanlanmagan bo'lsa, placeholder va tugmalar to'g'ri ishlashi uchun dastlabki reset
-    // (Sahifa yuklanganda placeholder ko'rinishida bo'lishi kerak, lekin HTMLda allaqachon mavjud)
-    // Agar biror xatolik tufayli DOMda mavjud placeholder elementiga event bog'lanishi kerak:
-    document.addEventListener('DOMContentLoaded', () => {
-      // Agar videoPreview ichidagi placeholder mavjud bo'lsa va uning tugmasi hali bog'lanmagan bo'lsa
-      const existingPlaceholder = document.getElementById('uploadPlaceholder');
-      if (existingPlaceholder && existingPlaceholder.parentNode === videoPreview) {
-        const btnInside = existingPlaceholder.querySelector('#uploadVideoBtn');
-        if (btnInside) {
-          btnInside.addEventListener('click', (e) => {
-            e.stopPropagation();
-            videoInput.click();
-          });
-        }
-        existingPlaceholder.addEventListener('click', (e) => {
-          if (e.target.tagName !== 'BUTTON') {
-            videoInput.click();
-          }
-        });
-      }
-      // Sarlavha bo'sh bo'lsa yuklash tugmasini blokirovka qilish
-      checkForm();
-    });
-  </script>
+    // DOMContentLoaded da ishga tushirish
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initialize);
+    } else {
+      initialize();
+    }
+  })();
+</script>
 </body>
 </html>
