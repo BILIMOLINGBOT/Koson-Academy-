@@ -1,688 +1,412 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uz">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>Twitter Video Home - Only Videos Feed</title>
-  <!-- Font Awesome 6 (Free Icons) -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Dono - Asosiy</title>
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
     }
 
     body {
-      background-color: #000000;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      color: #e7e9ea;
-      line-height: 1.3;
+      background-color: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+      color: #000000;
+      padding-bottom: env(safe-area-inset-bottom);
     }
 
-    /* main app container */
-    .app-container {
-      max-width: 600px;
-      margin: 0 auto;
-      background-color: #000000;
-      border-left: 1px solid #2f3336;
-      border-right: 1px solid #2f3336;
-      min-height: 100vh;
-      position: relative;
-    }
-
-    /* header (sticky) */
+    /* Header */
     .header {
       position: sticky;
       top: 0;
-      background-color: rgba(0, 0, 0, 0.85);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid #2f3336;
-      padding: 12px 16px;
-      z-index: 100;
-    }
-
-    .header h1 {
-      font-size: 1.5rem;
-      font-weight: 700;
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(20px) saturate(180%);
+      padding: calc(env(safe-area-inset-top) + 10px) 16px 10px 16px;
       display: flex;
       align-items: center;
-      gap: 8px;
+      justify-content: space-between;
+      border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
     }
 
-    .header h1 i {
-      color: #1d9bf0;
-      font-size: 1.6rem;
+    .app-title {
+      font-size: 24px;
+      font-weight: 800;
+      background: linear-gradient(45deg, #007AFF, #5856D6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
 
-    .header .badge {
-      background-color: #1d9bf0;
-      font-size: 0.7rem;
-      font-weight: 600;
-      padding: 2px 8px;
-      border-radius: 20px;
-      margin-left: 8px;
-      color: white;
-    }
-
-    /* video feed tab */
-    .feed-tab {
+    .header-right {
       display: flex;
-      border-bottom: 1px solid #2f3336;
-      background-color: #000000;
+      align-items: center;
+      gap: 18px;
     }
 
-    .tab-item {
-      flex: 1;
-      text-align: center;
-      padding: 14px 0;
-      font-weight: 600;
-      color: #71767b;
+    .header-icon {
       cursor: pointer;
-      transition: all 0.2s;
-      position: relative;
+      transition: transform 0.1s ease;
+      color: #000000;
     }
 
-    .tab-item.active {
-      color: #1d9bf0;
+    .header-icon:active {
+      transform: scale(0.9);
     }
 
-    .tab-item.active::after {
-      content: '';
-      position: absolute;
-      bottom: -1px;
-      left: 0;
-      width: 100%;
-      height: 4px;
-      background-color: #1d9bf0;
-      border-radius: 4px;
-    }
-
-    /* video feed container */
-    .videos-feed {
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* individual video post card */
-    .video-card {
-      border-bottom: 1px solid #2f3336;
-      padding: 12px 16px;
-      transition: background-color 0.15s;
-    }
-
-    .video-card:hover {
-      background-color: #080808;
-    }
-
-    /* card header: avatar + user info */
-    .card-header {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-
-    .avatar {
-      width: 40px;
-      height: 40px;
+    .avatar-wrapper {
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
-      background-color: #2f3336;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .avatar-wrapper div {
+      width: 100%;
+      height: 100%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: bold;
-      font-size: 1rem;
+      background: #007AFF;
       color: white;
-      flex-shrink: 0;
+      font-weight: 600;
     }
 
-    .user-info {
-      flex: 1;
-    }
-
-    .name-row {
+    /* Feed */
+    .feed {
       display: flex;
-      flex-wrap: wrap;
-      align-items: baseline;
-      gap: 4px;
+      flex-direction: column;
+      padding-bottom: 20px;
     }
 
-    .display-name {
-      font-weight: 800;
-      font-size: 0.95rem;
-    }
-
-    .username {
-      color: #71767b;
-      font-size: 0.85rem;
-    }
-
-    .timestamp {
-      color: #71767b;
-      font-size: 0.75rem;
-      margin-left: auto;
-    }
-
-    /* video container */
-    .video-container {
-      margin-top: 8px;
+    .video-item {
+      width: 100%;
       margin-bottom: 12px;
-      border-radius: 20px;
-      overflow: hidden;
-      background-color: #0a0a0a;
-      position: relative;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .video-item:active {
+      background: #f2f2f7;
+    }
+
+    .thumbnail-container {
       width: 100%;
       aspect-ratio: 16 / 9;
+      position: relative;
+      background: #e5e5ea;
     }
 
-    video {
+    .thumbnail-container img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      display: block;
-      cursor: pointer;
-      background: #000;
     }
 
-    /* video controls overlay style (simple) */
-    video:focus {
-      outline: none;
+    .video-duration {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      background: rgba(0,0,0,0.75);
+      color: white;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
     }
 
-    /* engagement bar (icons) */
-    .engagement-bar {
+    .video-details {
+      padding: 12px 16px;
       display: flex;
-      justify-content: space-between;
-      max-width: 425px;
-      margin-top: 8px;
+      gap: 12px;
     }
 
-    .eng-item {
+    .channel-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      object-fit: cover;
+    }
+
+    .video-text {
+      flex: 1;
+    }
+
+    .video-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .video-meta {
+      font-size: 13px;
+      color: #8e8e93;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #8e8e93;
+    }
+
+    /* Bottom Navigation */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-top: 0.5px solid rgba(0, 0, 0, 0.1);
       display: flex;
-      align-items: center;
-      gap: 8px;
-      color: #71767b;
-      font-size: 0.85rem;
-      font-weight: 500;
-      transition: color 0.1s;
-      cursor: pointer;
+      justify-content: space-around;
+      padding: 8px 16px calc(env(safe-area-inset-bottom) + 8px) 16px;
+      z-index: 999;
     }
 
-    .eng-item i {
-      font-size: 1.2rem;
-    }
-
-    .eng-item:hover {
-      color: #1d9bf0;
-    }
-
-    /* caption */
-    .caption-text {
-      margin: 10px 0 4px;
-      font-size: 0.9rem;
-      line-height: 1.4;
-    }
-
-    /* empty state */
-    .empty-feed {
+    .nav-item {
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      padding: 60px 24px;
-      text-align: center;
-      color: #71767b;
+      gap: 4px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      flex: 1;
     }
 
-    .empty-feed i {
-      font-size: 3rem;
-      margin-bottom: 16px;
+    .nav-item:active {
       opacity: 0.6;
     }
 
-    .empty-feed p {
-      font-size: 1.1rem;
-      margin-bottom: 8px;
+    .nav-icon {
+      width: 24px;
+      height: 24px;
+    }
+
+    .nav-label {
+      font-size: 10px;
       font-weight: 500;
+      color: #8e8e93;
     }
 
-    .empty-feed span {
-      font-size: 0.85rem;
+    .nav-item.active .nav-label {
+      color: #007AFF;
     }
 
-    /* simple floating compose button (just for style) */
-    .compose-btn {
-      position: fixed;
-      bottom: 80px;
-      right: calc(((100% - 600px) / 2) + 16px);
-      background-color: #1d9bf0;
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      cursor: pointer;
-      transition: transform 0.1s, background 0.2s;
-      z-index: 200;
+    .nav-item.active .nav-icon {
+      stroke: #007AFF;
+      fill: #007AFF;
     }
 
-    .compose-btn i {
-      font-size: 1.6rem;
-      color: white;
-    }
-
-    .compose-btn:hover {
-      background-color: #1a8cd8;
-      transform: scale(1.02);
-    }
-
-    /* responsive for smaller screens */
-    @media (max-width: 640px) {
-      .app-container {
-        max-width: 100%;
-        border-left: none;
-        border-right: none;
-      }
-      .compose-btn {
-        right: 16px;
-        bottom: 70px;
-      }
-    }
-
-    /* for video loading state simple */
-    .video-container video {
-      background-color: #1a1a1a;
+    .main-content {
+      padding-bottom: 70px;
     }
   </style>
 </head>
 <body>
-<div class="app-container">
-  <!-- header -->
-  <div class="header">
-    <h1>
-      <i class="fab fa-twitter"></i> Home 
-      <span class="badge">Videos only</span>
-    </h1>
+
+  <header class="header">
+    <div class="app-title">Dono</div>
+    <div class="header-right">
+      <div class="header-icon" id="search-header-btn">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+      </div>
+      <div class="header-icon" id="notification-header-btn">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+        </svg>
+      </div>
+      <div class="avatar-wrapper" id="profile-header-btn">
+        <div id="header-avatar">U</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="main-content">
+    <div class="feed" id="feed">
+      <div class="loading">Videolar yuklanmoqda...</div>
+    </div>
   </div>
 
-  <!-- Tab selector (optional but shows only video mode is active) -->
-  <div class="feed-tab">
-    <div class="tab-item active" id="videosTabBtn">
-      <i class="fas fa-video" style="margin-right: 6px;"></i> Videos
+  <div class="bottom-nav">
+    <div class="nav-item active" data-page="index">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 9L12 3L21 9L21 20H15V14H9V20H3V9Z"/>
+      </svg>
+      <span class="nav-label">Bosh sahifa</span>
     </div>
-    <div class="tab-item" id="disabledTab">
-      <i class="fas fa-newspaper"></i> For You (disabled)
+    <div class="nav-item" data-page="search">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <span class="nav-label">Qidiruv</span>
+    </div>
+    <div class="nav-item" data-page="notification">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+      <span class="nav-label">Bildirish</span>
+    </div>
+    <div class="nav-item" data-page="profile">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+        <circle cx="12" cy="7" r="4"/>
+      </svg>
+      <span class="nav-label">Profil</span>
     </div>
   </div>
 
-  <!-- Videos feed container: dynamic js will render -->
-  <div id="videosFeedContainer" class="videos-feed"></div>
-</div>
+  <script>
+    // Video ma'lumotlar
+    const videos = [
+      {
+        id: 1,
+        thumbnail: "https://picsum.photos/id/1/800/450",
+        duration: "12:45",
+        channelIcon: "https://ui-avatars.com/api/?name=IT&background=333&color=fff",
+        title: "JavaScript'da Telegram Mini Apps yaratish darsi",
+        meta: "IT Academy • 15K ko'rildi • 2 soat oldin"
+      },
+      {
+        id: 2,
+        thumbnail: "https://picsum.photos/id/10/800/450",
+        duration: "05:20",
+        channelIcon: "https://ui-avatars.com/api/?name=N&background=4CD964&color=fff",
+        title: "Tabiatning eng sokin burchaklari: 4K manzara",
+        meta: "Nature Lab • 8K ko'rildi • 1 kun oldin"
+      },
+      {
+        id: 3,
+        thumbnail: "https://picsum.photos/id/20/800/450",
+        duration: "08:15",
+        channelIcon: "https://ui-avatars.com/api/?name=E&background=FF9500&color=fff",
+        title: "Ingliz tili grammatikasini 8 haftada o'rganish",
+        meta: "Language Pro • 22K ko'rildi • 3 kun oldin"
+      },
+      {
+        id: 4,
+        thumbnail: "https://picsum.photos/id/26/800/450",
+        duration: "15:30",
+        channelIcon: "https://ui-avatars.com/api/?name=AI&background=5856D6&color=fff",
+        title: "Sun'iy intellekt asoslari - to'liq kurs",
+        meta: "AI Academy • 45K ko'rildi • 1 hafta oldin"
+      }
+    ];
 
-<!-- floating compose button (just ui delight) -->
-<div class="compose-btn" id="composeMockBtn">
-  <i class="fas fa-plus"></i>
-</div>
+    let tg = null;
 
-<script>
-  // ============================================================
-  // VIDEO DATA: Only video posts (Twitter-like cards with videos)
-  // Each video uses a sample high-quality public videos (demo clips)
-  // All videos are from reliable sources (Pexels, mixkit, etc.)
-  // Using public domain / creative commons licensed short clips
-  // ============================================================
-  const videoPosts = [
-    {
-      id: 1,
-      avatarColor: "#1d9bf0",
-      avatarInitial: "🐱",
-      displayName: "Nature Vibes",
-      username: "@naturelens",
-      timestamp: "2h ago",
-      videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-      caption: "Chasing golden hour 🌄 Watch till the end! #cinematic #nature",
-      likes: "4,321",
-      comments: "128",
-      reposts: "342",
-      views: "128K"
-    },
-    {
-      id: 2,
-      avatarColor: "#e0245e",
-      avatarInitial: "🎬",
-      displayName: "Cinematic Reels",
-      username: "@cinematiczone",
-      timestamp: "5h ago",
-      videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
-      caption: "City lights never sleep 🌃✨ what's your favorite night spot?",
-      likes: "12.2K",
-      comments: "845",
-      reposts: "1.2K",
-      views: "456K"
-    },
-    {
-      id: 3,
-      avatarColor: "#7856ff",
-      avatarInitial: "🎵",
-      displayName: "Music Moments",
-      username: "@melodywave",
-      timestamp: "8h ago",
-      videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoy.mp4",
-      caption: "New beat drop 🔥 turn sound on! 🎧 #musicproducer",
-      likes: "8,732",
-      comments: "421",
-      reposts: "902",
-      views: "210K"
-    },
-    {
-      id: 4,
-      avatarColor: "#ff7a2f",
-      avatarInitial: "🏄",
-      displayName: "Adventure Travel",
-      username: "@globetrotter",
-      timestamp: "12h ago",
-      videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4",
-      caption: "Waves are calling 🌊 best surf spot ever! 🏄‍♂️",
-      likes: "5,912",
-      comments: "267",
-      reposts: "548",
-      views: "98.2K"
-    },
-    {
-      id: 5,
-      avatarColor: "#1d9bf0",
-      avatarInitial: "🐶",
-      displayName: "Paws & Clips",
-      username: "@doggojoy",
-      timestamp: "1d ago",
-      videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4",
-      caption: "Best doggo compilation you'll see today 🐕❤️ pure happiness!",
-      likes: "24.3K",
-      comments: "1.2K",
-      reposts: "3.4K",
-      views: "1.2M"
-    },
-    {
-      id: 6,
-      avatarColor: "#17bf63",
-      avatarInitial: "🍳",
-      displayName: "Recipe Shorts",
-      username: "@quickbites",
-      timestamp: "1d ago",
-      videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4",
-      caption: "3 minute pasta recipe 🍝 try this tonight! #foodie",
-      likes: "15.4K",
-      comments: "689",
-      reposts: "1.1K",
-      views: "345K"
-    }
-  ];
-
-  // Alternative: ensure videos have reliable source, but all are publicly accessible sample videos from Google's bucket.
-  // If any video fails to load, we still show fallback; but all these URLs are valid and widely used.
-  // Additional videos to make feed rich
-  const extraVideos = [
-    {
-      id: 7,
-      avatarColor: "#f4a261",
-      avatarInitial: "🎮",
-      displayName: "Gaming Hub",
-      username: "@epicgameplays",
-      timestamp: "2d ago",
-      videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCar.mp4",
-      caption: "Insane clutch moment! 🎮 who else loves this game?",
-      likes: "33.2K",
-      comments: "1.8K",
-      reposts: "2.3K",
-      views: "890K"
-    },
-    {
-      id: 8,
-      avatarColor: "#9c27b0",
-      avatarInitial: "🚀",
-      displayName: "Space Xplore",
-      username: "@astroreel",
-      timestamp: "3d ago",
-      videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4",
-      caption: "Rocket launch slo-mo 🚀 humanity is amazing! #space",
-      likes: "47.1K",
-      comments: "2.4K",
-      reposts: "5.6K",
-      views: "2.1M"
-    }
-  ];
-
-  // merge all videos
-  const allVideos = [...videoPosts, ...extraVideos];
-
-  // Helper: format numbers if needed, but we already have string stats.
-  function renderVideoFeed() {
-    const container = document.getElementById('videosFeedContainer');
-    if (!container) return;
-
-    if (allVideos.length === 0) {
-      container.innerHTML = `
-        <div class="empty-feed">
-          <i class="fas fa-video-slash"></i>
-          <p>No videos yet</p>
-          <span>Check back later for new video posts</span>
-        </div>
+    function showToast(message) {
+      const toast = document.createElement('div');
+      toast.textContent = message;
+      toast.style.cssText = `
+        position: fixed;
+        bottom: 100px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0,0,0,0.8);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 25px;
+        font-size: 14px;
+        z-index: 3000;
+        animation: fadeInOut 2s ease;
       `;
-      return;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 2000);
     }
 
-    let html = '';
-    for (const video of allVideos) {
-      // Create avatar style: background color + maybe icon or text.
-      const avatarContent = video.avatarInitial.length > 1 ? video.avatarInitial.substring(0,2) : video.avatarInitial;
+    function loadVideos() {
+      const feed = document.getElementById('feed');
+      feed.innerHTML = videos.map(video => `
+        <div class="video-item" data-id="${video.id}">
+          <div class="thumbnail-container">
+            <img src="${video.thumbnail}" alt="${video.title}" loading="lazy">
+            <span class="video-duration">${video.duration}</span>
+          </div>
+          <div class="video-details">
+            <img class="channel-icon" src="${video.channelIcon}" alt="Channel">
+            <div class="video-text">
+              <h2 class="video-title">${video.title}</h2>
+              <p class="video-meta">${video.meta}</p>
+            </div>
+          </div>
+        </div>
+      `).join('');
       
-      html += `
-        <div class="video-card" data-video-id="${video.id}">
-          <div class="card-header">
-            <div class="avatar" style="background-color: ${video.avatarColor}; display: flex; align-items: center; justify-content: center;">
-              ${avatarContent}
-            </div>
-            <div class="user-info">
-              <div class="name-row">
-                <span class="display-name">${escapeHtml(video.displayName)}</span>
-                <span class="username">${escapeHtml(video.username)}</span>
-                <span class="timestamp">· ${escapeHtml(video.timestamp)}</span>
-              </div>
-            </div>
-          </div>
-          <!-- video player -->
-          <div class="video-container">
-            <video controls preload="metadata" poster="">
-              <source src="${escapeHtml(video.videoUrl)}" type="video/mp4">
-              Your browser does not support the video tag.
-            </video>
-          </div>
-          <!-- caption -->
-          <div class="caption-text">
-            ${escapeHtml(video.caption)}
-          </div>
-          <!-- engagement stats (twitter style) -->
-          <div class="engagement-bar">
-            <div class="eng-item" data-action="comment">
-              <i class="far fa-comment"></i> <span>${escapeHtml(video.comments)}</span>
-            </div>
-            <div class="eng-item" data-action="repost">
-              <i class="fas fa-retweet"></i> <span>${escapeHtml(video.reposts)}</span>
-            </div>
-            <div class="eng-item" data-action="like">
-              <i class="far fa-heart"></i> <span>${escapeHtml(video.likes)}</span>
-            </div>
-            <div class="eng-item" data-action="views">
-              <i class="far fa-eye"></i> <span>${escapeHtml(video.views)}</span>
-            </div>
-            <div class="eng-item" data-action="share">
-              <i class="far fa-bookmark"></i>
-            </div>
-          </div>
-        </div>
-      `;
-    }
-    container.innerHTML = html;
-
-    // After rendering, attach event listeners for engagement simulation (just visual feedback)
-    const allEngItems = document.querySelectorAll('.eng-item');
-    allEngItems.forEach(item => {
-      item.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const action = item.getAttribute('data-action');
-        if (action === 'like') {
-          const heartIcon = item.querySelector('i');
-          const countSpan = item.querySelector('span');
-          if (heartIcon.classList.contains('far') && heartIcon.classList.contains('fa-heart')) {
-            heartIcon.classList.remove('far');
-            heartIcon.classList.add('fas');
-            heartIcon.style.color = '#f91880';
-            // increase like count for fun
-            let currentCount = countSpan.innerText;
-            if (!isNaN(parseInt(currentCount))) {
-              let newCount = (parseInt(currentCount.replace(/[^0-9K]/g, '')) + 1).toString();
-              if(currentCount.includes('K')) {
-                // rough handling: keep format simple
-                countSpan.innerText = newCount + 'K';
-              } else {
-                countSpan.innerText = newCount;
-              }
-            } else {
-              countSpan.innerText = '1';
-            }
+      document.querySelectorAll('.video-item').forEach(item => {
+        item.addEventListener('click', () => {
+          if (tg && tg.showAlert) {
+            tg.showAlert('Video player tez orada qo\'shiladi');
           } else {
-            heartIcon.classList.remove('fas');
-            heartIcon.classList.add('far');
-            heartIcon.style.color = '';
+            showToast('Video player tez orada qo\'shiladi');
           }
-        } else if (action === 'comment') {
-          // just playful alert? but better to show small temporary notification (non-intrusive)
-          showToast("💬 Comment feature demo");
-        } else if (action === 'repost') {
-          showToast("🔁 Reposted (demo)");
-        } else if (action === 'share') {
-          showToast("🔖 Saved to bookmarks");
-        } else if (action === 'views') {
-          showToast("👁️ View count simulated");
+        });
+      });
+    }
+
+    function initTelegram() {
+      if (window.Telegram?.WebApp) {
+        tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+        
+        if (tg.initDataUnsafe?.user) {
+          const user = tg.initDataUnsafe.user;
+          const initial = user.first_name ? user.first_name.charAt(0).toUpperCase() : 'U';
+          document.getElementById('header-avatar').textContent = initial;
+          localStorage.setItem('userData', JSON.stringify(user));
+        } else {
+          const demoUser = { first_name: 'Mehmon', id: 123, username: 'guest' };
+          localStorage.setItem('userData', JSON.stringify(demoUser));
+          document.getElementById('header-avatar').textContent = 'M';
         }
-      });
-    });
-  }
-
-  // Helper: very simple toast message
-  let toastTimeout = null;
-  function showToast(msg) {
-    let toastEl = document.getElementById('dynamicToast');
-    if (!toastEl) {
-      toastEl = document.createElement('div');
-      toastEl.id = 'dynamicToast';
-      toastEl.style.position = 'fixed';
-      toastEl.style.bottom = '100px';
-      toastEl.style.left = '50%';
-      toastEl.style.transform = 'translateX(-50%)';
-      toastEl.style.backgroundColor = '#2f3336';
-      toastEl.style.color = '#e7e9ea';
-      toastEl.style.padding = '8px 18px';
-      toastEl.style.borderRadius = '40px';
-      toastEl.style.fontSize = '0.85rem';
-      toastEl.style.fontWeight = '500';
-      toastEl.style.zIndex = '1000';
-      toastEl.style.backdropFilter = 'blur(8px)';
-      toastEl.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
-      toastEl.style.pointerEvents = 'none';
-      document.body.appendChild(toastEl);
-    }
-    toastEl.textContent = msg;
-    toastEl.style.opacity = '1';
-    clearTimeout(toastTimeout);
-    toastTimeout = setTimeout(() => {
-      if (toastEl) toastEl.style.opacity = '0';
-    }, 2000);
-  }
-
-  // simple XSS escape helper
-  function escapeHtml(str) {
-    if (!str) return '';
-    return str.replace(/[&<>]/g, function(m) {
-      if (m === '&') return '&amp;';
-      if (m === '<') return '&lt;';
-      if (m === '>') return '&gt;';
-      return m;
-    }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
-      return c;
-    });
-  }
-
-  // Mock compose button: just to show demo toast
-  document.addEventListener('DOMContentLoaded', () => {
-    renderVideoFeed();
-    
-    const composeBtn = document.getElementById('composeMockBtn');
-    if (composeBtn) {
-      composeBtn.addEventListener('click', () => {
-        showToast("✨ Upload a new video (demo) — Twitter Home only shows video content!");
-      });
+      } else {
+        const demoUser = { first_name: 'Demo', id: 123456, username: 'demo_user' };
+        localStorage.setItem('userData', JSON.stringify(demoUser));
+        document.getElementById('header-avatar').textContent = 'D';
+      }
+      loadVideos();
     }
 
-    // Disable the "For You" tab and keep only video tab active
-    const disabledTab = document.getElementById('disabledTab');
-    const videosTab = document.getElementById('videosTabBtn');
-    if (disabledTab) {
-      disabledTab.addEventListener('click', (e) => {
-        showToast("🚫 Only Videos feed is active on this Home. No text-only tweets allowed.");
-        // ensure active state is always on videos tab
-        videosTab.classList.add('active');
-        disabledTab.classList.remove('active');
-      });
+    // Navigatsiya
+    function navigateTo(page) {
+      window.location.href = `${page}.html`;
     }
-    if (videosTab) {
-      videosTab.addEventListener('click', () => {
-        // already on videos
-        videosTab.classList.add('active');
-        if (disabledTab) disabledTab.classList.remove('active');
-        showToast("📽️ You're on the Video Home feed");
-      });
-    }
-    
-    // Additional: for each video, add console log for lazy load friendly
-    // Also we may add small interaction to pause others when playing? not required but nice
-    const handleVideoPlay = () => {
-      const videos = document.querySelectorAll('video');
-      videos.forEach(vid => {
-        vid.addEventListener('play', function() {
-          videos.forEach(other => {
-            if (other !== vid && !other.paused) {
-              other.pause();
-            }
-          });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initTelegram();
+      
+      // Bottom nav
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+          const page = item.dataset.page;
+          if (page !== 'index') {
+            navigateTo(page);
+          }
         });
       });
-    };
-    // after render videos, call handleVideoPlay
-    setTimeout(() => {
-      const allVidElements = document.querySelectorAll('video');
-      allVidElements.forEach(vid => {
-        vid.addEventListener('play', () => {
-          document.querySelectorAll('video').forEach(other => {
-            if (other !== vid && !other.paused) other.pause();
-          });
-        });
-      });
-    }, 100);
-  });
-
-  // Re-run on any dynamic changes (just once)
-  window.addEventListener('load', () => {
-    // make sure container fully rendered, fix any overlap
-    renderVideoFeed();
-    // fix video overlapping behavior
-    const videoElements = document.querySelectorAll('video');
-    videoElements.forEach(v => {
-      v.setAttribute('playsinline', 'true');
+      
+      // Header tugmalar
+      document.getElementById('search-header-btn')?.addEventListener('click', () => navigateTo('search'));
+      document.getElementById('notification-header-btn')?.addEventListener('click', () => navigateTo('notification'));
+      document.getElementById('profile-header-btn')?.addEventListener('click', () => navigateTo('profile'));
     });
-  });
-</script>
+  </script>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </body>
 </html>
