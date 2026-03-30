@@ -2,555 +2,320 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>YouTube UI Clone — Zamonaviy Video Player</title>
-    <!-- Tailwind CSS CDN + Inter va Roboto shriftlari -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube UI Clone</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome 6 (Free) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts: Roboto va Inter qo'shimcha -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
         body {
             background-color: #0f0f0f;
-            font-family: 'Roboto', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            color: #f1f1f1;
-            scroll-behavior: smooth;
-        }
-        /* Custom scrollbar (modern, minimalist) */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #1a1a1a;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #3a3a3a;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #5a5a5a;
+            color: white;
+            font-family: 'Roboto', sans-serif;
         }
         .hide-scrollbar::-webkit-scrollbar {
             display: none;
         }
-        /* like, comment, share, save hover animatsiyalar */
-        .action-btn {
-            transition: all 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        /* Modern interactive touch feedback */
+        .action-icon {
+            transition: transform 0.1s ease, opacity 0.2s;
             cursor: pointer;
-            border-radius: 36px;
-            padding: 8px 12px;
         }
-        .action-btn:active {
-            transform: scale(0.94);
-        }
-        .action-btn:hover {
-            background-color: rgba(255, 255, 255, 0.08);
-        }
-        .subscribe-btn {
-            transition: all 0.2s ease;
-        }
-        .subscribe-btn:active {
-            transform: scale(0.96);
-        }
-        /* video container aspect ratio */
-        .video-wrapper {
-            position: relative;
-            background-color: #000;
-        }
-        /* rekomendatsiya kartasi uchun line-clamp */
-        .line-clamp-2 {
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-        /* badge style */
-        .badge-premium {
-            background: linear-gradient(135deg, #FFD966, #FFB347);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            font-weight: 800;
-            letter-spacing: -0.2px;
+        .action-icon:active {
+            transform: scale(0.92);
         }
     </style>
 </head>
-<body class="antialiased">
+<body>
 
-    <!-- Asosiy konteyner: mobil first, maksimal kenglik desktop uchun markazlash -->
-    <div class="max-w-2xl mx-auto bg-black md:bg-[#0f0f0f] shadow-2xl">
+    <div class="relative w-full aspect-video bg-zinc-800">
+        <img src="https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&w=1000&q=80" 
+             class="w-full h-full object-cover opacity-80" alt="Video">
         
-        <!-- === VIDEO PLAYER SECTION === -->
-        <div class="relative w-full aspect-video bg-zinc-900 video-wrapper">
-            <!-- Preview image (thumbnail) -->
-            <img src="https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&w=1000&q=80" 
-                 class="w-full h-full object-cover opacity-90" 
-                 alt="Video thumbnail: creative task challenge">
-            
-            <!-- Overlay: play icon (mock player) -->
-            <div class="absolute inset-0 flex items-center justify-center bg-black/20 group cursor-default">
-                <div class="w-16 h-16 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center border border-white/30 shadow-xl">
-                    <i class="fas fa-play text-white text-2xl ml-1"></i>
-                </div>
-            </div>
-            
-            <!-- bottom time badge -->
-            <div class="absolute bottom-3 right-3 bg-black/80 backdrop-blur-sm px-2 py-0.5 rounded text-[13px] font-mono font-medium tracking-wide">
-                23:14 / 1:24:37
-            </div>
-            <!-- chap tomonda qo'shimcha info (rest) -->
-            <div class="absolute bottom-3 left-3 bg-black/60 backdrop-blur-sm px-2 py-0.5 rounded text-[12px] font-medium flex items-center gap-1">
-                <i class="fa-regular fa-eye text-[11px]"></i>
-                <span>21K ko‘rilgan</span>
-            </div>
-        </div>
-
-        <!-- === VIDEO INFO & METADATA === -->
-        <div class="px-4 pt-4 pb-2">
-            <!-- Sarlavha -->
-            <h1 class="text-[19px] md:text-[20px] font-bold leading-tight tracking-tight line-clamp-2">
-                Выполни Безумное Задание - Получи Деньги ! (Сатир, Кореш, Парадеич, Горилла, Кокошка...
-            </h1>
-            
-            <!-- Statistikalar: ko'rishlar, vaqt -->
-            <div class="text-[#aaa] text-[13px] mt-1.5 flex items-center flex-wrap gap-1">
-                <span>2 145 321 namoish</span>
-                <span class="text-[#717171]">•</span>
-                <span>3 hafta avval</span>
-                <span class="text-[#717171]">•</span>
-                <span><i class="fa-regular fa-chart-line text-[11px] mr-0.5"></i> #trend</span>
-            </div>
-
-            <!-- qisqa promo matn (grant haqida) -->
-            <div class="mt-3 flex items-start gap-2.5 text-[13.5px] text-zinc-300 bg-zinc-900/60 p-2.5 rounded-xl border border-zinc-800/70">
-                <span class="text-xl mt-0.5">🎓</span>
-                <p class="leading-snug">
-                    Участвуйте в конкурсе грантов на обучение... 
-                    <span class="font-semibold text-white hover:underline cursor-pointer">Yana</span>
-                </p>
-            </div>
-
-            <!-- KANAL OBUNA BO'LIMI -->
-            <div class="flex items-center justify-between mt-5 mb-2">
-                <div class="flex items-center gap-3">
-                    <div class="w-11 h-11 rounded-full bg-gradient-to-br from-amber-500 to-red-500 overflow-hidden ring-2 ring-zinc-800">
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=BigLand&backgroundColor=b6e3f4" 
-                             alt="channel avatar" 
-                             class="w-full h-full object-cover">
-                    </div>
-                    <div>
-                        <h3 class="font-bold text-[16px] flex items-center gap-1.5">
-                            Биг Ленд
-                            <i class="fa-solid fa-circle-check text-blue-500 text-[14px]"></i>
-                        </h3>
-                        <p class="text-[#aaa] text-[12px]">25,4 ming obuna • 122 ta video</p>
-                    </div>
-                </div>
-                <button id="subscribeBtn" class="subscribe-btn bg-white text-black px-5 py-2 rounded-full text-[14px] font-bold tracking-wide shadow-md hover:bg-gray-200 transition-all duration-200">
-                    Obuna bo'lish
-                </button>
-            </div>
-
-            <!-- === ZAMONAVIY ACTION BUTTONS: Like, Comment, Share, Save, Download, plus qo'shimcha (clock) === 
-                 butun interaktiv va modern ko'rinish, har bir tugma hover va active effektlar bilan -->
-            <div class="flex justify-between items-center mt-6 pb-1 overflow-x-auto gap-4 hide-scrollbar border-b border-zinc-800/70 pb-3">
-                <!-- Like -->
-                <div class="action-btn flex flex-col items-center gap-1 min-w-[56px] group transition" id="likeAction">
-                    <i class="fa-regular fa-thumbs-up text-[23px] group-hover:text-white transition"></i>
-                    <span class="text-[11px] font-medium tracking-tight" id="likeCount">12 ming</span>
-                </div>
-                <!-- Comment -->
-                <div class="action-btn flex flex-col items-center gap-1 min-w-[56px] group">
-                    <i class="fa-regular fa-message text-[23px] group-hover:text-white transition"></i>
-                    <span class="text-[11px] font-medium">45</span>
-                </div>
-                <!-- Share (ulashish) modern -->
-                <div class="action-btn flex flex-col items-center gap-1 min-w-[56px] group" id="shareBtn">
-                    <i class="fa-solid fa-arrow-up-from-bracket text-[22px] group-hover:text-white transition"></i>
-                    <span class="text-[11px] font-medium">Ulashish</span>
-                </div>
-                <!-- Download (yuklash) -->
-                <div class="action-btn flex flex-col items-center gap-1 min-w-[56px] group" id="downloadBtn">
-                    <i class="fa-solid fa-download text-[22px] group-hover:text-white transition"></i>
-                    <span class="text-[11px] font-medium">Yuklash</span>
-                </div>
-                <!-- Saqlash (Save) - eng muhim, modern ikonka bilan -->
-                <div class="action-btn flex flex-col items-center gap-1 min-w-[56px] group" id="saveBtn">
-                    <i class="fa-regular fa-bookmark text-[23px] group-hover:text-white transition" id="saveIcon"></i>
-                    <span class="text-[11px] font-medium" id="saveText">Saqlash</span>
-                </div>
-                <!-- Qo'shimcha: clock (keyinroq tomosha) -->
-                <div class="action-btn flex flex-col items-center gap-1 min-w-[56px] group">
-                    <i class="fa-regular fa-clock text-[22px] group-hover:text-white transition"></i>
-                    <span class="text-[11px] font-medium">Keyinroq</span>
-                </div>
-                <!-- Ellipsis menyu -->
-                <div class="action-btn flex flex-col items-center gap-1 min-w-[40px] group">
-                    <i class="fa-solid fa-ellipsis-h text-xl"></i>
-                    <span class="text-[10px]">Koproq</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- === DESCRIPTION / QISQA IZOH (real YouTube uslubi) === -->
-        <div class="px-4 pt-2 pb-2 text-[14px] text-zinc-300 border-b border-zinc-800/70">
-            <div class="flex items-start gap-2">
-                <i class="fa-regular fa-circle-question text-zinc-500 mt-0.5"></i>
-                <div>
-                    <p class="text-sm leading-relaxed">
-                        🚀 <span class="font-semibold text-white">1.000.000 ₽</span> sovrin jamg'armasi! 
-                        Eng aqlli va jasur ishtirokchilar maxsus topshiriqlarni bajaradi. 
-                        Video davomida yangi qoidalar va kutilmagan burilishlar.
-                    </p>
-                    <div class="flex flex-wrap gap-3 mt-2 text-xs text-zinc-400">
-                        <span><i class="fa-regular fa-calendar-alt mr-1"></i> 2025-03-15</span>
-                        <span><i class="fa-solid fa-tag mr-1"></i> #challenge #grant #money</span>
-                        <span><i class="fa-regular fa-comment-dots mr-1"></i> 1,2K sharhlar</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- === RECOMMENDATIONS: "Bularni ham ko'ring" === -->
-        <div class="px-4 pt-3 pb-6">
-            <div class="flex items-center justify-between mb-3">
-                <h2 class="text-[17px] font-bold tracking-tight flex items-center gap-2">
-                    <i class="fa-regular fa-compass text-yellow-500 text-base"></i> Bularni ham ko'ring
-                </h2>
-                <span class="text-xs text-zinc-400 hover:text-white transition cursor-pointer">Hammasi <i class="fa-solid fa-chevron-right text-[10px] ml-0.5"></i></span>
-            </div>
-            
-            <div class="flex flex-col gap-5">
-                <!-- Video 1 - Maxsus badge (qiziqarli) -->
-                <div class="group cursor-pointer">
-                    <div class="relative rounded-xl overflow-hidden shadow-md">
-                        <img src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=1000&q=80" 
-                             class="w-full aspect-video object-cover transition duration-300 group-hover:scale-105" 
-                             alt="Recommended video thumbnail">
-                        <!-- Video duration badge -->
-                        <div class="absolute bottom-2 right-2 bg-black/85 backdrop-blur-sm px-1.5 py-0.5 rounded-md text-[11px] font-mono font-semibold">
-                            1:13:23
-                        </div>
-                        <!-- maxsus ajoyib sticker -->
-                        <div class="absolute bottom-3 left-3 flex gap-2">
-                            <div class="bg-gradient-to-r from-yellow-400 to-amber-500 text-black font-extrabold italic px-2 py-0.5 rounded-md text-[12px] shadow-lg flex items-center gap-1">
-                                <i class="fa-solid fa-ruble-sign text-[10px]"></i> 1.000.000₽
-                            </div>
-                            <div class="bg-white text-black font-black px-2 py-0.5 rounded-md text-[12px] shadow-md">
-                                СКОЛЬКО???
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex gap-3 mt-2">
-                        <div class="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex-shrink-0 flex items-center justify-center font-bold text-white shadow-md text-sm uppercase">
-                            H
-                        </div>
-                        <div class="flex-1">
-                            <h3 class="text-[15px] font-medium leading-tight line-clamp-2">
-                                Сколько стоил хайп с МК? / Возможно ли создать русского МК...
-                            </h3>
-                            <div class="flex items-center text-[#aaa] text-[12px] mt-1 gap-2 flex-wrap">
-                                <span>HOOPS</span>
-                                <span>•</span>
-                                <span>116 ming namoish</span>
-                                <span>•</span>
-                                <span>1 oy avval</span>
-                            </div>
-                            <!-- mini badge popular -->
-                            <div class="flex items-center gap-1 mt-1">
-                                <i class="fa-solid fa-fire-flame-curved text-orange-500 text-[10px]"></i>
-                                <span class="text-[10px] text-zinc-400">Trendda</span>
-                            </div>
-                        </div>
-                        <div class="pt-0.5 opacity-50 hover:opacity-100 transition">
-                            <i class="fa-solid fa-ellipsis-vertical text-zinc-400 text-sm"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Video 2 - reklama / creative challenge -->
-                <div class="group cursor-pointer">
-                    <div class="relative rounded-xl overflow-hidden">
-                        <img src="https://images.unsplash.com/photo-1611162618071-b39a2ec055fb?auto=format&fit=crop&w=1000&q=80" 
-                             class="w-full aspect-video object-cover transition group-hover:scale-105" 
-                             alt="crazy challenge">
-                        <div class="absolute bottom-2 right-2 bg-black/80 px-1 py-0.5 rounded text-[11px] font-mono">18:42</div>
-                        <div class="absolute top-2 left-2 bg-red-600/90 backdrop-blur-sm px-2 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1">
-                            <i class="fa-regular fa-clock text-[9px]"></i> LIVE
-                        </div>
-                    </div>
-                    <div class="flex gap-3 mt-2">
-                        <div class="w-9 h-9 rounded-full bg-cyan-700 flex-shrink-0 flex items-center justify-center text-white font-bold text-sm">
-                            БЛ
-                        </div>
-                        <div class="flex-1">
-                            <h3 class="text-[15px] font-medium leading-tight line-clamp-2">
-                                САТИР vs ГОРИЛЛА: безумное испытание на 500к рублей! Полная версия
-                            </h3>
-                            <div class="text-[#aaa] text-[12px] mt-1 flex items-center gap-1 flex-wrap">
-                                <span>Биг Ленд Шоу</span>
-                                <span>•</span>
-                                <span>891 ming namoish</span>
-                                <span>•</span>
-                                <span>2 hafta avval</span>
-                            </div>
-                        </div>
-                        <div><i class="fa-solid fa-ellipsis-vertical text-zinc-500 text-sm"></i></div>
-                    </div>
-                </div>
-
-                <!-- Video 3 - qiziqarli short preview uslubi -->
-                <div class="group cursor-pointer">
-                    <div class="relative rounded-xl overflow-hidden">
-                        <img src="https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?auto=format&fit=crop&w=1000&q=80" 
-                             class="w-full aspect-video object-cover transition group-hover:scale-105" 
-                             alt="money explosion">
-                        <div class="absolute bottom-2 right-2 bg-black/80 px-1 py-0.5 rounded text-[11px] font-mono">09:24</div>
-                        <div class="absolute bottom-3 left-3 flex gap-2">
-                            <div class="bg-emerald-500 text-white text-[11px] font-bold px-2 py-0.5 rounded-md shadow-md flex items-center gap-1">
-                                <i class="fa-regular fa-gem"></i> Eksklyuziv
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex gap-3 mt-2">
-                        <div class="w-9 h-9 rounded-full bg-amber-600 flex-shrink-0 flex items-center justify-center text-white font-bold">
-                            КШ
-                        </div>
-                        <div class="flex-1">
-                            <h3 class="text-[15px] font-medium leading-tight line-clamp-2">
-                                Кореш и Парадеич рвут чарты: зачем они украли миллион? Документалка
-                            </h3>
-                            <div class="text-[#aaa] text-[12px] mt-1 flex items-center gap-1">
-                                <span>Кореш Production</span>
-                                <span>•</span>
-                                <span>2,1 mln namoish</span>
-                                <span>•</span>
-                                <span>5 kun avval</span>
-                            </div>
-                        </div>
-                        <div><i class="fa-regular fa-bookmark text-zinc-400 text-sm"></i></div>
-                    </div>
-                </div>
-
-                
-                <!-- Video 4 - yana bir qiziqarli (Like/Share motivatsiya) -->
-                <div class="group cursor-pointer">
-                    <div class="relative rounded-xl overflow-hidden">
-                        <img src="https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?auto=format&fit=crop&w=1000&q=80" 
-                             class="w-full aspect-video object-cover transition group-hover:scale-105" 
-                             alt="gaming challenge">
-                        <div class="absolute bottom-2 right-2 bg-black/80 text-[11px] px-1 rounded">32:11</div>
-                    </div>
-                    <div class="flex gap-3 mt-2">
-                        <div class="w-9 h-9 rounded-full bg-fuchsia-700 flex-shrink-0 flex items-center justify-center text-white font-bold">
-                            ГР
-                        </div>
-                        <div class="flex-1">
-                            <h3 class="text-[15px] font-medium leading-tight line-clamp-2">
-                                Горилла получил 10 заданий от подписчиков за 24 часа | СТРИМ ХАЙЛАЙТС
-                            </h3>
-                            <div class="text-[#aaa] text-[12px] mt-1 flex items-center gap-1">
-                                <span>GORILLA GANG</span>
-                                <span>•</span>
-                                <span>567 ming namoish</span>
-                                <span>•</span>
-                                <span>1 hafta avval</span>
-                            </div>
-                        </div>
-                        <div><i class="fa-solid fa-ellipsis-vertical text-zinc-500 text-sm"></i></div>
-                    </div>
-                </div>
-            </div>
-            <!-- ko'proq ko'rsatish tugmasi (dekorativ) -->
-            <div class="mt-6 text-center">
-                <button class="bg-zinc-800 hover:bg-zinc-700 transition text-sm font-medium px-6 py-2.5 rounded-full w-full max-w-[200px] mx-auto flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-rotate-right text-xs"></i> Yana ko‘rsatish
-                </button>
-            </div>
-        </div>
-        
-        <!-- Footer (minimal) -->
-        <div class="text-[10px] text-center text-zinc-500 py-5 border-t border-zinc-800/60 px-4 flex justify-between">
-            <span>© 2025 YouTube UI Clone | Loyiha</span>
-            <span><i class="fa-regular fa-heart text-rose-400"></i> Interaktiv dizayn</span>
+        <div class="absolute bottom-4 left-1/2 -translate-x-1/2">
+            <span class="bg-black/70 px-2 py-0.5 rounded text-[15px]">остатки</span>
         </div>
     </div>
 
-    <!-- JavaScript: like, obuna, saqlash (save), share va download funksiyalari -->
+    <div class="p-4">
+        <h1 class="text-[19px] font-bold leading-tight line-clamp-2">
+            Выполни Безумное Задание - Получи Деньги ! (Сатир, Кореш, Парадеич, Горилла, Кокошка...
+        </h1>
+        <div class="text-[#aaaaaa] text-[13px] mt-1 flex items-center gap-1">
+            <span>21 namoish</span>
+            <span>•</span>
+            <span>3 hafta avval</span>
+        </div>
+
+        <div class="mt-3 flex items-start gap-2 text-[13px] text-zinc-300">
+            <span class="text-lg">🎓</span>
+            <p class="leading-tight">
+                Участвуйте в конкурсе грантов на обучение... <span class="font-bold text-white">Yana</span>
+            </p>
+        </div>
+
+        <div class="flex items-center justify-between mt-5">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-pink-500 to-yellow-500 overflow-hidden">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="avatar">
+                </div>
+                <div>
+                    <h3 class="font-bold text-[15px]">Биг Ленд</h3>
+                    <p class="text-[#aaaaaa] text-[12px]">25,4 ming obuna</p>
+                </div>
+            </div>
+            <button class="bg-white text-black px-4 py-2 rounded-full text-[14px] font-bold">
+                Obuna bo'lish
+            </button>
+        </div>
+
+        <!-- Modern icon row with Like, Comment, Share, Save — zamonaviy ikonkalar va interaktivlik -->
+        <div class="flex justify-between items-center mt-6 overflow-x-auto gap-6 hide-scrollbar">
+            <!-- Like: zamonaviy thumb-up + micro-interaction -->
+            <div class="flex flex-col items-center gap-1 min-w-fit action-icon" id="likeButton">
+                <i class="fa-regular fa-thumbs-up text-2xl transition-all duration-150" id="likeIcon"></i>
+                <span class="text-[11px] font-medium" id="likeCount">12K</span>
+            </div>
+            <!-- Comment: modern chat bubble style (fa-comment-dots yanada zamonaviy) -->
+            <div class="flex flex-col items-center gap-1 min-w-fit action-icon" id="commentButton">
+                <i class="fa-regular fa-message text-2xl"></i>
+                <span class="text-[11px] font-medium">45</span>
+            </div>
+            <!-- Share: minimalist share nodes with modern feel -->
+            <div class="flex flex-col items-center gap-1 min-w-fit action-icon" id="shareButton">
+                <i class="fa-regular fa-paper-plane text-2xl"></i>
+                <span class="text-[11px] font-medium">Ulashish</span>
+            </div>
+            <!-- Download: remains download (no change requirement but consistent) -->
+            <div class="flex flex-col items-center gap-1 min-w-fit action-icon">
+                <i class="fa-solid fa-arrow-down-to-line text-2xl"></i>
+                <span class="text-[11px] font-medium">Yuklash</span>
+            </div>
+            <!-- Save: modern bookmark icon instead of clock -->
+            <div class="flex flex-col items-center gap-1 min-w-fit action-icon" id="saveButton">
+                <i class="fa-regular fa-bookmark text-2xl" id="saveIcon"></i>
+                <span class="text-[11px] font-medium" id="saveText">Saqlash</span>
+            </div>
+        </div>
+    </div>
+
+    <hr class="border-zinc-800 my-2">
+
+    <div class="p-4">
+        <h2 class="text-[16px] font-bold mb-4">Bularni ham ko'ring</h2>
+
+        <div class="flex flex-col gap-3 mb-6">
+            <div class="relative">
+                <img src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=1000&q=80" 
+                     class="w-full rounded-xl aspect-video object-cover" alt="Thumbnail">
+                
+                <div class="absolute bottom-2 right-2 bg-black/80 px-1 py-0.5 rounded text-[12px] font-medium">
+                    1:13:23
+                </div>
+
+                <div class="absolute bottom-4 left-3 flex items-center gap-2">
+                    <div class="bg-yellow-400 text-black font-black italic px-2 py-0.5 rounded text-[13px] shadow-lg">
+                        1.000.000₽
+                    </div>
+                    <div class="bg-white text-black font-black px-2 py-0.5 rounded text-[13px] shadow-lg">
+                        СКОЛЬКО???
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-3">
+                <div class="w-9 h-9 rounded-full bg-orange-600 flex-shrink-0 flex items-center justify-center font-bold text-white text-sm">
+                    H
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-[15px] font-medium leading-tight line-clamp-2">
+                        Сколько стоил хайп с МК? / Возможно ли создать русского МК...
+                    </h3>
+                    <p class="text-[#aaaaaa] text-[12px] mt-1">
+                        HOOPS • 116 ming namoish • 1 oy avval
+                    </p>
+                </div>
+                <div class="pt-1">
+                    <i class="fa-solid fa-ellipsis-vertical text-zinc-400"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Simple micro-interactions for modern feel: Like toggle, Save toggle, Comment alert & Share alert (non-intrusive, shows modern behaviour) -->
     <script>
-        (function(){
-            // Subscribe button interactive (toggle)
-            const subscribeBtn = document.getElementById('subscribeBtn');
-            let isSubscribed = false;
-            if(subscribeBtn){
-                subscribeBtn.addEventListener('click', function(e){
-                    e.preventDefault();
-                    if(!isSubscribed){
-                        subscribeBtn.innerText = "Obuna bo'lindi";
-                        subscribeBtn.classList.remove('bg-white', 'text-black');
-                        subscribeBtn.classList.add('bg-zinc-700', 'text-white', 'hover:bg-zinc-600');
-                        isSubscribed = true;
-                        // chiroyli toast usuli (alert emas, icon)
-                        showFloatingToast("✅ Obuna bo'ldingiz!");
-                    } else {
-                        subscribeBtn.innerText = "Obuna bo'lish";
-                        subscribeBtn.classList.remove('bg-zinc-700', 'text-white', 'hover:bg-zinc-600');
-                        subscribeBtn.classList.add('bg-white', 'text-black');
-                        isSubscribed = false;
-                        showFloatingToast("❌ Obuna bekor qilindi");
-                    }
-                });
+        (function() {
+            // Like button state
+            let isLiked = false;
+            const likeIcon = document.getElementById('likeIcon');
+            const likeCountSpan = document.getElementById('likeCount');
+            let currentLikes = 12000; // 12K as number
+            
+            function updateLikeUI() {
+                if (isLiked) {
+                    likeIcon.className = 'fa-solid fa-thumbs-up text-2xl text-blue-400 transition-all duration-150';
+                } else {
+                    likeIcon.className = 'fa-regular fa-thumbs-up text-2xl transition-all duration-150';
+                }
+                // Format like count
+                if (currentLikes >= 1000) {
+                    let formatted = (currentLikes / 1000).toFixed(1);
+                    if (formatted.endsWith('.0')) formatted = formatted.slice(0, -2);
+                    likeCountSpan.innerText = formatted + 'K';
+                } else {
+                    likeCountSpan.innerText = currentLikes.toString();
+                }
             }
             
-            // LIKE tizimi (interaktiv, sonni oshirish)
-            const likeDiv = document.getElementById('likeAction');
-            let liked = false;
-            let likeCountSpan = document.getElementById('likeCount');
-            let currentLikes = 12000; // 12K
-
-            function formatLikes(num){
-                if(num >= 1000000) return (num/1000000).toFixed(1) + " mln";
-                if(num >= 1000) return (num/1000).toFixed(0) + " ming";
-                return num.toString();
-            }
-
-            if(likeDiv && likeCountSpan){
-                likeDiv.addEventListener('click', function(e){
+            const likeBtn = document.getElementById('likeButton');
+            if (likeBtn) {
+                likeBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    const icon = likeDiv.querySelector('i');
-                    if(!liked){
-                        // like bosildi
+                    if (!isLiked) {
                         currentLikes += 1;
-                        likeCountSpan.innerText = formatLikes(currentLikes);
-                        icon.classList.remove('fa-regular');
-                        icon.classList.add('fa-solid', 'text-blue-400');
-                        liked = true;
-                        showFloatingToast("👍 Video sizga yoqdi!");
-                        // qisqa animatsiya
-                        likeDiv.style.transform = "scale(0.96)";
-                        setTimeout(()=> { likeDiv.style.transform = ""; }, 150);
+                        isLiked = true;
                     } else {
                         currentLikes -= 1;
-                        likeCountSpan.innerText = formatLikes(currentLikes);
-                        icon.classList.remove('fa-solid', 'text-blue-400');
-                        icon.classList.add('fa-regular');
-                        liked = false;
-                        showFloatingToast("👎 Layk bekor qilindi");
-                        likeDiv.style.transform = "scale(0.96)";
-                        setTimeout(()=> { likeDiv.style.transform = ""; }, 150);
+                        isLiked = false;
                     }
+                    updateLikeUI();
+                    // subtle haptic feedback simulation
+                    likeBtn.style.transform = 'scale(0.95)';
+                    setTimeout(() => { if(likeBtn) likeBtn.style.transform = ''; }, 120);
                 });
             }
-
-            // SAVE (bookmark) funksiyasi: "Saqlash" va saqlangan holat
-            const saveBtn = document.getElementById('saveBtn');
-            let saved = false;
-            const saveIconElem = document.getElementById('saveIcon');
-            const saveTextElem = document.getElementById('saveText');
-            if(saveBtn){
-                saveBtn.addEventListener('click', function(e){
-                    e.preventDefault();
-                    if(!saved){
-                        // saqlash
-                        if(saveIconElem) {
-                            saveIconElem.classList.remove('fa-regular');
-                            saveIconElem.classList.add('fa-solid');
-                        }
-                        if(saveTextElem) saveTextElem.innerText = "Saqlangan";
-                        saved = true;
-                        showFloatingToast("📌 Video saqlandi! 'Keyinroq ko‘rish' bo‘limida.");
-                        saveBtn.style.transform = "scale(0.96)";
-                        setTimeout(()=> { if(saveBtn) saveBtn.style.transform = ""; }, 150);
+            
+            // Save (bookmark) toggle with modern style
+            let isSaved = false;
+            const saveIcon = document.getElementById('saveIcon');
+            const saveTextSpan = document.getElementById('saveText');
+            const saveBtn = document.getElementById('saveButton');
+            if (saveBtn) {
+                saveBtn.addEventListener('click', () => {
+                    isSaved = !isSaved;
+                    if (isSaved) {
+                        saveIcon.className = 'fa-solid fa-bookmark text-2xl text-yellow-400 transition-all duration-150';
+                        saveTextSpan.innerText = 'Saqlangan';
                     } else {
-                        if(saveIconElem) {
-                            saveIconElem.classList.remove('fa-solid');
-                            saveIconElem.classList.add('fa-regular');
-                        }
-                        if(saveTextElem) saveTextElem.innerText = "Saqlash";
-                        saved = false;
-                        showFloatingToast("🗑 Saqlashdan olib tashlandi");
-                        saveBtn.style.transform = "scale(0.96)";
-                        setTimeout(()=> { if(saveBtn) saveBtn.style.transform = ""; }, 150);
+                        saveIcon.className = 'fa-regular fa-bookmark text-2xl transition-all duration-150';
+                        saveTextSpan.innerText = 'Saqlash';
                     }
-                });
-            }
-
-            // SHARE funksiyasi (nusxalash yoki share)
-            const shareAction = document.getElementById('shareBtn');
-            if(shareAction){
-                shareAction.addEventListener('click', function(){
-                    // Klipboardga video havola mock
-                    const dummyLink = "https://youtu.be/dQw4w9WgXcQ?si=challenge";
-                    navigator.clipboard.writeText(dummyLink).then(() => {
-                        showFloatingToast("🔗 Havola nusxalandi! Ulashishga tayyor.");
-                    }).catch(()=> {
-                        showFloatingToast("Ulashish uchun havola: " + dummyLink);
-                    });
+                    saveBtn.style.transform = 'scale(0.95)';
+                    setTimeout(() => { if(saveBtn) saveBtn.style.transform = ''; }, 120);
                 });
             }
             
-            // DOWNLOAD (yuklash) simulyatsiyasi
-            const downloadAction = document.getElementById('downloadBtn');
-            if(downloadAction){
-                downloadAction.addEventListener('click', function(){
-                    showFloatingToast("📥 Yuklab olish (demo) — video tez orada qo‘shiladi");
+            // Comment modern interaction: show temporary tooltip style but keep original layout, no changes to other parts
+            const commentBtn = document.getElementById('commentButton');
+            if (commentBtn) {
+                commentBtn.addEventListener('click', () => {
+                    // modern lightweight feedback: just a gentle console + micro popup message without altering DOM structure
+                    const toastMsg = document.createElement('div');
+                    toastMsg.innerText = '💬 45 ta sharh';
+                    toastMsg.style.position = 'fixed';
+                    toastMsg.style.bottom = '20px';
+                    toastMsg.style.left = '50%';
+                    toastMsg.style.transform = 'translateX(-50%)';
+                    toastMsg.style.backgroundColor = '#272727';
+                    toastMsg.style.color = 'white';
+                    toastMsg.style.padding = '8px 16px';
+                    toastMsg.style.borderRadius = '40px';
+                    toastMsg.style.fontSize = '13px';
+                    toastMsg.style.fontWeight = '500';
+                    toastMsg.style.zIndex = '999';
+                    toastMsg.style.boxShadow = '0 4px 12px rgba(0,0,0,0.4)';
+                    toastMsg.style.backdropFilter = 'blur(8px)';
+                    toastMsg.style.border = '1px solid #3f3f3f';
+                    document.body.appendChild(toastMsg);
+                    setTimeout(() => {
+                        toastMsg.style.opacity = '0';
+                        toastMsg.style.transition = 'opacity 0.2s';
+                        setTimeout(() => toastMsg.remove(), 300);
+                    }, 1500);
+                    commentBtn.style.transform = 'scale(0.95)';
+                    setTimeout(() => { if(commentBtn) commentBtn.style.transform = ''; }, 120);
                 });
             }
             
-            // comment - demo (ogohlantirish)
-            const commentAction = document.querySelector('.action-btn .fa-message')?.parentElement;
-            if(commentAction){
-                commentAction.addEventListener('click', ()=>{
-                    showFloatingToast("💬 Sharhlar bo‘limi tez orada ochiladi");
+            // Share modern interaction: native share simulation + toast
+            const shareBtn = document.getElementById('shareButton');
+            if (shareBtn) {
+                shareBtn.addEventListener('click', () => {
+                    const shareToast = document.createElement('div');
+                    shareToast.innerText = '🔗 Havola nusxalandi | Ulashish';
+                    shareToast.style.position = 'fixed';
+                    shareToast.style.bottom = '20px';
+                    shareToast.style.left = '50%';
+                    shareToast.style.transform = 'translateX(-50%)';
+                    shareToast.style.backgroundColor = '#1f1f1f';
+                    shareToast.style.color = '#fff';
+                    shareToast.style.padding = '8px 18px';
+                    shareToast.style.borderRadius = '40px';
+                    shareToast.style.fontSize = '13px';
+                    shareToast.style.fontWeight = '500';
+                    shareToast.style.zIndex = '999';
+                    shareToast.style.boxShadow = '0 6px 14px rgba(0,0,0,0.5)';
+                    shareToast.style.border = '1px solid #3a3a3a';
+                    shareToast.style.backdropFilter = 'blur(8px)';
+                    document.body.appendChild(shareToast);
+                    setTimeout(() => {
+                        shareToast.style.opacity = '0';
+                        shareToast.style.transition = 'opacity 0.2s';
+                        setTimeout(() => shareToast.remove(), 300);
+                    }, 1500);
+                    shareBtn.style.transform = 'scale(0.95)';
+                    setTimeout(() => { if(shareBtn) shareBtn.style.transform = ''; }, 120);
                 });
             }
             
-            // qo'shimcha: keyinroq ko'rish (clock) uchun mini notify
-            const laterBtns = document.querySelectorAll('.action-btn .fa-clock, .action-btn .fa-clock + span');
-            const parentClock = document.querySelector('.action-btn .fa-clock')?.closest('.action-btn');
-            if(parentClock){
-                parentClock.addEventListener('click', ()=>{
-                    showFloatingToast("⏰ Keyinroq ko‘rish uchun saqlandi");
+            // Optional: download subtle feedback (but we don't modify content)
+            const downloadBtn = document.querySelector('.action-icon .fa-arrow-down-to-line')?.parentElement?.parentElement;
+            if (downloadBtn) {
+                downloadBtn.addEventListener('click', () => {
+                    const dlToast = document.createElement('div');
+                    dlToast.innerText = '⬇️ Yuklab olish simulyatsiyasi';
+                    dlToast.style.position = 'fixed';
+                    dlToast.style.bottom = '20px';
+                    dlToast.style.left = '50%';
+                    dlToast.style.transform = 'translateX(-50%)';
+                    dlToast.style.backgroundColor = '#222';
+                    dlToast.style.color = '#eee';
+                    dlToast.style.padding = '8px 18px';
+                    dlToast.style.borderRadius = '40px';
+                    dlToast.style.fontSize = '13px';
+                    dlToast.style.zIndex = '999';
+                    dlToast.style.border = '1px solid #444';
+                    document.body.appendChild(dlToast);
+                    setTimeout(() => {
+                        dlToast.style.opacity = '0';
+                        dlToast.style.transition = 'opacity 0.2s';
+                        setTimeout(() => dlToast.remove(), 300);
+                    }, 1200);
                 });
             }
-
-            // Toast notifikatsiya (zamonaviy, non-intrusive)
-            function showFloatingToast(message){
-                let existingToast = document.querySelector('.custom-toast');
-                if(existingToast) existingToast.remove();
-                const toast = document.createElement('div');
-                toast.className = 'custom-toast fixed bottom-24 left-1/2 -translate-x-1/2 bg-zinc-800/95 backdrop-blur-md text-white text-sm px-5 py-2.5 rounded-full shadow-2xl z-50 flex items-center gap-2 border border-zinc-600 font-medium animate-fade-in';
-                toast.style.transition = "all 0.2s";
-                toast.style.whiteSpace = "nowrap";
-                toast.innerHTML = `<i class="fa-regular fa-bell text-yellow-400"></i> ${message}`;
-                document.body.appendChild(toast);
-                setTimeout(()=>{
-                    toast.style.opacity = "0";
-                    setTimeout(()=>{ if(toast && toast.remove) toast.remove(); }, 300);
-                }, 2200);
-            }
             
-            // add simple css for toast animation (keyframe)
-            const styleSheet = document.createElement("style");
-            styleSheet.textContent = `
-                @keyframes fadeInUp {
-                    from { opacity: 0; transform: translate(-50%, 20px); }
-                    to { opacity: 1; transform: translate(-50%, 0); }
+            // Ensure like count display formatted as "12K" remains consistent after interactions
+            // initially set proper formatting
+            function initFormat() {
+                if (currentLikes >= 1000) {
+                    let formatted = (currentLikes / 1000).toFixed(1);
+                    if (formatted.endsWith('.0')) formatted = formatted.slice(0, -2);
+                    likeCountSpan.innerText = formatted + 'K';
+                } else {
+                    likeCountSpan.innerText = currentLikes.toString();
                 }
-                .animate-fade-in {
-                    animation: fadeInUp 0.2s ease-out forwards;
-                }
-                .custom-toast {
-                    animation: fadeInUp 0.2s ease-out;
-                }
-            `;
-            document.head.appendChild(styleSheet);
+            }
+            initFormat();
+            
+            // Also adding a hover effect for modern icons to match youtube-like microinteractions
+            const allActionItems = document.querySelectorAll('.action-icon');
+            allActionItems.forEach(item => {
+                item.addEventListener('mouseenter', () => {
+                    item.style.opacity = '0.85';
+                });
+                item.addEventListener('mouseleave', () => {
+                    item.style.opacity = '1';
+                });
+            });
         })();
     </script>
 </body>
