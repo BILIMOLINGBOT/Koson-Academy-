@@ -3,60 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Player UI</title>
+    <title>XO, Kitty Video Player</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
             background-color: #000;
             color: white;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
         }
 
         .post-container {
             width: 100%;
             max-width: 500px;
-            border-bottom: 1px solid #333;
-            padding-bottom: 10px;
+            padding: 10px;
         }
 
         /* Video qismi */
         .video-wrapper {
             position: relative;
             width: 100%;
-            aspect-ratio: 16 / 9;
-            background-color: #111;
+            background-color: #000;
             border-radius: 15px;
             overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            cursor: pointer;
         }
 
-        .video-placeholder {
+        video {
             width: 100%;
-            height: 100%;
-            object-fit: cover;
-            /* Bu erga haqiqiy video URL qo'yiladi */
-            background-image: url('https://via.placeholder.com/800x450/222/fff?text=Video+Scene'); 
-            background-size: cover;
+            display: block;
         }
 
-        /* Subtitr */
+        /* Subtitr - Videoni ustida turishi uchun */
         .subtitle {
             position: absolute;
-            bottom: 60px;
+            bottom: 65px;
             width: 100%;
             text-align: center;
-            font-size: 16px;
+            font-size: 17px;
             font-weight: 500;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-            padding: 0 20px;
-            box-sizing: border-box;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.9);
+            pointer-events: none; /* Subtitr tugmalarni bosishga xalaqit bermasligi uchun */
         }
 
         /* Video boshqaruvlari */
@@ -65,7 +56,7 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: linear-gradient(transparent, rgba(0,0,0,0.7));
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
             padding: 15px;
             display: flex;
             align-items: center;
@@ -73,8 +64,9 @@
         }
 
         .play-btn {
-            font-size: 24px;
+            font-size: 20px;
             cursor: pointer;
+            width: 25px;
         }
 
         .progress-container {
@@ -83,58 +75,44 @@
             background: rgba(255,255,255,0.3);
             border-radius: 2px;
             position: relative;
+            cursor: pointer;
         }
 
         .progress-bar {
-            width: 15%; /* 0:04 / 0:41 taxminan */
+            width: 0%;
             height: 100%;
             background: #fff;
             border-radius: 2px;
         }
 
-        .progress-scrubber {
-            width: 12px;
-            height: 12px;
-            background: #fff;
-            border-radius: 50%;
-            position: absolute;
-            left: 15%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-        }
-
         .time {
             font-size: 12px;
             font-weight: bold;
+            min-width: 65px;
         }
 
-        /* Ma'lumotlar qismi (Pastki qism) */
+        /* Ma'lumotlar qismi */
         .info-section {
-            padding: 12px 5px;
+            padding: 15px 5px;
         }
 
         .user-header {
             display: flex;
             align-items: center;
             gap: 10px;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
 
         .profile-pic {
-            width: 36px;
-            height: 36px;
-            background-color: #e50914; /* Netflix qizil */
-            border-radius: 4px;
+            width: 40px;
+            height: 40px;
+            background-color: #e50914;
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 20px;
-        }
-
-        .user-names {
-            display: flex;
-            flex-direction: column;
+            font-size: 22px;
         }
 
         .display-name {
@@ -151,17 +129,18 @@
 
         .caption {
             font-size: 15px;
-            line-height: 20px;
             margin-bottom: 15px;
+            line-height: 1.4;
         }
 
-        /* Ikonkalar (Like, Comment...) */
+        /* Ikonkalar */
         .actions {
             display: flex;
             justify-content: space-between;
             color: #71767b;
             font-size: 13px;
-            padding-top: 5px;
+            border-top: 1px solid #333;
+            padding-top: 12px;
         }
 
         .action-item {
@@ -169,32 +148,27 @@
             align-items: center;
             gap: 6px;
             cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .action-item:hover {
-            color: #1d9bf0;
         }
     </style>
 </head>
 <body>
 
 <div class="post-container">
-    <div class="video-wrapper">
-        <div class="video-placeholder"></div>
-        <div class="subtitle">
+    <div class="video-wrapper" id="videoContainer">
+        <video id="myVideo" src="https://www.w3schools.com/html/mov_bbb.mp4"></video>
+        
+        <div class="subtitle" id="subtitleText">
             Oh, I know quite a bit<br>about Kitty Song Covey.
         </div>
         
         <div class="controls">
-            <div class="play-btn">
-                <i class="fas fa-pause"></i>
+            <div class="play-btn" id="playBtn">
+                <i class="fas fa-play"></i>
             </div>
-            <div class="progress-container">
-                <div class="progress-bar"></div>
-                <div class="progress-scrubber"></div>
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-bar" id="progressBar"></div>
             </div>
-            <div class="time">0:04 / 0:41</div>
+            <div class="time" id="timeDisplay">0:00 / 0:00</div>
         </div>
     </div>
 
@@ -202,24 +176,73 @@
         <div class="user-header">
             <div class="profile-pic">N</div>
             <div class="user-names">
-                <span class="display-name">netflix⁷ <i class="fas fa-check-circle" style="color: #d4af37;"></i></span>
-                <span class="handle">@netflix</span>
+                <div class="display-name">netflix <i class="fas fa-check-circle" style="color: #d4af37;"></i></div>
+                <div class="handle">@netflix</div>
             </div>
         </div>
         
         <div class="caption">
-            Mentally preparing for XO, Kitty Season 3 with the mooncovey rain scene
+            Mentally preparing for XO, Kitty Season 3 with the mooncovey rain scene ☔️
         </div>
 
         <div class="actions">
             <div class="action-item"><i class="far fa-comment"></i> 366</div>
             <div class="action-item"><i class="fas fa-retweet"></i> 810</div>
-            <div class="action-item"><i class="far fa-heart"></i> 3,5K</div>
+            <div class="action-item"><i class="far fa-heart"></i> 3.5K</div>
             <div class="action-item"><i class="fas fa-chart-simple"></i> 450K</div>
-            <div class="action-item"><i class="far fa-bookmark"></i> <i class="fas fa-share-nodes" style="margin-left: 10px;"></i></div>
+            <div class="action-item"><i class="far fa-bookmark"></i></div>
         </div>
     </div>
 </div>
+
+<script>
+    const video = document.getElementById('myVideo');
+    const playBtn = document.getElementById('playBtn');
+    const progressBar = document.getElementById('progressBar');
+    const progressContainer = document.getElementById('progressContainer');
+    const timeDisplay = document.getElementById('timeDisplay');
+    const videoContainer = document.getElementById('videoContainer');
+
+    // Play/Pause funksiyasi
+    function togglePlay() {
+        if (video.paused) {
+            video.play();
+            playBtn.innerHTML = '<i class="fas fa-pause"></i>';
+        } else {
+            video.pause();
+            playBtn.innerHTML = '<i class="fas fa-play"></i>';
+        }
+    }
+
+    playBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); // Videoni o'zini bosganda ham ishga tushib ketmasligi uchun
+        togglePlay();
+    });
+
+    videoContainer.addEventListener('click', togglePlay);
+
+    // Vaqtni formatlash (0:00 ko'rinishida)
+    function formatTime(seconds) {
+        const min = Math.floor(seconds / 60);
+        const sec = Math.floor(seconds % 60);
+        return `${min}:${sec < 10 ? '0' + sec : sec}`;
+    }
+
+    // Progress bar va vaqtni yangilash
+    video.addEventListener('timeupdate', () => {
+        const percent = (video.currentTime / video.duration) * 100;
+        progressBar.style.width = percent + '%';
+        timeDisplay.innerText = `${formatTime(video.currentTime)} / ${formatTime(video.duration || 0)}`;
+    });
+
+    // Progress barni bosganda videoni o'sha joyga o'tkazish
+    progressContainer.addEventListener('click', (e) => {
+        const width = progressContainer.clientWidth;
+        const clickX = e.offsetX;
+        const duration = video.duration;
+        video.currentTime = (clickX / width) * duration;
+    });
+</script>
 
 </body>
 </html>
