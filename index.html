@@ -1,319 +1,238 @@
+
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube UI Clone</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body {
-            background-color: #0f0f0f;
-            color: white;
-            font-family: 'Roboto', sans-serif;
-        }
-        .hide-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        /* Modern interactive touch feedback */
-        .action-icon {
-            transition: transform 0.1s ease, opacity 0.2s;
-            cursor: pointer;
-        }
-        .action-icon:active {
-            transform: scale(0.92);
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Yakshanba • Profil darajasi</title>
+  <!-- iOS uchun maxsus moslama: font, ranglar, yumshoq soyalar -->
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #f5f5f7; /* iOS uslubidagi och fon */
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 16px;
+      /* qo'shimcha iOS qulaylik */
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .profile-card {
+      max-width: 380px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      background: #ffffff;
+      border-radius: 36px;
+      padding: 28px 24px 32px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.04), 0 8px 16px rgba(0, 0, 0, 0.02);
+      transition: all 0.2s ease;
+      border: 1px solid rgba(0, 0, 0, 0.04);
+    }
+
+    /* sarlavha va kun */
+    .header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 28px;
+    }
+
+    .day {
+      font-size: 20px;
+      font-weight: 600;
+      color: #1d1d1f;
+      letter-spacing: -0.3px;
+    }
+
+    .profile-label {
+      font-size: 15px;
+      font-weight: 500;
+      color: #86868b;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* daraja kartalari uchun container */
+    .levels {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .level-item {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .level-info {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .level-name {
+      font-size: 17px;
+      font-weight: 500;
+      color: #1d1d1f;
+      letter-spacing: -0.3px;
+    }
+
+    .percentage {
+      font-size: 15px;
+      font-weight: 500;
+      color: #86868b;
+      font-feature-settings: "tnum";
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* progress bar konteyneri */
+    .progress-bar-bg {
+      width: 100%;
+      height: 8px;
+      background: #e5e5ea;
+      border-radius: 100px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: #007aff; /* iOS moviy rangi */
+      border-radius: 100px;
+      transition: width 0.8s cubic-bezier(0.2, 0.9, 0.4, 1);
+    }
+
+    /* har bir daraja uchun rang (ixtiyoriy, lekin iOS ruhida) */
+    .level-item:nth-child(1) .progress-fill { background: #34c759; } /* A1 - yashil */
+    .level-item:nth-child(2) .progress-fill { background: #30b0c7; } /* A2 - moviy-yashil */
+    .level-item:nth-child(3) .progress-fill { background: #007aff; } /* B1 - klassik moviy */
+    .level-item:nth-child(4) .progress-fill { background: #5856d6; } /* B2 - binafsha */
+
+    /* foizlar uchun qiymatlar (dinamik ko'rinishi uchun) */
+    .progress-fill.a1 { width: 24%; }
+    .progress-fill.a2 { width: 48%; }
+    .progress-fill.b1 { width: 72%; }
+    .progress-fill.b2 { width: 89%; }
+
+    /* nozik ajratuvchi chiziq (ixtiyoriy) */
+    .divider {
+      margin: 16px 0 8px;
+      height: 1px;
+      background: #f0f0f5;
+    }
+
+    /* iOS qurilmalarida teginish effekti yo'q, faqat ko'rinish */
+    @media (prefers-color-scheme: dark) {
+      /* Agar tizim qorong'u rejimda bo'lsa, avtomatik moslashuv */
+      body {
+        background: #000000;
+      }
+      .profile-card {
+        background: #1c1c1e;
+        border-color: rgba(255, 255, 255, 0.08);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+      }
+      .day, .level-name {
+        color: #f5f5f7;
+      }
+      .profile-label, .percentage {
+        color: #98989d;
+      }
+      .progress-bar-bg {
+        background: #3a3a3c;
+      }
+      .divider {
+        background: #2c2c2e;
+      }
+      /* ranglar biroz yorqinroq ko'rinishi uchun sozlash */
+      .level-item:nth-child(1) .progress-fill { background: #32d74b; }
+      .level-item:nth-child(2) .progress-fill { background: #40c8e0; }
+      .level-item:nth-child(3) .progress-fill { background: #0a84ff; }
+      .level-item:nth-child(4) .progress-fill { background: #6e6ef4; }
+    }
+
+    /* juda kichik ekranlar uchun qo'shimcha noziklik */
+    @media (max-width: 320px) {
+      .profile-card {
+        padding: 20px 18px 24px;
+      }
+      .level-name {
+        font-size: 16px;
+      }
+    }
+  </style>
 </head>
 <body>
-
-    <div class="relative w-full aspect-video bg-zinc-800">
-        <img src="https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&w=1000&q=80" 
-             class="w-full h-full object-cover opacity-80" alt="Video">
-        
-        <div class="absolute bottom-4 left-1/2 -translate-x-1/2">
-            <span class="bg-black/70 px-2 py-0.5 rounded text-[15px]">остатки</span>
-        </div>
+  <div class="profile-card">
+    <div class="header">
+      <span class="day">Yakshanba</span>
+      <span class="profile-label">Profil</span>
     </div>
 
-    <div class="p-4">
-        <h1 class="text-[19px] font-bold leading-tight line-clamp-2">
-            Выполни Безумное Задание - Получи Деньги ! (Сатир, Кореш, Парадеич, Горилла, Кокошка...
-        </h1>
-        <div class="text-[#aaaaaa] text-[13px] mt-1 flex items-center gap-1">
-            <span>21 namoish</span>
-            <span>•</span>
-            <span>3 hafta avval</span>
+    <div class="levels">
+      <!-- A1 Beginner -->
+      <div class="level-item">
+        <div class="level-info">
+          <span class="level-name">A1 Beginner</span>
+          <span class="percentage">24%</span>
         </div>
+        <div class="progress-bar-bg">
+          <div class="progress-fill a1" role="progressbar" aria-valuenow="24" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+      </div>
 
-        <div class="mt-3 flex items-start gap-2 text-[13px] text-zinc-300">
-            <span class="text-lg">🎓</span>
-            <p class="leading-tight">
-                Участвуйте в конкурсе грантов на обучение... <span class="font-bold text-white">Yana</span>
-            </p>
+      <!-- A2 Pre-intermediate -->
+      <div class="level-item">
+        <div class="level-info">
+          <span class="level-name">A2 Pre‑intermediate</span>
+          <span class="percentage">48%</span>
         </div>
+        <div class="progress-bar-bg">
+          <div class="progress-fill a2" role="progressbar" aria-valuenow="48" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+      </div>
 
-        <div class="flex items-center justify-between mt-5">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-pink-500 to-yellow-500 overflow-hidden">
-                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="avatar">
-                </div>
-                <div>
-                    <h3 class="font-bold text-[15px]">Биг Ленд</h3>
-                    <p class="text-[#aaaaaa] text-[12px]">25,4 ming obuna</p>
-                </div>
-            </div>
-            <button class="bg-white text-black px-4 py-2 rounded-full text-[14px] font-bold">
-                Obuna bo'lish
-            </button>
+      <!-- B1 Intermediate -->
+      <div class="level-item">
+        <div class="level-info">
+          <span class="level-name">B1 Intermediate</span>
+          <span class="percentage">72%</span>
         </div>
+        <div class="progress-bar-bg">
+          <div class="progress-fill b1" role="progressbar" aria-valuenow="72" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+      </div>
 
-        <!-- Modern icon row: Like (❤️), Comment, Share (boshqa share ikonkasi), Download, Save -->
-        <div class="flex justify-between items-center mt-6 overflow-x-auto gap-6 hide-scrollbar">
-            <!-- Like: ❤️ heart icon instead of thumbs up -->
-            <div class="flex flex-col items-center gap-1 min-w-fit action-icon" id="likeButton">
-                <i class="fa-regular fa-heart text-2xl transition-all duration-150" id="likeIcon"></i>
-                <span class="text-[11px] font-medium" id="likeCount">12K</span>
-            </div>
-            <!-- Comment: modern chat bubble style -->
-            <div class="flex flex-col items-center gap-1 min-w-fit action-icon" id="commentButton">
-                <i class="fa-regular fa-message text-2xl"></i>
-                <span class="text-[11px] font-medium">45</span>
-            </div>
-            <!-- Share: boshqa share ikonkasi - fa-share-nodes (zamonaviy va farqli) -->
-            <div class="flex flex-col items-center gap-1 min-w-fit action-icon" id="shareButton">
-                <i class="fa-solid fa-share-nodes text-2xl"></i>
-                <span class="text-[11px] font-medium">Ulashish</span>
-            </div>
-            <!-- Download: unchanged -->
-            <div class="flex flex-col items-center gap-1 min-w-fit action-icon">
-                <i class="fa-solid fa-arrow-down-to-line text-2xl"></i>
-                <span class="text-[11px] font-medium">Yuklash</span>
-            </div>
-            <!-- Save: modern bookmark icon -->
-            <div class="flex flex-col items-center gap-1 min-w-fit action-icon" id="saveButton">
-                <i class="fa-regular fa-bookmark text-2xl" id="saveIcon"></i>
-                <span class="text-[11px] font-medium" id="saveText">Saqlash</span>
-            </div>
+      <!-- B2 Upper-intermediate -->
+      <div class="level-item">
+        <div class="level-info">
+          <span class="level-name">B2 Upper‑intermediate</span>
+          <span class="percentage">89%</span>
         </div>
+        <div class="progress-bar-bg">
+          <div class="progress-fill b2" role="progressbar" aria-valuenow="89" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+      </div>
     </div>
 
-    <hr class="border-zinc-800 my-2">
+    <!-- nozik dekorativ chiziq (charchatmaslik uchun minimal) -->
+    <div class="divider"></div>
+  </div>
 
-    <div class="p-4">
-        <h2 class="text-[16px] font-bold mb-4">Bularni ham ko'ring</h2>
-
-        <div class="flex flex-col gap-3 mb-6">
-            <div class="relative">
-                <img src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=1000&q=80" 
-                     class="w-full rounded-xl aspect-video object-cover" alt="Thumbnail">
-                
-                <div class="absolute bottom-2 right-2 bg-black/80 px-1 py-0.5 rounded text-[12px] font-medium">
-                    1:13:23
-                </div>
-
-                <div class="absolute bottom-4 left-3 flex items-center gap-2">
-                    <div class="bg-yellow-400 text-black font-black italic px-2 py-0.5 rounded text-[13px] shadow-lg">
-                        1.000.000₽
-                    </div>
-                    <div class="bg-white text-black font-black px-2 py-0.5 rounded text-[13px] shadow-lg">
-                        СКОЛЬКО???
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex gap-3">
-                <div class="w-9 h-9 rounded-full bg-orange-600 flex-shrink-0 flex items-center justify-center font-bold text-white text-sm">
-                    H
-                </div>
-                <div class="flex-1">
-                    <h3 class="text-[15px] font-medium leading-tight line-clamp-2">
-                        Сколько стоил хайп с МК? / Возможно ли создать русского МК...
-                    </h3>
-                    <p class="text-[#aaaaaa] text-[12px] mt-1">
-                        HOOPS • 116 ming namoish • 1 oy avval
-                    </p>
-                </div>
-                <div class="pt-1">
-                    <i class="fa-solid fa-ellipsis-vertical text-zinc-400"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Micro-interactions: Like (❤️ toggle), Save toggle, Comment & Share toast notifications -->
-    <script>
-        (function() {
-            // Like button with heart icon (❤️)
-            let isLiked = false;
-            const likeIcon = document.getElementById('likeIcon');
-            const likeCountSpan = document.getElementById('likeCount');
-            let currentLikes = 12000; // 12K
-            
-            function updateLikeUI() {
-                if (isLiked) {
-                    likeIcon.className = 'fa-solid fa-heart text-2xl text-red-500 transition-all duration-150';
-                } else {
-                    likeIcon.className = 'fa-regular fa-heart text-2xl transition-all duration-150';
-                }
-                // Format like count
-                if (currentLikes >= 1000) {
-                    let formatted = (currentLikes / 1000).toFixed(1);
-                    if (formatted.endsWith('.0')) formatted = formatted.slice(0, -2);
-                    likeCountSpan.innerText = formatted + 'K';
-                } else {
-                    likeCountSpan.innerText = currentLikes.toString();
-                }
-            }
-            
-            const likeBtn = document.getElementById('likeButton');
-            if (likeBtn) {
-                likeBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    if (!isLiked) {
-                        currentLikes += 1;
-                        isLiked = true;
-                    } else {
-                        currentLikes -= 1;
-                        isLiked = false;
-                    }
-                    updateLikeUI();
-                    likeBtn.style.transform = 'scale(0.95)';
-                    setTimeout(() => { if(likeBtn) likeBtn.style.transform = ''; }, 120);
-                });
-            }
-            
-            // Save (bookmark) toggle
-            let isSaved = false;
-            const saveIcon = document.getElementById('saveIcon');
-            const saveTextSpan = document.getElementById('saveText');
-            const saveBtn = document.getElementById('saveButton');
-            if (saveBtn) {
-                saveBtn.addEventListener('click', () => {
-                    isSaved = !isSaved;
-                    if (isSaved) {
-                        saveIcon.className = 'fa-solid fa-bookmark text-2xl text-yellow-400 transition-all duration-150';
-                        saveTextSpan.innerText = 'Saqlangan';
-                    } else {
-                        saveIcon.className = 'fa-regular fa-bookmark text-2xl transition-all duration-150';
-                        saveTextSpan.innerText = 'Saqlash';
-                    }
-                    saveBtn.style.transform = 'scale(0.95)';
-                    setTimeout(() => { if(saveBtn) saveBtn.style.transform = ''; }, 120);
-                });
-            }
-            
-            // Comment interaction: toast notification
-            const commentBtn = document.getElementById('commentButton');
-            if (commentBtn) {
-                commentBtn.addEventListener('click', () => {
-                    const toastMsg = document.createElement('div');
-                    toastMsg.innerText = '💬 45 ta sharh';
-                    toastMsg.style.position = 'fixed';
-                    toastMsg.style.bottom = '20px';
-                    toastMsg.style.left = '50%';
-                    toastMsg.style.transform = 'translateX(-50%)';
-                    toastMsg.style.backgroundColor = '#272727';
-                    toastMsg.style.color = 'white';
-                    toastMsg.style.padding = '8px 16px';
-                    toastMsg.style.borderRadius = '40px';
-                    toastMsg.style.fontSize = '13px';
-                    toastMsg.style.fontWeight = '500';
-                    toastMsg.style.zIndex = '999';
-                    toastMsg.style.boxShadow = '0 4px 12px rgba(0,0,0,0.4)';
-                    toastMsg.style.backdropFilter = 'blur(8px)';
-                    toastMsg.style.border = '1px solid #3f3f3f';
-                    document.body.appendChild(toastMsg);
-                    setTimeout(() => {
-                        toastMsg.style.opacity = '0';
-                        toastMsg.style.transition = 'opacity 0.2s';
-                        setTimeout(() => toastMsg.remove(), 300);
-                    }, 1500);
-                    commentBtn.style.transform = 'scale(0.95)';
-                    setTimeout(() => { if(commentBtn) commentBtn.style.transform = ''; }, 120);
-                });
-            }
-            
-            // Share interaction with new share icon (fa-share-nodes) - modern share simulation
-            const shareBtn = document.getElementById('shareButton');
-            if (shareBtn) {
-                shareBtn.addEventListener('click', () => {
-                    const shareToast = document.createElement('div');
-                    shareToast.innerText = '📤 Havola nusxalandi | Ulashish';
-                    shareToast.style.position = 'fixed';
-                    shareToast.style.bottom = '20px';
-                    shareToast.style.left = '50%';
-                    shareToast.style.transform = 'translateX(-50%)';
-                    shareToast.style.backgroundColor = '#1f1f1f';
-                    shareToast.style.color = '#fff';
-                    shareToast.style.padding = '8px 18px';
-                    shareToast.style.borderRadius = '40px';
-                    shareToast.style.fontSize = '13px';
-                    shareToast.style.fontWeight = '500';
-                    shareToast.style.zIndex = '999';
-                    shareToast.style.boxShadow = '0 6px 14px rgba(0,0,0,0.5)';
-                    shareToast.style.border = '1px solid #3a3a3a';
-                    shareToast.style.backdropFilter = 'blur(8px)';
-                    document.body.appendChild(shareToast);
-                    setTimeout(() => {
-                        shareToast.style.opacity = '0';
-                        shareToast.style.transition = 'opacity 0.2s';
-                        setTimeout(() => shareToast.remove(), 300);
-                    }, 1500);
-                    shareBtn.style.transform = 'scale(0.95)';
-                    setTimeout(() => { if(shareBtn) shareBtn.style.transform = ''; }, 120);
-                });
-            }
-            
-            // Download subtle feedback (unchanged functionality)
-            const downloadBtn = document.querySelector('.action-icon .fa-arrow-down-to-line')?.parentElement?.parentElement;
-            if (downloadBtn) {
-                downloadBtn.addEventListener('click', () => {
-                    const dlToast = document.createElement('div');
-                    dlToast.innerText = '⬇️ Yuklab olish simulyatsiyasi';
-                    dlToast.style.position = 'fixed';
-                    dlToast.style.bottom = '20px';
-                    dlToast.style.left = '50%';
-                    dlToast.style.transform = 'translateX(-50%)';
-                    dlToast.style.backgroundColor = '#222';
-                    dlToast.style.color = '#eee';
-                    dlToast.style.padding = '8px 18px';
-                    dlToast.style.borderRadius = '40px';
-                    dlToast.style.fontSize = '13px';
-                    dlToast.style.zIndex = '999';
-                    dlToast.style.border = '1px solid #444';
-                    document.body.appendChild(dlToast);
-                    setTimeout(() => {
-                        dlToast.style.opacity = '0';
-                        dlToast.style.transition = 'opacity 0.2s';
-                        setTimeout(() => dlToast.remove(), 300);
-                    }, 1200);
-                });
-            }
-            
-            // Initial formatting for like count
-            function initFormat() {
-                if (currentLikes >= 1000) {
-                    let formatted = (currentLikes / 1000).toFixed(1);
-                    if (formatted.endsWith('.0')) formatted = formatted.slice(0, -2);
-                    likeCountSpan.innerText = formatted + 'K';
-                } else {
-                    likeCountSpan.innerText = currentLikes.toString();
-                }
-            }
-            initFormat();
-            
-            // Hover effects for modern icons
-            const allActionItems = document.querySelectorAll('.action-icon');
-            allActionItems.forEach(item => {
-                item.addEventListener('mouseenter', () => {
-                    item.style.opacity = '0.85';
-                });
-                item.addEventListener('mouseleave', () => {
-                    item.style.opacity = '1';
-                });
-            });
-        })();
-    </script>
+  <!-- iOS qurilmalar uchun qo'shimcha teginish holatini yo'q qilish, 
+       faqat vizual ko'rinish. JavaScript shart emas, lekin dinamik progress uchun qo'shish mumkin. -->
 </body>
 </html>
