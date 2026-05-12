@@ -78,10 +78,10 @@
     .content-scroll {
       flex: 1;
       overflow-y: auto;
-      padding: 80px 20px 210px; /* yuqori va pastdan joy qoldiramiz */
+      padding: 80px 20px 210px;
       scroll-behavior: smooth;
       -webkit-overflow-scrolling: touch;
-      background-color: #000000; /* aniq qora fon */
+      background-color: #000000;
     }
 
     .sentence-card {
@@ -200,7 +200,6 @@
       background: rgba(255,255,255,0.1);
     }
 
-    /* Takrorlash tugmasi faol holati */
     .player-controls i.active-repeat {
       color: var(--blue-active);
       text-shadow: 0 0 12px rgba(0, 122, 255, 0.6);
@@ -231,7 +230,6 @@
       padding: 0;
     }
 
-    /* Oldingi/Keyingi tugmalarini biroz kattalashtiramiz */
     .player-controls i.fa-backward-step,
     .player-controls i.fa-forward-step {
       font-size: 26px;
@@ -241,13 +239,12 @@
 <body>
 
 <div class="header">
-  <!-- Orqaga qaytish tugmasi index.html ga yo'naltiradi -->
   <a href="index.html" class="back-btn"><i class="fas fa-chevron-left"></i></a>
   <h1>O'zingizni tanishtiring</h1>
 </div>
 
 <main class="content-scroll" id="contentArea">
-  <!-- JavaScript orqali gaplar qo'shiladi -->
+  <!-- Kartochkalar olib tashlandi -->
 </main>
 
 <div class="player-fixed">
@@ -278,7 +275,6 @@
 
 <script>
   (function() {
-    // Gaplar ro'yxati - to'liq 45 ta gap
     const sentences = [
       ["My name is Ali.", "Mening ismim Ali."],
       ["I am 20 years old.", "Men 20 yoshdaman."],
@@ -327,7 +323,6 @@
       ["I plan to open my own business.", "Men o'z biznesimni ochmoqchiman."]
     ];
 
-    const container = document.getElementById('contentArea');
     const repeatBtn = document.getElementById('repeatBtn');
     const progressFill = document.getElementById('progressFill');
     const currentTimeSpan = document.getElementById('currentTime');
@@ -337,31 +332,15 @@
     let currentIdx = 0;
     let isRepeatMode = false;
 
-    // Ekranga kartochkalarni chiqarish
-    function renderCards() {
-      container.innerHTML = '';
-      sentences.forEach((s, i) => {
-        const card = document.createElement('div');
-        card.className = `sentence-card ${i === 0 ? 'active' : ''}`;
-        card.innerHTML = `<span class="en">${s[0]}</span><span class="uz">${s[1]}</span>`;
-        card.addEventListener('click', () => updateActive(i));
-        container.appendChild(card);
-      });
-    }
-
-    // Vaqtni formatlash (mm:ss)
     function formatTime(seconds) {
       const mins = Math.floor(seconds / 60);
       const secs = Math.floor(seconds % 60);
       return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     }
 
-    // Progress va vaqtni yangilash (jami davomiylik 1:53 = 113 soniya deb oldik)
     function updateProgressForIndex(index) {
-      const totalDuration = 113; // 1 daqiqa 53 soniya
-      // Har bir gapga teng vaqt ajratamiz
+      const totalDuration = 113;
       const perSentence = totalDuration / sentences.length;
-      // Hozirgi gapning boshlanish vaqti (taxminan)
       const currentSeconds = index * perSentence;
       
       const progressPercent = ((index + 1) / sentences.length) * 100;
@@ -372,48 +351,24 @@
       }
     }
 
-    // Faol kartani yangilash
-    function updateActive(index) {
-      if (index < 0 || index >= sentences.length) return;
-      
-      currentIdx = index;
-      
-      // Barcha kartalardan active klassini olib tashlash
-      const cards = document.querySelectorAll('.sentence-card');
-      cards.forEach(c => c.classList.remove('active'));
-      
-      // Yangi faol kartani belgilash
-      if (cards[index]) {
-        cards[index].classList.add('active');
-        // Ko'rinadigan qismga siljitish (markazlashtirish)
-        cards[index].scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-      
-      updateProgressForIndex(index);
-    }
-
-    // Oldingi/Keyingi gapga o'tish
     window.changeSentence = function(step) {
-      // Agar takrorlash rejimi yoqilgan bo'lsa va oldinga (step=1) bosilsa, indeksni o'zgartirmaymiz
       if (isRepeatMode && step === 1) {
-        // Faqat joriy gapni qayta ko'rsatamiz (animatsiya/effekt)
-        updateActive(currentIdx);
+        updateProgressForIndex(currentIdx);
         return;
       }
       
       let newIndex = currentIdx + step;
       if (newIndex >= 0 && newIndex < sentences.length) {
-        updateActive(newIndex);
+        currentIdx = newIndex;
+        updateProgressForIndex(currentIdx);
       }
     };
 
-    // Takrorlash tugmasi
     repeatBtn.addEventListener('click', function(e) {
       isRepeatMode = !isRepeatMode;
       this.classList.toggle('active-repeat');
     });
 
-    // Play/Pause tugmasi (oddiy ikonka almashtirish)
     playBtn.addEventListener('click', function() {
       if (playIcon.classList.contains('fa-pause')) {
         playIcon.classList.remove('fa-pause');
@@ -424,12 +379,6 @@
       }
     });
 
-    // Boshlang'ich holat
-    renderCards();
-    updateProgressForIndex(0);
-
-    // Boshlang'ich progress bar 5% emas, 1/45 qismdan boshlansin
-    // Qayta hisoblaymiz: indeks 0 => progress 1/45*100
     const initialPercent = (1 / sentences.length) * 100;
     progressFill.style.width = initialPercent + '%';
     if (currentTimeSpan) currentTimeSpan.textContent = '00:00';
