@@ -7,9 +7,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --bg-dark: #0A0A0A;
-            --player-bg: #121212;
+            --bg-dark: #000000;
             --card-bg: #1C1C1E;
+            --player-bg: #0A0A0A;
             --accent: #FFFFFF;
             --text-secondary: #8E8E93;
         }
@@ -23,65 +23,109 @@
             display: flex;
             flex-direction: column;
             height: 100vh;
-            overflow: hidden; /* Asosiy body skrol bo'lmaydi */
+            overflow: hidden;
         }
 
-        /* Yuqori qism (Header va Player) - Mahkamlangan */
-        .sticky-header {
-            background-color: var(--bg-dark);
-            padding: 15px 20px 5px;
-            z-index: 100;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-        }
-
-        .top-nav {
+        /* Yuqori navigatsiya (Fixed Top) */
+        .header {
+            padding: 20px;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
             display: flex;
             align-items: center;
-            margin-bottom: 20px;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
         }
 
         .back-btn {
             color: white;
             text-decoration: none;
-            font-size: 20px;
+            font-size: 22px;
             margin-right: 15px;
         }
 
-        .top-nav h1 {
+        .header h1 {
             font-size: 20px;
-            font-weight: 600;
             margin: 0;
+            font-weight: 600;
         }
 
-        /* Audio Player */
-        .audio-player {
+        /* Matnlar qismi (Scrollable) */
+        .content-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 80px 20px 200px; /* Tepadan header, pastdan player uchun joy */
+            scroll-behavior: smooth;
+        }
+
+        .sentence-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 12px;
+            border: 2px solid transparent;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        /* ACTIVE: Oq ko'rsatgich (hoshiya) */
+        .sentence-card.active {
+            border-color: #FFFFFF;
+            background: #2C2C2E;
+            transform: scale(1.02);
+        }
+
+        .en {
+            font-size: 18px;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .uz {
+            font-size: 15px;
+            color: var(--text-secondary);
+            display: block;
+        }
+
+        /* Audio Player (Fixed Bottom) - Rasmga mos dizayn */
+        .player-fixed {
+            position: fixed;
+            bottom: 0;
+            left: 0;
             width: 100%;
-            max-width: 500px;
-            margin: 0 auto;
+            background: var(--player-bg);
+            padding: 20px;
+            border-top: 1px solid #333;
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
+            z-index: 1000;
         }
 
-        .progress-container {
+        .progress-box {
             width: 100%;
+            max-width: 600px;
+            margin: 0 auto 15px;
         }
 
-        .progress-bar-wrapper {
+        .bar-container {
             width: 100%;
             height: 4px;
             background: #333;
             border-radius: 2px;
             position: relative;
-            cursor: pointer;
         }
 
-        .progress-current {
-            width: 15%; /* Namuna uchun */
+        .bar-fill {
+            width: 15%; /* Simulatsiya */
             height: 100%;
             background: #777;
             border-radius: 2px;
             position: relative;
         }
 
-        .progress-dot {
+        .bar-dot {
             position: absolute;
             right: -6px;
             top: -4px;
@@ -89,31 +133,32 @@
             height: 12px;
             background: #FFFFFF;
             border-radius: 50%;
-            box-shadow: 0 0 5px rgba(0,0,0,0.5);
         }
 
-        .time-info {
+        .time-labels {
             display: flex;
             justify-content: space-between;
-            font-size: 13px;
+            font-size: 12px;
             color: var(--text-secondary);
             margin-top: 8px;
         }
 
-        .controls {
+        .player-controls {
             display: flex;
-            justify-content: space-between;
+            justify-content: space-around;
             align-items: center;
-            padding: 10px 20px 20px;
+            max-width: 500px;
+            margin: 0 auto;
+            padding-bottom: 10px;
         }
 
-        .controls i {
-            font-size: 20px;
-            color: #BBBBBB;
+        .player-controls i {
+            font-size: 22px;
+            color: #BBB;
             cursor: pointer;
         }
 
-        .play-pause-btn {
+        .btn-play-pause {
             width: 65px;
             height: 65px;
             background: #222;
@@ -123,99 +168,48 @@
             justify-content: center;
         }
 
-        .play-pause-btn i {
+        .btn-play-pause i {
             font-size: 26px;
-            color: #FFFFFF;
-        }
-
-        /* Skrol bo'ladigan matnlar qismi */
-        .scrollable-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            scroll-behavior: smooth;
-        }
-
-        .sentence-card {
-            background: var(--card-bg);
-            padding: 18px;
-            border-radius: 15px;
-            border: 2px solid transparent; /* Oddiy holatda hoshiya yo'q */
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        /* ACTIVE HOLATI (Rasmda qizil/oq bilan so'ralgan joy) */
-        .sentence-card.active {
-            border-color: #FFFFFF; /* Oq ko'rsatgich (hoshiya) */
-            background: #252529;
-            transform: scale(1.02);
-        }
-
-        .en {
-            font-size: 17px;
-            font-weight: 600;
-            display: block;
-            margin-bottom: 4px;
-        }
-
-        .uz {
-            font-size: 14px;
-            color: var(--text-secondary);
-            display: block;
-        }
-
-        /* Scrollbar dizayni */
-        .scrollable-content::-webkit-scrollbar {
-            width: 4px;
-        }
-        .scrollable-content::-webkit-scrollbar-thumb {
-            background: #333;
-            border-radius: 10px;
+            color: #FFF;
         }
     </style>
 </head>
 <body>
 
-    <div class="sticky-header">
-        <div class="top-nav">
-            <a href="index.html" class="back-btn"><i class="fas fa-chevron-left"></i></a>
-            <h1>O'zingizni tanishtiring</h1>
+    <div class="header">
+        <a href="index.html" class="back-btn"><i class="fas fa-chevron-left"></i></a>
+        <h1>O'zingizni tanishtiring</h1>
+    </div>
+
+    <main class="content-scroll" id="contentArea">
+        </main>
+
+    <div class="player-fixed">
+        <div class="progress-box">
+            <div class="bar-container">
+                <div class="bar-fill" id="progressFill">
+                    <div class="bar-dot"></div>
+                </div>
+            </div>
+            <div class="time-labels">
+                <span id="currentTime">00:06</span>
+                <span>01:53</span>
+            </div>
         </div>
 
-        <div class="audio-player">
-            <div class="progress-container">
-                <div class="progress-bar-wrapper">
-                    <div class="progress-current" id="progressBar">
-                        <div class="progress-dot"></div>
-                    </div>
-                </div>
-                <div class="time-info">
-                    <span id="currentTime">00:06</span>
-                    <span>01:53</span>
-                </div>
+        <div class="player-controls">
+            <i class="fas fa-arrows-rotate"></i>
+            <i class="fas fa-backward-step" onclick="changeSentence(-1)"></i>
+            <div class="btn-play-pause" id="playBtn">
+                <i class="fas fa-pause"></i>
             </div>
-
-            <div class="controls">
-                <i class="fas fa-arrows-rotate"></i>
-                <i class="fas fa-backward-step" onclick="prevSentence()"></i>
-                <div class="play-pause-btn" id="playBtn">
-                    <i class="fas fa-pause"></i>
-                </div>
-                <i class="fas fa-forward-step" onclick="nextSentence()"></i>
-                <i class="fas fa-shuffle"></i>
-            </div>
+            <i class="fas fa-forward-step" onclick="changeSentence(1)"></i>
+            <i class="fas fa-shuffle"></i>
         </div>
     </div>
 
-    <main class="scrollable-content" id="sentencesList">
-        </main>
-
     <script>
-        const data = [
+        const sentences = [
             ["My name is Ali.", "Mening ismim Ali."],
             ["I am 20 years old.", "Men 20 yoshdaman."],
             ["I was born in 2005.", "Men 2005-yilda tug'ilganman."],
@@ -226,48 +220,75 @@
             ["I moved to this city last year.", "Men o'tgan yili bu shaharga ko'chib kelganman."],
             ["I have a big family.", "Mening katta oilam bor."],
             ["I have two brothers and one sister.", "Mening ikkita aka-ukam va bir opam bor."],
-            ["My father is a teacher.", "Mening otam o'qituvchi."]
-            // ... qolgan gaplar ham shu tartibda davom etadi
+            ["My father is a teacher.", "Mening otam o'qituvchi."],
+            ["I live with my parents.", "Men ota-onam bilan yashayman."],
+            ["I study at State University.", "Men Davlat Universitetida o'qiyman."],
+            ["I am a student.", "Men talabaman."],
+            ["I study English.", "Men ingliz tilini o'qiyman."],
+            ["I will graduate next year.", "Men kelgusi yil bitiruvchiman."],
+            ["I want to be a programmer.", "Men dasturchi bo'lmoqchiman."],
+            ["I like reading books.", "Men kitob o'qishni yoqtiraman."],
+            ["I enjoy playing football.", "Men futbol o'ynashdan zavq olaman."],
+            ["I love listening to music.", "Men musiqa tinglashni yaxshi ko'raman."],
+            ["I am interested in technology.", "Men texnologiyaga qiziqaman."],
+            ["I like watching movies.", "Men filmlar ko'rishni yoqtiraman."],
+            ["My hobby is drawing.", "Mening xobbim — chizish."],
+            ["I enjoy taking photos.", "Men suratga tushishdan zavq olaman."],
+            ["I play chess in my free time.", "Men bo'sh vaqtda shaxmat o'ynayman."],
+            ["I like green color.", "Men yashil rangni yoqtiraman."],
+            ["I love pizza and burgers.", "Men pitsa va burgerlarni yaxshi ko'raman."],
+            ["I like summer most.", "Men yozni eng ko'p yoqtiraman."],
+            ["I enjoy traveling.", "Men sayohat qilishdan zavq olaman."],
+            ["I like spending time with friends.", "Men do'stlar bilan vaqt o'tkazishni yoqtiraman."],
+            ["I don't like waking up early.", "Men erta turishni yoqtirmayman."],
+            ["I hate waiting in lines.", "Men navbat kutishdan nafratlanaman."],
+            ["I don't like loud music.", "Men baland musiqani yoqtirmayman."],
+            ["I dislike cold weather.", "Men sovuq ob-havoni yoqtirmayman."],
+            ["I don't eat fish.", "Men baliq yemayman."],
+            ["I am a friendly person.", "Men do'stona odamman."],
+            ["I am hard-working.", "Men mehnatsevar odamman."],
+            ["I am always happy.", "Men har doim baxtli odamman."],
+            ["I am a good listener.", "Men yaxshi tinglovchiman."],
+            ["I try to be honest.", "Men rostgo'y bo'lishga harakat qilaman."],
+            ["I want to travel around the world.", "Men butun dunyo bo'ylab sayohat qilmoqchiman."],
+            ["I want to learn three languages.", "Men uchta til o'rganmoqchiman."],
+            ["I hope to find a good job.", "Men yaxshi ish topishni umid qilaman."],
+            ["I dream of visiting Japan.", "Men Yaponiyaga borishni orzu qilaman."],
+            ["I plan to open my own business.", "Men o'z biznesimni ochmoqchiman."]
         ];
 
-        const listContainer = document.getElementById('sentencesList');
-        let currentIndex = 0;
+        const container = document.getElementById('contentArea');
+        let currentIdx = 0;
 
-        // Gaplarni ekranga chiqarish
-        data.forEach((item, index) => {
+        // Gaplarni yaratish
+        sentences.forEach((s, i) => {
             const card = document.createElement('div');
-            card.className = `sentence-card ${index === 0 ? 'active' : ''}`;
-            card.innerHTML = `
-                <span class="en">${item[0]}</span>
-                <span class="uz">${item[1]}</span>
-            `;
-            card.onclick = () => setActive(index);
-            listContainer.appendChild(card);
+            card.className = `sentence-card ${i === 0 ? 'active' : ''}`;
+            card.innerHTML = `<span class="en">${s[0]}</span><span class="uz">${s[1]}</span>`;
+            card.onclick = () => updateActive(i);
+            container.appendChild(card);
         });
 
-        function setActive(index) {
-            currentIndex = index;
-            // Barcha kartochkalardan 'active' klassini olib tashlash
+        function updateActive(index) {
+            currentIdx = index;
             document.querySelectorAll('.sentence-card').forEach(c => c.classList.remove('active'));
             
-            // Tanlanganiga qo'shish
-            const activeCard = listContainer.children[index];
+            const activeCard = container.children[index];
             activeCard.classList.add('active');
             
-            // Avtomatik skrol qilish (o'rtaga keltirish)
+            // O'rtaga skrol qilish
             activeCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-            // Progress barni simulatsiya qilish
-            const percent = ((index + 1) / data.length) * 100;
-            document.getElementById('progressBar').style.width = percent + '%';
+            // Progress bar yangilanishi
+            const progress = ((index + 1) / sentences.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
         }
 
-        function nextSentence() {
-            if (currentIndex < data.length - 1) setActive(currentIndex + 1);
-        }
-
-        function prevSentence() {
-            if (currentIndex > 0) setActive(currentIndex - 1);
+        function changeSentence(step) {
+            let newIndex = currentIdx + step;
+            if (newIndex >= 0 && newIndex < sentences.length) {
+                updateActive(newIndex);
+            }
         }
 
         // Play/Pause animatsiyasi
