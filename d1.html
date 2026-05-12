@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1-Dars | O'zingizni tanishtiring</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-dark: #0A0A0A; /* Rasmga mos o'ta to'q fon */
+            --player-bg: #161616;
+            --accent: #FFFFFF;
+            --text-secondary: #8E8E93;
+            --card-bg: #1C1C1E;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: #FFFFFF;
+            font-family: -apple-system, system-ui, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Navigatsiya */
+        .top-nav {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .back-btn {
+            color: white;
+            text-decoration: none;
+            font-size: 20px;
+            margin-right: 15px;
+        }
+
+        header h1 {
+            font-size: 22px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        /* Audio Player Dizayni (Rasmga 1:1 moslangan) */
+        .audio-player {
+            width: 100%;
+            max-width: 500px;
+            background: var(--bg-dark);
+            padding: 20px 0;
+            margin-bottom: 40px;
+        }
+
+        .progress-container {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .progress-bar-wrapper {
+            position: relative;
+            width: 100%;
+            height: 3px;
+            background: #333;
+            border-radius: 2px;
+        }
+
+        .progress-current {
+            width: 30%; /* Namuna uchun */
+            height: 100%;
+            background: #666;
+            position: relative;
+        }
+
+        .progress-dot {
+            position: absolute;
+            right: -5px;
+            top: -4px;
+            width: 12px;
+            height: 12px;
+            background: #ccc;
+            border-radius: 50%;
+        }
+
+        .time-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 30px;
+        }
+
+        .controls i {
+            font-size: 22px;
+            color: #888;
+            cursor: pointer;
+        }
+
+        .play-pause-btn {
+            width: 70px;
+            height: 70px;
+            background: #222;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .play-pause-btn i {
+            font-size: 28px;
+            color: #DDD;
+            margin-left: 0; /* Play bo'lganda 3px suriladi */
+        }
+
+        /* Gaplar ro'yxati */
+        .content-list {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .sentence-card {
+            background: var(--card-bg);
+            padding: 18px;
+            border-radius: 15px;
+            border-left: 4px solid #333;
+        }
+
+        .en {
+            font-size: 18px;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 5px;
+            color: #FFFFFF;
+        }
+
+        .uz {
+            font-size: 15px;
+            color: var(--text-secondary);
+            display: block;
+        }
+
+        @media (max-width: 400px) {
+            .controls { padding: 20px 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-nav">
+        <a href="index.html" class="back-btn"><i class="fas fa-chevron-left"></i></a>
+        <header><h1>O'zingizni tanishtiring</h1></header>
+    </div>
+
+    <div class="audio-player">
+        <div class="progress-container">
+            <div class="progress-bar-wrapper">
+                <div class="progress-current">
+                    <div class="progress-dot"></div>
+                </div>
+            </div>
+            <div class="time-info">
+                <span>00:06</span>
+                <span>01:53</span>
+            </div>
+        </div>
+
+        <div class="controls">
+            <i class="fas fa-arrows-rotate"></i>
+            <i class="fas fa-backward-step"></i>
+            <div class="play-pause-btn" id="playBtn">
+                <i class="fas fa-pause"></i> </div>
+            <i class="fas fa-forward-step"></i>
+            <i class="fas fa-shuffle"></i>
+        </div>
+    </div>
+
+    <main class="content-list" id="sentences">
+        </main>
+
+    <script>
+        const data = [
+            ["My name is Ali.", "Mening ismim Ali."],
+            ["I am 20 years old.", "Men 20 yoshdaman."],
+            ["I was born in 2005.", "Men 2005-yilda tug'ilganman."],
+            ["I am the youngest in my family.", "Men oilamda eng kichikman."],
+            ["I live in Tashkent.", "Men Toshkentda yashayman."],
+            ["My city is beautiful.", "Mening shahrim chiroyli."],
+            ["I live near the park.", "Men bog' yaqinida yashayman."],
+            ["I moved to this city last year.", "Men o'tgan yili bu shaharga ko'chib kelganman."],
+            ["I have a big family.", "Mening katta oilam bor."],
+            ["I have two brothers and one sister.", "Mening ikkita aka-ukam va bir opam bor."],
+            ["My father is a teacher.", "Mening otam o'qituvchi."],
+            ["I live with my parents.", "Men ota-onam bilan yashayman."],
+            ["I study at State University.", "Men Davlat Universitetida o'qiyman."],
+            ["I am a student.", "Men talabaman."],
+            ["I study English.", "Men ingliz tilini o'qiyman."],
+            ["I will graduate next year.", "Men kelgusi yil bitiruvchiman."],
+            ["I want to be a programmer.", "Men dasturchi bo'lmoqchiman."],
+            ["I like reading books.", "Men kitob o'qishni yoqtiraman."],
+            ["I enjoy playing football.", "Men futbol o'ynashdan zavq olaman."],
+            ["I love listening to music.", "Men musiqa tinglashni yaxshi ko'raman."],
+            ["I am interested in technology.", "Men texnologiyaga qiziqaman."],
+            ["I like watching movies.", "Men filmlar ko'rishni yoqtiraman."],
+            ["My hobby is drawing.", "Mening xobbim — chizish."],
+            ["I enjoy taking photos.", "Men suratga tushishdan zavq olaman."],
+            ["I play chess in my free time.", "Men bo'sh vaqtda shaxmat o'ynayman."],
+            ["I like green color.", "Men yashil rangni yoqtiraman."],
+            ["I love pizza and burgers.", "Men pitsa va burgerlarni yaxshi ko'raman."],
+            ["I like summer most.", "Men yozni eng ko'p yoqtiraman."],
+            ["I enjoy traveling.", "Men sayohat qilishdan zavq olaman."],
+            ["I like spending time with friends.", "Men do'stlar bilan vaqt o'tkazishni yoqtiraman."],
+            ["I don't like waking up early.", "Men erta turishni yoqtirmayman."],
+            ["I hate waiting in lines.", "Men navbat kutishdan nafratlanaman."],
+            ["I don't like loud music.", "Men baland musiqani yoqtirmayman."],
+            ["I dislike cold weather.", "Men sovuq ob-havoni yoqtirmayman."],
+            ["I don't eat fish.", "Men baliq yemayman."],
+            ["I am a friendly person.", "Men do'stona odamman."],
+            ["I am hard-working.", "Men mehnatsevar odamman."],
+            ["I am always happy.", "Men har doim baxtli odamman."],
+            ["I am a good listener.", "Men yaxshi tinglovchiman."],
+            ["I try to be honest.", "Men rostgo'y bo'lishga harakat qilaman."],
+            ["I want to travel around the world.", "Men butun dunyo bo'ylab sayohat qilmoqchiman."],
+            ["I want to learn three languages.", "Men uchta til o'rganmoqchiman."],
+            ["I hope to find a good job.", "Men yaxshi ish topishni umid qilaman."],
+            ["I dream of visiting Japan.", "Men Yaponiyaga borishni orzu qilaman."],
+            ["I plan to open my own business.", "Men o'z biznesimni ochmoqchiman."]
+        ];
+
+        const container = document.getElementById('sentences');
+
+        data.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'sentence-card';
+            card.innerHTML = `
+                <span class="en">${item[0]}</span>
+                <span class="uz">${item[1]}</span>
+            `;
+            container.appendChild(card);
+        });
+
+        // Oddiy play/pause funksiyasi (vizual)
+        const playBtn = document.getElementById('playBtn');
+        const icon = playBtn.querySelector('i');
+        playBtn.addEventListener('click', () => {
+            if(icon.classList.contains('fa-pause')) {
+                icon.classList.replace('fa-pause', 'fa-play');
+                icon.style.marginLeft = "4px";
+            } else {
+                icon.classList.replace('fa-play', 'fa-pause');
+                icon.style.marginLeft = "0";
+            }
+        });
+    </script>
+</body>
+</html>
