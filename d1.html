@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="uz">
 <head>
@@ -86,6 +87,15 @@
 
     .text-item {
       margin-bottom: 24px;
+      padding: 12px;
+      border-radius: 12px;
+      border: 2px solid transparent;
+      transition: border-color 0.3s ease, background-color 0.3s ease;
+    }
+
+    .text-item.active {
+      border-color: #FFFFFF;
+      background-color: rgba(255, 255, 255, 0.05);
     }
 
     .en {
@@ -318,15 +328,32 @@
 
     let currentIdx = 0;
     let isRepeatMode = false;
+    let textItems = [];
 
     function renderTexts() {
       container.innerHTML = '';
-      sentences.forEach((s) => {
+      textItems = [];
+      sentences.forEach((s, i) => {
         const item = document.createElement('div');
         item.className = 'text-item';
+        if (i === 0) item.classList.add('active');
         item.innerHTML = `<span class="en">${s[0]}</span><span class="uz">${s[1]}</span>`;
         container.appendChild(item);
+        textItems.push(item);
       });
+    }
+
+    function updateActive(index) {
+      // Barcha elementlardan active klassini olib tashlash
+      textItems.forEach(item => item.classList.remove('active'));
+      
+      // Yangi indeksga active klassini qo'shish
+      if (textItems[index]) {
+        textItems[index].classList.add('active');
+        
+        // Ko'rinadigan qismga siljitish
+        textItems[index].scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
     }
 
     function formatTime(seconds) {
@@ -350,13 +377,16 @@
 
     window.changeSentence = function(step) {
       if (isRepeatMode && step === 1) {
+        // Takrorlash rejimida faqat progressni yangilash
         updateProgressForIndex(currentIdx);
+        updateActive(currentIdx);
         return;
       }
       
       let newIndex = currentIdx + step;
       if (newIndex >= 0 && newIndex < sentences.length) {
         currentIdx = newIndex;
+        updateActive(currentIdx);
         updateProgressForIndex(currentIdx);
       }
     };
