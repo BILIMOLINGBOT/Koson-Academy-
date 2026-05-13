@@ -62,6 +62,7 @@
       height: 36px;
       border-radius: 50%;
       transition: background 0.2s;
+      cursor: pointer;
     }
     .back-btn:active {
       background: rgba(255,255,255,0.15);
@@ -235,7 +236,7 @@
 <body>
 
 <div class="header">
-  <a href="index.html" class="back-btn"><i class="fas fa-chevron-left"></i></a>
+  <div class="back-btn" id="backButton"><i class="fas fa-chevron-left"></i></div>
   <h1>O'zingizni tanishtiring</h1>
 </div>
 
@@ -325,10 +326,22 @@
     const currentTimeSpan = document.getElementById('currentTime');
     const playBtn = document.getElementById('playBtn');
     const playIcon = playBtn.querySelector('i');
+    const backButton = document.getElementById('backButton');
 
     let currentIdx = 0;
     let isRepeatMode = false;
     let textItems = [];
+
+    // Orqaga qaytish tugmasi
+    backButton.addEventListener('click', function(e) {
+      e.preventDefault();
+      // WebView yoki brauzer muhitiga qarab to'g'ri yo'naltirish
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        window.location.href = 'index.html';
+      }
+    });
 
     function renderTexts() {
       container.innerHTML = '';
@@ -344,14 +357,10 @@
     }
 
     function updateActive(index) {
-      // Barcha elementlardan active klassini olib tashlash
       textItems.forEach(item => item.classList.remove('active'));
       
-      // Yangi indeksga active klassini qo'shish
       if (textItems[index]) {
         textItems[index].classList.add('active');
-        
-        // Ko'rinadigan qismga siljitish
         textItems[index].scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
@@ -377,7 +386,6 @@
 
     window.changeSentence = function(step) {
       if (isRepeatMode && step === 1) {
-        // Takrorlash rejimida faqat progressni yangilash
         updateProgressForIndex(currentIdx);
         updateActive(currentIdx);
         return;
