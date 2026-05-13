@@ -1,9 +1,8 @@
-
 <!DOCTYPE html>
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>LearnU | So'zlashuv</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -14,6 +13,7 @@
             --text-secondary: #717F8D;
             --accent-color: #007AFF;
             --radius: 12px;
+            --toast-bg: rgba(0, 0, 0, 0.85);
         }
 
         * {
@@ -28,6 +28,7 @@
             color: var(--text-main);
             padding: 20px;
             -webkit-tap-highlight-color: transparent;
+            overscroll-behavior: none;
         }
 
         header {
@@ -56,6 +57,7 @@
             border-radius: 50%;
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
             transition: 0.2s;
+            cursor: pointer;
         }
 
         .profile-btn:active {
@@ -76,6 +78,15 @@
             font-size: 16px;
             color: white;
             outline: none;
+            transition: 0.2s;
+        }
+
+        .search-bar:focus {
+            background: #354357;
+        }
+
+        .search-bar::placeholder {
+            color: #717F8D;
         }
 
         .modules-list {
@@ -94,6 +105,8 @@
             display: flex;
             align-items: center;
             transition: all 0.2s;
+            cursor: pointer;
+            user-select: none;
         }
 
         .module-item:active {
@@ -129,60 +142,432 @@
             color: var(--text-secondary);
             font-size: 14px;
         }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--toast-bg);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 9999;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+            backdrop-filter: blur(10px);
+            white-space: nowrap;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        /* No results message */
+        .no-results {
+            text-align: center;
+            color: var(--text-secondary);
+            padding: 40px 20px;
+            font-size: 16px;
+        }
+
+        .no-results i {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
     </style>
 </head>
 <body>
 
 <header>
     <h1>Soʻzlashuv</h1>
-    <a href="profil.html" class="profile-btn">
+    <a href="profil.html" class="profile-btn" aria-label="Profil">
         <i class="fa-solid fa-circle-user"></i>
     </a>
 </header>
 
 <div class="search-container">
-    <input type="text" class="search-bar" placeholder="Mavzuni qidirish...">
+    <input type="text" class="search-bar" placeholder="Mavzuni qidirish..." id="searchInput">
 </div>
 
 <main class="modules-list" id="lessonList">
-    </main>
+    <!-- Dynamically populated -->
+</main>
+
+<!-- Toast notification -->
+<div class="toast" id="toast">Yana bir marta bosing, chiqish uchun</div>
 
 <script>
-    const lessons = [
-        "O'zingizni tanishtiring", "Oila", "Ob-havo", "Hafta kunlari", "Fasllar",
-        "Feʼl atvori", "Ranglar", "Raqamlar", "Gapirish", "Kundalik tartib",
-        "Sevimli mashg'ulotlar", "Salomlashuv", "Xayrlashuv", "Vaqt", "Rahmat va tashakkur",
-        "Kechirim soʻrash", "Rozilik va Norozilik", "Iltimos va istak", "Qiziqishlar", "Oylar",
-        "Mevalar", "Sabzavotlar", "Tana aʼzolari", "Fanlar", "Telefon soʻzlashuv 1",
-        "Telefon soʻzlashuv 2", "Taom", "Kishilik olmoshlari", "Sifatlar", "Savdo"
-    ];
+    (function() {
+        // ==================== DATA ====================
+        const lessons = [
+            "O'zingizni tanishtiring", "Oila", "Ob-havo", "Hafta kunlari", "Fasllar",
+            "Feʼl atvori", "Ranglar", "Raqamlar", "Gapirish", "Kundalik tartib",
+            "Sevimli mashg'ulotlar", "Salomlashuv", "Xayrlashuv", "Vaqt", "Rahmat va tashakkur",
+            "Kechirim soʻrash", "Rozilik va Norozilik", "Iltimos va istak", "Qiziqishlar", "Oylar",
+            "Mevalar", "Sabzavotlar", "Tana aʼzolari", "Fanlar", "Telefon soʻzlashuv 1",
+            "Telefon soʻzlashuv 2", "Taom", "Kishilik olmoshlari", "Sifatlar", "Savdo"
+        ];
 
-    const icons = [
-        "fa-user-tie", "fa-house-chimney", "fa-cloud-sun", "fa-calendar-days", "fa-leaf",
-        "fa-brain", "fa-palette", "fa-5", "fa-comment-dots", "fa-clock-rotate-left",
-        "fa-icons", "fa-handshake", "fa-door-open", "fa-clock", "fa-hand-holding-heart",
-        "fa-face-sad-tear", "fa-thumbs-up", "fa-hand-sparkles", "fa-bolt", "fa-calendar-check",
-        "fa-apple-whole", "fa-carrot", "fa-accessibility", "fa-book-open", "fa-phone-volume",
-        "fa-video", "fa-utensils", "fa-users-rectangle", "fa-wand-magic-sparkles", "fa-cart-shopping"
-    ];
+        const icons = [
+            "fa-user-tie", "fa-house-chimney", "fa-cloud-sun", "fa-calendar-days", "fa-leaf",
+            "fa-brain", "fa-palette", "fa-5", "fa-comment-dots", "fa-clock-rotate-left",
+            "fa-icons", "fa-handshake", "fa-door-open", "fa-clock", "fa-hand-holding-heart",
+            "fa-face-sad-tear", "fa-thumbs-up", "fa-hand-sparkles", "fa-bolt", "fa-calendar-check",
+            "fa-apple-whole", "fa-carrot", "fa-accessibility", "fa-book-open", "fa-phone-volume",
+            "fa-video", "fa-utensils", "fa-users-rectangle", "fa-wand-magic-sparkles", "fa-cart-shopping"
+        ];
 
-    const list = document.getElementById('lessonList');
+        // ==================== DOM ELEMENTS ====================
+        const lessonList = document.getElementById('lessonList');
+        const searchInput = document.getElementById('searchInput');
+        const toast = document.getElementById('toast');
 
-    lessons.forEach((title, index) => {
-        const lessonNum = index + 1;
-        const item = document.createElement('a');
-        item.href = `d${lessonNum}.html`;
-        item.className = 'module-item';
+        // ==================== RENDER LESSONS ====================
+        function renderLessons(filterText = '') {
+            const searchTerm = filterText.toLowerCase().trim();
+            let hasResults = false;
 
-        item.innerHTML = `
-            <div class="module-image">
-                <i class="fas ${icons[index]}"></i>
-            </div>
-            <h3 class="module-title">${lessonNum}. ${title}</h3>
-            <i class="fas fa-chevron-right module-chevron"></i>
-        `;
-        list.appendChild(item);
-    });
+            lessonList.innerHTML = '';
+
+            lessons.forEach((title, index) => {
+                const lessonNum = index + 1;
+                
+                // Filter logic
+                if (searchTerm && !title.toLowerCase().includes(searchTerm) && !lessonNum.toString().includes(searchTerm)) {
+                    return;
+                }
+
+                hasResults = true;
+
+                const item = document.createElement('a');
+                item.href = `d${lessonNum}.html`;
+                item.className = 'module-item';
+                item.setAttribute('data-lesson-id', lessonNum);
+                item.innerHTML = `
+                    <div class="module-image">
+                        <i class="fas ${icons[index]}"></i>
+                    </div>
+                    <h3 class="module-title">${lessonNum}. ${title}</h3>
+                    <i class="fas fa-chevron-right module-chevron"></i>
+                `;
+
+                // Save navigation state before leaving
+                item.addEventListener('click', function(e) {
+                    saveCurrentState();
+                });
+
+                lessonList.appendChild(item);
+            });
+
+            // Show no results message
+            if (!hasResults && searchTerm) {
+                lessonList.innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-search"></i>
+                        <p>"${filterText}" bo'yicha hech narsa topilmadi</p>
+                    </div>
+                `;
+            }
+        }
+
+        // ==================== HISTORY & NAVIGATION ====================
+        const PAGE_ID = 'learnu_sozlashuv_home';
+        const HISTORY_KEY = 'learnu_navigation_stack';
+
+        function getNavigationStack() {
+            try {
+                const stack = localStorage.getItem(HISTORY_KEY);
+                return stack ? JSON.parse(stack) : [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function saveNavigationStack(stack) {
+            try {
+                localStorage.setItem(HISTORY_KEY, JSON.stringify(stack));
+            } catch (e) {
+                console.warn('localStorage toʻlib ketgan');
+            }
+        }
+
+        function getCurrentPageState() {
+            return {
+                id: PAGE_ID,
+                url: window.location.href,
+                scrollY: window.scrollY,
+                searchTerm: searchInput.value,
+                timestamp: Date.now()
+            };
+        }
+
+        function saveCurrentState() {
+            const stack = getNavigationStack();
+            const currentState = getCurrentPageState();
+            
+            // Check if current page is already at the top
+            const lastIndex = stack.length - 1;
+            if (lastIndex >= 0 && stack[lastIndex].id === PAGE_ID) {
+                // Update the existing entry
+                stack[lastIndex] = currentState;
+            } else {
+                // Add new entry (limit to 20)
+                stack.push(currentState);
+                if (stack.length > 20) {
+                    stack.shift();
+                }
+            }
+            
+            saveNavigationStack(stack);
+        }
+
+        function getPreviousPage() {
+            const stack = getNavigationStack();
+            // Find the last entry that is NOT the current page
+            for (let i = stack.length - 1; i >= 0; i--) {
+                if (stack[i].id !== PAGE_ID) {
+                    return stack[i];
+                }
+            }
+            return null;
+        }
+
+        function removeCurrentPageFromStack() {
+            const stack = getNavigationStack();
+            const filtered = stack.filter(entry => entry.id !== PAGE_ID);
+            saveNavigationStack(filtered);
+        }
+
+        // ==================== BACK BUTTON HANDLING ====================
+        let backPressTimer = null;
+        let isNavigatingBack = false;
+
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        function handleBackButton() {
+            // Check if search is active - clear search first
+            if (searchInput.value.trim() !== '') {
+                searchInput.value = '';
+                searchInput.focus();
+                renderLessons('');
+                // Push new state for cleared search
+                history.pushState(
+                    { page: PAGE_ID, action: 'search-cleared', timestamp: Date.now() },
+                    '',
+                    window.location.pathname
+                );
+                return;
+            }
+
+            // Check if we have a previous page in history stack
+            const previousPage = getPreviousPage();
+            
+            if (previousPage && !isNavigatingBack) {
+                // Navigate to previous page
+                isNavigatingBack = true;
+                removeCurrentPageFromStack();
+                
+                // Show feedback
+                showToast('⬅️ Orqaga qaytilmoqda...');
+                
+                setTimeout(() => {
+                    window.location.href = previousPage.url;
+                }, 200);
+                return;
+            }
+
+            // Double-back to exit
+            if (backPressTimer) {
+                // Second press - exit
+                clearTimeout(backPressTimer);
+                backPressTimer = null;
+                showToast('👋 Dasturdan chiqilmoqda...');
+                
+                // Try to close the app
+                setTimeout(() => {
+                    if (window.history.length > 2) {
+                        // Go back multiple times to exit
+                        window.history.go(-(window.history.length - 1));
+                    }
+                    // Fallback
+                    window.close();
+                    // If still here, redirect
+                    setTimeout(() => {
+                        window.location.href = 'about:blank';
+                    }, 300);
+                }, 300);
+            } else {
+                // First press - show warning
+                showToast('⚠️ Yana bir marta bosing, chiqish uchun');
+                backPressTimer = setTimeout(() => {
+                    backPressTimer = null;
+                }, 2000);
+            }
+        }
+
+        // ==================== INITIALIZE HISTORY ====================
+        function initializeHistory() {
+            // Push initial state
+            const initialState = {
+                page: PAGE_ID,
+                timestamp: Date.now(),
+                initialLoad: true
+            };
+
+            // Replace current state first to have a clean starting point
+            history.replaceState(initialState, '', window.location.href);
+            
+            // Push one more state so we can intercept back button
+            history.pushState(
+                { page: PAGE_ID, action: 'ready', timestamp: Date.now() },
+                '',
+                window.location.href
+            );
+
+            // Save current state to localStorage stack
+            saveCurrentState();
+        }
+
+        // ==================== EVENT LISTENERS ====================
+        
+        // Handle popstate (Android back button)
+        window.addEventListener('popstate', function(event) {
+            if (event.state && event.state.page === PAGE_ID) {
+                // This is our managed state - handle back button
+                handleBackButton();
+                
+                // Prevent default back by pushing a new state
+                history.pushState(
+                    { page: PAGE_ID, action: 'blocked-back', timestamp: Date.now() },
+                    '',
+                    window.location.href
+                );
+            }
+        });
+
+        // Handle page visibility (app goes to background)
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                // App is going to background - save state
+                saveCurrentState();
+            } else {
+                // App is back in foreground - reset back press timer
+                backPressTimer = null;
+            }
+        });
+
+        // Save state before page unload
+        window.addEventListener('beforeunload', function() {
+            if (!isNavigatingBack) {
+                saveCurrentState();
+            }
+        });
+
+        // Search input handler
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value;
+            renderLessons(searchTerm);
+            
+            // Update history state for search
+            const searchState = {
+                page: PAGE_ID,
+                action: 'search',
+                searchTerm: searchTerm,
+                timestamp: Date.now()
+            };
+            
+            history.replaceState(searchState, '', window.location.href);
+            saveCurrentState();
+        });
+
+        // Prevent zooming on double-tap (improves back button experience)
+        document.addEventListener('dblclick', function(e) {
+            if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        // Handle touch events for better mobile experience
+        document.addEventListener('touchmove', function(e) {
+            // Reset back press timer on any touch interaction
+            if (backPressTimer) {
+                clearTimeout(backPressTimer);
+                backPressTimer = null;
+            }
+        }, { passive: true });
+
+        // Keyboard ESC handling (alternative to back button)
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                handleBackButton();
+            }
+        });
+
+        // ==================== RESTORE STATE ON LOAD ====================
+        function restoreState() {
+            const stack = getNavigationStack();
+            const currentState = stack.find(entry => entry.id === PAGE_ID);
+            
+            if (currentState && currentState.searchTerm) {
+                searchInput.value = currentState.searchTerm;
+                renderLessons(currentState.searchTerm);
+            }
+
+            if (currentState && currentState.scrollY) {
+                setTimeout(() => {
+                    window.scrollTo(0, currentState.scrollY);
+                }, 100);
+            }
+        }
+
+        // ==================== INIT ====================
+        function init() {
+            renderLessons();
+            initializeHistory();
+            
+            // Restore state if coming back
+            setTimeout(restoreState, 50);
+        }
+
+        // Start the app
+        init();
+
+        // ==================== EXPORT FOR DEBUG ====================
+        if (typeof window !== 'undefined') {
+            window.learnuDebug = {
+                getStack: getNavigationStack,
+                clearStack: () => {
+                    localStorage.removeItem(HISTORY_KEY);
+                    console.log('Navigation stack cleared');
+                },
+                getPreviousPage: getPreviousPage,
+                simulateBack: handleBackButton
+            };
+        }
+
+        console.log('✅ LearnU: Back button handling initialized');
+        console.log('   - Double-back to exit');
+        console.log('   - Previous page navigation');
+        console.log('   - Search state preserved');
+        console.log('   - localStorage state save');
+        console.log('   Debug: window.learnuDebug');
+    })();
 </script>
 
 </body>
