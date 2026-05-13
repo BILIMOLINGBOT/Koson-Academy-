@@ -265,11 +265,25 @@
       transform: translateX(-50%) translateY(0);
       opacity: 1;
     }
+
+    /* Telegram tasmasiga moslashish */
+    body.telegram-app {
+      padding-top: env(safe-area-inset-top);
+    }
+    
+    .header.telegram-header {
+      padding-top: calc(16px + env(safe-area-inset-top));
+      height: calc(64px + env(safe-area-inset-top));
+    }
+
+    .player-fixed.telegram-player {
+      padding-bottom: calc(28px + env(safe-area-inset-bottom));
+    }
   </style>
 </head>
 <body>
 
-<div class="header">
+<div class="header" id="headerBar">
   <a href="index.html" class="back-btn" id="backButton"><i class="fas fa-chevron-left"></i></a>
   <h1>O'zingizni tanishtiring</h1>
 </div>
@@ -278,7 +292,7 @@
   <!-- JavaScript orqali matnlar qo'shiladi -->
 </main>
 
-<div class="player-fixed">
+<div class="player-fixed" id="playerBar">
   <div class="progress-box">
     <div class="bar-container">
       <div class="bar-fill" id="progressFill">
@@ -307,8 +321,47 @@
 <!-- Toast notification -->
 <div class="toast" id="toast">Yana bir marta bosing, chiqish uchun</div>
 
+<!-- ✅ TELEGRAM WEB APP SDK -->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
 <script>
   (function() {
+    // ==================== TELEGRAM INTEGRATION ====================
+    const isTelegramApp = !!window.Telegram?.WebApp;
+    let tg = null;
+    let isTelegramBackButtonVisible = false;
+
+    if (isTelegramApp) {
+      tg = window.Telegram.WebApp;
+      
+      // Telegram tema ranglarini qo'llash
+      document.documentElement.style.setProperty('--bg-dark', tg.themeParams.bg_color || '#000000');
+      document.documentElement.style.setProperty('--card-bg', tg.themeParams.secondary_bg_color || '#1C1C1E');
+      document.documentElement.style.setProperty('--text-secondary', tg.themeParams.hint_color || '#8E8E93');
+      
+      // Telegram native header qo'shish (ixtiyoriy)
+      if (tg.version >= '6.1') {
+        tg.setHeaderColor('bg_color');
+        tg.setBackgroundColor('bg_color');
+      }
+
+      // Telegram back button
+      tg.BackButton.show();
+      isTelegramBackButtonVisible = true;
+
+      tg.onEvent('backButtonClicked', function() {
+        handleBackPress();
+      });
+
+      // Telegram ready
+      tg.ready();
+      
+      // Expand to full height
+      if (tg.version >= '6.0') {
+        tg.expand();
+      }
+    }
+
     // ==================== DATA ====================
     const sentences = [
       ["My name is Ali.", "Mening ismim Ali."],
@@ -369,6 +422,8 @@
     const backButton = document.getElementById('backButton');
     const prevSentenceBtn = document.getElementById('prevSentenceBtn');
     const nextSentenceBtn = document.getElementById('nextSentenceBtn');
+    const headerBar = document.getElementById('headerBar');
+    const playerBar = document.getElementById('playerBar');
 
     // ==================== STATE ====================
     let currentIdx = 0;
@@ -377,6 +432,18 @@
     let isNavigatingBack = false;
     let backPressTimer = null;
     const PAGE_ID = 'learnu_dars_1';
+
+    // ==================== TELEGRAM ADAPTATION ====================
+    if (isTelegramApp) {
+      document.body.classList.add('telegram-app');
+      headerBar.classList.add('telegram-header');
+      playerBar.classList.add('telegram-player');
+      
+      // Agar Telegramda bo'lsa, ortiqcha back tugmani yashirish (ixtiyoriy)
+      if (tg.BackButton.isVisible) {
+        backButton.style.opacity = '0.4'; // Indikatsiya uchun xira qilish
+      }
+    }
 
     // ==================== RENDER ====================
     function renderTexts() {
@@ -388,12 +455,16 @@
         if (i === 0) item.classList.add('active');
         item.innerHTML = `<span class="en">${s[0]}</span><span class="uz">${s[1]}</span>`;
         
-        // Click to select sentence
         item.addEventListener('click', function() {
           currentIdx = i;
           updateActive(currentIdx);
           updateProgressForIndex(currentIdx);
           saveCurrentState();
+          
+          // Telegram haptic feedback
+          if (tg) {
+            tg.HapticFeedback?.impactOccurred('light');
+          }
         });
         
         container.appendChild(item);
@@ -407,6 +478,12 @@
       if (textItems[index]) {
         textItems[index].classList.add('active');
         textItems[index].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        // Telegramga MainButton matnini o'zgartirish
+        if (tg && tg.MainButton.isVisible) {
+          const progress = Math.round(((index + 1) / sentences.length) * 100);
+          tg.MainButton.setText(`Davom etish (${progress}%)`);
+        }
       }
     }
 
@@ -444,7 +521,63 @@
         updateActive(currentIdx);
         updateProgressForIndex(currentIdx);
         saveCurrentState();
+        
+        if (tg) {
+          tg.HapticFeedback?.impactOccurred('light');
+        }
+        
+        // Progressga qarab tugma ko'rinishini o'zgartirish
+        updateTelegramMainButton();
       }
+    }
+
+    // ==================== TELEGRAM MAIN BUTTON ====================
+    function updateTelegramMainButton() {
+      if (!tg) return;
+      
+      const isComplete = currentIdx === sentences.length - 1;
+      
+      if (isComplete) {
+        tg.MainButton.setText('✅ Yakunlash');
+        tg.MainButton.color = '#34C759'; // Green
+      } else {
+        const progress = Math.round(((currentIdx + 1) / sentences.length) * 100);
+        tg.MainButton.setText(`Keyingi (${progress}%)`);
+        tg.MainButton.color = '#007AFF'; // Blue
+      }
+      
+      if (!tg.MainButton.isVisible) {
+        tg.MainButton.show();
+      }
+    }
+
+    if (tg) {
+      tg.MainButton.onClick(function() {
+        if (currentIdx < sentences.length - 1) {
+          changeSentence(1);
+        } else {
+          // Dars yakunlandi
+          tg.HapticFeedback?.notificationOccurred('success');
+          tg.showPopup({
+            title: 'Dars yakunlandi! 🎉',
+            message: `Siz ${sentences.length} ta jumlani o'rganib chiqdingiz`,
+            buttons: [
+              {id: 'repeat', type: 'default', text: 'Qaytadan'},
+              {id: 'back', type: 'destructive', text: 'Chiqish'}
+            ]
+          }, function(buttonId) {
+            if (buttonId === 'repeat') {
+              currentIdx = 0;
+              updateActive(0);
+              updateProgressForIndex(0);
+            } else {
+              handleBackPress();
+            }
+          });
+        }
+      });
+      
+      updateTelegramMainButton();
     }
 
     // ==================== HISTORY & NAVIGATION ====================
@@ -473,7 +606,6 @@
       const currentState = {
         id: PAGE_ID,
         url: window.location.href,
-        scrollY: window.scrollY,
         currentIdx: currentIdx,
         isRepeatMode: isRepeatMode,
         timestamp: Date.now()
@@ -484,101 +616,40 @@
         stack[lastIndex] = currentState;
       } else {
         stack.push(currentState);
-        if (stack.length > 20) {
-          stack.shift();
-        }
+        if (stack.length > 20) stack.shift();
       }
       
       saveNavigationStack(stack);
     }
 
-    function getHomePageState() {
-      const stack = getNavigationStack();
-      // Find last home page entry
-      for (let i = stack.length - 1; i >= 0; i--) {
-        if (stack[i].id === HOME_PAGE_ID) {
-          return stack[i];
-        }
-      }
-      return null;
-    }
-
-    function removeCurrentPageFromStack() {
-      const stack = getNavigationStack();
-      const filtered = stack.filter(entry => entry.id !== PAGE_ID);
-      saveNavigationStack(filtered);
-    }
-
-    // ==================== BACK BUTTON HANDLING ====================
-    function showToast(message) {
-      toast.textContent = message;
-      toast.classList.add('show');
-      
-      clearTimeout(toast._timeout);
-      toast._timeout = setTimeout(() => {
-        toast.classList.remove('show');
-      }, 2000);
-    }
-
-    function navigateBack() {
-      // Save state before leaving
+    function handleBackPress() {
       saveCurrentState();
-      
-      // Get home page state
-      const homeState = getHomePageState();
-      
-      if (homeState && !isNavigatingBack) {
-        isNavigatingBack = true;
-        removeCurrentPageFromStack();
-        
-        // Navigate back to home page
-        window.location.href = homeState.url || 'index.html';
-        return;
-      }
-      
-      // Fallback to index.html
-      if (!isNavigatingBack) {
-        isNavigatingBack = true;
-        window.location.href = 'index.html';
-      }
-    }
 
-    function handleBackButton() {
-      // Double-back to exit
-      if (backPressTimer) {
-        clearTimeout(backPressTimer);
-        backPressTimer = null;
+      if (tg && isTelegramBackButtonVisible) {
+        // Telegramda scroll holatini tiklab qaytish
+        const navigationStack = getNavigationStack();
         
-        // Second press - exit to home
-        isNavigatingBack = true;
-        removeCurrentPageFromStack();
-        window.location.href = 'index.html';
+        if (navigationStack.length > 1) {
+          const previousPage = navigationStack[navigationStack.length - 2];
+          window.location.href = previousPage.url || 'index.html';
+        } else {
+          tg.close();
+        }
       } else {
-        // First press - show warning
-        showToast('⚠️ Yana bir marta bosing, chiqish uchun');
-        backPressTimer = setTimeout(() => {
-          backPressTimer = null;
-        }, 2000);
-        
-        // Push new state to prevent default back
-        history.pushState(
-          { page: PAGE_ID, action: 'blocked-back', timestamp: Date.now() },
-          '',
-          window.location.href
-        );
+        // Oddiy brauzerda
+        window.location.href = 'index.html';
       }
     }
 
-    // ==================== INITIALIZE HISTORY ====================
+    // ==================== HISTORY INITIALIZATION ====================
     function initializeHistory() {
-      // Replace current state
       history.replaceState(
         { page: PAGE_ID, timestamp: Date.now(), initialLoad: true },
         '',
         window.location.href
       );
       
-      // Push one more state to intercept back button
+      // Brauzer uchun state
       history.pushState(
         { page: PAGE_ID, action: 'ready', timestamp: Date.now() },
         '',
@@ -588,6 +659,7 @@
       saveCurrentState();
     }
 
+    
     // ==================== RESTORE STATE ====================
     function restoreState() {
       const stack = getNavigationStack();
@@ -604,71 +676,68 @@
           isRepeatMode = currentState.isRepeatMode;
           if (isRepeatMode) {
             repeatBtn.classList.add('active-repeat');
-          } else {
-            repeatBtn.classList.remove('active-repeat');
           }
         }
         
-        if (currentState.scrollY) {
-          setTimeout(() => {
-            if (textItems[currentIdx]) {
-              textItems[currentIdx].scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-          }, 200);
-        }
+        if (tg) updateTelegramMainButton();
       }
     }
 
     // ==================== EVENT LISTENERS ====================
     
-    // Popstate handler (Android back button)
+    // Browser popstate (Android back button)
     window.addEventListener('popstate', function(event) {
       if (event.state && event.state.page === PAGE_ID) {
-        handleBackButton();
+        handleBackPress();
       }
     });
 
     // Back button click
     backButton.addEventListener('click', function(e) {
       e.preventDefault();
-      navigateBack();
+      handleBackPress();
     });
 
-    // Sentence navigation buttons
-    prevSentenceBtn.addEventListener('click', function() {
-      changeSentence(-1);
-    });
+    // Sentence navigation
+    prevSentenceBtn.addEventListener('click', () => changeSentence(-1));
+    nextSentenceBtn.addEventListener('click', () => changeSentence(1));
 
-    nextSentenceBtn.addEventListener('click', function() {
-      changeSentence(1);
-    });
-
-    // Keyboard navigation
+    // Keyboard
     document.addEventListener('keydown', function(e) {
-      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-        e.preventDefault();
-        changeSentence(1);
-      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-        e.preventDefault();
-        changeSentence(-1);
-      } else if (e.key === 'Escape') {
-        e.preventDefault();
-        handleBackButton();
-      } else if (e.key === ' ') {
-        e.preventDefault();
-        // Toggle play/pause
-        togglePlayPause();
+      switch(e.key) {
+        case 'ArrowRight':
+        case 'ArrowDown':
+          e.preventDefault();
+          changeSentence(1);
+          break;
+        case 'ArrowLeft':
+        case 'ArrowUp':
+          e.preventDefault();
+          changeSentence(-1);
+          break;
+        case 'Escape':
+          e.preventDefault();
+          handleBackPress();
+          break;
+        case ' ':
+          e.preventDefault();
+          togglePlayPause();
+          break;
       }
     });
 
-    // Repeat button
-    repeatBtn.addEventListener('click', function(e) {
+    // Repeat
+    repeatBtn.addEventListener('click', function() {
       isRepeatMode = !isRepeatMode;
       this.classList.toggle('active-repeat');
       saveCurrentState();
+      
+      if (tg) {
+        tg.HapticFeedback?.impactOccurred('soft');
+      }
     });
 
-    // Play/Pause toggle
+    // Play/Pause
     function togglePlayPause() {
       if (playIcon.classList.contains('fa-pause')) {
         playIcon.classList.remove('fa-pause');
@@ -678,10 +747,9 @@
         playIcon.classList.add('fa-pause');
       }
     }
-
     playBtn.addEventListener('click', togglePlayPause);
 
-    // Save state on visibility change
+    // Visibility
     document.addEventListener('visibilitychange', function() {
       if (document.hidden) {
         saveCurrentState();
@@ -690,7 +758,7 @@
       }
     });
 
-    // Save before unload
+    // Before unload
     window.addEventListener('beforeunload', function() {
       saveCurrentState();
     });
@@ -705,26 +773,35 @@
     }, { passive: true });
 
     document.addEventListener('touchend', function(e) {
-      const touchEndX = e.changedTouches[0].clientX;
-      const touchEndY = e.changedTouches[0].clientY;
+      const diffX = e.changedTouches[0].clientX - touchStartX;
+      const diffY = e.changedTouches[0].clientY - touchStartY;
       
-      const diffX = touchEndX - touchStartX;
-      const diffY = touchEndY - touchStartY;
-      
-      // Only handle horizontal swipes
       if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
         if (diffX > 0) {
-          // Swipe right - previous sentence
           changeSentence(-1);
         } else {
-          // Swipe left - next sentence
           changeSentence(1);
         }
       }
       
-      // Reset back press timer on any touch
       backPressTimer = null;
     });
+
+    // ==================== TELEGRAM EVENTS ====================
+    if (tg) {
+      // Viewport o'zgarganda
+      tg.onEvent('viewportChanged', function(data) {
+        const { height } = data;
+        document.documentElement.style.setProperty('--tg-viewport-height', `${height}px`);
+      });
+      
+      // Tema o'zgarganda
+      tg.onEvent('themeChanged', function() {
+        document.documentElement.style.setProperty('--bg-dark', tg.themeParams.bg_color || '#000000');
+        document.documentElement.style.setProperty('--card-bg', tg.themeParams.secondary_bg_color || '#1C1C1E');
+        document.documentElement.style.setProperty('--text-secondary', tg.themeParams.hint_color || '#8E8E93');
+      });
+    }
 
     // ==================== INIT ====================
     function init() {
@@ -735,37 +812,40 @@
       progressFill.style.width = initialPercent + '%';
       if (currentTimeSpan) currentTimeSpan.textContent = '00:00';
       
-      // Restore state if returning
       setTimeout(restoreState, 100);
+      
+      // Telegram specific init
+      if (tg) {
+        console.log('✅ Telegram Web App initialized');
+        console.log('   - Back button synced');
+        console.log('   - Main button active');
+        console.log('   - Theme integrated');
+        console.log('   - Haptic feedback enabled');
+      }
     }
 
-    // Start
     init();
 
-    // Debug
+    // ==================== DEBUG ====================
     if (typeof window !== 'undefined') {
       window.learnuDebug = {
+        isTelegram: isTelegramApp,
         getStack: getNavigationStack,
         clearStack: () => {
           localStorage.removeItem(HISTORY_KEY);
-          console.log('Stack cleared');
         },
-        getCurrentState: () => ({
+        getState: () => ({
           currentIdx,
           isRepeatMode,
-          pageId: PAGE_ID
+          pageId: PAGE_ID,
+          isTelegram: isTelegramApp
         }),
-        simulateBack: handleBackButton
+        simulateBack: handleBackPress
       };
     }
 
-    console.log('✅ Dars 1: Back button handling initialized');
-    console.log('   - Swipe left/right to navigate sentences');
-    console.log('   - Arrow keys for navigation');
-    console.log('   - Space to play/pause');
-    console.log('   - Double-back to exit');
-    console.log('   - State preserved in localStorage');
-    console.log('   Debug: window.learnuDebug');
+    console.log('📱 LearnU Dars 1 initialized');
+    console.log(`   Platform: ${isTelegramApp ? 'Telegram Web App' : 'Browser'}`);
   })();
 </script>
 
