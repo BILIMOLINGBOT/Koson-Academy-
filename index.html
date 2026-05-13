@@ -37,9 +37,8 @@
             transition: transform 0.2s, box-shadow 0.2s;
             border-left: 4px solid var(--tg-theme-button-color, #e94560);
         }
-        .level-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(233, 69, 96, 0.3);
+        .level-card:active {
+            transform: scale(0.98);
         }
         .level-card h2 {
             font-size: 20px;
@@ -58,6 +57,7 @@
             border-radius: 8px;
             margin-bottom: 15px;
             cursor: pointer;
+            font-size: 16px;
         }
         .question-area {
             display: none;
@@ -98,18 +98,30 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Telegram "Orqaga" tugmasi
-        tg.BackButton.show();
-        tg.BackButton.onClick(() => {
-            goBack();
-        });
-
         const mainScreen = document.getElementById('mainScreen');
         const questionArea = document.getElementById('questionArea');
         const backBtn = document.getElementById('backBtn');
         let currentLevel = '';
 
-        // Daraja tanlash
+        // ===== ENG ASOSIY QISM: Orqaga qaytishni index.html ga yo'naltirish =====
+        
+        // 1. Telegram Web App "Orqaga" tugmasi
+        tg.BackButton.show();
+        tg.BackButton.onClick(() => {
+            goToIndex();
+        });
+
+        // 2. Telefonning apparat "Orqaga" tugmasi (history orqali)
+        window.addEventListener('popstate', function(event) {
+            // Brauzer tarixida orqaga bosilganda index.html ga o'tish
+            window.location.replace('index.html');
+        });
+
+        // 3. Sahifa yuklanganda history-ga state qo'shish
+        //    (apparat orqaga tugmasi ishlashi uchun)
+        history.pushState({page: 'ka7'}, '', window.location.href);
+
+        // ===== Daraja tanlash =====
         document.querySelectorAll('.level-card').forEach(card => {
             card.addEventListener('click', () => {
                 currentLevel = card.dataset.level;
@@ -119,15 +131,15 @@
 
         // Custom orqaga tugmasi
         backBtn.addEventListener('click', () => {
-            goBack();
-        });
-
-        function goBack() {
             if (questionArea.style.display === 'block') {
                 showMain();
             } else {
-                tg.close();
+                goToIndex();
             }
+        });
+
+        function goToIndex() {
+            window.location.replace('index.html');
         }
 
         function showMain() {
@@ -143,7 +155,9 @@
             questionArea.style.display = 'block';
             questionArea.innerHTML = `
                 <h2>${level} darajasi</h2>
-                <p style="text-align:center;padding:30px;">Testlar tayyorlanmoqda...</p>
+                <p style="text-align:center;padding:30px;color:var(--tg-theme-hint-color,#aaa);">
+                    Testlar tayyorlanmoqda...
+                </p>
             `;
             // Bu yerga test savollari qo'shiladi
         }
