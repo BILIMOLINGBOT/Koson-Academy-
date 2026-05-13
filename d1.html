@@ -1,9 +1,11 @@
-
 <!DOCTYPE html>
 <html lang="uz">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <title>1-Dars | O'zingizni tanishtiring</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -15,11 +17,12 @@
       --blue-active: #007AFF;
       --text-secondary: #8E8E93;
       --border-subtle: #2C2C2E;
-      --toast-bg: rgba(0, 0, 0, 0.85);
     }
 
     * {
       box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
     body {
@@ -31,15 +34,17 @@
       display: flex;
       flex-direction: column;
       height: 100vh;
+      height: 100dvh;
       overflow: hidden;
+      -webkit-user-select: none;
+      user-select: none;
       -webkit-tap-highlight-color: transparent;
-      overscroll-behavior: none;
     }
 
     /* Fixed Header */
     .header {
       padding: 16px 20px;
-      background: rgba(0, 0, 0, 0.9);
+      background: rgba(0, 0, 0, 0.95);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       display: flex;
@@ -65,10 +70,11 @@
       height: 36px;
       border-radius: 50%;
       transition: background 0.2s;
-      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
     }
+    
     .back-btn:active {
-      background: rgba(255,255,255,0.15);
+      background: rgba(255, 255, 255, 0.15);
     }
 
     .header h1 {
@@ -91,16 +97,17 @@
 
     .text-item {
       margin-bottom: 24px;
-      padding: 12px;
+      padding: 16px;
       border-radius: 12px;
       border: 2px solid transparent;
-      transition: border-color 0.3s ease, background-color 0.3s ease;
+      transition: all 0.3s ease;
       cursor: pointer;
-      user-select: none;
+      -webkit-tap-highlight-color: transparent;
     }
 
     .text-item:active {
-      background-color: rgba(255, 255, 255, 0.03);
+      transform: scale(0.98);
+      transition: transform 0.1s;
     }
 
     .text-item.active {
@@ -115,6 +122,7 @@
       color: #FFFFFF;
       line-height: 1.4;
       margin-bottom: 4px;
+      pointer-events: none;
     }
 
     .uz {
@@ -122,6 +130,7 @@
       color: var(--text-secondary);
       display: block;
       line-height: 1.4;
+      pointer-events: none;
     }
 
     /* Fixed Player Bottom */
@@ -137,6 +146,7 @@
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
       background: rgba(10, 10, 10, 0.92);
+      padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
     }
 
     .progress-box {
@@ -151,10 +161,11 @@
       background: #333;
       border-radius: 4px;
       position: relative;
+      cursor: pointer;
     }
 
     .bar-fill {
-      width: 5%;
+      width: 2.22%;
       height: 100%;
       background: #8E8E93;
       border-radius: 4px;
@@ -170,7 +181,7 @@
       height: 14px;
       background: #FFFFFF;
       border-radius: 50%;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
     }
 
     .time-labels {
@@ -198,12 +209,13 @@
       transition: 0.2s;
       padding: 8px;
       border-radius: 50%;
+      -webkit-tap-highlight-color: transparent;
     }
 
     .player-controls i:active {
       transform: scale(0.9);
       color: #FFF;
-      background: rgba(255,255,255,0.1);
+      background: rgba(255, 255, 255, 0.1);
     }
 
     .player-controls i.active-repeat {
@@ -219,10 +231,11 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
       transition: 0.2s;
       cursor: pointer;
       border: 1px solid #2C2C2E;
+      -webkit-tap-highlight-color: transparent;
     }
 
     .btn-play-pause:active {
@@ -241,50 +254,25 @@
       font-size: 26px;
     }
 
-    /* Toast notification */
-    .toast {
-      position: fixed;
-      bottom: 120px;
-      left: 50%;
-      transform: translateX(-50%) translateY(100px);
-      background: var(--toast-bg);
-      color: white;
-      padding: 12px 24px;
-      border-radius: 25px;
-      font-size: 14px;
-      font-weight: 500;
-      z-index: 9999;
-      opacity: 0;
-      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      pointer-events: none;
-      backdrop-filter: blur(10px);
-      white-space: nowrap;
+    /* Custom Scrollbar */
+    .content-scroll::-webkit-scrollbar {
+      width: 4px;
     }
 
-    .toast.show {
-      transform: translateX(-50%) translateY(0);
-      opacity: 1;
+    .content-scroll::-webkit-scrollbar-track {
+      background: transparent;
     }
 
-    /* Telegram tasmasiga moslashish */
-    body.telegram-app {
-      padding-top: env(safe-area-inset-top);
-    }
-    
-    .header.telegram-header {
-      padding-top: calc(16px + env(safe-area-inset-top));
-      height: calc(64px + env(safe-area-inset-top));
-    }
-
-    .player-fixed.telegram-player {
-      padding-bottom: calc(28px + env(safe-area-inset-bottom));
+    .content-scroll::-webkit-scrollbar-thumb {
+      background: #333;
+      border-radius: 2px;
     }
   </style>
 </head>
 <body>
 
-<div class="header" id="headerBar">
-  <a href="index.html" class="back-btn" id="backButton"><i class="fas fa-chevron-left"></i></a>
+<div class="header">
+  <a href="#" class="back-btn" id="backButton"><i class="fas fa-chevron-left"></i></a>
   <h1>O'zingizni tanishtiring</h1>
 </div>
 
@@ -292,77 +280,35 @@
   <!-- JavaScript orqali matnlar qo'shiladi -->
 </main>
 
-<div class="player-fixed" id="playerBar">
+<div class="player-fixed">
   <div class="progress-box">
-    <div class="bar-container">
+    <div class="bar-container" id="progressBar">
       <div class="bar-fill" id="progressFill">
         <div class="bar-dot"></div>
       </div>
     </div>
     <div class="time-labels">
-      <span id="currentTime">00:01</span>
-      <span>01:53</span>
+      <span id="currentTime">00:00</span>
+      <span id="totalTime">01:53</span>
     </div>
   </div>
 
   <div class="player-controls">
     <i class="fas fa-arrows-rotate" id="repeatBtn" title="Takrorlash"></i>
 
-    <i class="fas fa-backward-step" id="prevSentenceBtn" title="Oldingi"></i>
+    <i class="fas fa-backward-step" id="prevBtn" title="Oldingi"></i>
 
     <div class="btn-play-pause" id="playBtn">
       <i class="fas fa-pause"></i>
     </div>
 
-    <i class="fas fa-forward-step" id="nextSentenceBtn" title="Keyingi"></i>
+    <i class="fas fa-forward-step" id="nextBtn" title="Keyingi"></i>
   </div>
 </div>
 
-<!-- Toast notification -->
-<div class="toast" id="toast">Yana bir marta bosing, chiqish uchun</div>
-
-<!-- ✅ TELEGRAM WEB APP SDK -->
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-
 <script>
   (function() {
-    // ==================== TELEGRAM INTEGRATION ====================
-    const isTelegramApp = !!window.Telegram?.WebApp;
-    let tg = null;
-    let isTelegramBackButtonVisible = false;
-
-    if (isTelegramApp) {
-      tg = window.Telegram.WebApp;
-      
-      // Telegram tema ranglarini qo'llash
-      document.documentElement.style.setProperty('--bg-dark', tg.themeParams.bg_color || '#000000');
-      document.documentElement.style.setProperty('--card-bg', tg.themeParams.secondary_bg_color || '#1C1C1E');
-      document.documentElement.style.setProperty('--text-secondary', tg.themeParams.hint_color || '#8E8E93');
-      
-      // Telegram native header qo'shish (ixtiyoriy)
-      if (tg.version >= '6.1') {
-        tg.setHeaderColor('bg_color');
-        tg.setBackgroundColor('bg_color');
-      }
-
-      // Telegram back button
-      tg.BackButton.show();
-      isTelegramBackButtonVisible = true;
-
-      tg.onEvent('backButtonClicked', function() {
-        handleBackPress();
-      });
-
-      // Telegram ready
-      tg.ready();
-      
-      // Expand to full height
-      if (tg.version >= '6.0') {
-        tg.expand();
-      }
-    }
-
-    // ==================== DATA ====================
+    // ==================== MA'LUMOTLAR ====================
     const sentences = [
       ["My name is Ali.", "Mening ismim Ali."],
       ["I am 20 years old.", "Men 20 yoshdaman."],
@@ -411,59 +357,71 @@
       ["I plan to open my own business.", "Men o'z biznesimni ochmoqchiman."]
     ];
 
-    // ==================== DOM ELEMENTS ====================
+    // ==================== DOM ELEMENTLAR ====================
     const container = document.getElementById('contentArea');
     const repeatBtn = document.getElementById('repeatBtn');
     const progressFill = document.getElementById('progressFill');
     const currentTimeSpan = document.getElementById('currentTime');
+    const totalTimeSpan = document.getElementById('totalTime');
     const playBtn = document.getElementById('playBtn');
     const playIcon = playBtn.querySelector('i');
-    const toast = document.getElementById('toast');
     const backButton = document.getElementById('backButton');
-    const prevSentenceBtn = document.getElementById('prevSentenceBtn');
-    const nextSentenceBtn = document.getElementById('nextSentenceBtn');
-    const headerBar = document.getElementById('headerBar');
-    const playerBar = document.getElementById('playerBar');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const progressBar = document.getElementById('progressBar');
 
-    // ==================== STATE ====================
+    // ==================== O'ZGARUVCHILAR ====================
     let currentIdx = 0;
     let isRepeatMode = false;
+    let isPlaying = true;
     let textItems = [];
-    let isNavigatingBack = false;
-    let backPressTimer = null;
-    const PAGE_ID = 'learnu_dars_1';
+    const TOTAL_DURATION = 113; // 1 daqiqa 53 soniya
 
-    // ==================== TELEGRAM ADAPTATION ====================
-    if (isTelegramApp) {
-      document.body.classList.add('telegram-app');
-      headerBar.classList.add('telegram-header');
-      playerBar.classList.add('telegram-player');
-      
-      // Agar Telegramda bo'lsa, ortiqcha back tugmani yashirish (ixtiyoriy)
-      if (tg.BackButton.isVisible) {
-        backButton.style.opacity = '0.4'; // Indikatsiya uchun xira qilish
+    // ==================== HISTORY BOSHQARISH ====================
+    // Sahifa yuklanganda boshlang'ich holatni o'rnatish
+    history.replaceState({ 
+      page: 'lesson', 
+      index: 0 
+    }, '', window.location.href);
+
+    // Orqaga qaytish tugmasi bosilganda
+    window.addEventListener('popstate', function(event) {
+      if (event.state && event.state.page === 'lesson') {
+        currentIdx = event.state.index;
+        updateActive(currentIdx);
+        updateProgressForIndex(currentIdx);
+      } else {
+        // Agar tarixda hech narsa bo'lmasa, asosiy sahifaga o'tish
+        goToMainPage();
       }
+    });
+
+    // Back button bosilganda
+    backButton.addEventListener('click', function(e) {
+      e.preventDefault();
+      goToMainPage();
+    });
+
+    function goToMainPage() {
+      // Asosiy sahifaga o'tish
+      window.location.href = 'index.html';
     }
 
-    // ==================== RENDER ====================
+    // ==================== MATNLARNI YARATISH ====================
     function renderTexts() {
       container.innerHTML = '';
       textItems = [];
+      
       sentences.forEach((s, i) => {
         const item = document.createElement('div');
         item.className = 'text-item';
         if (i === 0) item.classList.add('active');
         item.innerHTML = `<span class="en">${s[0]}</span><span class="uz">${s[1]}</span>`;
         
+        // Har bir gap uchun bosish eventi
         item.addEventListener('click', function() {
-          currentIdx = i;
-          updateActive(currentIdx);
-          updateProgressForIndex(currentIdx);
-          saveCurrentState();
-          
-          // Telegram haptic feedback
-          if (tg) {
-            tg.HapticFeedback?.impactOccurred('light');
+          if (i !== currentIdx) {
+            navigateToSentence(i);
           }
         });
         
@@ -472,44 +430,24 @@
       });
     }
 
-    function updateActive(index) {
-      textItems.forEach(item => item.classList.remove('active'));
-      
-      if (textItems[index]) {
-        textItems[index].classList.add('active');
-        textItems[index].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // ==================== NAVIGATSIYA FUNKSIYALARI ====================
+    function navigateToSentence(index) {
+      if (index >= 0 && index < sentences.length) {
+        currentIdx = index;
+        updateActive(currentIdx);
+        updateProgressForIndex(currentIdx);
         
-        // Telegramga MainButton matnini o'zgartirish
-        if (tg && tg.MainButton.isVisible) {
-          const progress = Math.round(((index + 1) / sentences.length) * 100);
-          tg.MainButton.setText(`Davom etish (${progress}%)`);
-        }
+        // Tarixga qo'shish
+        history.pushState({ 
+          page: 'lesson', 
+          index: currentIdx 
+        }, '', `#sentence-${currentIdx}`);
       }
     }
 
-    // ==================== PROGRESS ====================
-    function formatTime(seconds) {
-      const mins = Math.floor(seconds / 60);
-      const secs = Math.floor(seconds % 60);
-      return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    }
-
-    function updateProgressForIndex(index) {
-      const totalDuration = 113;
-      const perSentence = totalDuration / sentences.length;
-      const currentSeconds = index * perSentence;
-      
-      const progressPercent = ((index + 1) / sentences.length) * 100;
-      progressFill.style.width = progressPercent + '%';
-      
-      if (currentTimeSpan) {
-        currentTimeSpan.textContent = formatTime(currentSeconds);
-      }
-    }
-
-    // ==================== SENTENCE NAVIGATION ====================
     function changeSentence(step) {
-      if (isRepeatMode && step === 1) {
+      if (isRepeatMode) {
+        // Takrorlash rejimida faqat progressni yangilash
         updateProgressForIndex(currentIdx);
         updateActive(currentIdx);
         return;
@@ -517,192 +455,95 @@
       
       let newIndex = currentIdx + step;
       if (newIndex >= 0 && newIndex < sentences.length) {
-        currentIdx = newIndex;
-        updateActive(currentIdx);
-        updateProgressForIndex(currentIdx);
-        saveCurrentState();
+        navigateToSentence(newIndex);
+      }
+    }
+
+    function updateActive(index) {
+      // Barcha elementlardan active klassini olib tashlash
+      textItems.forEach(item => item.classList.remove('active'));
+      
+      // Yangi indeksga active klassini qo'shish
+      if (textItems[index]) {
+        textItems[index].classList.add('active');
         
-        if (tg) {
-          tg.HapticFeedback?.impactOccurred('light');
-        }
-        
-        // Progressga qarab tugma ko'rinishini o'zgartirish
-        updateTelegramMainButton();
+        // Ko'rinadigan qismga siljitish
+        textItems[index].scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center' 
+        });
       }
     }
 
-    // ==================== TELEGRAM MAIN BUTTON ====================
-    function updateTelegramMainButton() {
-      if (!tg) return;
-      
-      const isComplete = currentIdx === sentences.length - 1;
-      
-      if (isComplete) {
-        tg.MainButton.setText('✅ Yakunlash');
-        tg.MainButton.color = '#34C759'; // Green
-      } else {
-        const progress = Math.round(((currentIdx + 1) / sentences.length) * 100);
-        tg.MainButton.setText(`Keyingi (${progress}%)`);
-        tg.MainButton.color = '#007AFF'; // Blue
-      }
-      
-      if (!tg.MainButton.isVisible) {
-        tg.MainButton.show();
-      }
+    // ==================== PROGRESS BAR FUNKSIYALARI ====================
+    function formatTime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     }
 
-    if (tg) {
-      tg.MainButton.onClick(function() {
-        if (currentIdx < sentences.length - 1) {
-          changeSentence(1);
-        } else {
-          // Dars yakunlandi
-          tg.HapticFeedback?.notificationOccurred('success');
-          tg.showPopup({
-            title: 'Dars yakunlandi! 🎉',
-            message: `Siz ${sentences.length} ta jumlani o'rganib chiqdingiz`,
-            buttons: [
-              {id: 'repeat', type: 'default', text: 'Qaytadan'},
-              {id: 'back', type: 'destructive', text: 'Chiqish'}
-            ]
-          }, function(buttonId) {
-            if (buttonId === 'repeat') {
-              currentIdx = 0;
-              updateActive(0);
-              updateProgressForIndex(0);
-            } else {
-              handleBackPress();
-            }
-          });
-        }
-      });
+    function updateProgressForIndex(index) {
+      const perSentence = TOTAL_DURATION / sentences.length;
+      const currentSeconds = index * perSentence;
       
-      updateTelegramMainButton();
-    }
-
-    // ==================== HISTORY & NAVIGATION ====================
-    const HISTORY_KEY = 'learnu_navigation_stack';
-    const HOME_PAGE_ID = 'learnu_sozlashuv_home';
-
-    function getNavigationStack() {
-      try {
-        const stack = localStorage.getItem(HISTORY_KEY);
-        return stack ? JSON.parse(stack) : [];
-      } catch (e) {
-        return [];
+      // Progress foizini hisoblash
+      const progressPercent = ((index + 1) / sentences.length) * 100;
+      progressFill.style.width = progressPercent + '%';
+      
+      // Vaqtni yangilash
+      if (currentTimeSpan) {
+        currentTimeSpan.textContent = formatTime(currentSeconds);
       }
     }
 
-    function saveNavigationStack(stack) {
-      try {
-        localStorage.setItem(HISTORY_KEY, JSON.stringify(stack));
-      } catch (e) {
-        console.warn('localStorage to\'lib ketgan');
-      }
-    }
-
-    function saveCurrentState() {
-      const stack = getNavigationStack();
-      const currentState = {
-        id: PAGE_ID,
-        url: window.location.href,
-        currentIdx: currentIdx,
-        isRepeatMode: isRepeatMode,
-        timestamp: Date.now()
-      };
+    // Progress bar ustiga bosish
+    progressBar.addEventListener('click', function(e) {
+      const rect = this.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const barWidth = rect.width;
+      const clickPercent = clickX / barWidth;
       
-      const lastIndex = stack.length - 1;
-      if (lastIndex >= 0 && stack[lastIndex].id === PAGE_ID) {
-        stack[lastIndex] = currentState;
-      } else {
-        stack.push(currentState);
-        if (stack.length > 20) stack.shift();
-      }
-      
-      saveNavigationStack(stack);
-    }
-
-    function handleBackPress() {
-      saveCurrentState();
-
-      if (tg && isTelegramBackButtonVisible) {
-        // Telegramda scroll holatini tiklab qaytish
-        const navigationStack = getNavigationStack();
-        
-        if (navigationStack.length > 1) {
-          const previousPage = navigationStack[navigationStack.length - 2];
-          window.location.href = previousPage.url || 'index.html';
-        } else {
-          tg.close();
-        }
-      } else {
-        // Oddiy brauzerda
-        window.location.href = 'index.html';
-      }
-    }
-
-    // ==================== HISTORY INITIALIZATION ====================
-    function initializeHistory() {
-      history.replaceState(
-        { page: PAGE_ID, timestamp: Date.now(), initialLoad: true },
-        '',
-        window.location.href
-      );
-      
-      // Brauzer uchun state
-      history.pushState(
-        { page: PAGE_ID, action: 'ready', timestamp: Date.now() },
-        '',
-        window.location.href
-      );
-      
-      saveCurrentState();
-    }
-
-    
-    // ==================== RESTORE STATE ====================
-    function restoreState() {
-      const stack = getNavigationStack();
-      const currentState = stack.find(entry => entry.id === PAGE_ID);
-      
-      if (currentState) {
-        if (typeof currentState.currentIdx !== 'undefined') {
-          currentIdx = currentState.currentIdx;
-          updateActive(currentIdx);
-          updateProgressForIndex(currentIdx);
-        }
-        
-        if (typeof currentState.isRepeatMode !== 'undefined') {
-          isRepeatMode = currentState.isRepeatMode;
-          if (isRepeatMode) {
-            repeatBtn.classList.add('active-repeat');
-          }
-        }
-        
-        if (tg) updateTelegramMainButton();
-      }
-    }
-
-    // ==================== EVENT LISTENERS ====================
-    
-    // Browser popstate (Android back button)
-    window.addEventListener('popstate', function(event) {
-      if (event.state && event.state.page === PAGE_ID) {
-        handleBackPress();
+      // Bosilgan joyga mos indexni hisoblash
+      const targetIndex = Math.floor(clickPercent * sentences.length);
+      if (targetIndex >= 0 && targetIndex < sentences.length) {
+        navigateToSentence(targetIndex);
       }
     });
 
-    // Back button click
-    backButton.addEventListener('click', function(e) {
-      e.preventDefault();
-      handleBackPress();
+    // ==================== PLAY/PAUSE BOSHQARISH ====================
+    playBtn.addEventListener('click', function() {
+      isPlaying = !isPlaying;
+      
+      if (isPlaying) {
+        playIcon.classList.remove('fa-play');
+        playIcon.classList.add('fa-pause');
+      } else {
+        playIcon.classList.remove('fa-pause');
+        playIcon.classList.add('fa-play');
+      }
     });
 
-    // Sentence navigation
-    prevSentenceBtn.addEventListener('click', () => changeSentence(-1));
-    nextSentenceBtn.addEventListener('click', () => changeSentence(1));
+    // ==================== TAKRORLASH REJIMI ====================
+    repeatBtn.addEventListener('click', function() {
+      isRepeatMode = !isRepeatMode;
+      
+      if (isRepeatMode) {
+        this.classList.add('active-repeat');
+      } else {
+        this.classList.remove('active-repeat');
+      }
+    });
 
-    // Keyboard
+    // ==================== TUGMALAR ORQALI BOSHQARISH ====================
+    prevBtn.addEventListener('click', function() {
+      changeSentence(-1);
+    });
+
+    nextBtn.addEventListener('click', function() {
+      changeSentence(1);
+    });
+
+    // ==================== KLAVIATURA ORQALI BOSHQARISH ====================
     document.addEventListener('keydown', function(e) {
       switch(e.key) {
         case 'ArrowRight':
@@ -715,139 +556,96 @@
           e.preventDefault();
           changeSentence(-1);
           break;
-        case 'Escape':
-          e.preventDefault();
-          handleBackPress();
-          break;
         case ' ':
           e.preventDefault();
-          togglePlayPause();
+          playBtn.click();
+          break;
+        case 'Escape':
+          e.preventDefault();
+          goToMainPage();
           break;
       }
     });
 
-    // Repeat
-    repeatBtn.addEventListener('click', function() {
-      isRepeatMode = !isRepeatMode;
-      this.classList.toggle('active-repeat');
-      saveCurrentState();
-      
-      if (tg) {
-        tg.HapticFeedback?.impactOccurred('soft');
-      }
-    });
-
-    // Play/Pause
-    function togglePlayPause() {
-      if (playIcon.classList.contains('fa-pause')) {
-        playIcon.classList.remove('fa-pause');
-        playIcon.classList.add('fa-play');
-      } else {
-        playIcon.classList.remove('fa-play');
-        playIcon.classList.add('fa-pause');
-      }
-    }
-    playBtn.addEventListener('click', togglePlayPause);
-
-    // Visibility
-    document.addEventListener('visibilitychange', function() {
-      if (document.hidden) {
-        saveCurrentState();
-      } else {
-        backPressTimer = null;
-      }
-    });
-
-    // Before unload
-    window.addEventListener('beforeunload', function() {
-      saveCurrentState();
-    });
-
-    // Swipe gestures
+    // ==================== SWIPE (SURISH) ORQALI BOSHQARISH ====================
     let touchStartX = 0;
     let touchStartY = 0;
-    
+    let touchEndX = 0;
+    let touchEndY = 0;
+
     document.addEventListener('touchstart', function(e) {
-      touchStartX = e.touches[0].clientX;
-      touchStartY = e.touches[0].clientY;
+      touchStartX = e.changedTouches[0].screenX;
+      touchStartY = e.changedTouches[0].screenY;
     }, { passive: true });
 
     document.addEventListener('touchend', function(e) {
-      const diffX = e.changedTouches[0].clientX - touchStartX;
-      const diffY = e.changedTouches[0].clientY - touchStartY;
+      touchEndX = e.changedTouches[0].screenX;
+      touchEndY = e.changedTouches[0].screenY;
+      handleSwipe();
+    }, { passive: true });
+
+    function handleSwipe() {
+      const swipeThreshold = 50;
+      const deltaX = touchEndX - touchStartX;
+      const deltaY = touchEndY - touchStartY;
       
-      if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
-        if (diffX > 0) {
-          changeSentence(-1);
-        } else {
-          changeSentence(1);
+      // Gorizontal surish vertikaldan kattaroq bo'lsa
+      if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        if (Math.abs(deltaX) > swipeThreshold) {
+          if (deltaX > 0) {
+            // O'nga surish - oldingi gap
+            changeSentence(-1);
+          } else {
+            // Chapga surish - keyingi gap
+            changeSentence(1);
+          }
         }
       }
-      
-      backPressTimer = null;
-    });
-
-    // ==================== TELEGRAM EVENTS ====================
-    if (tg) {
-      // Viewport o'zgarganda
-      tg.onEvent('viewportChanged', function(data) {
-        const { height } = data;
-        document.documentElement.style.setProperty('--tg-viewport-height', `${height}px`);
-      });
-      
-      // Tema o'zgarganda
-      tg.onEvent('themeChanged', function() {
-        document.documentElement.style.setProperty('--bg-dark', tg.themeParams.bg_color || '#000000');
-        document.documentElement.style.setProperty('--card-bg', tg.themeParams.secondary_bg_color || '#1C1C1E');
-        document.documentElement.style.setProperty('--text-secondary', tg.themeParams.hint_color || '#8E8E93');
-      });
     }
 
-    // ==================== INIT ====================
-    function init() {
-      renderTexts();
-      initializeHistory();
+    // ==================== PWA VA ANDROID UCHUN MAXSUS HANDLER ====================
+    // Android WebView yoki PWA uchun
+    document.addEventListener('backbutton', function(e) {
+      e.preventDefault();
       
+      if (currentIdx > 0) {
+        // Agar dars ichida bo'lsa, oldingi gapga qaytish
+        changeSentence(-1);
+      } else {
+        // Agar birinchi gapda bo'lsa, asosiy sahifaga qaytish
+        goToMainPage();
+      }
+    }, false);
+
+    // ==================== SAHIFA YUKLANGANDA ====================
+    function initializeApp() {
+      renderTexts();
+      
+      // Boshlang'ich progress
       const initialPercent = (1 / sentences.length) * 100;
       progressFill.style.width = initialPercent + '%';
-      if (currentTimeSpan) currentTimeSpan.textContent = '00:00';
+      currentTimeSpan.textContent = '00:00';
+      totalTimeSpan.textContent = formatTime(TOTAL_DURATION);
       
-      setTimeout(restoreState, 100);
-      
-      // Telegram specific init
-      if (tg) {
-        console.log('✅ Telegram Web App initialized');
-        console.log('   - Back button synced');
-        console.log('   - Main button active');
-        console.log('   - Theme integrated');
-        console.log('   - Haptic feedback enabled');
-      }
+      // Birinchi gapni aktiv qilish
+      updateActive(0);
     }
 
-    init();
+    // ==================== XOTIRADAN TOZALASH ====================
+    window.addEventListener('beforeunload', function() {
+      // Cleanup
+      textItems = [];
+    });
 
-    // ==================== DEBUG ====================
-    if (typeof window !== 'undefined') {
-      window.learnuDebug = {
-        isTelegram: isTelegramApp,
-        getStack: getNavigationStack,
-        clearStack: () => {
-          localStorage.removeItem(HISTORY_KEY);
-        },
-        getState: () => ({
-          currentIdx,
-          isRepeatMode,
-          pageId: PAGE_ID,
-          isTelegram: isTelegramApp
-        }),
-        simulateBack: handleBackPress
-      };
-    }
+    // ==================== ILOVANI ISHGA TUSHIRISH ====================
+    initializeApp();
 
-    console.log('📱 LearnU Dars 1 initialized');
-    console.log(`   Platform: ${isTelegramApp ? 'Telegram Web App' : 'Browser'}`);
+    console.log('✅ Dars ilovasi muvaffaqiyatli yuklandi');
+    console.log('📱 Back button xavfsiz holatda');
+    console.log('🎯 Jami gaplar:', sentences.length);
+    console.log('⏱️ Umumiy davomiylik:', formatTime(TOTAL_DURATION));
+
   })();
 </script>
-
 </body>
 </html>
