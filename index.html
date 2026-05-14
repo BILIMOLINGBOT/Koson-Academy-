@@ -3,166 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KA7 - Test Tizimi</title>
+    <title>LearnU | So'zlashuv</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: var(--tg-theme-bg-color, #1a1a2e);
-            color: var(--tg-theme-text-color, #eee);
-            padding: 16px;
-            min-height: 100vh;
-        }
-        .container {
-            max-width: 400px;
-            margin: 0 auto;
-        }
-        h1 {
-            text-align: center;
-            margin-bottom: 20px;
-            color: var(--tg-theme-button-color, #e94560);
-            font-size: 28px;
-            letter-spacing: 2px;
-        }
-        .level-card {
-            background: var(--tg-theme-secondary-bg-color, #16213e);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 12px;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            border-left: 4px solid var(--tg-theme-button-color, #e94560);
-        }
-        .level-card:active {
-            transform: scale(0.98);
-        }
-        .level-card h2 {
-            font-size: 20px;
-            margin-bottom: 6px;
-        }
-        .level-card p {
-            color: var(--tg-theme-hint-color, #aaa);
-            font-size: 14px;
-        }
-        .back-btn {
-            display: none;
-            background: var(--tg-theme-button-color, #e94560);
-            color: var(--tg-theme-button-text-color, #fff);
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        .question-area {
-            display: none;
-        }
+        /* ... barcha CSS kodlari o'zgarishsiz qoladi ... */
     </style>
 </head>
 <body>
-    <div class="container">
-        <button class="back-btn" id="backBtn">← Orqaga</button>
 
-        <!-- Bosh sahifa -->
-        <div id="mainScreen">
-            <h1>KA7</h1>
-            <div class="level-card" data-level="A1">
-                <h2>📗 A1 — Boshlang'ich</h2>
-                <p>Asosiy tushunchalar va oddiy testlar</p>
-            </div>
-            <div class="level-card" data-level="A2">
-                <h2>📘 A2 — O'rta boshlang'ich</h2>
-                <p>Kengaytirilgan bilimlar</p>
-            </div>
-            <div class="level-card" data-level="B1">
-                <h2>📙 B1 — O'rta</h2>
-                <p>Murakkabroq mavzular</p>
-            </div>
-            <div class="level-card" data-level="B2">
-                <h2>📕 B2 — Yuqori o'rta</h2>
-                <p>Ilg'or darajadagi testlar</p>
-            </div>
-        </div>
+<!-- ... header va boshqa elementlar ... -->
 
-        <!-- Test sahifasi -->
-        <div class="question-area" id="questionArea"></div>
-    </div>
+<script>
+    // Tarix holatini boshqarish
+    history.pushState(null, null, location.href);
+    
+    window.addEventListener('popstate', function() {
+        window.location.href = 'index.html';
+    });
 
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand();
+    // Mavjud darslar kodi
+    const lessons = [
+        "O'zingizni tanishtiring", "Oila", "Ob-havo", "Hafta kunlari", "Fasllar",
+        "Feʼl atvori", "Ranglar", "Raqamlar", "Gapirish", "Kundalik tartib",
+        "Sevimli mashg'ulotlar", "Salomlashuv", "Xayrlashuv", "Vaqt", "Rahmat va tashakkur",
+        "Kechirim soʻrash", "Rozilik va Norozilik", "Iltimos va istak", "Qiziqishlar", "Oylar",
+        "Mevalar", "Sabzavotlar", "Tana aʼzolari", "Fanlar", "Telefon soʻzlashuv 1",
+        "Telefon soʻzlashuv 2", "Taom", "Kishilik olmoshlari", "Sifatlar", "Savdo"
+    ];
 
-        const mainScreen = document.getElementById('mainScreen');
-        const questionArea = document.getElementById('questionArea');
-        const backBtn = document.getElementById('backBtn');
-        let currentLevel = '';
+    // ... qolgan JavaScript kodi ...
+</script>
 
-        // ===== ENG ASOSIY QISM: Orqaga qaytishni index.html ga yo'naltirish =====
-        
-        // 1. Telegram Web App "Orqaga" tugmasi
-        tg.BackButton.show();
-        tg.BackButton.onClick(() => {
-            goToIndex();
-        });
-
-        // 2. Telefonning apparat "Orqaga" tugmasi (history orqali)
-        window.addEventListener('popstate', function(event) {
-            // Brauzer tarixida orqaga bosilganda index.html ga o'tish
-            window.location.replace('index.html');
-        });
-
-        // 3. Sahifa yuklanganda history-ga state qo'shish
-        //    (apparat orqaga tugmasi ishlashi uchun)
-        history.pushState({page: 'ka7'}, '', window.location.href);
-
-        // ===== Daraja tanlash =====
-        document.querySelectorAll('.level-card').forEach(card => {
-            card.addEventListener('click', () => {
-                currentLevel = card.dataset.level;
-                showQuestions(currentLevel);
-            });
-        });
-
-        // Custom orqaga tugmasi
-        backBtn.addEventListener('click', () => {
-            if (questionArea.style.display === 'block') {
-                showMain();
-            } else {
-                goToIndex();
-            }
-        });
-
-        function goToIndex() {
-            window.location.replace('index.html');
-        }
-
-        function showMain() {
-            questionArea.style.display = 'none';
-            mainScreen.style.display = 'block';
-            backBtn.style.display = 'none';
-            currentLevel = '';
-        }
-
-        function showQuestions(level) {
-            mainScreen.style.display = 'none';
-            backBtn.style.display = 'inline-block';
-            questionArea.style.display = 'block';
-            questionArea.innerHTML = `
-                <h2>${level} darajasi</h2>
-                <p style="text-align:center;padding:30px;color:var(--tg-theme-hint-color,#aaa);">
-                    Testlar tayyorlanmoqda...
-                </p>
-            `;
-            // Bu yerga test savollari qo'shiladi
-        }
-
-        tg.ready();
-    </script>
 </body>
 </html>
