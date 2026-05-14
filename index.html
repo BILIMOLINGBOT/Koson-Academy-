@@ -6,22 +6,147 @@
     <title>LearnU | So'zlashuv</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* ... barcha CSS kodlari o'zgarishsiz qoladi ... */
+        :root {
+            --bg-color: #1A222B;
+            --card-bg: #242F3E;
+            --text-main: #FFFFFF;
+            --text-secondary: #717F8D;
+            --accent-color: #007AFF;
+            --radius: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 20px;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        header {
+            max-width: 600px;
+            margin: 20px auto 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .profile-btn {
+            text-decoration: none;
+            color: var(--text-main);
+            font-size: 26px;
+            background: var(--card-bg);
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: 0.2s;
+        }
+
+        .profile-btn:active {
+            transform: scale(0.9);
+        }
+
+        .search-container {
+            max-width: 600px;
+            margin: 0 auto 20px;
+        }
+
+        .search-bar {
+            width: 100%;
+            padding: 14px 20px;
+            background: #2D394A;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            color: white;
+            outline: none;
+        }
+
+        .modules-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 600px;
+            margin: 0 auto 50px;
+        }
+
+        .module-item {
+            background: var(--card-bg);
+            padding: 14px 16px;
+            border-radius: var(--radius);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .module-item:active {
+            background: #2D394A;
+            transform: translateX(5px);
+        }
+
+        .module-image {
+            width: 48px;
+            height: 48px;
+            background: #FFFFFF;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        .module-image i {
+            font-size: 22px;
+            color: #1A222B;
+        }
+
+        .module-title {
+            flex-grow: 1;
+            font-size: 17px;
+            font-weight: 500;
+            color: var(--text-main);
+        }
+
+        .module-chevron {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
 
-<!-- ... header va boshqa elementlar ... -->
+<header>
+    <h1>Soʻzlashuv</h1>
+    <a href="profil.html" class="profile-btn">
+        <i class="fa-solid fa-circle-user"></i>
+    </a>
+</header>
+
+<div class="search-container">
+    <input type="text" class="search-bar" placeholder="Mavzuni qidirish...">
+</div>
+
+<main class="modules-list" id="lessonList">
+    </main>
 
 <script>
-    // Tarix holatini boshqarish
-    history.pushState(null, null, location.href);
-    
-    window.addEventListener('popstate', function() {
-        window.location.href = 'index.html';
-    });
-
-    // Mavjud darslar kodi
     const lessons = [
         "O'zingizni tanishtiring", "Oila", "Ob-havo", "Hafta kunlari", "Fasllar",
         "Feʼl atvori", "Ranglar", "Raqamlar", "Gapirish", "Kundalik tartib",
@@ -31,8 +156,67 @@
         "Telefon soʻzlashuv 2", "Taom", "Kishilik olmoshlari", "Sifatlar", "Savdo"
     ];
 
-    // ... qolgan JavaScript kodi ...
-</script>
+    const icons = [
+        "fa-user-tie", "fa-house-chimney", "fa-cloud-sun", "fa-calendar-days", "fa-leaf",
+        "fa-brain", "fa-palette", "fa-5", "fa-comment-dots", "fa-clock-rotate-left",
+        "fa-icons", "fa-handshake", "fa-door-open", "fa-clock", "fa-hand-holding-heart",
+        "fa-face-sad-tear", "fa-thumbs-up", "fa-hand-sparkles", "fa-bolt", "fa-calendar-check",
+        "fa-apple-whole", "fa-carrot", "fa-accessibility", "fa-book-open", "fa-phone-volume",
+        "fa-video", "fa-utensils", "fa-users-rectangle", "fa-wand-magic-sparkles", "fa-cart-shopping"
+    ];
 
+    
+        // Telegram "Orqaga" tugmasi
+        tg.BackButton.show();
+        tg.BackButton.onClick(() => {
+            goBack();
+        });
+
+        const mainScreen = document.getElementById('mainScreen');
+        const questionArea = document.getElementById('questionArea');
+        const backBtn = document.getElementById('backBtn');
+        let currentLevel = '';
+
+        // Daraja tanlash
+        document.querySelectorAll('.level-card').forEach(card => {
+            card.addEventListener('click', () => {
+                currentLevel = card.dataset.level;
+                showQuestions(currentLevel);
+            });
+        });
+
+        // Custom orqaga tugmasi
+        backBtn.addEventListener('click', () => {
+            goBack();
+        });
+
+        function goBack() {
+            if (questionArea.style.display === 'block') {
+                showMain();
+            } else {
+                tg.close();
+            }
+        }
+
+        function showMain() {
+            questionArea.style.display = 'none';
+            mainScreen.style.display = 'block';
+            backBtn.style.display = 'none';
+            currentLevel = '';
+        }
+
+        function showQuestions(level) {
+            mainScreen.style.display = 'none';
+            backBtn.style.display = 'inline-block';
+            questionArea.style.display = 'block';
+            questionArea.innerHTML = `
+                <h2>${level} darajasi</h2>
+                <p style="text-align:center;padding:30px;">Testlar tayyorlanmoqda...</p>
+            `;
+            // Bu yerga test savollari qo'shiladi
+        }
+
+        tg.ready();
+    </script>
 </body>
 </html>
