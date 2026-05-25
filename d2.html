@@ -98,11 +98,6 @@
       background-color: rgba(255, 255, 255, 0.05);
     }
 
-    .text-item.playing {
-      border-color: #007AFF;
-      background-color: rgba(0, 122, 255, 0.08);
-    }
-
     .en {
       font-size: 18px;
       font-weight: 600;
@@ -146,7 +141,6 @@
       background: #333;
       border-radius: 4px;
       position: relative;
-      cursor: pointer;
     }
 
     .bar-fill {
@@ -251,138 +245,95 @@
 
 <div class="player-fixed">
   <div class="progress-box">
-    <div class="bar-container" id="progressBarContainer">
+    <div class="bar-container">
       <div class="bar-fill" id="progressFill">
         <div class="bar-dot"></div>
       </div>
     </div>
     <div class="time-labels">
       <span id="currentTime">00:00</span>
-      <span id="totalTime">00:00</span>
+      <span id="totalTime">01:53</span>
     </div>
   </div>
 
   <div class="player-controls">
     <i class="fas fa-arrows-rotate" id="repeatBtn" title="Takrorlash"></i>
 
-    <i class="fas fa-backward-step" id="prevBtn" title="Oldingi"></i>
+    <i class="fas fa-backward-step" onclick="changeSentence(-1)" title="Oldingi"></i>
 
     <div class="btn-play-pause" id="playBtn">
-      <i class="fas fa-play"></i>
+      <i class="fas fa-play"></i> <!-- Play ikonkasi bilan boshlanadi -->
     </div>
 
-    <i class="fas fa-forward-step" id="nextBtn" title="Keyingi"></i>
+    <i class="fas fa-forward-step" onclick="changeSentence(1)" title="Keyingi"></i>
   </div>
 </div>
 
 <script>
   (function() {
+    // 3-parametr sifatida audio URL qo'shildi
     const sentences = [
-      ["My name is Ali.", "Mening ismim Ali."],
-      ["I am 20 years old.", "Men 20 yoshdaman."],
-      ["I was born in 2005.", "Men 2005-yilda tug'ilganman."],
-      ["I am the youngest in my family.", "Men oilamda eng kichikman."],
-      ["I live in Tashkent.", "Men Toshkentda yashayman."],
-      ["My city is beautiful.", "Mening shahrim chiroyli."],
-      ["I live near the park.", "Men bog' yaqinida yashayman."],
-      ["I moved to this city last year.", "Men o'tgan yili bu shaharga ko'chib kelganman."],
-      ["I have a big family.", "Mening katta oilam bor."],
-      ["I have two brothers and one sister.", "Mening ikkita aka-ukam va bir opam bor."],
-      ["My father is a teacher.", "Mening otam o'qituvchi."],
-      ["I live with my parents.", "Men ota-onam bilan yashayman."],
-      ["I study at State University.", "Men Davlat Universitetida o'qiyman."],
-      ["I am a student.", "Men talabaman."],
-      ["I study English.", "Men ingliz tilini o'qiyman."],
-      ["I will graduate next year.", "Men kelgusi yil bitiruvchiman."],
-      ["I want to be a programmer.", "Men dasturchi bo'lmoqchiman."],
-      ["I like reading books.", "Men kitob o'qishni yoqtiraman."],
-      ["I enjoy playing football.", "Men futbol o'ynashdan zavq olaman."],
-      ["I love listening to music.", "Men musiqa tinglashni yaxshi ko'raman."],
-      ["I am interested in technology.", "Men texnologiyaga qiziqaman."],
-      ["I like watching movies.", "Men filmlar ko'rishni yoqtiraman."],
-      ["My hobby is drawing.", "Mening xobbim — chizish."],
-      ["I enjoy taking photos.", "Men suratga tushishdan zavq olaman."],
-      ["I play chess in my free time.", "Men bo'sh vaqtda shaxmat o'ynayman."],
-      ["I like green color.", "Men yashil rangni yoqtiraman."],
-      ["I love pizza and burgers.", "Men pitsa va burgerlarni yaxshi ko'raman."],
-      ["I like summer most.", "Men yozni eng ko'p yoqtiraman."],
-      ["I enjoy traveling.", "Men sayohat qilishdan zavq olaman."],
-      ["I like spending time with friends.", "Men do'stlar bilan vaqt o'tkazishni yoqtiraman."],
-      ["I don't like waking up early.", "Men erta turishni yoqtirmayman."],
-      ["I hate waiting in lines.", "Men navbat kutishdan nafratlanaman."],
-      ["I don't like loud music.", "Men baland musiqani yoqtirmayman."],
-      ["I dislike cold weather.", "Men sovuq ob-havoni yoqtirmayman."],
-      ["I don't eat fish.", "Men baliq yemayman."],
-      ["I am a friendly person.", "Men do'stona odamman."],
-      ["I am hard-working.", "Men mehnatsevar odamman."],
-      ["I am always happy.", "Men har doim baxtli odamman."],
-      ["I am a good listener.", "Men yaxshi tinglovchiman."],
-      ["I try to be honest.", "Men rostgo'y bo'lishga harakat qilaman."],
-      ["I want to travel around the world.", "Men butun dunyo bo'ylab sayohat qilmoqchiman."],
-      ["I want to learn three languages.", "Men uchta til o'rganmoqchiman."],
-      ["I hope to find a good job.", "Men yaxshi ish topishni umid qilaman."],
-      ["I dream of visiting Japan.", "Men Yaponiyaga borishni orzu qilaman."],
-      ["I plan to open my own business.", "Men o'z biznesimni ochmoqchiman."]
+      ["My name is Ali.", "Mening ismim Ali.", "http://intermediate-lime-8o8gf9vrr1.edgeone.app"],
+      ["I am 20 years old.", "Men 20 yoshdaman.", ""],
+      ["I was born in 2005.", "Men 2005-yilda tug'ilganman.", ""],
+      ["I am the youngest in my family.", "Men oilamda eng kichikman.", ""],
+      ["I live in Tashkent.", "Men Toshkentda yashayman.", ""],
+      ["My city is beautiful.", "Mening shahrim chiroyli.", ""],
+      ["I live near the park.", "Men bog' yaqinida yashayman.", ""],
+      ["I moved to this city last year.", "Men o'tgan yili bu shaharga ko'chib kelganman.", ""],
+      ["I have a big family.", "Mening katta oilam bor.", ""],
+      ["I have two brothers and one sister.", "Mening ikkita aka-ukam va bir opam bor.", ""],
+      ["My father is a teacher.", "Mening otam o'qituvchi.", ""],
+      ["I live with my parents.", "Men ota-onam bilan yashayman.", ""],
+      ["I study at State University.", "Men Davlat Universitetida o'qiyman.", ""],
+      ["I am a student.", "Men talabaman.", ""],
+      ["I study English.", "Men ingliz tilini o'qiyman.", ""],
+      ["I will graduate next year.", "Men kelgusi yil bitiruvchiman.", ""],
+      ["I want to be a programmer.", "Men dasturchi bo'lmoqchiman.", ""],
+      ["I like reading books.", "Men kitob o'qishni yoqtiraman.", ""],
+      ["I enjoy playing football.", "Men futbol o'ynashdan zavq olaman.", ""],
+      ["I love listening to music.", "Men musiqa tinglashni yaxshi ko'raman.", ""],
+      ["I am interested in technology.", "Men texnologiyaga qiziqaman.", ""],
+      ["I like watching movies.", "Men filmlar ko'rishni yoqtiraman.", ""],
+      ["My hobby is drawing.", "Mening xobbim — chizish.", ""],
+      ["I enjoy taking photos.", "Men suratga tushishdan zavq olaman.", ""],
+      ["I play chess in my free time.", "Men bo'sh vaqtda shaxmat o'ynayman.", ""],
+      ["I like green color.", "Men yashil rangni yoqtiraman.", ""],
+      ["I love pizza and burgers.", "Men pitsa va burgerlarni yaxshi ko'raman.", ""],
+      ["I like summer most.", "Men yozni eng ko'p yoqtiraman.", ""],
+      ["I enjoy traveling.", "Men sayohat qilishdan zavq olaman.", ""],
+      ["I like spending time with friends.", "Men do'stlar bilan vaqt o'tkazishni yoqtiraman.", ""],
+      ["I don't like waking up early.", "Men erta turishni yoqtirmayman.", ""],
+      ["I hate waiting in lines.", "Men navbat kutishdan nafratlanaman.", ""],
+      ["I don't like loud music.", "Men baland musiqani yoqtirmayman.", ""],
+      ["I dislike cold weather.", "Men sovuq ob-havoni yoqtirmayman.", ""],
+      ["I don't eat fish.", "Men baliq yemayman.", ""],
+      ["I am a friendly person.", "Men do'stona odamman.", ""],
+      ["I am hard-working.", "Men mehnatsevar odamman.", ""],
+      ["I am always happy.", "Men har doim baxtli odamman.", ""],
+      ["I am a good listener.", "Men yaxshi tinglovchiman.", ""],
+      ["I try to be honest.", "Men rostgo'y bo'lishga harakat qilaman.", ""],
+      ["I want to travel around the world.", "Men butun dunyo bo'ylab sayohat qilmoqchiman.", ""],
+      ["I want to learn three languages.", "Men uchta til o'rganmoqchiman.", ""],
+      ["I hope to find a good job.", "Men yaxshi ish topishni umid qilaman.", ""],
+      ["I dream of visiting Japan.", "Men Yaponiyaga borishni orzu qilaman.", ""],
+      ["I plan to open my own business.", "Men o'z biznesimni ochmoqchiman.", ""]
     ];
-
-    // Audio bazaviy URL
-    const AUDIO_BASE_URL = 'http://intermediate-lime-8o8gf9vrr1.edgeone.app/audio/';
 
     const container = document.getElementById('contentArea');
     const repeatBtn = document.getElementById('repeatBtn');
     const progressFill = document.getElementById('progressFill');
     const currentTimeSpan = document.getElementById('currentTime');
-    const totalTimeSpan = document.getElementById('totalTime');
     const playBtn = document.getElementById('playBtn');
     const playIcon = playBtn.querySelector('i');
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const progressBarContainer = document.getElementById('progressBarContainer');
 
     let currentIdx = 0;
     let isRepeatMode = false;
     let textItems = [];
-    let audioElements = [];
-    let currentAudio = null;
+    
+    // Audio obyektini yaratish
+    const lessonAudio = new Audio();
     let isPlaying = false;
-    let totalDuration = 0;
-    let updateTimer = null;
-
-    // Har bir gap uchun audio element yaratish
-    function createAudioElements() {
-      audioElements = sentences.map((_, index) => {
-        const audio = new Audio();
-        audio.src = `${AUDIO_BASE_URL}${index + 1}.mp3`;
-        audio.preload = 'auto';
-        return audio;
-      });
-    }
-
-    // Jami davomiylikni hisoblash (barcha audio yuklangandan keyin)
-    function calculateTotalDuration() {
-      let loadedCount = 0;
-      totalDuration = 0;
-      
-      audioElements.forEach((audio, index) => {
-        audio.addEventListener('loadedmetadata', () => {
-          totalDuration += audio.duration || 0;
-          loadedCount++;
-          
-          if (loadedCount === audioElements.length) {
-            totalTimeSpan.textContent = formatTime(totalDuration);
-          }
-        });
-        
-        // Agar metadata allaqachon yuklangan bo'lsa
-        if (audio.duration && !isNaN(audio.duration)) {
-          totalDuration += audio.duration;
-          loadedCount++;
-          if (loadedCount === audioElements.length) {
-            totalTimeSpan.textContent = formatTime(totalDuration);
-          }
-        }
-      });
-    }
 
     function renderTexts() {
       container.innerHTML = '';
@@ -393,333 +344,119 @@
         if (i === 0) item.classList.add('active');
         item.innerHTML = `<span class="en">${s[0]}</span><span class="uz">${s[1]}</span>`;
         
-        // Gapga bosganda audio ijro qilish
+        // Matn bosilganda o'sha gapga o'tish va pley qilish funksiyasi
         item.addEventListener('click', () => {
-          playSentence(i);
+          currentIdx = i;
+          updateActive(currentIdx);
+          updateProgressForIndex(currentIdx);
+          loadAndPlayAudio();
         });
-        
+
         container.appendChild(item);
         textItems.push(item);
       });
     }
 
     function updateActive(index) {
-      textItems.forEach(item => {
-        item.classList.remove('active');
-        item.classList.remove('playing');
-      });
-      
+      textItems.forEach(item => item.classList.remove('active'));
       if (textItems[index]) {
         textItems[index].classList.add('active');
-        textItems[index].classList.add('playing');
         textItems[index].scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
 
     function formatTime(seconds) {
-      if (isNaN(seconds) || seconds < 0) return '00:00';
+      if (isNaN(seconds)) return "00:00";
       const mins = Math.floor(seconds / 60);
       const secs = Math.floor(seconds % 60);
       return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     }
 
     function updateProgressForIndex(index) {
-      if (totalDuration <= 0) return;
+      // Darsning umumiy davomiyligi bo'yicha progress (iOS dizayndagidek qoldirildi)
+      const progressPercent = ((index + 1) / sentences.length) * 100;
+      progressFill.style.width = progressPercent + '%';
       
-      let elapsedBefore = 0;
-      for (let i = 0; i < index; i++) {
-        const dur = audioElements[i]?.duration;
-        if (dur && !isNaN(dur)) {
-          elapsedBefore += dur;
+      const totalDuration = 113; // 01:53 sekund hisobida
+      const perSentence = totalDuration / sentences.length;
+      const currentSeconds = index * perSentence;
+
+      if (currentTimeSpan) {
+        currentTimeSpan.textContent = formatTime(currentSeconds);
+      }
+    }
+
+    // Audioni yuklash va avtomatik chalish
+    function loadAndPlayAudio() {
+      const audioUrl = sentences[currentIdx][2];
+      
+      if (audioUrl) {
+        lessonAudio.src = audioUrl;
+        if (isPlaying) {
+          lessonAudio.play().catch(e => console.log("Audio xatosi:", e));
         }
-      }
-      
-      const currentAudioDuration = audioElements[index]?.duration || 0;
-      const progressPercent = ((elapsedBefore + currentAudioDuration) / totalDuration) * 100;
-      progressFill.style.width = Math.min(progressPercent, 100) + '%';
-    }
-
-    function updateCurrentTimeDisplay() {
-      if (!currentAudio || !isPlaying) return;
-      
-      let elapsedBefore = 0;
-      for (let i = 0; i < currentIdx; i++) {
-        const dur = audioElements[i]?.duration;
-        if (dur && !isNaN(dur)) {
-          elapsedBefore += dur;
-        }
-      }
-      
-      const currentTime = elapsedBefore + currentAudio.currentTime;
-      currentTimeSpan.textContent = formatTime(currentTime);
-    }
-
-    function stopCurrentAudio() {
-      if (currentAudio) {
-        currentAudio.pause();
-        currentAudio.currentTime = 0;
-        currentAudio = null;
-      }
-    }
-
-    function playSentence(index) {
-      if (index < 0 || index >= sentences.length) return;
-      
-      // Avvalgi audioni to'xtatish
-      stopCurrentAudio();
-      
-      currentIdx = index;
-      currentAudio = audioElements[index];
-      
-      // UI yangilash
-      updateActive(index);
-      updateProgressForIndex(index);
-      
-      // Audio ijro qilish
-      playCurrentAudio();
-    }
-
-    function playCurrentAudio() {
-      if (!currentAudio) {
-        currentAudio = audioElements[currentIdx];
-      }
-      
-      currentAudio.currentTime = 0;
-      
-      currentAudio.play().then(() => {
-        isPlaying = true;
-        playIcon.classList.remove('fa-play');
-        playIcon.classList.add('fa-pause');
-        
-        // Progress yangilash uchun timer
-        startProgressTimer();
-        
-      }).catch(err => {
-        console.error('Audio ijro etishda xato:', err);
-        isPlaying = false;
-        playIcon.classList.remove('fa-pause');
-        playIcon.classList.add('fa-play');
-      });
-    }
-
-    function pauseCurrentAudio() {
-      if (currentAudio && isPlaying) {
-        currentAudio.pause();
-        isPlaying = false;
-        playIcon.classList.remove('fa-pause');
-        playIcon.classList.add('fa-play');
-        stopProgressTimer();
-      }
-    }
-
-    function resumeCurrentAudio() {
-      if (currentAudio && !isPlaying) {
-        currentAudio.play().then(() => {
-          isPlaying = true;
-          playIcon.classList.remove('fa-play');
-          playIcon.classList.add('fa-pause');
-          startProgressTimer();
-        }).catch(err => {
-          console.error('Audio davom ettirishda xato:', err);
-        });
-      }
-    }
-
-    function startProgressTimer() {
-      stopProgressTimer();
-      updateTimer = setInterval(() => {
-        if (currentAudio && isPlaying) {
-          updateCurrentTimeDisplay();
-          
-          // Audio tugaganda keyingi gapga o'tish
-          if (currentAudio.ended || currentAudio.currentTime >= currentAudio.duration - 0.1) {
-            onAudioEnded();
-          }
-        }
-      }, 250);
-    }
-
-    function stopProgressTimer() {
-      if (updateTimer) {
-        clearInterval(updateTimer);
-        updateTimer = null;
-      }
-    }
-
-    function onAudioEnded() {
-      stopProgressTimer();
-      
-      if (isRepeatMode) {
-        // Takrorlash rejimida shu gapni qayta ijro qilish
-        playSentence(currentIdx);
       } else {
-        // Keyingi gapga o'tish
-        changeSentence(1);
+        lessonAudio.pause();
+        // Agar audio topilmasa, test uchun pauza qilib qo'yish yoki keyingisiga o'tkazish mumkin.
       }
     }
 
-    function changeSentence(step) {
-      let newIndex = currentIdx + step;
+    // Oldingi/Keyingi gaplarga o'tish
+    window.changeSentence = function(step) {
+      if (isRepeatMode && step === 1) {
+        loadAndPlayAudio(); // Takrorlash yoqilgan bo'lsa xuddi shu audioni qaytadan chaladi
+        return;
+      }
       
+      let newIndex = currentIdx + step;
       if (newIndex >= 0 && newIndex < sentences.length) {
-        stopCurrentAudio();
-        stopProgressTimer();
         currentIdx = newIndex;
         updateActive(currentIdx);
         updateProgressForIndex(currentIdx);
+        loadAndPlayAudio();
+      }
+    };
+
+    // Takrorlash (Repeat) funksiyasi
+    repeatBtn.addEventListener('click', function() {
+      isRepeatMode = !isRepeatMode;
+      this.classList.toggle('active-repeat');
+    });
+
+    // Audio tugagach nima bo'lishini nazorat qilish
+    lessonAudio.addEventListener('ended', function() {
+      if (isRepeatMode) {
+        lessonAudio.play();
+      } else {
+        changeSentence(1);
+      }
+    });
+
+    // Play/Pause tugmasi logikasi
+    playBtn.addEventListener('click', function() {
+      isPlaying = !isPlaying;
+      
+      if (isPlaying) {
+        playIcon.classList.remove('fa-play');
+        playIcon.classList.add('fa-pause');
         
-        // Agar ijro holatida bo'lsa, yangi audioni boshlash
-        if (isPlaying || playIcon.classList.contains('fa-pause')) {
-          currentAudio = audioElements[currentIdx];
-          playCurrentAudio();
-        } else {
-          currentAudio = audioElements[currentIdx];
+        const currentUrl = sentences[currentIdx][2];
+        if (currentUrl && lessonAudio.src !== currentUrl) {
+            lessonAudio.src = currentUrl;
         }
-      } else if (newIndex >= sentences.length) {
-        // Oxirgi gapdan keyin to'xtash
-        stopCurrentAudio();
-        stopProgressTimer();
-        isPlaying = false;
+        if (currentUrl) {
+            lessonAudio.play().catch(e => console.log("Audio xatosi:", e));
+        }
+      } else {
         playIcon.classList.remove('fa-pause');
         playIcon.classList.add('fa-play');
-        currentTimeSpan.textContent = formatTime(totalDuration);
-        progressFill.style.width = '100%';
-        
-        // Playing klassini olib tashlash
-        textItems.forEach(item => item.classList.remove('playing'));
-      }
-    }
-
-    // Play/Pause tugmasi
-    playBtn.addEventListener('click', () => {
-      if (isPlaying) {
-        pauseCurrentAudio();
-      } else {
-        if (currentAudio && currentAudio.currentTime > 0 && !currentAudio.ended) {
-          resumeCurrentAudio();
-        } else {
-          playSentence(currentIdx);
-        }
+        lessonAudio.pause();
       }
     });
 
-    // Oldingi gap tugmasi
-    prevBtn.addEventListener('click', () => {
-      changeSentence(-1);
-    });
-
-    // Keyingi gap tugmasi
-    nextBtn.addEventListener('click', () => {
-      changeSentence(1);
-    });
-
-    // Takrorlash tugmasi
-    repeatBtn.addEventListener('click', () => {
-      isRepeatMode = !isRepeatMode;
-      repeatBtn.classList.toggle('active-repeat', isRepeatMode);
-    });
-
-    // Progress bar orqali vaqtni o'zgartirish
-    progressBarContainer.addEventListener('click', (e) => {
-      if (totalDuration <= 0) return;
-      
-      const rect = progressBarContainer.getBoundingClientRect();
-      const clickX = e.clientX - rect.left;
-      const percent = clickX / rect.width;
-      const targetTime = percent * totalDuration;
-      
-      // Qaysi gapga to'g'ri kelishini topish
-      let accumulatedTime = 0;
-      let targetIndex = 0;
-      
-      for (let i = 0; i < audioElements.length; i++) {
-        const dur = audioElements[i]?.duration || 0;
-        if (accumulatedTime + dur >= targetTime) {
-          targetIndex = i;
-          break;
-        }
-        accumulatedTime += dur;
-        targetIndex = i;
-      }
-      
-      // Yangi gapni ijro qilish
-      stopCurrentAudio();
-      stopProgressTimer();
-      currentIdx = targetIndex;
-      updateActive(currentIdx);
-      
-      currentAudio = audioElements[currentIdx];
-      
-      // Gap ichidagi vaqtni sozlash
-      const offsetInSentence = targetTime - accumulatedTime;
-      if (currentAudio.duration && offsetInSentence > 0) {
-        currentAudio.currentTime = Math.min(offsetInSentence, currentAudio.duration);
-      }
-      
-      if (isPlaying || playIcon.classList.contains('fa-pause')) {
-        currentAudio.play().then(() => {
-          isPlaying = true;
-          playIcon.classList.remove('fa-play');
-          playIcon.classList.add('fa-pause');
-          startProgressTimer();
-        }).catch(() => {});
-      }
-    });
-
-    
-    // Audio tugaganda event listener qo'shish
-    audioElements.forEach((audio, index) => {
-      audio.addEventListener('ended', () => {
-        if (currentAudio === audio) {
-          onAudioEnded();
-        }
-      });
-    });
-
-    // Har bir audio yuklanganda progressni yangilash
-    audioElements.forEach((audio, index) => {
-      audio.addEventListener('loadedmetadata', () => {
-        calculateTotalDuration();
-      });
-    });
-
-    // Klaviatura orqali boshqarish
-    document.addEventListener('keydown', (e) => {
-      switch(e.key) {
-        case ' ':
-          e.preventDefault();
-          playBtn.click();
-          break;
-        case 'ArrowLeft':
-          e.preventDefault();
-          prevBtn.click();
-          break;
-        case 'ArrowRight':
-          e.preventDefault();
-          nextBtn.click();
-          break;
-      }
-    });
-
-    // Boshlang'ich holat
-    createAudioElements();
+    // Boshlang'ich holatni sozlash
     renderTexts();
-    calculateTotalDuration();
-    
-    // Birinchi audioni tayyorlash
-    currentAudio = audioElements[0];
-    updateActive(0);
-    
-    // Agar totalDuration hali hisoblanmagan bo'lsa, default qiymat
-    setTimeout(() => {
-      if (totalDuration <= 0) {
-        totalDuration = sentences.length * 3; // Har bir gapga taxminan 3 soniya
-        totalTimeSpan.textContent = formatTime(totalDuration);
-      }
-    }, 2000);
-
-    currentTimeSpan.textContent = '00:00';
-    progressFill.style.width = '0%';
+    updateProgressForIndex(0);
 
   })();
 </script>
