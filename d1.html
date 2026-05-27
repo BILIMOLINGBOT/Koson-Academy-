@@ -74,6 +74,34 @@
       line-height: 1.2;
     }
 
+    /* Language Switch */
+    .lang-switch {
+      margin-left: auto;
+      background: #1C1C1E;
+      border-radius: 30px;
+      padding: 4px;
+      display: flex;
+      gap: 4px;
+    }
+    .lang-btn {
+      padding: 6px 16px;
+      border-radius: 30px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      background: transparent;
+      color: #8E8E93;
+      border: none;
+      transition: all 0.2s;
+    }
+    .lang-btn.active {
+      background: #007AFF;
+      color: white;
+    }
+    .lang-btn:active {
+      opacity: 0.7;
+    }
+
     /* Scrollable Content */
     .content-scroll {
       flex: 1;
@@ -108,8 +136,8 @@
     }
 
     .uz {
-      font-size: 18px;  /* en bilan bir xil o'lcham */
-      color: #FFFFFF;    /* en bilan bir xil rang */
+      font-size: 15px;
+      color: var(--text-secondary);
       display: block;
       line-height: 1.4;
     }
@@ -126,7 +154,7 @@
       z-index: 1000;
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
-      background: rgba(10, 10, 10, 0.92);
+      background: rgba(10, 10, 10, 0.96);
     }
 
     .progress-box {
@@ -141,6 +169,7 @@
       background: #333;
       border-radius: 4px;
       position: relative;
+      cursor: pointer;
     }
 
     .bar-fill {
@@ -230,6 +259,14 @@
     .player-controls i.fa-forward-step {
       font-size: 26px;
     }
+
+    /* current language badge */
+    .current-lang-badge {
+      font-size: 12px;
+      color: #8E8E93;
+      text-align: center;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -237,6 +274,10 @@
 <div class="header">
   <a href="index.html" class="back-btn"><i class="fas fa-chevron-left"></i></a>
   <h1>O'zingizni tanishtiring</h1>
+  <div class="lang-switch">
+    <button class="lang-btn" data-lang="en">English</button>
+    <button class="lang-btn" data-lang="uz">O'zbekcha</button>
+  </div>
 </div>
 
 <main class="content-scroll" id="contentArea">
@@ -245,220 +286,440 @@
 
 <div class="player-fixed">
   <div class="progress-box">
-    <div class="bar-container">
+    <div class="bar-container" id="progressBarContainer">
       <div class="bar-fill" id="progressFill">
         <div class="bar-dot"></div>
       </div>
     </div>
     <div class="time-labels">
       <span id="currentTime">00:00</span>
-      <span id="totalTime">01:53</span>
+      <span id="totalTime">00:00</span>
     </div>
   </div>
 
   <div class="player-controls">
     <i class="fas fa-arrows-rotate" id="repeatBtn" title="Takrorlash"></i>
-
-    <i class="fas fa-backward-step" onclick="changeSentence(-1)" title="Oldingi"></i>
-
+    <i class="fas fa-backward-step" id="prevBtn" title="Oldingi"></i>
     <div class="btn-play-pause" id="playBtn">
-      <i class="fas fa-play"></i> <!-- Play ikonkasi bilan boshlanadi -->
+      <i class="fas fa-play"></i>
     </div>
-
-    <i class="fas fa-forward-step" onclick="changeSentence(1)" title="Keyingi"></i>
+    <i class="fas fa-forward-step" id="nextBtn" title="Keyingi"></i>
+  </div>
+  <div class="current-lang-badge" id="currentLangBadge">
+    🔊 Ingliz tili audio
   </div>
 </div>
 
 <script>
   (function() {
-    // 3-parametr sifatida audio URL qo'shildi
-    const sentences = [
-      ["My name is Ali.", "Mening ismim Ali.", "http://intermediate-lime-8o8gf9vrr1.edgeone.app"],
-      ["I am 20 years old.", "Men 20 yoshdaman.", ""],
-      ["I was born in 2005.", "Men 2005-yilda tug'ilganman.", ""],
-      ["I am the youngest in my family.", "Men oilamda eng kichikman.", ""],
-      ["I live in Tashkent.", "Men Toshkentda yashayman.", ""],
-      ["My city is beautiful.", "Mening shahrim chiroyli.", ""],
-      ["I live near the park.", "Men bog' yaqinida yashayman.", ""],
-      ["I moved to this city last year.", "Men o'tgan yili bu shaharga ko'chib kelganman.", ""],
-      ["I have a big family.", "Mening katta oilam bor.", ""],
-      ["I have two brothers and one sister.", "Mening ikkita aka-ukam va bir opam bor.", ""],
-      ["My father is a teacher.", "Mening otam o'qituvchi.", ""],
-      ["I live with my parents.", "Men ota-onam bilan yashayman.", ""],
-      ["I study at State University.", "Men Davlat Universitetida o'qiyman.", ""],
-      ["I am a student.", "Men talabaman.", ""],
-      ["I study English.", "Men ingliz tilini o'qiyman.", ""],
-      ["I will graduate next year.", "Men kelgusi yil bitiruvchiman.", ""],
-      ["I want to be a programmer.", "Men dasturchi bo'lmoqchiman.", ""],
-      ["I like reading books.", "Men kitob o'qishni yoqtiraman.", ""],
-      ["I enjoy playing football.", "Men futbol o'ynashdan zavq olaman.", ""],
-      ["I love listening to music.", "Men musiqa tinglashni yaxshi ko'raman.", ""],
-      ["I am interested in technology.", "Men texnologiyaga qiziqaman.", ""],
-      ["I like watching movies.", "Men filmlar ko'rishni yoqtiraman.", ""],
-      ["My hobby is drawing.", "Mening xobbim — chizish.", ""],
-      ["I enjoy taking photos.", "Men suratga tushishdan zavq olaman.", ""],
-      ["I play chess in my free time.", "Men bo'sh vaqtda shaxmat o'ynayman.", ""],
-      ["I like green color.", "Men yashil rangni yoqtiraman.", ""],
-      ["I love pizza and burgers.", "Men pitsa va burgerlarni yaxshi ko'raman.", ""],
-      ["I like summer most.", "Men yozni eng ko'p yoqtiraman.", ""],
-      ["I enjoy traveling.", "Men sayohat qilishdan zavq olaman.", ""],
-      ["I like spending time with friends.", "Men do'stlar bilan vaqt o'tkazishni yoqtiraman.", ""],
-      ["I don't like waking up early.", "Men erta turishni yoqtirmayman.", ""],
-      ["I hate waiting in lines.", "Men navbat kutishdan nafratlanaman.", ""],
-      ["I don't like loud music.", "Men baland musiqani yoqtirmayman.", ""],
-      ["I dislike cold weather.", "Men sovuq ob-havoni yoqtirmayman.", ""],
-      ["I don't eat fish.", "Men baliq yemayman.", ""],
-      ["I am a friendly person.", "Men do'stona odamman.", ""],
-      ["I am hard-working.", "Men mehnatsevar odamman.", ""],
-      ["I am always happy.", "Men har doim baxtli odamman.", ""],
-      ["I am a good listener.", "Men yaxshi tinglovchiman.", ""],
-      ["I try to be honest.", "Men rostgo'y bo'lishga harakat qilaman.", ""],
-      ["I want to travel around the world.", "Men butun dunyo bo'ylab sayohat qilmoqchiman.", ""],
-      ["I want to learn three languages.", "Men uchta til o'rganmoqchiman.", ""],
-      ["I hope to find a good job.", "Men yaxshi ish topishni umid qilaman.", ""],
-      ["I dream of visiting Japan.", "Men Yaponiyaga borishni orzu qilaman.", ""],
-      ["I plan to open my own business.", "Men o'z biznesimni ochmoqchiman.", ""]
+    // ============================================================
+    // MA'LUMOTLAR: Har bir gap uchun ingliz va o'zbek audio URLlari
+    // ============================================================
+    // Bu yerda siz haqiqiy audio fayl manzillarini kiritishingiz kerak.
+    // Misol uchun, men namuna URL sifatida placeholder qo'ydim.
+    // Siz ularni o'zingizning real audio fayllaringiz bilan almashtiring.
+    // Agar audio mavjud bo'lmasa, bo'sh string qoldiring - u holda faqat matn ko'rinadi.
+    
+    const sentencesData = [
+      { en: "Hello! What is your name?", uz: "Salom! Ismingiz nima?", en_audio: "https://www.example.com/audio/hello_what_is_your_name_en.mp3", uz_audio: "https://www.example.com/audio/salom_ismingiz_nima_uz.mp3" },
+      { en: "My name is Ali. What is your name?", uz: "Mening ismim Ali. Sizning ismingiz nima?", en_audio: "", uz_audio: "" },
+      { en: "My name is Madina. Nice to meet you.", uz: "Mening ismim Madina. Tanishganimdan xursandman.", en_audio: "", uz_audio: "" },
+      { en: "Nice to meet you too.", uz: "Men ham tanishganimdan xursandman.", en_audio: "", uz_audio: "" },
+      { en: "How old are you?", uz: "Siz necha yoshdasiz?", en_audio: "", uz_audio: "" },
+      { en: "I am 18 years old.", uz: "Men 18 yoshdaman.", en_audio: "", uz_audio: "" },
+      { en: "Where are you from?", uz: "Siz qayerdansiz?", en_audio: "", uz_audio: "" },
+      { en: "I am from Uzbekistan.", uz: "Men Oʻzbekistondanman.", en_audio: "", uz_audio: "" },
+      { en: "Which city do you live in?", uz: "Siz qaysi shaharda yashaysiz?", en_audio: "", uz_audio: "" },
+      { en: "I live in Tashkent.", uz: "Men Toshkentda yashayman.", en_audio: "", uz_audio: "" },
+      { en: "Are you a student?", uz: "Siz talabamisiz?", en_audio: "", uz_audio: "" },
+      { en: "Yes, I am a student.", uz: "Ha, men talabaman.", en_audio: "", uz_audio: "" },
+      { en: "What do you study?", uz: "Siz nima oʻqiysiz?", en_audio: "", uz_audio: "" },
+      { en: "I study English.", uz: "Men ingliz tilini oʻrganaman.", en_audio: "", uz_audio: "" },
+      { en: "Do you work?", uz: "Siz ishlaysizmi?", en_audio: "", uz_audio: "" },
+      { en: "No, I do not work now.", uz: "Yoʻq, hozir ishlamayman.", en_audio: "", uz_audio: "" },
+      { en: "What do you like to do?", uz: "Siz nima qilishni yoqtirasiz?", en_audio: "", uz_audio: "" },
+      { en: "I like reading books.", uz: "Men kitob oʻqishni yoqtiraman.", en_audio: "", uz_audio: "" },
+      { en: "Do you have brothers or sisters?", uz: "Sizning aka-ukalaringiz yoki opa-singillaringiz bormi?", en_audio: "", uz_audio: "" },
+      { en: "Yes, I have one brother.", uz: "Ha, mening bitta ukam bor.", en_audio: "", uz_audio: "" },
+      { en: "What is your favorite food?", uz: "Sizning sevimli ovqatingiz nima?", en_audio: "", uz_audio: "" },
+      { en: "My favorite food is plov.", uz: "Mening sevimli ovqatim palov.", en_audio: "", uz_audio: "" },
+      { en: "What is your favorite color?", uz: "Sizning sevimli rangingiz nima?", en_audio: "", uz_audio: "" },
+      { en: "My favorite color is blue.", uz: "Mening sevimli rangim koʻk.", en_audio: "", uz_audio: "" },
+      { en: "Can you speak English well?", uz: "Siz ingliz tilida yaxshi gaplasha olasizmi?", en_audio: "", uz_audio: "" },
+      { en: "I can speak a little English.", uz: "Men ozgina inglizcha gaplasha olaman.", en_audio: "", uz_audio: "" },
+      { en: "What do you do every day?", uz: "Siz har kuni nima qilasiz?", en_audio: "", uz_audio: "" },
+      { en: "I go to school every day.", uz: "Men har kuni maktabga boraman.", en_audio: "", uz_audio: "" },
+      { en: "What are you doing now?", uz: "Hozir nima qilyapsiz?", en_audio: "", uz_audio: "" },
+      { en: "I am learning English now.", uz: "Men hozir ingliz tilini oʻrganayapman.", en_audio: "", uz_audio: "" },
+      { en: "What did you do yesterday?", uz: "Kecha nima qildingiz?", en_audio: "", uz_audio: "" },
+      { en: "I watched a movie yesterday.", uz: "Men kecha kino koʻrdim.", en_audio: "", uz_audio: "" },
+      { en: "Were you at home yesterday evening?", uz: "Kecha kechqurun uyda edingizmi?", en_audio: "", uz_audio: "" },
+      { en: "Yes, I was at home.", uz: "Ha, men uyda edim.", en_audio: "", uz_audio: "" },
+      { en: "Do you have a phone?", uz: "Sizning telefoningiz bormi?", en_audio: "", uz_audio: "" },
+      { en: "Yes, I have a smartphone.", uz: "Ha, mening smartfonim bor.", en_audio: "", uz_audio: "" },
+      { en: "What is your dream?", uz: "Sizning orzuingiz nima?", en_audio: "", uz_audio: "" },
+      { en: "My dream is to speak English fluently.", uz: "Mening orzuim ingliz tilida ravon gapirish.", en_audio: "", uz_audio: "" },
+      { en: "Thank you for talking with me.", uz: "Men bilan suhbatlashganingiz uchun rahmat.", en_audio: "", uz_audio: "" },
+      { en: "You are welcome. See you later!", uz: "Arzimaydi. Keyin koʻrishamiz!", en_audio: "", uz_audio: "" }
     ];
 
+    // DOM elementlari
     const container = document.getElementById('contentArea');
     const repeatBtn = document.getElementById('repeatBtn');
     const progressFill = document.getElementById('progressFill');
     const currentTimeSpan = document.getElementById('currentTime');
+    const totalTimeSpan = document.getElementById('totalTime');
     const playBtn = document.getElementById('playBtn');
     const playIcon = playBtn.querySelector('i');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const progressBarContainer = document.getElementById('progressBarContainer');
+    const currentLangBadge = document.getElementById('currentLangBadge');
 
+    // Holat o'zgaruvchilari
+    let currentLang = 'en';      // 'en' yoki 'uz'
     let currentIdx = 0;
     let isRepeatMode = false;
+    let isPlaying = false;
     let textItems = [];
     
-    // Audio obyektini yaratish
+    // Audio obyekti
     const lessonAudio = new Audio();
-    let isPlaying = false;
+    
+    // Progress bar yangilanishi uchun timeupdate interval (audio duration bo'lmaganda)
+    let currentTimeInterval = null;
 
-    function renderTexts() {
-      container.innerHTML = '';
-      textItems = [];
-      sentences.forEach((s, i) => {
-        const item = document.createElement('div');
-        item.className = 'text-item';
-        if (i === 0) item.classList.add('active');
-        item.innerHTML = `<span class="en">${s[0]}</span><span class="uz">${s[1]}</span>`;
-        
-        // Matn bosilganda o'sha gapga o'tish va pley qilish funksiyasi
-        item.addEventListener('click', () => {
-          currentIdx = i;
-          updateActive(currentIdx);
-          updateProgressForIndex(currentIdx);
-          loadAndPlayAudio();
-        });
-
-        container.appendChild(item);
-        textItems.push(item);
-      });
-    }
-
-    function updateActive(index) {
-      textItems.forEach(item => item.classList.remove('active'));
-      if (textItems[index]) {
-        textItems[index].classList.add('active');
-        textItems[index].scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }
-
+    // ========== Yordamchi funksiyalar ==========
     function formatTime(seconds) {
-      if (isNaN(seconds)) return "00:00";
+      if (isNaN(seconds) || seconds === Infinity) return "00:00";
       const mins = Math.floor(seconds / 60);
       const secs = Math.floor(seconds % 60);
       return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     }
 
-    function updateProgressForIndex(index) {
-      // Darsning umumiy davomiyligi bo'yicha progress (iOS dizayndagidek qoldirildi)
-      const progressPercent = ((index + 1) / sentences.length) * 100;
-      progressFill.style.width = progressPercent + '%';
-      
-      const totalDuration = 113; // 01:53 sekund hisobida
-      const perSentence = totalDuration / sentences.length;
-      const currentSeconds = index * perSentence;
+    // Joriy gap uchun audio URLni olish
+    function getCurrentAudioUrl() {
+      const sentence = sentencesData[currentIdx];
+      if (!sentence) return "";
+      return currentLang === 'en' ? sentence.en_audio : sentence.uz_audio;
+    }
 
-      if (currentTimeSpan) {
-        currentTimeSpan.textContent = formatTime(currentSeconds);
+    // Joriy gap matnini olish (asosiy ko'rinish uchun)
+    function getCurrentDisplayText() {
+      const sentence = sentencesData[currentIdx];
+      if (!sentence) return { main: "", secondary: "" };
+      if (currentLang === 'en') {
+        return { main: sentence.en, secondary: sentence.uz };
+      } else {
+        return { main: sentence.uz, secondary: sentence.en };
       }
     }
 
-    // Audioni yuklash va avtomatik chalish
-    function loadAndPlayAudio() {
-      const audioUrl = sentences[currentIdx][2];
+    // Audio yuklash va agar play rejimida bo'lsa, chalish
+    function loadCurrentAudio(autoplay = true) {
+      const audioUrl = getCurrentAudioUrl();
       
-      if (audioUrl) {
-        lessonAudio.src = audioUrl;
-        if (isPlaying) {
-          lessonAudio.play().catch(e => console.log("Audio xatosi:", e));
+      // oldingi event listenerlarni tozalash (to'planish oldini olish)
+      lessonAudio.onended = null;
+      lessonAudio.ontimeupdate = null;
+      lessonAudio.onloadedmetadata = null;
+      
+      if (audioUrl && audioUrl.trim() !== "") {
+        if (lessonAudio.src !== audioUrl) {
+          lessonAudio.src = audioUrl;
+          lessonAudio.load();
+        }
+        
+        // Meta ma'lumot yuklanganda total time ni yangilash
+        lessonAudio.onloadedmetadata = () => {
+          if (lessonAudio.duration && isFinite(lessonAudio.duration)) {
+            totalTimeSpan.textContent = formatTime(lessonAudio.duration);
+          } else {
+            totalTimeSpan.textContent = "00:00";
+          }
+        };
+        
+        // Vaqt o'zgarishini kuzatish
+        lessonAudio.ontimeupdate = () => {
+          if (lessonAudio.duration && isFinite(lessonAudio.duration)) {
+            const current = lessonAudio.currentTime;
+            currentTimeSpan.textContent = formatTime(current);
+            const percent = (current / lessonAudio.duration) * 100;
+            progressFill.style.width = percent + '%';
+          }
+        };
+        
+        // Audio tugagach
+        lessonAudio.onended = () => {
+          if (isRepeatMode) {
+            lessonAudio.currentTime = 0;
+            lessonAudio.play().catch(e => console.log("Repeatda xatolik:", e));
+          } else {
+            // Keyingi gapga o'tish
+            changeSentence(1);
+          }
+        };
+        
+        if (autoplay && isPlaying) {
+          lessonAudio.play().catch(e => console.log("Avto chalishda xatolik:", e));
+        } else if (!autoplay && isPlaying) {
+          // Agar audio o'zgartirilgan bo'lsa va play holatida bo'lsa, avtomatik davom ettirish
+          lessonAudio.play().catch(e => console.log("Audio yuklashda xatolik:", e));
         }
       } else {
-        lessonAudio.pause();
-        // Agar audio topilmasa, test uchun pauza qilib qo'yish yoki keyingisiga o'tkazish mumkin.
+        // Agar audio mavjud bo'lmasa
+        if (lessonAudio.src) {
+          lessonAudio.pause();
+          lessonAudio.src = "";
+        }
+        currentTimeSpan.textContent = "00:00";
+        totalTimeSpan.textContent = "00:00";
+        progressFill.style.width = '0%';
+        
+        if (isPlaying) {
+          // Audio bo'lmaganda avtomatik ravishda keyingi gapga o'tmaslik, faqat to'xtatamiz
+          // Lekin foydalanuvchi uchun ogohlantirish yo'q, faqat to'xtaydi
+          isPlaying = false;
+          playIcon.classList.remove('fa-pause');
+          playIcon.classList.add('fa-play');
+        }
       }
     }
 
-    // Oldingi/Keyingi gaplarga o'tish
-    window.changeSentence = function(step) {
+    // Progress barni yangilash (faqat joriy indeks asosida umumiy progress)
+    function updateOverallProgress() {
+      const progressPercent = ((currentIdx + 1) / sentencesData.length) * 100;
+      progressFill.style.width = progressPercent + '%';
+    }
+    
+    // Umumiy progressni va time labelni yangilash (audio duration bo'lmasa)
+    function updateUITexts() {
+      updateOverallProgress();
+      const display = getCurrentDisplayText();
+      if (textItems[currentIdx]) {
+        // matn ichidagi ma'lumotlarni yangilash
+        const mainSpan = textItems[currentIdx].querySelector('.en');
+        const secSpan = textItems[currentIdx].querySelector('.uz');
+        if (currentLang === 'en') {
+          mainSpan.textContent = display.main;
+          secSpan.textContent = display.secondary;
+        } else {
+          mainSpan.textContent = display.main;
+          secSpan.textContent = display.secondary;
+        }
+      }
+      
+      // Badge ni yangilash
+      currentLangBadge.innerHTML = currentLang === 'en' ? '🇬🇧 Ingliz tili audio' : '🇺🇿 O\'zbek tili audio';
+    }
+
+    
+    // Barcha matnlarni render qilish (tilga qarab)
+    function renderTexts() {
+      container.innerHTML = '';
+      textItems = [];
+      sentencesData.forEach((item, i) => {
+        const mainText = currentLang === 'en' ? item.en : item.uz;
+        const secondaryText = currentLang === 'en' ? item.uz : item.en;
+        
+        const div = document.createElement('div');
+        div.className = 'text-item';
+        if (i === currentIdx) div.classList.add('active');
+        div.innerHTML = `<span class="en">${escapeHtml(mainText)}</span><span class="uz">${escapeHtml(secondaryText)}</span>`;
+        
+        div.addEventListener('click', () => {
+          if (currentIdx === i && isPlaying) {
+            // Agar bir xil gapni bossa, pauza/play emas, aks holda o'sha gapga o'tadi
+          }
+          currentIdx = i;
+          updateActive(currentIdx);
+          updateUITexts();
+          // Agar o'ynatish rejimida bo'lsa, avtomatik yangi audioni yuklab chalaveradi
+          if (isPlaying) {
+            loadCurrentAudio(true);
+          } else {
+            loadCurrentAudio(false);
+          }
+        });
+        
+        container.appendChild(div);
+        textItems.push(div);
+      });
+      updateActive(currentIdx);
+    }
+    
+    // XSS himoyasi uchun oddiy escape
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+      });
+    }
+    
+    function updateActive(index) {
+      textItems.forEach((item, i) => {
+        if (i === index) {
+          item.classList.add('active');
+          item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+          item.classList.remove('active');
+        }
+      });
+    }
+    
+    function changeSentence(step) {
       if (isRepeatMode && step === 1) {
-        loadAndPlayAudio(); // Takrorlash yoqilgan bo'lsa xuddi shu audioni qaytadan chaladi
+        // Takrorlash rejimida keyingi tugmasi bosilganda ayni gapni qayta chalish
+        if (isPlaying) {
+          lessonAudio.currentTime = 0;
+          lessonAudio.play().catch(e => console.log("takrorlashda xatolik", e));
+        } else {
+          loadCurrentAudio(true);
+          isPlaying = true;
+          playIcon.classList.remove('fa-play');
+          playIcon.classList.add('fa-pause');
+        }
         return;
       }
       
       let newIndex = currentIdx + step;
-      if (newIndex >= 0 && newIndex < sentences.length) {
+      if (newIndex >= 0 && newIndex < sentencesData.length) {
         currentIdx = newIndex;
         updateActive(currentIdx);
-        updateProgressForIndex(currentIdx);
-        loadAndPlayAudio();
-      }
-    };
-
-    // Takrorlash (Repeat) funksiyasi
-    repeatBtn.addEventListener('click', function() {
-      isRepeatMode = !isRepeatMode;
-      this.classList.toggle('active-repeat');
-    });
-
-    // Audio tugagach nima bo'lishini nazorat qilish
-    lessonAudio.addEventListener('ended', function() {
-      if (isRepeatMode) {
-        lessonAudio.play();
-      } else {
-        changeSentence(1);
-      }
-    });
-
-    // Play/Pause tugmasi logikasi
-    playBtn.addEventListener('click', function() {
-      isPlaying = !isPlaying;
-      
-      if (isPlaying) {
-        playIcon.classList.remove('fa-play');
-        playIcon.classList.add('fa-pause');
+        updateUITexts();
         
-        const currentUrl = sentences[currentIdx][2];
-        if (currentUrl && lessonAudio.src !== currentUrl) {
-            lessonAudio.src = currentUrl;
+        // Audio yuklash va agar o'ynatish holatida bo'lsa, avtomatik chalish
+        if (isPlaying) {
+          loadCurrentAudio(true);
+        } else {
+          loadCurrentAudio(false);
         }
-        if (currentUrl) {
-            lessonAudio.play().catch(e => console.log("Audio xatosi:", e));
+      } else if (newIndex === sentencesData.length && step === 1) {
+        // Dars oxiriga yetdi, agar xohlasak to'xtatamiz
+        if (isPlaying) {
+          lessonAudio.pause();
+          isPlaying = false;
+          playIcon.classList.remove('fa-pause');
+          playIcon.classList.add('fa-play');
         }
-      } else {
+      }
+    }
+    
+    // Tilni almashtirish funksiyasi
+    function setLanguage(lang) {
+      if (lang === currentLang) return;
+      currentLang = lang;
+      
+      // Agar audio chalayotgan bo'lsa, avval to'xtatamiz
+      const wasPlaying = isPlaying;
+      if (wasPlaying) {
+        lessonAudio.pause();
+        isPlaying = false;
         playIcon.classList.remove('fa-pause');
         playIcon.classList.add('fa-play');
+      }
+      
+      // Matnlarni qayta render qilish
+      renderTexts();
+      updateUITexts();
+      
+      // Joriy gap uchun yangi til audio faylini yuklash (lekin avtomatik chalinmaydi, faqat yuklab qo'yamiz)
+      loadCurrentAudio(false);
+      
+      // Agar oldin chalayotgan bo'lsa, endi yangi til audioni chala boshlaymiz
+      if (wasPlaying) {
+        isPlaying = true;
+        playIcon.classList.remove('fa-play');
+        playIcon.classList.add('fa-pause');
+        loadCurrentAudio(true);
+      }
+      
+      // Tugmalarning aktiv ko'rinishini yangilash
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        if (btn.getAttribute('data-lang') === lang) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+    }
+    
+    // Play/pause tugmasi
+    function togglePlayPause() {
+      const audioUrl = getCurrentAudioUrl();
+      if (!audioUrl || audioUrl.trim() === "") {
+        // Audio mavjud emas, hech nima qilmaymiz yoki keyingisiga o'tamiz? Faqat indikatsiya
+        console.log("Bu gap uchun audio mavjud emas");
+        return;
+      }
+      
+      if (isPlaying) {
         lessonAudio.pause();
+        isPlaying = false;
+        playIcon.classList.remove('fa-pause');
+        playIcon.classList.add('fa-play');
+      } else {
+        // Agar audio hali yuklanmagan yoki src o'zgargan bo'lsa
+        if (!lessonAudio.src || lessonAudio.src !== audioUrl) {
+          loadCurrentAudio(true);
+        } else {
+          lessonAudio.play().catch(e => console.log("Play xatosi:", e));
+        }
+        isPlaying = true;
+        playIcon.classList.remove('fa-play');
+        playIcon.classList.add('fa-pause');
+      }
+    }
+    
+    // Progress bar bosilganda audio vaqtini o'zgartirish
+    function seekAudio(e) {
+      const rect = progressBarContainer.getBoundingClientRect();
+      let clickX = e.clientX - rect.left;
+      let widthPercent = clickX / rect.width;
+      if (widthPercent < 0) widthPercent = 0;
+      if (widthPercent > 1) widthPercent = 1;
+      
+      if (lessonAudio.duration && isFinite(lessonAudio.duration)) {
+        const seekTime = widthPercent * lessonAudio.duration;
+        lessonAudio.currentTime = seekTime;
+        // progress ni yangilash
+        progressFill.style.width = (widthPercent * 100) + '%';
+        currentTimeSpan.textContent = formatTime(seekTime);
+      }
+    }
+    
+    // ========== Event Listenerlar ==========
+    prevBtn.addEventListener('click', () => changeSentence(-1));
+    nextBtn.addEventListener('click', () => changeSentence(1));
+    playBtn.addEventListener('click', togglePlayPause);
+    repeatBtn.addEventListener('click', () => {
+      isRepeatMode = !isRepeatMode;
+      if (isRepeatMode) {
+        repeatBtn.classList.add('active-repeat');
+      } else {
+        repeatBtn.classList.remove('active-repeat');
       }
     });
-
-    // Boshlang'ich holatni sozlash
+    progressBarContainer.addEventListener('click', seekAudio);
+    
+    // Til tugmalari
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const lang = btn.getAttribute('data-lang');
+        setLanguage(lang);
+      });
+    });
+    
+    // Boshlang'ich render
     renderTexts();
-    updateProgressForIndex(0);
-
+    setLanguage('en'); // Ingliz tili default qilish (audio URL mavjud bo'lsa, birinchi gap uchun)
+    
+    // Agar birinchi gapda audio bo'lmasa, hech bo'lmaganda UI tayyor
+    updateUITexts();
   })();
 </script>
 </body>
-</html>
+</html> 
