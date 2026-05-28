@@ -6,6 +6,7 @@
 <title>Video Player - View</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
+  /* Asosiy sozlamalar */
   * {
     box-sizing: border-box;
     margin: 0;
@@ -13,19 +14,21 @@
   }
 
   body {
-    /* iOS va zamonaviy qurilmalarga mos shrift */
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-family: Roboto, Arial, sans-serif;
     background-color: #f0f0f0;
     display: flex;
     justify-content: center;
   }
 
+  /* Mobil ekran o'lchami */
   .app-container {
     width: 100%;
     max-width: 480px; 
     background-color: #ffffff;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
   }
 
   /* Orqaga qaytish paneli */
@@ -34,7 +37,7 @@
     align-items: center;
     padding: 12px 16px;
     background-color: #ffffff;
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid #f2f2f2;
   }
 
   .back-btn {
@@ -49,62 +52,165 @@
     font-weight: 500;
   }
 
-  /* YouTube iframe uchun responsiv wrapper (16:9 o'lchamni saqlash uchun) */
+  /* Video Pleer qismi */
   .video-wrapper {
-    position: relative;
     width: 100%;
-    padding-bottom: 56.25%; 
     background-color: #000;
   }
 
-  .video-wrapper iframe {
-    position: absolute;
-    top: 0;
-    left: 0;
+  video {
     width: 100%;
-    height: 100%;
-    border: none;
+    display: block;
+    max-height: 270px;
   }
 
-  /* Video ostidagi ma'lumotlar */
-  .video-description {
-    padding: 16px;
+  /* Video ostidagi asosiy blok */
+  .video-details-block {
+    padding: 14px 16px;
   }
 
   .video-main-title {
     font-size: 18px;
-    font-weight: 600;
+    font-weight: 700;
     line-height: 1.4;
     color: #0f0f0f;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }
 
   .video-view-count {
     font-size: 13px;
     color: #606060;
+    margin-bottom: 12px;
+  }
+
+  /* LIKE VA ULASHISH TUGMALARI */
+  .interactions-bar {
+    display: flex;
+    gap: 10px;
     margin-bottom: 16px;
   }
 
-  /* Kanal ma'lumotlari */
+  .action-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background-color: #f2f2f2;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 18px; /* Yumaloq zamonaviy shakl */
+    font-size: 14px;
+    font-weight: 500;
+    color: #0f0f0f;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .action-btn:hover {
+    background-color: #e5e5e5;
+  }
+
+  /* KANAL VA OBUNA BO'LISH QISMI */
   .channel-row {
     display: flex;
     align-items: center;
-    border-top: 1px solid #e5e5e5;
-    padding-top: 12px;
+    justify-content: space-between;
+    border-top: 1px solid #f2f2f2;
+    border-bottom: 1px solid #f2f2f2;
+    padding: 12px 0;
+    margin-bottom: 16px;
+  }
+
+  .channel-left {
+    display: flex;
+    align-items: center;
   }
 
   .channel-avatar {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     margin-right: 12px;
     object-fit: cover;
   }
 
+  .channel-meta {
+    display: flex;
+    flex-direction: column;
+  }
+
   .channel-name {
     font-size: 15px;
-    font-weight: 500;
+    font-weight: 600;
     color: #0f0f0f;
+  }
+
+  .sub-count {
+    font-size: 12px;
+    color: #606060;
+  }
+
+  /* Obuna bo'lish tugmasi */
+  .subscribe-btn {
+    background-color: #0f0f0f;
+    color: #ffffff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 18px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .subscribe-btn:hover {
+    opacity: 0.9;
+  }
+
+  /* KOMMENTARIYA (IZOHLAR) QISMI */
+  .comments-container {
+    background-color: #f9f9f9;
+    border-radius: 12px;
+    padding: 12px;
+  }
+
+  .comments-header {
+    font-size: 14px;
+    font-weight: 600;
+    color: #0f0f0f;
+    margin-bottom: 10px;
+  }
+
+  .comments-header span {
+    font-weight: 400;
+    color: #606060;
+    margin-left: 6px;
+  }
+
+  .comment-input-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .user-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .comment-input-box input {
+    flex-grow: 1;
+    border: none;
+    background-color: #e5e5e5;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    outline: none;
+  }
+
+  .comment-input-box input::placeholder {
+    color: #606060;
   }
 </style>
 </head>
@@ -116,25 +222,53 @@
     <a href="index.html" class="back-btn">
       <i class="fa-solid fa-arrow-left"></i>
     </a>
-    <h2>Video</h2>
+    <h2>Video Player</h2>
   </header>
 
   <div class="video-wrapper">
-    <iframe 
-      src="https://www.youtube.com/embed/yzfuPlkfrkg?autoplay=1" 
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-      allowfullscreen>
-    </iframe>
+    <video controls autoplay poster="https://images.unsplash.com/photo-1559416523-140ddc3d238c?auto=format&fit=crop&w=800&q=80">
+      <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
+      Sizning brauzeringiz video tegini qo'llab-quvvatlamaydi.
+    </video>
   </div>
 
-  <div class="video-description">
-    <h1 class="video-main-title">Agar maqsadli, lekin dangasa bo'lsangiz... buni ko'ring</h1>
-    <p class="video-view-count">1839 marta ko'rildi · 27-may, 2026</p>
+  <div class="video-details-block">
+    <h1 class="video-main-title">Apm Update — Yangi loyiha tafsilotlari</h1>
+    <p class="video-view-count">176 marta ko'rildi · 12 soat oldin</p>
+
+    <div class="interactions-bar">
+      <button class="action-btn">
+        <i class="fa-regular fa-thumbs-up"></i>
+        <span>1.2K</span>
+      </button>
+      
+      <button class="action-btn">
+        <i class="fa-solid fa-share"></i>
+        <span>Ulashish</span>
+      </button>
+    </div>
 
     <div class="channel-row">
-      <img src="https://ui-avatars.com/api/?name=Baxtiyor+Abidjanov&background=random" alt="Channel Avatar" class="channel-avatar">
-      <span class="channel-name">Baxtiyor Abidjanov</span>
+      <div class="channel-left">
+        <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80" alt="Channel Avatar" class="channel-avatar">
+        <div class="channel-meta">
+          <span class="channel-name">TRIPLE R</span>
+          <span class="sub-count">45.8K obunachi</span>
+        </div>
+      </div>
+      <button class="subscribe-btn">Obuna boʻlish</button>
     </div>
+
+    <div class="comments-container">
+      <div class="comments-header">
+        Izohlar <span>24</span>
+      </div>
+      <div class="comment-input-box">
+        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" alt="User Avatar" class="user-avatar">
+        <input type="text" placeholder="Izoh qoldiring...">
+      </div>
+    </div>
+
   </div>
 
 </div>
