@@ -1,220 +1,159 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LearnU | So'zlashuv</title>
-    <!-- Font Awesome (Ikonkalar uchun) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Telegram Web App Script -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    
-    <style>
-        :root {
-            --bg-color: #1A222B;
-            --card-bg: #242F3E;
-            --text-main: #FFFFFF;
-            --text-secondary: #717F8D;
-            --accent-color: #007AFF;
-            --radius: 12px;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video Feed UI</title>
+<style>
+  /* Asosiy sozlamalar */
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
 
-        /* Full Screen sozlamalari */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
+  body {
+    font-family: Roboto, Arial, sans-serif;
+    background-color: #f0f0f0;
+    display: flex;
+    justify-content: center;
+  }
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            padding: 20px;
-            -webkit-tap-highlight-color: transparent;
-            /* Telegram balandligiga moslash */
-            min-height: 100vh;
-            min-height: var(--tg-viewport-stable-height, 100vh);
-            overflow-x: hidden;
-        }
+  /* Mobil ekran o'lchami uchun cheklov */
+  .app-container {
+    width: 100%;
+    max-width: 480px; 
+    background-color: #e5e5e5;
+  }
 
-        header {
-            max-width: 600px;
-            margin: 10px auto 25px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+  .video-card {
+    background-color: #e9e9e9;
+    margin-bottom: 2px; /* Videolar orasidagi kichik chiziq */
+  }
 
-        header h1 {
-            font-size: 26px;
-            font-weight: 700;
-        }
+  /* Rasm qismi (Thumbnail) */
+  .thumbnail-wrapper {
+    position: relative;
+    width: 100%;
+  }
 
-        .profile-btn {
-            text-decoration: none;
-            color: var(--text-main);
-            font-size: 26px;
-            background: var(--card-bg);
-            width: 48px;
-            height: 48px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            transition: 0.2s;
-        }
+  .thumbnail-wrapper img {
+    width: 100%;
+    height: 220px;
+    display: block;
+    object-fit: cover;
+  }
 
-        .profile-btn:active {
-            transform: scale(0.9);
-        }
+  /* Vaqt belgisi */
+  .duration {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 3px 5px;
+    border-radius: 4px;
+    line-height: 1;
+  }
 
-        .search-container {
-            max-width: 600px;
-            margin: 0 auto 20px;
-        }
+  /* Ma'lumotlar qismi (Kanal, sarlavha) */
+  .video-info {
+    display: flex;
+    padding: 12px;
+    align-items: flex-start;
+  }
 
-        .search-bar {
-            width: 100%;
-            padding: 14px 20px;
-            background: #2D394A;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            color: white;
-            outline: none;
-        }
+  /* Kanal logotipi */
+  .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 12px;
+  }
 
-        .modules-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            max-width: 600px;
-            margin: 0 auto 80px; /* Pastdan joy qoldirish */
-        }
+  .video-details {
+    flex-grow: 1;
+    padding-right: 12px;
+  }
 
-        .module-item {
-            background: var(--card-bg);
-            padding: 14px 16px;
-            border-radius: var(--radius);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            transition: all 0.2s;
-        }
+  /* Video nomi */
+  .video-title {
+    font-size: 16px;
+    font-weight: 400;
+    color: #0f0f0f;
+    margin-bottom: 4px;
+    line-height: 1.3;
+    /* Ikki qatordan oshsa, nuqtalar bilan kesish */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
 
-        .module-item:active {
-            background: #2D394A;
-            transform: translateX(5px);
-        }
+  /* Ko'rishlar soni va vaqti */
+  .video-meta {
+    font-size: 13px;
+    color: #606060;
+    line-height: 1.4;
+  }
 
-        .module-image {
-            width: 44px;
-            height: 44px;
-            background: #FFFFFF;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 15px;
-            flex-shrink: 0;
-        }
+  /* 3 ta nuqta (Menyu) */
+  .more-options {
+    flex-shrink: 0;
+    color: #0f0f0f;
+    cursor: pointer;
+    padding-top: 2px;
+  }
 
-        .module-image i {
-            font-size: 20px;
-            color: #1A222B;
-        }
-
-        .module-title {
-            flex-grow: 1;
-            font-size: 16px;
-            font-weight: 500;
-            color: var(--text-main);
-        }
-
-        .module-chevron {
-            color: var(--text-secondary);
-            font-size: 13px;
-        }
-    </style>
+  .more-options svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+  }
+</style>
 </head>
 <body>
 
-<header>
-    <h1>Soʻzlashuv</h1>
-    <a href="profil.html" class="profile-btn">
-        <i class="fa-solid fa-circle-user"></i>
-    </a>
-</header>
+<div class="app-container">
 
-<div class="search-container">
-    <input type="text" class="search-bar" placeholder="Mavzuni qidirish...">
+  <div class="video-card">
+    <div class="thumbnail-wrapper">
+      <img src="https://images.unsplash.com/photo-1559416523-140ddc3d238c?auto=format&fit=crop&w=800&q=80" alt="Truck thumbnail">
+      <span class="duration">14:44</span>
+    </div>
+    <div class="video-info">
+      <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80" alt="Channel Avatar" class="avatar">
+      <div class="video-details">
+        <h3 class="video-title">Apm Update</h3>
+        <p class="video-meta">TRIPLE R · 176 marta · 12 soat oldin</p>
+      </div>
+      <div class="more-options">
+        <svg viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="video-card">
+    <div class="thumbnail-wrapper">
+      <img src="https://images.unsplash.com/photo-1559757175-5700dde675bc?auto=format&fit=crop&w=800&q=80" alt="Brain thumbnail">
+      <span class="duration">5:33</span>
+    </div>
+    <div class="video-info">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/BBC_News_2019.svg/100px-BBC_News_2019.svg.png" alt="BBC News Avatar" class="avatar" style="background: #b00; padding: 2px;">
+      <div class="video-details">
+        <h3 class="video-title">Is being bilingual good for you brain? | BBC Ideas</h3>
+        <p class="video-meta">BBC News · 1,3 mln marta · 1 yil oldin</p>
+      </div>
+      <div class="more-options">
+        <svg viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg>
+      </div>
+    </div>
+  </div>
+
 </div>
-
-<main class="modules-list" id="lessonList">
-    <!-- Darslar JS orqali yuklanadi -->
-</main>
-
-<script>
-    // --- 1. TELEGRAM WEB APP SOZLAMALARI ---
-    const tg = window.Telegram.WebApp;
-
-    // Ilovani to'liq ekranga yoyish
-    tg.expand();
-    
-    // Orqaga tugmasini yoqish
-    tg.BackButton.show();
-    
-    // Orqaga bosilganda index.html ga qaytarish
-    tg.onEvent('backButtonClicked', function() {
-        window.location.href = 'index.html';
-    });
-
-    // Telegram mavzusiga mos rang berish
-    tg.setHeaderColor('#1A222B');
-
-    // --- 2. DARSLAR RO'YXATI ---
-    const lessons = [
-        "O'zingizni tanishtiring", "Oila", "Ob-havo", "Hafta kunlari", "Fasllar",
-        "Feʼl atvori", "Ranglar", "Raqamlar", "Gapirish", "Kundalik tartib",
-        "Sevimli mashg'ulotlar", "Salomlashuv", "Xayrlashuv", "Vaqt", "Rahmat va tashakkur",
-        "Kechirim soʻrash", "Rozilik va Norozilik", "Iltimos va istak", "Qiziqishlar", "Oylar",
-        "Mevalar", "Sabzavotlar", "Tana aʼzolari", "Fanlar", "Telefon soʻzlashuv 1",
-        "Telefon soʻzlashuv 2", "Taom", "Kishilik olmoshlari", "Sifatlar", "Savdo"
-    ];
-
-    const icons = [
-        "fa-user-tie", "fa-house-chimney", "fa-cloud-sun", "fa-calendar-days", "fa-leaf",
-        "fa-brain", "fa-palette", "fa-5", "fa-comment-dots", "fa-clock-rotate-left",
-        "fa-icons", "fa-handshake", "fa-door-open", "fa-clock", "fa-hand-holding-heart",
-        "fa-face-sad-tear", "fa-thumbs-up", "fa-hand-sparkles", "fa-bolt", "fa-calendar-check",
-        "fa-apple-whole", "fa-carrot", "fa-accessibility", "fa-book-open", "fa-phone-volume",
-        "fa-video", "fa-utensils", "fa-users-rectangle", "fa-wand-magic-sparkles", "fa-cart-shopping"
-    ];
-
-    const list = document.getElementById('lessonList');
-
-    // Ro'yxatni chiqarish
-    lessons.forEach((title, index) => {
-        const lessonNum = index + 1;
-        const item = document.createElement('a');
-        item.href = `d${lessonNum}.html`;
-        item.className = 'module-item';
-
-        item.innerHTML = `
-            <div class="module-image">
-                <i class="fas ${icons[index]}"></i>
-            </div>
-            <h3 class="module-title">${lessonNum}. ${title}</h3>
-            <i class="fas fa-chevron-right module-chevron"></i>
-        `;
-        list.appendChild(item);
-    });
-
-    // Tayyor bo'lgach bildirish
-    tg.ready();
-</script>
 
 </body>
 </html>
