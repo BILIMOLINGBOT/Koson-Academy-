@@ -1,369 +1,639 @@
 <!DOCTYPE html>
-<html lang="uz">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Learning Path UI</title>
-  <style>
-    :root {
-      --bg-color: #07070b;
-      --green-top: linear-gradient(135deg, #a2f2c8, #3db87a);
-      --green-side: #2c9760;
-      --purple-top: linear-gradient(135deg, #c084fc, #7e22ce);
-      --purple-side: #6b21a8;
-      --gray-top: linear-gradient(135deg, #ffffff, #d1d5db);
-      --gray-side: #9ca3af;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Learning App UI</title>
+    <style>
+        /* GENERAL STYLES */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    }
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #0c0a10;
+            color: #ffffff;
+            overflow-x: hidden;
+            /* Scrollbar yashirish */
+            scrollbar-width: none; 
+            -ms-overflow-style: none;
+        }
 
-    body {
-      background: radial-gradient(circle at top, #141124 0%, var(--bg-color) 70%);
-      color: #ffffff;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding-top: 24px;
-      overflow-x: hidden;
-      user-select: none;
-    }
+        body::-webkit-scrollbar {
+            display: none; 
+        }
 
-    /* --- General English Header --- */
-    .header-badge {
-      background: rgba(18, 20, 29, 0.85);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      padding: 10px 20px;
-      border-radius: 30px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-      cursor: pointer;
-      z-index: 100;
-      backdrop-filter: blur(12px);
-    }
+        /* BACKGROUND & GLOW */
+        .app-container {
+            position: relative;
+            width: 100%;
+            min-height: 100vh;
+            background: radial-gradient(circle at top, #1e132e 0%, #0c0a10 50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden;
+        }
 
-    .header-badge .target-icon {
-      width: 22px;
-      height: 22px;
-      background: #2563eb;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 0 10px rgba(37, 99, 235, 0.6);
-    }
+        .top-glow {
+            position: fixed;
+            top: -150px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 400px;
+            height: 400px;
+            background: rgba(144, 51, 234, 0.15);
+            filter: blur(100px);
+            border-radius: 50%;
+            z-index: 0;
+            pointer-events: none;
+        }
 
-    .header-badge .title {
-      font-weight: 700;
-      font-size: 17px;
-      letter-spacing: -0.3px;
-    }
+        /* HEADER */
+        .header {
+            position: fixed;
+            top: 20px;
+            width: calc(100% - 40px);
+            max-width: 460px;
+            height: 64px;
+            background: linear-gradient(180deg, rgba(40, 38, 48, 0.95), rgba(20, 18, 25, 0.95));
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 100;
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
+        }
 
-    .header-badge .chevron {
-      color: #9ca3af;
-      margin-left: 4px;
-    }
+        .header-logo {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #2b95ff, #0056d6);
+            border-radius: 50%;
+            box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.2), 0 4px 10px rgba(0, 122, 255, 0.4);
+        }
 
-    /* --- Path Area --- */
-    .path-container {
-      position: relative;
-      width: 380px;
-      height: 780px;
-      margin-top: 30px;
-    }
+        .header-title {
+            font-size: 17px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: #ffffff;
+        }
 
-    /* Top Star Beam Effect */
-    .star-light-beam {
-      position: absolute;
-      top: -40px;
-      left: 170px;
-      width: 140px;
-      height: 140px;
-      background: radial-gradient(circle, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0) 70%);
-      pointer-events: none;
-      z-index: 1;
-    }
+        .header-arrow {
+            width: 12px;
+            height: 12px;
+            border-right: 2.5px solid #8e8b94;
+            border-bottom: 2.5px solid #8e8b94;
+            transform: rotate(45deg);
+            margin-bottom: 4px;
+        }
 
-    /* --- Base Cube Item --- */
-    .cube-item {
-      position: absolute;
-      width: 96px;
-      height: 120px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
+        /* MAP CONTAINER */
+        .map-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            padding: 140px 0 100px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 1;
+        }
 
-    /* 3D Top Surface */
-    .cube-top {
-      position: absolute;
-      width: 80px;
-      height: 80px;
-      border-radius: 22px;
-      transform: rotate(45deg) scaleY(0.55);
-      top: 0;
-      z-index: 3;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 
-        inset 0 4px 6px rgba(255, 255, 255, 0.8),
-        inset 0 -4px 6px rgba(0, 0, 0, 0.25);
-    }
+        /* SNAKE PATH */
+        .level {
+            width: 100%;
+            height: 150px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-    /* Cube Center Icon Adjustments */
-    .cube-icon {
-      transform: scaleY(1.8) rotate(-45deg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+        .level-path {
+            position: absolute;
+            top: calc(50% - 10px);
+            left: calc(50% - 80px);
+            width: 160px;
+            height: 160px;
+            z-index: 0;
+            pointer-events: none;
+        }
 
-    /* 3D Side Walls */
-    .cube-sides {
-      position: absolute;
-      top: 22px;
-      width: 80px;
-      height: 42px;
-      z-index: 2;
-      display: flex;
-    }
+        /* 3D CUBE CONTAINER */
+        .cube-wrapper {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 100px;
+            height: 100px;
+            margin-top: -50px;
+            margin-left: -50px;
+            perspective: 1500px;
+            z-index: 2;
+            cursor: pointer;
+            transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
-    .side-left, .side-right {
-      flex: 1;
-      height: 100%;
-    }
+        .cube-wrapper:active {
+            transform: scale(0.92) !important;
+        }
 
-    .side-left {
-      border-bottom-left-radius: 16px;
-      filter: brightness(0.9);
-    }
+        /* Cube Positions (Snake logic) */
+        .level.pos-right .cube-wrapper {
+            transform: translateX(70px);
+        }
+        .level.pos-left .cube-wrapper {
+            transform: translateX(-70px);
+        }
 
-    .side-right {
-      border-bottom-right-radius: 16px;
-      filter: brightness(0.72);
-    }
+        /* 3D CUBE CORE */
+        .cube {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            transform-style: preserve-3d;
+            /* Haqiqiy isometric perspektiva */
+            transform: rotateX(55deg) rotateZ(45deg);
+        }
 
-    /* Gradient Tail (Shadow blur effect fading downward) */
-    .cube-tail {
-      position: absolute;
-      top: 28px;
-      width: 80px;
-      height: 85px;
-      border-radius: 0 0 18px 18px;
-      z-index: 1;
-      opacity: 0.9;
-      mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 15%, rgba(0, 0, 0, 0) 100%);
-      -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 15%, rgba(0, 0, 0, 0) 100%);
-    }
+        .face {
+            position: absolute;
+        }
 
-    /* --- Completed Step (Green) --- */
-    .cube-item.completed .cube-top {
-      background: var(--green-top);
-    }
-    .cube-item.completed .side-left,
-    .cube-item.completed .side-right {
-      background: var(--green-side);
-    }
-    .cube-item.completed .cube-tail {
-      background: linear-gradient(to bottom, var(--green-side), transparent);
-    }
-    .cube-item.completed .cube-icon {
-      color: #0f4026;
-    }
+        .face.top {
+            width: 100px;
+            height: 100px;
+            transform: translateZ(30px);
+            border-radius: 18px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
 
-    /* --- Active Step (Purple) --- */
-    .cube-item.active .cube-top {
-      background: var(--purple-top);
-      box-shadow: 
-        inset 0 4px 8px rgba(255, 255, 255, 0.9),
-        0 0 35px rgba(168, 85, 247, 0.6);
-    }
-    .cube-item.active .side-left,
-    .cube-item.active .side-right {
-      background: var(--purple-side);
-    }
-    .cube-item.active .cube-tail {
-      background: linear-gradient(to bottom, var(--purple-side), transparent);
-    }
+        .face.bottom {
+            width: 100px;
+            height: 100px;
+            transform: translateZ(-30px);
+            border-radius: 18px;
+            background: rgba(0, 0, 0, 0.9);
+            box-shadow: 0 0 30px 15px rgba(0, 0, 0, 0.7);
+        }
 
-    /* Floating START Badge */
-    .start-tooltip {
-      position: absolute;
-      top: -42px;
-      background: #374151;
-      color: #ffffff;
-      font-weight: 800;
-      font-size: 13px;
-      letter-spacing: 0.8px;
-      padding: 7px 20px;
-      border-radius: 16px;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
-      z-index: 10;
-      animation: float 2s infinite ease-in-out;
-    }
+        .face.front {
+            width: 100px;
+            height: 60px;
+            top: 100px;
+            left: 0;
+            transform-origin: top center;
+            transform: translateZ(30px) rotateX(-90deg);
+            border-bottom-left-radius: 18px;
+            border-bottom-right-radius: 4px;
+        }
 
-    .start-tooltip::after {
-      content: '';
-      position: absolute;
-      bottom: -6px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 0;
-      height: 0;
-      border-left: 6px solid transparent;
-      border-right: 6px solid transparent;
-      border-top: 6px solid #374151;
-    }
+        .face.right {
+            width: 60px;
+            height: 100px;
+            left: 100px;
+            top: 0;
+            transform-origin: left center;
+            transform: translateZ(30px) rotateY(90deg);
+            border-top-right-radius: 18px;
+            border-bottom-right-radius: 4px;
+        }
 
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-5px); }
-    }
+        .face.back {
+            width: 100px;
+            height: 60px;
+            top: 0;
+            left: 0;
+            transform-origin: top center;
+            transform: translateZ(30px) rotateX(90deg);
+        }
 
-    /* --- Locked Step (Gray) --- */
-    .cube-item.locked .cube-top {
-      background: var(--gray-top);
-    }
-    .cube-item.locked .side-left,
-    .cube-item.locked .side-right {
-      background: var(--gray-side);
-    }
-    .cube-item.locked .cube-tail {
-      background: linear-gradient(to bottom, var(--gray-side), transparent);
-    }
-    .cube-item.locked .cube-icon {
-      color: #374151;
-    }
-  </style>
+        .face.left {
+            width: 60px;
+            height: 100px;
+            left: 0;
+            top: 0;
+            transform-origin: left center;
+            transform: translateZ(30px) rotateY(-90deg);
+        }
+
+        /* LOCKED CUBE */
+        .cube.locked .top {
+            background: linear-gradient(135deg, #e3e6ea 0%, #c4c9d1 100%);
+            box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.8), inset -2px -2px 8px rgba(0,0,0,0.1);
+        }
+        .cube.locked .front {
+            background: linear-gradient(180deg, #b0b7c0 0%, #838a94 100%);
+        }
+        .cube.locked .right {
+            background: linear-gradient(180deg, #9ca4ae 0%, #6b727d 100%);
+        }
+        .cube.locked .bottom, .cube.locked .back, .cube.locked .left { background: #555; }
+
+        /* Lock Icon */
+        .lock-icon {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transform: rotateZ(-45deg) rotateY(-10deg); /* Align to screen */
+        }
+        .lock-shackle {
+            width: 18px;
+            height: 14px;
+            border: 4.5px solid #8e959f;
+            border-bottom: none;
+            border-radius: 12px 12px 0 0;
+            margin-bottom: -2px;
+            box-shadow: inset 0 2px 2px rgba(255,255,255,0.5);
+        }
+        .lock-body {
+            width: 32px;
+            height: 24px;
+            background: linear-gradient(180deg, #717882, #525860);
+            border-radius: 6px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .lock-keyhole {
+            width: 6px;
+            height: 10px;
+            background: #2a2c30;
+            border-radius: 4px;
+        }
+
+        /* COMPLETED CUBE (GREEN) */
+        .cube.completed .top {
+            background: linear-gradient(135deg, #6ae519 0%, #51c002 100%);
+            box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.4), inset -2px -2px 8px rgba(0,0,0,0.1);
+        }
+        .cube.completed .front {
+            background: linear-gradient(180deg, #4da800 0%, #367600 100%);
+        }
+        .cube.completed .right {
+            background: linear-gradient(180deg, #449400 0%, #2b5e00 100%);
+        }
+        .cube.completed .bottom, .cube.completed .back, .cube.completed .left { background: #1a3800; }
+
+        /* Check Icon ✓ */
+        .check-icon {
+            position: absolute;
+            font-size: 55px;
+            font-weight: 900;
+            color: #1e4d00;
+            text-shadow: 0 2px 5px rgba(255, 255, 255, 0.3);
+            /* Kubik ustida to'g'ri ko'rinishi uchun */
+            transform: rotateZ(-45deg) scaleY(1.1); 
+        }
+
+        /* CURRENT CUBE (PURPLE) */
+        .cube.current .top {
+            background: linear-gradient(135deg, #d38cff 0%, #a43eff 100%);
+            box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.3), inset -2px -2px 8px rgba(0,0,0,0.2);
+        }
+        .cube.current .front {
+            background: linear-gradient(180deg, #8720eb 0%, #5c10a6 100%);
+        }
+        .cube.current .right {
+            background: linear-gradient(180deg, #7417ce 0%, #460882 100%);
+        }
+        .cube.current .bottom, .cube.current .back, .cube.current .left { background: #27034c; }
+
+        /* Purple Glow for Current Level */
+        .purple-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 140px;
+            height: 140px;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle, rgba(164, 62, 255, 0.6) 0%, transparent 70%);
+            filter: blur(15px);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* START BUTTON */
+        .start-btn-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Start tugmasi to'g'ri joylashuvi uchun (Cube'ga qarab siljitish) */
+        .level.pos-right .start-btn-container {
+            transform: translate(calc(-50% + 70px), -105px);
+        }
+        .level.pos-left .start-btn-container {
+            transform: translate(calc(-50% - 70px), -105px);
+        }
+
+        .start-btn {
+            width: 280px;
+            height: 64px;
+            background: linear-gradient(180deg, #383640 0%, #201e26 100%);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 32px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            box-shadow: 0 15px 25px rgba(0, 0, 0, 0.6), inset 0 2px 4px rgba(255,255,255,0.05);
+            cursor: pointer;
+            outline: none;
+            transition: transform 0.1s ease;
+        }
+
+        .start-btn:active {
+            transform: scale(0.95);
+        }
+
+        .start-pointer {
+            width: 0;
+            height: 0;
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-top: 12px solid #201e26;
+            margin-top: -2px;
+            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3));
+        }
+
+        /* MODAL / BOTTOM SHEET */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            z-index: 200;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-sheet {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(180deg, #241c30 0%, #100d17 100%);
+            border-radius: 32px 32px 0 0;
+            padding: 20px 24px 40px 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.3, 1, 0.3, 1);
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .modal-drag {
+            width: 48px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            margin-bottom: 30px;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            color: #ffffff;
+        }
+
+        .modal-desc {
+            font-size: 16px;
+            color: #a09da6;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .modal-btn {
+            width: 100%;
+            max-width: 320px;
+            height: 60px;
+            background: linear-gradient(135deg, #a43eff 0%, #7417ce 100%);
+            border: none;
+            border-radius: 30px;
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(164, 62, 255, 0.3);
+            transition: opacity 0.2s;
+        }
+
+        .modal-btn:active {
+            opacity: 0.8;
+            transform: scale(0.98);
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 360px) {
+            .level.pos-right .cube-wrapper { transform: translateX(55px); }
+            .level.pos-left .cube-wrapper { transform: translateX(-55px); }
+            .level.pos-right .start-btn-container { transform: translate(calc(-50% + 55px), -105px); }
+            .level.pos-left .start-btn-container { transform: translate(calc(-50% - 55px), -105px); }
+            .level-path { width: 130px; left: calc(50% - 65px); }
+        }
+    </style>
 </head>
 <body>
 
-  <!-- Top Navigation Badge -->
-  <div class="header-badge">
-    <div class="target-icon">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3">
-        <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/>
-      </svg>
-    </div>
-    <span class="title">General English</span>
-    <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-      <path d="M6 9l6 6 6-6"/>
-    </svg>
-  </div>
+    <!-- BACKGROUND GLOW -->
+    <div class="top-glow"></div>
 
-  <!-- Main Path -->
-  <div class="path-container">
+    <!-- HEADER -->
+    <header class="header">
+        <div class="header-logo"></div>
+        <div class="header-title">General English</div>
+        <div class="header-arrow"></div>
+    </header>
 
-    <div class="star-light-beam"></div>
+    <!-- MAP CONTENT -->
+    <div class="map-container">
 
-    <!-- 1. Green Completed (Bottom Left) -->
-    <div class="cube-item completed" style="left: 30px; top: 640px;">
-      <div class="cube-top">
-        <div class="cube-icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="20 6 9 17 4 12"></polyline>
-          </svg>
+        <!-- LEVEL 5: LOCKED (O'ngda) -->
+        <div class="level pos-right">
+            <!-- Snake Path: Right to Left -->
+            <svg class="level-path" viewBox="0 0 160 160">
+                <path d="M 150 10 C 150 80, 10 80, 10 150" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="18" stroke-linecap="round"/>
+            </svg>
+            <div class="cube-wrapper">
+                <div class="cube locked">
+                    <div class="face bottom"></div>
+                    <div class="face front"></div>
+                    <div class="face right"></div>
+                    <div class="face back"></div>
+                    <div class="face left"></div>
+                    <div class="face top">
+                        <div class="lock-icon">
+                            <div class="lock-shackle"></div>
+                            <div class="lock-body"><div class="lock-keyhole"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-      <div class="cube-sides"><div class="side-left"></div><div class="side-right"></div></div>
-      <div class="cube-tail"></div>
-    </div>
 
-    <!-- 2. Green Completed -->
-    <div class="cube-item completed" style="left: 110px; top: 540px;">
-      <div class="cube-top">
-        <div class="cube-icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="20 6 9 17 4 12"></polyline>
-          </svg>
+        <!-- LEVEL 4: LOCKED (Chapda) -->
+        <div class="level pos-left">
+            <!-- Snake Path: Left to Right -->
+            <svg class="level-path" viewBox="0 0 160 160">
+                <path d="M 10 10 C 10 80, 150 80, 150 150" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="18" stroke-linecap="round"/>
+            </svg>
+            <div class="cube-wrapper">
+                <div class="cube locked">
+                    <div class="face bottom"></div>
+                    <div class="face front"></div>
+                    <div class="face right"></div>
+                    <div class="face back"></div>
+                    <div class="face left"></div>
+                    <div class="face top">
+                        <div class="lock-icon">
+                            <div class="lock-shackle"></div>
+                            <div class="lock-body"><div class="lock-keyhole"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-      <div class="cube-sides"><div class="side-left"></div><div class="side-right"></div></div>
-      <div class="cube-tail"></div>
-    </div>
 
-    <!-- 3. Purple Active (START) -->
-    <div class="cube-item active" style="left: 190px; top: 430px;">
-      <div class="start-tooltip">START</div>
-      <div class="cube-top"></div>
-      <div class="cube-sides"><div class="side-left"></div><div class="side-right"></div></div>
-      <div class="cube-tail"></div>
-    </div>
+        <!-- LEVEL 3: CURRENT / PURPLE (O'ngda) -->
+        <div class="level pos-right" id="currentLevel">
+            <!-- Snake Path: Right to Left -->
+            <svg class="level-path" viewBox="0 0 160 160">
+                <path d="M 150 10 C 150 80, 10 80, 10 150" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="18" stroke-linecap="round"/>
+            </svg>
+            
+            <div class="start-btn-container">
+                <button class="start-btn" onclick="openModal()">START</button>
+                <div class="start-pointer"></div>
+            </div>
 
-    <!-- 4. Gray Locked -->
-    <div class="cube-item locked" style="left: 270px; top: 330px;">
-      <div class="cube-top">
-        <div class="cube-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5zm-3 5a3 3 0 0 1 6 0v3H9V7zm3 8a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z"/>
-          </svg>
+            <div class="purple-glow"></div>
+            <div class="cube-wrapper" onclick="openModal()">
+                <div class="cube current">
+                    <div class="face bottom"></div>
+                    <div class="face front"></div>
+                    <div class="face right"></div>
+                    <div class="face back"></div>
+                    <div class="face left"></div>
+                    <div class="face top"></div>
+                </div>
+            </div>
         </div>
-      </div>
-      <div class="cube-sides"><div class="side-left"></div><div class="side-right"></div></div>
-      <div class="cube-tail"></div>
-    </div>
 
-    <!-- 5. Gray Locked -->
-    <div class="cube-item locked" style="left: 190px; top: 235px;">
-      <div class="cube-top">
-        <div class="cube-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5zm-3 5a3 3 0 0 1 6 0v3H9V7zm3 8a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z"/>
-          </svg>
+        <!-- LEVEL 2: COMPLETED / GREEN (Chapda) -->
+        <div class="level pos-left">
+            <!-- Snake Path: Left to Right -->
+            <svg class="level-path" viewBox="0 0 160 160">
+                <path d="M 10 10 C 10 80, 150 80, 150 150" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="18" stroke-linecap="round"/>
+            </svg>
+            <div class="cube-wrapper">
+                <div class="cube completed">
+                    <div class="face bottom"></div>
+                    <div class="face front"></div>
+                    <div class="face right"></div>
+                    <div class="face back"></div>
+                    <div class="face left"></div>
+                    <div class="face top">
+                        <div class="check-icon">✓</div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-      <div class="cube-sides"><div class="side-left"></div><div class="side-right"></div></div>
-      <div class="cube-tail"></div>
-    </div>
 
-    <!-- 6. Gray Locked -->
-    <div class="cube-item locked" style="left: 110px; top: 140px;">
-      <div class="cube-top">
-        <div class="cube-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5zm-3 5a3 3 0 0 1 6 0v3H9V7zm3 8a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z"/>
-          </svg>
+        <!-- LEVEL 1: COMPLETED / GREEN (O'ngda) -->
+        <div class="level pos-right">
+            <!-- Yo'l yo'q, bu eng birinchi bosqich -->
+            <div class="cube-wrapper">
+                <div class="cube completed">
+                    <div class="face bottom"></div>
+                    <div class="face front"></div>
+                    <div class="face right"></div>
+                    <div class="face back"></div>
+                    <div class="face left"></div>
+                    <div class="face top">
+                        <div class="check-icon">✓</div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-      <div class="cube-sides"><div class="side-left"></div><div class="side-right"></div></div>
-      <div class="cube-tail"></div>
+
     </div>
 
-    <!-- 7. Gray Locked -->
-    <div class="cube-item locked" style="left: 30px; top: 45px;">
-      <div class="cube-top">
-        <div class="cube-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5zm-3 5a3 3 0 0 1 6 0v3H9V7zm3 8a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z"/>
-          </svg>
+    <!-- MODAL / BOTTOM SHEET -->
+    <div class="modal-overlay" id="lessonModal" onclick="closeModal(event)">
+        <div class="modal-sheet">
+            <div class="modal-drag"></div>
+            <h2 class="modal-title">Lesson 3</h2>
+            <p class="modal-desc">You are about to start a new journey in General English.</p>
+            <button class="modal-btn" onclick="closeModal(event)">Start Lesson</button>
         </div>
-      </div>
-      <div class="cube-sides"><div class="side-left"></div><div class="side-right"></div></div>
-      <div class="cube-tail"></div>
     </div>
 
-    <!-- 8. Top Star Cube -->
-    <div class="cube-item locked" style="left: 190px; top: -35px;">
-      <div class="cube-top" style="background: linear-gradient(135deg, #ffffff, #e5e7eb);">
-        <div class="cube-icon" style="color: #9ca3af;">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-          </svg>
-        </div>
-      </div>
-      <div class="cube-sides"><div class="side-left"></div><div class="side-right"></div></div>
-      <div class="cube-tail"></div>
-    </div>
+    <!-- JAVASCRIPT -->
+    <script>
+        // Modal ochish funktsiyasi
+        function openModal() {
+            const modal = document.getElementById('lessonModal');
+            const sheet = modal.querySelector('.modal-sheet');
+            
+            modal.style.opacity = '1';
+            modal.style.pointerEvents = 'all';
+            sheet.style.transform = 'translateY(0)';
+        }
 
-  </div>
+        // Modal yopish funktsiyasi (Overlayga bosganda yoki tugmani bosganda ishlaydi)
+        function closeModal(event) {
+            const modal = document.getElementById('lessonModal');
+            const sheet = modal.querySelector('.modal-sheet');
+            
+            // Faqat overlay foniga yoki yopish tugmasiga bosilsa yopiladi
+            if (event.target === modal || event.target.classList.contains('modal-btn')) {
+                modal.style.opacity = '0';
+                modal.style.pointerEvents = 'none';
+                sheet.style.transform = 'translateY(100%)';
+            }
+        }
+
+        // Yuklanganda ekranni "Current Level" ga tekis scroll qilish
+        window.onload = () => {
+            setTimeout(() => {
+                const currentLevel = document.getElementById('currentLevel');
+                if (currentLevel) {
+                    currentLevel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 300); // Kichik pauza UI to'liq render bo'lishi uchun
+        };
+    </script>
 
 </body>
 </html>
