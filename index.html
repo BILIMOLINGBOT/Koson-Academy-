@@ -1,686 +1,365 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uz">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>3D Snake Path · General English</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Learning Path UI</title>
   <style>
-    /* ---------- GLOBAL RESET & MOBILE-FIRST BASE ---------- */
     * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     }
 
-    html, body {
-      height: 100%;
+    body {
+      background-color: #08080c;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #fff;
+    }
+
+    /* Mobil ekran ko'rinishidagi konteyner */
+    .app-screen {
       width: 100%;
-      background: #0a0a12;
-      font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      max-width: 410px;
+      height: 840px;
+      background: linear-gradient(180deg, #12131a 0%, #08080c 100%);
+      border-radius: 30px;
+      position: relative;
+      overflow-y: auto;
       overflow-x: hidden;
-      overscroll-behavior: none;
-      scroll-behavior: smooth;
-    }
-
-    body {
-      /* Deep black gradient with soft purple glow at top */
-      background: radial-gradient(ellipse 120% 50% at 50% -10%, #241a3c 0%, #0d0d16 45%, #06060b 100%);
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      min-height: 100vh;
-      position: relative;
-    }
-
-    /* hide scrollbar but keep scrolling */
-    body::-webkit-scrollbar {
-      display: none;
-    }
-    body {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-
-    /* main mobile app container */
-    .app {
-      width: 100%;
-      max-width: 500px;
-      min-height: 100vh;
-      position: relative;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.8);
       display: flex;
       flex-direction: column;
-      background: transparent;
-      padding-bottom: 40px;
+      align-items: center;
+      padding: 20px 0 60px 0;
     }
 
-    /* ---------- HEADER (FIXED, PILL SHAPE) ---------- */
-    .header {
-      position: fixed;
-      top: 14px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: calc(100% - 36px);
-      max-width: 460px;
-      background: linear-gradient(145deg, #1e1e2c, #0c0c16);
-      border-radius: 60px;
-      padding: 10px 18px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      box-shadow: 0 16px 32px rgba(0, 0, 0, 0.7), 0 4px 12px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.05);
+    /* Yuqori Header Pill */
+    .header-pill {
+      position: sticky;
+      top: 15px;
       z-index: 100;
-      backdrop-filter: blur(4px);
-      border: 1px solid rgba(255, 255, 255, 0.05);
+      background: rgba(22, 25, 35, 0.85);
+      backdrop-filter: blur(10px);
+      padding: 10px 20px;
+      border-radius: 30px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      cursor: pointer;
     }
 
-    .logo-circle {
-      width: 36px;
-      height: 36px;
+    .header-pill .target-icon {
+      width: 22px;
+      height: 22px;
+      background: #2563eb;
       border-radius: 50%;
-      background: linear-gradient(135deg, #4d9fff, #2255cc);
-      box-shadow: 0 4px 12px rgba(0, 100, 255, 0.45), inset 0 2px 4px rgba(255, 255, 255, 0.3);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
-      font-weight: 800;
-      font-size: 18px;
-      letter-spacing: 1px;
-      text-shadow: 0 1px 2px black;
     }
 
-    .header-title {
+    .header-pill .target-icon::after {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border: 2px solid #fff;
+      border-radius: 50%;
+    }
+
+    .header-pill span {
       font-weight: 700;
-      font-size: 1.2rem;
-      letter-spacing: -0.3px;
-      background: linear-gradient(180deg, #f2f0ff, #cfc9e6);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+      font-size: 16px;
+      letter-spacing: 0.3px;
     }
 
-    .header-arrow {
-      width: 32px;
-      height: 32px;
-      background: rgba(255, 255, 255, 0.06);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.4rem;
-      color: #bbb9d4;
-      box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.1);
+    .header-pill .arrow {
+      border: solid #94a3b8;
+      border-width: 0 2px 2px 0;
+      display: inline-block;
+      padding: 3px;
+      transform: rotate(45deg);
+      margin-left: 4px;
     }
 
-    /* content spacing to account fixed header */
-    .map-container {
-      padding-top: 90px;
+    /* Yo'lakcha (Path) konteyneri */
+    .path-container {
       width: 100%;
+      margin-top: 40px;
       display: flex;
       flex-direction: column;
       align-items: center;
+      gap: 35px;
     }
 
-    /* ---------- SNAKE PATH / CONNECTING LINE ---------- */
-    .path-line {
-      position: absolute;
-      top: 90px;
-      left: 50%;
-      width: 3px;
-      height: 480px;
-      background: linear-gradient(180deg, rgba(120, 100, 180, 0.18), rgba(80, 60, 120, 0.04));
-      transform: translateX(-50%);
-      box-shadow: 0 0 12px rgba(160, 120, 230, 0.2);
-      z-index: 0;
-      border-radius: 4px;
-    }
-
-    /* snake path horizontal connectors */
-    .snake-connector {
-      position: absolute;
-      left: 50%;
-      width: 120px;
-      height: 2px;
-      background: linear-gradient(90deg, rgba(90, 70, 140, 0.15), rgba(90, 70, 140, 0.02));
-      z-index: 0;
-      border-radius: 2px;
-    }
-
-    /* ---------- 3D CUBE SYSTEM ---------- */
-    .scene {
-      width: 100px;
-      height: 100px;
-      perspective: 900px;
-      margin: 10px 0;
-      z-index: 10;
-      cursor: pointer;
-      transition: transform 0.2s ease;
+    /* Isometric 3D Kubiklar */
+    .node-wrapper {
       position: relative;
+      width: 80px;
+      height: 80px;
+      perspective: 1000px;
     }
 
-    .scene:active {
-      transform: scale(0.93);
-    }
+    /* Qatorlar bo'yicha chap va o'ngga surish (Zig-zag) */
+    .pos-1 { transform: translateX(-100px); }
+    .pos-2 { transform: translateX(-50px); }
+    .pos-3 { transform: translateX(10px); }
+    .pos-4 { transform: translateX(70px); }
+    .pos-5 { transform: translateX(20px); }
+    .pos-6 { transform: translateX(-40px); }
+    .pos-7 { transform: translateX(-80px); }
+    .pos-8 { transform: translateX(-20px); }
+    .pos-9 { transform: translateX(30px); }
 
     .cube {
       width: 100%;
       height: 100%;
       position: relative;
       transform-style: preserve-3d;
-      transform: rotateX(58deg) rotateZ(-45deg);
+      transform: rotateX(60deg) rotateZ(-45deg);
       transition: transform 0.3s ease;
     }
 
-    .cube-face {
+    .cube:hover {
+      transform: rotateX(60deg) rotateZ(-45deg) translateZ(8px);
+    }
+
+    .face {
       position: absolute;
-      width: 100%;
-      height: 100%;
-      border-radius: 18px;
-      backface-visibility: visible;
-      box-shadow: inset 0 2px 6px rgba(255, 255, 255, 0.18), inset 0 -4px 8px rgba(0, 0, 0, 0.35);
-    }
-
-    /* face colors based on cube type assigned in HTML classes */
-    .cube-top {
-      transform: rotateX(90deg) translateZ(50px);
-      box-shadow: 0 10px 18px rgba(0, 0, 0, 0.4), inset 0 2px 6px rgba(255, 255, 255, 0.3);
-    }
-    .cube-front {
-      transform: translateZ(50px);
-    }
-    .cube-right {
-      transform: rotateY(90deg) translateZ(50px);
-    }
-    .cube-left {
-      transform: rotateY(-90deg) translateZ(50px);
-    }
-    .cube-back {
-      transform: rotateX(180deg) translateZ(50px);
-    }
-    .cube-bottom {
-      transform: rotateX(-90deg) translateZ(50px);
-      box-shadow: inset 0 -6px 10px rgba(0, 0, 0, 0.5);
-    }
-
-    /* inner content for check/tick or lock */
-    .face-content {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 3.2rem;
-      font-weight: 900;
-      transform: rotateX(0deg);
-      z-index: 2;
-      pointer-events: none;
-    }
-
-    /* lock icon built with CSS */
-    .lock-icon {
-      width: 42px;
-      height: 34px;
-      background: linear-gradient(145deg, #d0d0d8, #8a8a9a);
-      border-radius: 8px;
-      position: relative;
-      box-shadow: 0 6px 10px rgba(0, 0, 0, 0.4), inset 0 2px 4px white;
-    }
-    .lock-shackle {
-      width: 24px;
-      height: 24px;
-      border: 4px solid #c0c0cc;
-      border-bottom: none;
-      border-radius: 16px 16px 0 0;
-      position: absolute;
-      top: -16px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: transparent;
-    }
-    .lock-keyhole {
-      width: 10px;
-      height: 12px;
-      background: #3a3a48;
-      border-radius: 6px 6px 4px 4px;
-      position: absolute;
-      top: 12px;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-    .lock-keyhole::after {
-      content: '';
-      width: 4px;
-      height: 6px;
-      background: #1c1c24;
-      border-radius: 2px;
-      position: absolute;
-      top: 2px;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-
-    /* checkmark (non-emoji) */
-    .check-mark {
-      font-size: 3.8rem;
-      font-weight: 900;
-      color: #1f6b3a;
-      text-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
-      transform: rotateX(58deg) rotateZ(45deg) scale(1.1);
-      display: inline-block;
-      line-height: 1;
-    }
-
-    /* cube specific color variants */
-    .cube-locked .cube-top {
-      background: linear-gradient(145deg, #e8e8f0, #b0b0c0);
-    }
-    .cube-locked .cube-front {
-      background: linear-gradient(145deg, #c8c8d8, #5a5a6e);
-    }
-    .cube-locked .cube-right {
-      background: linear-gradient(145deg, #9a9aae, #3a3a4a);
-    }
-    .cube-locked .cube-left {
-      background: linear-gradient(145deg, #77778c, #2a2a34);
-    }
-    .cube-locked .cube-back {
-      background: #4a4a5e;
-    }
-    .cube-locked .cube-bottom {
-      background: #22222e;
-    }
-
-    .cube-green .cube-top {
-      background: linear-gradient(145deg, #8ef0a8, #58cc7a);
-    }
-    .cube-green .cube-front {
-      background: linear-gradient(145deg, #2ecf6e, #118a3e);
-    }
-    .cube-green .cube-right {
-      background: linear-gradient(145deg, #1b7a3c, #0b4a22);
-    }
-    .cube-green .cube-left {
-      background: linear-gradient(145deg, #1b5e30, #0a3018);
-    }
-    .cube-green .cube-back {
-      background: #0c3f1e;
-    }
-    .cube-green .cube-bottom {
-      background: #052310;
-    }
-
-    .cube-purple .cube-top {
-      background: linear-gradient(145deg, #c6a6ff, #9250e8);
-    }
-    .cube-purple .cube-front {
-      background: linear-gradient(145deg, #7a3ee0, #4d1b9a);
-    }
-    .cube-purple .cube-right {
-      background: linear-gradient(145deg, #5725ad, #2e0e5e);
-    }
-    .cube-purple .cube-left {
-      background: linear-gradient(145deg, #401e7a, #1f0d3a);
-    }
-    .cube-purple .cube-back {
-      background: #2a1050;
-    }
-    .cube-purple .cube-bottom {
-      background: #18092c;
-    }
-
-    /* soft glow for current purple cube */
-    .glow-purple {
-      filter: drop-shadow(0 0 30px rgba(160, 80, 255, 0.7));
-    }
-
-    /* ---------- START BUTTON + POINTER ---------- */
-    .start-wrapper {
-      position: relative;
-      margin: 16px 0 8px;
-      z-index: 30;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .start-btn {
-      width: 280px;
+      width: 70px;
       height: 70px;
-      border-radius: 45px;
-      background: linear-gradient(145deg, #3a3a4c, #17171f);
-      border: none;
-      color: #f5f2ff;
-      font-weight: 800;
-      font-size: 1.9rem;
-      letter-spacing: 2px;
-      box-shadow: 0 18px 30px rgba(0, 0, 0, 0.65), 0 6px 12px rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.08);
-      cursor: pointer;
-      transition: all 0.2s;
-      text-shadow: 0 2px 4px black;
-    }
-    .start-btn:active {
-      transform: scale(0.96);
-      background: linear-gradient(145deg, #2f2f3c, #101018);
-    }
-    .pointer-triangle {
-      width: 0;
-      height: 0;
-      border-left: 14px solid transparent;
-      border-right: 14px solid transparent;
-      border-top: 18px solid #2a2a3a;
-      margin-top: -2px;
-      filter: drop-shadow(0 4px 6px black);
+      border-radius: 14px;
     }
 
-    /* container for cubes and snake alignment */
-    .cubes-wrapper {
+    /* 3D Tomonlar */
+    .face.top {
+      transform: translateZ(35px);
       display: flex;
-      flex-direction: column;
       align-items: center;
-      width: 100%;
-      position: relative;
-    }
-
-    /* left/right alternating layout */
-    .row-left, .row-right {
-      display: flex;
       justify-content: center;
-      width: 100%;
-      margin: 8px 0;
-    }
-    .row-right .scene {
-      margin-left: 70px;
-    }
-    .row-left .scene {
-      margin-right: 70px;
     }
 
-    /* small connector lines between rows */
-    .connector-left, .connector-right {
-      width: 60px;
-      height: 3px;
+    .face.left {
+      transform: rotateY(-90deg) translateZ(35px);
+    }
+
+    .face.right {
+      transform: rotateX(-90deg) translateZ(35px);
+    }
+
+    /* --- STYLES: GREEN (Bajarilgan) --- */
+    .cube.completed .top {
+      background: #7ae3b5;
+    }
+    .cube.completed .left {
+      background: #41b384;
+    }
+    .cube.completed .right {
+      background: #2e8f66;
+    }
+    .check-mark {
+      transform: rotate(45deg);
+      width: 12px;
+      height: 22px;
+      border: solid #0b4f32;
+      border-width: 0 4px 4px 0;
+      margin-top: -6px;
+    }
+
+    /* --- STYLES: PURPLE (Aktiv - START) --- */
+    .cube.active {
+      filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.6));
+    }
+    .cube.active .top {
+      background: #a855f7;
+    }
+    .cube.active .left {
+      background: #7e22ce;
+    }
+    .cube.active .right {
+      background: #6b21a8;
+    }
+
+    /* START Tooltip/Badge */
+    .start-badge {
       position: absolute;
-      background: linear-gradient(90deg, rgba(110, 90, 160, 0.25), rgba(110, 90, 160, 0.05));
-      border-radius: 3px;
-      z-index: 1;
-    }
-
-    /* ---------- MODAL / BOTTOM SHEET ---------- */
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(6px);
-      z-index: 200;
-      display: flex;
-      align-items: flex-end;
-      justify-content: center;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s ease;
-    }
-    .modal-overlay.active {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .modal-sheet {
-      width: 100%;
-      max-width: 500px;
-      background: linear-gradient(180deg, #232336, #12121c);
-      border-radius: 42px 42px 0 0;
-      padding: 28px 24px 44px;
-      box-shadow: 0 -20px 40px rgba(0, 0, 0, 0.8);
-      transform: translateY(100%);
-      transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1);
-    }
-    .modal-overlay.active .modal-sheet {
-      transform: translateY(0);
-    }
-    .start-lesson-btn {
-      width: 100%;
-      padding: 20px;
-      border-radius: 50px;
-      background: linear-gradient(145deg, #7744ee, #4a1c9e);
-      color: white;
+      top: -38px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #2b303c;
+      color: #fff;
       font-weight: 800;
-      font-size: 1.7rem;
-      border: none;
-      box-shadow: 0 12px 24px rgba(100, 40, 220, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.3);
-      cursor: pointer;
+      font-size: 14px;
+      padding: 8px 18px;
+      border-radius: 20px;
+      letter-spacing: 1px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.5);
+      z-index: 10;
+      white-space: nowrap;
     }
 
-    /* ---------- RESPONSIVE ADJUSTMENTS ---------- */
-    @media (max-width: 380px) {
-      .start-btn {
-        width: 240px;
-        height: 62px;
-        font-size: 1.6rem;
-      }
-      .cube {
-        transform: rotateX(58deg) rotateZ(-45deg) scale(0.9);
-      }
+    .start-badge::after {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 6px 6px 0 6px;
+      border-style: solid;
+      border-color: #2b303c transparent transparent transparent;
     }
-    @media (min-width: 500px) {
-      .start-btn {
-        width: 300px;
-      }
+
+    /* --- STYLES: GREY (Qulflangan) --- */
+    .cube.locked .top {
+      background: #e2e8f0;
+    }
+    .cube.locked .left {
+      background: #94a3b8;
+    }
+    .cube.locked .right {
+      background: #64748b;
+    }
+
+    .lock-icon {
+      width: 16px;
+      height: 14px;
+      background: #334155;
+      border-radius: 3px;
+      position: relative;
+      transform: rotate(45deg);
+    }
+    .lock-icon::before {
+      content: '';
+      position: absolute;
+      top: -7px;
+      left: 2px;
+      width: 8px;
+      height: 8px;
+      border: 2px solid #334155;
+      border-bottom: none;
+      border-radius: 5px 5px 0 0;
+    }
+
+    /* --- STYLES: SHINING TOP CUBE (Nurlanuvchi kristall) --- */
+    .cube.crystal {
+      filter: drop-shadow(0 0 25px rgba(255, 255, 255, 0.9));
+    }
+    .cube.crystal .top {
+      background: rgba(255, 255, 255, 0.95);
+    }
+    .cube.crystal .left {
+      background: rgba(200, 210, 225, 0.7);
+    }
+    .cube.crystal .right {
+      background: rgba(160, 175, 200, 0.6);
     }
   </style>
 </head>
 <body>
-  <div class="app" id="app">
-    <!-- HEADER -->
-    <header class="header">
-      <div class="logo-circle">E</div>
-      <span class="header-title">General English</span>
-      <div class="header-arrow">⌄</div>
-    </header>
 
-    <!-- MAP CONTAINER -->
-    <div class="map-container" id="mapContainer">
-      <!-- vertical snake path background -->
-      <div class="path-line"></div>
-
-      <div class="cubes-wrapper" id="cubesWrapper">
-        <!-- Cube 1 (locked, right side) -->
-        <div class="row-right">
-          <div class="scene cube-locked" data-type="locked">
-            <div class="cube">
-              <div class="cube-face cube-top"></div>
-              <div class="cube-face cube-front"></div>
-              <div class="cube-face cube-right"></div>
-              <div class="cube-face cube-left"></div>
-              <div class="cube-face cube-back"></div>
-              <div class="cube-face cube-bottom"></div>
-              <div class="face-content"><div class="lock-icon"><div class="lock-shackle"></div><div class="lock-keyhole"></div></div></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Cube 2 (locked, left side) -->
-        <div class="row-left">
-          <div class="scene cube-locked" data-type="locked">
-            <div class="cube">
-              <div class="cube-face cube-top"></div>
-              <div class="cube-face cube-front"></div>
-              <div class="cube-face cube-right"></div>
-              <div class="cube-face cube-left"></div>
-              <div class="cube-face cube-back"></div>
-              <div class="cube-face cube-bottom"></div>
-              <div class="face-content"><div class="lock-icon"><div class="lock-shackle"></div><div class="lock-keyhole"></div></div></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Cube 3 (locked, right side) -->
-        <div class="row-right">
-          <div class="scene cube-locked" data-type="locked">
-            <div class="cube">
-              <div class="cube-face cube-top"></div>
-              <div class="cube-face cube-front"></div>
-              <div class="cube-face cube-right"></div>
-              <div class="cube-face cube-left"></div>
-              <div class="cube-face cube-back"></div>
-              <div class="cube-face cube-bottom"></div>
-              <div class="face-content"><div class="lock-icon"><div class="lock-shackle"></div><div class="lock-keyhole"></div></div></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Cube 4 (locked, left side) -->
-        <div class="row-left">
-          <div class="scene cube-locked" data-type="locked">
-            <div class="cube">
-              <div class="cube-face cube-top"></div>
-              <div class="cube-face cube-front"></div>
-              <div class="cube-face cube-right"></div>
-              <div class="cube-face cube-left"></div>
-              <div class="cube-face cube-back"></div>
-              <div class="cube-face cube-bottom"></div>
-              <div class="face-content"><div class="lock-icon"><div class="lock-shackle"></div><div class="lock-keyhole"></div></div></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Cube 5 (purple current, right side) with glow -->
-        <div class="row-right">
-          <div class="scene cube-purple glow-purple" data-type="purple">
-            <div class="cube">
-              <div class="cube-face cube-top"></div>
-              <div class="cube-face cube-front"></div>
-              <div class="cube-face cube-right"></div>
-              <div class="cube-face cube-left"></div>
-              <div class="cube-face cube-back"></div>
-              <div class="cube-face cube-bottom"></div>
-              <!-- no check inside purple -->
-            </div>
-          </div>
-        </div>
-
-        <!-- START BUTTON + POINTER -->
-        <div class="start-wrapper">
-          <button class="start-btn" id="startBtn">START</button>
-          <div class="pointer-triangle"></div>
-        </div>
-
-        <!-- Cube 6 (green completed, right side) -->
-        <div class="row-right">
-          <div class="scene cube-green" data-type="green">
-            <div class="cube">
-              <div class="cube-face cube-top"></div>
-              <div class="cube-face cube-front"></div>
-              <div class="cube-face cube-right"></div>
-              <div class="cube-face cube-left"></div>
-              <div class="cube-face cube-back"></div>
-              <div class="cube-face cube-bottom"></div>
-              <div class="face-content"><span class="check-mark">✓</span></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Cube 7 (green completed, left side) -->
-        <div class="row-left">
-          <div class="scene cube-green" data-type="green">
-            <div class="cube">
-              <div class="cube-face cube-top"></div>
-              <div class="cube-face cube-front"></div>
-              <div class="cube-face cube-right"></div>
-              <div class="cube-face cube-left"></div>
-              <div class="cube-face cube-back"></div>
-              <div class="cube-face cube-bottom"></div>
-              <div class="face-content"><span class="check-mark">✓</span></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- additional locked cubes to maintain snake path (right, left) -->
-        <div class="row-right">
-          <div class="scene cube-locked" data-type="locked">
-            <div class="cube">
-              <div class="cube-face cube-top"></div>
-              <div class="cube-face cube-front"></div>
-              <div class="cube-face cube-right"></div>
-              <div class="cube-face cube-left"></div>
-              <div class="cube-face cube-back"></div>
-              <div class="cube-face cube-bottom"></div>
-              <div class="face-content"><div class="lock-icon"><div class="lock-shackle"></div><div class="lock-keyhole"></div></div></div>
-            </div>
-          </div>
-        </div>
-        <div class="row-left">
-          <div class="scene cube-locked" data-type="locked">
-            <div class="cube">
-              <div class="cube-face cube-top"></div>
-              <div class="cube-face cube-front"></div>
-              <div class="cube-face cube-right"></div>
-              <div class="cube-face cube-left"></div>
-              <div class="cube-face cube-back"></div>
-              <div class="cube-face cube-bottom"></div>
-              <div class="face-content"><div class="lock-icon"><div class="lock-shackle"></div><div class="lock-keyhole"></div></div></div>
-            </div>
-          </div>
-        </div>
-      </div>
+  <div class="app-screen">
+    
+    <!-- Header Dropdown -->
+    <div class="header-pill">
+      <div class="target-icon"></div>
+      <span>General English</span>
+      <i class="arrow"></i>
     </div>
 
-    <!-- MODAL OVERLAY -->
-    <div class="modal-overlay" id="modalOverlay">
-      <div class="modal-sheet">
-        <button class="start-lesson-btn" id="startLessonBtn">Start Lesson</button>
+    <!-- Path Container (Pastdan yuqoriga qarab taxlangan) -->
+    <div class="path-container">
+
+      <!-- 9. Kristall Yoritilgan Kubik (Eng tepada) -->
+      <div class="node-wrapper pos-9">
+        <div class="cube crystal">
+          <div class="face top"></div>
+          <div class="face left"></div>
+          <div class="face right"></div>
+        </div>
       </div>
+
+      <!-- 8. Qulflangan Kubik -->
+      <div class="node-wrapper pos-8">
+        <div class="cube locked">
+          <div class="face top"><div class="lock-icon"></div></div>
+          <div class="face left"></div>
+          <div class="face right"></div>
+        </div>
+      </div>
+
+      <!-- 7. Qulflangan Kubik -->
+      <div class="node-wrapper pos-7">
+        <div class="cube locked">
+          <div class="face top"><div class="lock-icon"></div></div>
+          <div class="face left"></div>
+          <div class="face right"></div>
+        </div>
+      </div>
+
+      <!-- 6. Qulflangan Kubik -->
+      <div class="node-wrapper pos-6">
+        <div class="cube locked">
+          <div class="face top"><div class="lock-icon"></div></div>
+          <div class="face left"></div>
+          <div class="face right"></div>
+        </div>
+      </div>
+
+      <!-- 5. Qulflangan Kubik -->
+      <div class="node-wrapper pos-5">
+        <div class="cube locked">
+          <div class="face top"><div class="lock-icon"></div></div>
+          <div class="face left"></div>
+          <div class="face right"></div>
+        </div>
+      </div>
+
+      <!-- 4. Qulflangan Kubik -->
+      <div class="node-wrapper pos-4">
+        <div class="cube locked">
+          <div class="face top"><div class="lock-icon"></div></div>
+          <div class="face left"></div>
+          <div class="face right"></div>
+        </div>
+      </div>
+
+      <!-- 3. Aktiv Boshlash Kubiki (START) -->
+      <div class="node-wrapper pos-3">
+        <div class="start-badge">START</div>
+        <div class="cube active">
+          <div class="face top"></div>
+          <div class="face left"></div>
+          <div class="face right"></div>
+        </div>
+      </div>
+
+      <!-- 2. Bajarilgan Yashil Kubik -->
+      <div class="node-wrapper pos-2">
+        <div class="cube completed">
+          <div class="face top"><div class="check-mark"></div></div>
+          <div class="face left"></div>
+          <div class="face right"></div>
+        </div>
+      </div>
+
+      <!-- 1. Bajarilgan Yashil Kubik (Eng pastda) -->
+      <div class="node-wrapper pos-1">
+        <div class="cube completed">
+          <div class="face top"><div class="check-mark"></div></div>
+          <div class="face left"></div>
+          <div class="face right"></div>
+        </div>
+      </div>
+
     </div>
+
   </div>
 
-  
-  <script>
-    (function() {
-      // DOM elements
-      const startBtn = document.getElementById('startBtn');
-      const modalOverlay = document.getElementById('modalOverlay');
-      const startLessonBtn = document.getElementById('startLessonBtn');
-      const cubes = document.querySelectorAll('.scene');
-
-      // Add small press animation for cubes (already in CSS :active, but extra)
-      cubes.forEach(cube => {
-        cube.addEventListener('click', (e) => {
-          e.stopPropagation();
-          cube.style.transform = 'scale(0.94)';
-          setTimeout(() => {
-            cube.style.transform = '';
-          }, 180);
-        });
-      });
-
-      // Open modal on START
-      startBtn.addEventListener('click', () => {
-        modalOverlay.classList.add('active');
-      });
-
-      // Close modal when clicking overlay (outside modal sheet)
-      modalOverlay.addEventListener('click', (e) => {
-        if (e.target === modalOverlay) {
-          modalOverlay.classList.remove('active');
-        }
-      });
-
-      // Start Lesson button inside modal (optional action)
-      startLessonBtn.addEventListener('click', () => {
-        modalOverlay.classList.remove('active');
-        // could trigger lesson start here
-      });
-
-      // Smooth scroll behavior already set via CSS; additionally ensure header stays fixed
-      // Adjust cube positioning if needed for small screens
-      console.log('3D snake path UI ready');
-    })();
-  </script>
 </body>
 </html>
