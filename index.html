@@ -2,454 +2,318 @@
 <html lang="uz">
 <head>
   <meta charset="UTF-8">
+  <title>Darslar - Ilon izi</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kosmik Darslar Xaritasi</title>
-  
-  <!-- Font Awesome ikonkalari uchun -->
+
+  <!-- PWA style -->
+  <meta name="theme-color" content="#4da3e2">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+
+  <!-- Font Awesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap');
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      -webkit-tap-highlight-color: transparent;
-    }
-
     body {
-      font-family: 'Nunito', sans-serif;
-      background-color: #0b0514;
-      display: flex;
-      justify-content: center;
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
       min-height: 100vh;
-      color: white;
+      display: flex;
+      justify-content: center; 
+      padding: 50px 20px; 
+      box-sizing: border-box;
+      overflow-x: hidden; 
     }
 
-    /* Mobil ilova ramkasi */
-    .app-container {
-      width: 100%;
-      max-width: 414px;
-      height: 100vh;
-      background: radial-gradient(circle at 50% 30%, #2a1147 0%, #0c0714 80%);
-      position: relative;
-      overflow: hidden;
+    /* Cards Grid - Vertikal ilon izi shakli */
+    .cards-grid {
       display: flex;
       flex-direction: column;
-      box-shadow: 0 0 30px rgba(0,0,0,0.8);
-    }
-
-    /* Orqa fondagi yulduzlar va tumanliklar effekti */
-    .space-bg {
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background-image: 
-        radial-gradient(2px 2px at 20px 30px, #eee, rgba(0,0,0,0)),
-        radial-gradient(2px 2px at 40px 70px, #fff, rgba(0,0,0,0)),
-        radial-gradient(3px 3px at 90px 40px, #fff, rgba(0,0,0,0));
-      background-size: 200px 200px;
-      opacity: 0.4;
-      z-index: 0;
-    }
-
-    /* Yuqori qism (Header) */
-    header {
-      position: relative;
-      z-index: 10;
-      padding: 20px 15px 10px;
-      display: flex;
-      justify-content: space-between;
       align-items: center;
-    }
-
-    .leagues-badge {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 20px;
-      padding: 5px 15px 5px 40px;
-      font-weight: 800;
+      gap: 35px; /* Kartalar orasidagi vertikal masofa kattalashtirildi */
+      width: 100%;
+      max-width: 600px;
       position: relative;
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 20px 0;
     }
 
-    .leagues-badge img {
-      position: absolute;
-      left: -5px;
-      top: -15px;
-      width: 45px;
-    }
-
-    .stats {
-      display: flex;
-      gap: 10px;
-    }
-
-    .stat-pill {
-      background: rgba(0, 0, 0, 0.4);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 15px;
-      padding: 5px 12px;
-      font-size: 14px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .stat-pill .fa-star { color: #facc15; }
-    .stat-pill .xp-icon { color: #38bdf8; font-style: italic; font-weight: 900;}
-
-    /* Markaziy til tanlash tugmasi */
-    .course-selector {
-      text-align: center;
-      position: relative;
-      z-index: 10;
-      margin-top: 10px;
-    }
-
-    .course-btn {
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      color: white;
-      padding: 8px 20px;
-      border-radius: 20px;
-      font-size: 16px;
-      font-weight: 700;
-      backdrop-filter: blur(10px);
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    /* Asosiy yo'lak va bloklar (Scroll qilinadigan qism) */
-    .path-scroll-area {
-      flex: 1;
-      overflow-y: auto;
-      overflow-x: hidden;
-      position: relative;
-      z-index: 5;
-      padding-bottom: 120px; /* Tugma uchun joy */
-      padding-top: 20px;
-    }
-
-    .path-scroll-area::-webkit-scrollbar {
-      display: none; /* Skroll barni yashirish */
-    }
-
+    /* SVG chiziq uchun (Kartalar orqasidagi yo'lak) */
     #path-svg {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      z-index: 1;
+      z-index: 1; /* Kartalar orqasida turishi uchun */
       pointer-events: none;
     }
 
-    /* Bloklar (Kublar) */
-    .node-container {
-      position: absolute;
-      transform: translateX(-50%) translateY(-50%);
-      z-index: 2;
+    /* Card Styles - Circular */
+    .card {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      color: white;
+      transition: all 0.4s ease;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+      position: relative; /* Chap/O'ng siljishlar ishlashi uchun muhim */
+      overflow: hidden;
+      border: 3px solid rgba(255,255,255,0.3);
       display: flex;
       flex-direction: column;
-      align-items: center;
-    }
-
-    .cube {
-      width: 80px;
-      height: 70px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-radius: 16px;
-      display: flex;
       justify-content: center;
       align-items: center;
-      backdrop-filter: blur(8px);
-      /* 3D effekt (pastga soya) */
-      box-shadow: 
-        0 15px 0 rgba(255, 255, 255, 0.1),
-        inset 0 2px 10px rgba(255,255,255,0.2);
-      transition: transform 0.2s;
+      text-align: center;
+      z-index: 2; /* SVG chiziqdan ustunda turadi */
     }
 
-    .cube:active {
-      transform: translateY(10px);
-      box-shadow: 
-        0 5px 0 rgba(255, 255, 255, 0.1),
-        inset 0 2px 10px rgba(255,255,255,0.2);
-    }
-
-    .cube i.fa-lock {
-      font-size: 24px;
-      color: rgba(255, 255, 255, 0.5);
-    }
-
-    /* Aktiv daraja dizayni */
-    .node-container.active {
+    .card:hover {
+      transform: translateY(-5px) scale(1.05);
+      box-shadow: 0 12px 25px rgba(0,0,0,0.18);
       z-index: 10;
     }
 
-    .node-container.active .cube {
-      background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%);
-      border: 2px solid #d8b4fe;
-      box-shadow: 
-        0 15px 0 #581c87,
-        0 0 30px #a855f7,
-        inset 0 0 15px #e9d5ff;
-      animation: float 3s ease-in-out infinite;
+    .card.active {
+      cursor: pointer;
+      opacity: 1;
     }
 
-    .node-container.active .play-btn {
-      background: white;
-      color: #7e22ce;
-      padding: 5px 12px;
-      border-radius: 12px;
-      font-weight: 900;
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      gap: 5px;
+    .card.locked {
+      cursor: not-allowed;
+      opacity: 0.7;
+      filter: grayscale(0.3);
     }
 
-    .floating-star {
-      position: absolute;
-      top: -25px;
-      font-size: 30px;
-      color: #38bdf8;
-      text-shadow: 0 0 15px #38bdf8;
-      animation: pulse 1.5s infinite;
+    .card.locked:hover {
+      transform: none;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.12);
     }
 
-    /* Pastki yopishib turadigan tugma */
-    .bottom-action-area {
-      position: absolute;
-      bottom: 70px;
-      left: 0;
-      width: 100%;
-      padding: 0 20px;
-      z-index: 20;
+    /* Card content */
+    .card-number {
+      font-size: 24px;
+      font-weight: bold;
+      opacity: 0.9;
     }
 
-    .continue-btn {
-      width: 100%;
-      background: #a855f7;
-      color: white;
-      border: none;
-      padding: 18px;
-      border-radius: 25px;
-      font-size: 16px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      box-shadow: 0 8px 0 #7e22ce, 0 15px 20px rgba(0,0,0,0.4);
-      transition: all 0.1s;
+    .status-icon {
+      font-size: 18px;
+      margin-top: 3px;
     }
 
-    .continue-btn:active {
-      transform: translateY(8px);
-      box-shadow: 0 0px 0 #7e22ce, 0 5px 10px rgba(0,0,0,0.4);
+    /* Card states */
+    .card.completed {
+      background: linear-gradient(135deg, #3498db, #2980b9);
     }
 
-    /* Pastki navigatsiya */
-    .bottom-nav {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 70px;
-      background: #150a21;
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      z-index: 20;
-      border-top: 1px solid rgba(255,255,255,0.1);
+    .card.in-progress {
+      background: linear-gradient(135deg, #4da3e2, #3b82f6);
     }
 
-    .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      color: #6b7280;
-      font-size: 11px;
-      font-weight: 700;
-      gap: 5px;
-      text-decoration: none;
+    .card.locked-state {
+      background: linear-gradient(135deg, #95a5a6, #7f8c8d);
     }
 
-    .nav-item i {
-      font-size: 20px;
-    }
-
-    .nav-item.active {
-      color: #a855f7;
-    }
-
-    /* Animatsiyalar */
-    @keyframes float {
-      0% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
-      100% { transform: translateY(0); }
+    .card.next-available {
+      background: linear-gradient(135deg, #4da3e2, #3b82f6);
+      animation: pulse 2s infinite;
     }
 
     @keyframes pulse {
-      0% { transform: scale(1); opacity: 0.8; }
-      50% { transform: scale(1.1); opacity: 1; }
-      100% { transform: scale(1); opacity: 0.8; }
+      0% { box-shadow: 0 0 0 0 rgba(77, 163, 226, 0.7); }
+      70% { box-shadow: 0 0 0 15px rgba(77, 163, 226, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(77, 163, 226, 0); }
     }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .card { width: 85px; height: 85px; }
+      .card-number { font-size: 20px; }
+      .status-icon { font-size: 14px; }
+      .cards-grid { gap: 25px; }
+    }
+
+    @media (max-width: 480px) {
+      .card { width: 70px; height: 70px; }
+      .card-number { font-size: 18px; }
+      .status-icon { font-size: 12px; }
+      .cards-grid { gap: 20px; }
+    }
+
+    /* Loading animation */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .card { animation: fadeIn 0.6s ease forwards; }
   </style>
 </head>
 <body>
 
-  <div class="app-container">
-    <div class="space-bg"></div>
-
-    <!-- Yuqori panel -->
-    <header>
-      <div class="leagues-badge">
-        <!-- Kubok ikonkasiga o'xshash belgi -->
-        <i class="fas fa-trophy" style="position: absolute; left: 12px; top: 7px; color: #a855f7; font-size: 18px;"></i>
-        Leagues >
-      </div>
-      <div class="stats">
-        <div class="stat-pill"><i class="fas fa-star"></i> 283</div>
-        <div class="stat-pill"><span class="xp-icon">XP</span> 221</div>
-      </div>
-    </header>
-
-    <!-- Fan tanlash -->
-    <div class="course-selector">
-      <div class="course-btn">
-        <i class="fas fa-bullseye" style="color: #38bdf8;"></i> General English <i class="fas fa-chevron-down" style="font-size: 12px;"></i>
-      </div>
-    </div>
-
-    <!-- Yo'lak va bloklar joylashadigan hudud -->
-    <div class="path-scroll-area" id="scrollArea">
-      <!-- SVG orqali porlab turuvchi tutashtiruvchi chiziq chizamiz -->
-      <svg id="path-svg"></svg>
-      <div id="nodes-container"></div>
-    </div>
-
-    <!-- Davom etish tugmasi -->
-    <div class="bottom-action-area">
-      <button class="continue-btn">Continue the task</button>
-    </div>
-
-    <!-- Pastki menyu -->
-    <nav class="bottom-nav">
-      <a href="#" class="nav-item"><i class="fas fa-home"></i> Asosiy</a>
-      <a href="#" class="nav-item"><i class="fas fa-book"></i> O'rganish</a>
-      <a href="#" class="nav-item active"><i class="fas fa-bullseye"></i> Missiya</a>
-      <a href="#" class="nav-item"><i class="fas fa-flag"></i> O'yinlar</a>
-      <a href="#" class="nav-item"><i class="fas fa-user"></i> Profil</a>
-    </nav>
+  <div class="cards-grid" id="cardsContainer">
+    <!-- SVG Bog'lovchi yo'lak -->
+    <svg id="path-svg"></svg>
+    <!-- Kartalar JavaScript orqali shu yerga qo'shiladi -->
   </div>
 
   <script>
-    // Darslik darajalari (pastdan yuqoriga yoki yuqoridan pastga)
-    const totalLevels = 8;
-    const activeLevelIndex = 3; // Qaysi daraja hozir ochiq/aktiv
-    const ySpacing = 110; // Kublar orasidagi vertikal masofa
-    const container = document.getElementById('nodes-container');
-    const svg = document.getElementById('path-svg');
-    const scrollArea = document.getElementById('scrollArea');
+    // Darslar ma'lumotlari
+    const lessonsData = Array(30).fill(null).map((_, i) => {
+      if (i < 2) return { percent: 100, completed: true, unlocked: true };
+      if (i === 2) return { percent: 80, completed: false, unlocked: true };
+      return { percent: 0, completed: false, unlocked: false };
+    });
 
-    // Barcha nuqtalarning koordinatalarini saqlash uchun massiv
-    let points = [];
+    const cardsContainer = document.getElementById('cardsContainer');
 
-    // Container kengligini olib markazni topamiz
-    const centerX = 207; // 414px (app container max-width) ning yarmi
+    /* 
+       Siz chizib bergan aniq zigzag shaklining raqamli koeffitsientlari.
+       (O'ngga maksimal = 1.0, Chapga maksimal = -1.0)
+    */
+    const pathOffsets = [1.0, 0.5, 0.0, -0.3, 0.2, 0.6, 0.9, 0.3, -0.3, -1.0];
 
-    function renderMap() {
-      container.innerHTML = '';
-      let pathD = "";
+    // Kartalarning gorizontal joylashuvini o'rnatish
+    function updateCardPositions() {
+      const cards = document.querySelectorAll('.card');
       
-      // Dinamik balandlik (Scroll qilish uchun yetarli joy)
-      svg.style.height = `${totalLevels * ySpacing + 150}px`;
-      container.style.height = `${totalLevels * ySpacing + 150}px`;
-
-      for (let i = 0; i < totalLevels; i++) {
-        // Zigzag (ilon izi) shaklini yaratish uchun sinus funksiyasidan foydalanamiz
-        // i * 0.8 = to'lqin chastotasi, 90 = to'lqin kengligi (amplitudasi)
-        const xOffset = Math.sin(i * 0.8) * 90; 
-        const x = centerX + xOffset;
-        const y = 80 + i * ySpacing;
-        
-        points.push({x, y});
-
-        // Karta elementini yaratish
-        const node = document.createElement('div');
-        node.className = 'node-container';
-        node.style.left = `${x}px`;
-        node.style.top = `${y}px`;
-
-        if (i === activeLevelIndex) {
-          // Aktiv daraja (O'ynash tugmasi bilan)
-          node.classList.add('active');
-          node.innerHTML = `
-            <i class="fas fa-star floating-star"></i>
-            <div class="cube">
-              <div class="play-btn"><i class="fas fa-play"></i> Play</div>
-            </div>
-          `;
-          
-          // Sahifa yuklanganda aktiv darajaga avtomatik skroll qilish
-          setTimeout(() => {
-            scrollArea.scrollTo({
-              top: y - (scrollArea.clientHeight / 2) + 50,
-              behavior: 'smooth'
-            });
-          }, 300);
-
-        } else {
-          // Qulflangan darajalar
-          node.innerHTML = `
-            <div class="cube">
-              <i class="fas fa-lock"></i>
-            </div>
-          `;
-        }
-
-        container.appendChild(node);
-
-        // SVG yo'lak (path) uchun koordinatalarni yig'ish
-        if (i === 0) {
-          pathD += `M ${x} ${y} `;
-        } else {
-          // Ikki nuqta o'rtasini silliq bog'lash uchun Cubic Bezier Curve (C)
-          const prevPoint = points[i-1];
-          // Boshqaruv nuqtalarini (control points) hisoblash (silliq burilish uchun)
-          const cp1y = prevPoint.y + (ySpacing / 2);
-          const cp2y = y - (ySpacing / 2);
-          pathD += `C ${prevPoint.x} ${cp1y}, ${x} ${cp2y}, ${x} ${y} `;
-        }
+      let amplitude = 120; // Siljish radiusi (Keng ekranlar uchun)
+      if (window.innerWidth <= 480) {
+        amplitude = 80; // Telefonlar uchun
+      } else if (window.innerWidth <= 768) {
+        amplitude = 100; // Planshetlar uchun
       }
 
-      // SVG chizig'ini yaratish (Shishasimon, porlab turadigan effekt)
+      cards.forEach((card, index) => {
+        const offsetMultiplier = pathOffsets[index % pathOffsets.length];
+        card.style.left = `${offsetMultiplier * amplitude}px`;
+      });
+    }
+
+    // Nuqtalarni bir-biriga ulovchi chiziqni (path) chizish
+    function drawPath() {
+      const svg = document.getElementById('path-svg');
+      const cards = document.querySelectorAll('.card');
+      if (cards.length === 0) return;
+      
+      let d = "";
+      cards.forEach((card, index) => {
+        // Har bir kartaning markaziy koordinatasini topamiz
+        const x = card.offsetLeft + (card.offsetWidth / 2);
+        const y = card.offsetTop + (card.offsetHeight / 2);
+        
+        if (index === 0) {
+          d += `M ${x} ${y} `; // Boshlang'ich nuqta
+        } else {
+          d += `L ${x} ${y} `; // Chiziq orqali ulash
+        }
+      });
+      
+      // Chiziq dizayni (qalinligi, rangi)
       svg.innerHTML = `
-        <defs>
-          <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="8" result="blur" />
-            <feComposite in="SourceGraphic" in2="blur" operator="over" />
-          </filter>
-          <linearGradient id="pathGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="rgba(168, 85, 247, 0.1)" />
-            <stop offset="50%" stop-color="rgba(168, 85, 247, 0.6)" />
-            <stop offset="100%" stop-color="rgba(168, 85, 247, 0.1)" />
-          </linearGradient>
-        </defs>
-        <!-- Yo'g'on va xira orqa chiziq (soya) -->
-        <path d="${pathD}" stroke="rgba(168, 85, 247, 0.2)" stroke-width="25" fill="none" filter="url(#glow)"/>
-        <!-- Asosiy chiziq -->
-        <path d="${pathD}" stroke="url(#pathGradient)" stroke-width="12" fill="none" />
-        <!-- O'rtadagi ingichka yorug'lik -->
-        <path d="${pathD}" stroke="rgba(255, 255, 255, 0.5)" stroke-width="2" fill="none" />
+        <path d="${d}" 
+              stroke="rgba(77, 163, 226, 0.3)" 
+              stroke-width="16" 
+              fill="none" 
+              stroke-linecap="round" 
+              stroke-linejoin="round" />
       `;
     }
 
-    // Dastlabki yuklanishda chizish
-    renderMap();
+    // Kartalarni yaratish funksiyasi
+    function createCards() {
+      let nextAvailableIndex = -1;
+      
+      lessonsData.forEach((lesson, index) => {
+        if (lesson.unlocked && !lesson.completed && nextAvailableIndex === -1) {
+          nextAvailableIndex = index;
+        }
+      });
+
+      lessonsData.forEach((lesson, index) => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.setAttribute('data-index', index);
+        card.style.animationDelay = `${(index % 10) * 0.05}s`;
+        
+        let cardClass = '';
+        let statusIcon = '';
+        
+        if (lesson.completed) {
+          cardClass = 'completed';
+          statusIcon = '<i class="fas fa-check status-icon"></i>';
+        } else if (lesson.unlocked) {
+          if (index === nextAvailableIndex) {
+            cardClass = 'next-available';
+            statusIcon = '<i class="fas fa-play status-icon"></i>';
+          } else {
+            cardClass = 'in-progress';
+            statusIcon = '<i class="fas fa-circle status-icon"></i>';
+          }
+        } else {
+          cardClass = 'locked-state';
+          statusIcon = '<i class="fas fa-lock status-icon"></i>';
+        }
+        
+        card.classList.add(cardClass);
+        
+        if (lesson.unlocked) {
+          card.classList.add('active');
+          card.onclick = () => { window.location.href = `dars${index + 1}.html`; };
+        } else {
+          card.classList.add('locked');
+          card.onclick = () => { alert(`Iltimos, avval ${index}-darsni tugating!`); };
+        }
+        
+        card.innerHTML = `
+          <div class="card-number">${index + 1}</div>
+          ${statusIcon}
+        `;
+        
+        cardsContainer.appendChild(card);
+      });
+
+      // Kartalar yaratilgach ularning joyini to'g'irlaymiz
+      updateCardPositions();
+      
+      // DOM joylashib bo'lgach orqa fon chizig'ini chizamiz
+      setTimeout(drawPath, 50);
+    }
+
+    // Oyna o'lchami o'zgarganda dizayn buzilmasligi uchun qayta hisoblash
+    window.addEventListener('resize', () => {
+      updateCardPositions();
+      drawPath();
+    });
+
+    window.onload = function() {
+      createCards();
+      
+      // Test uchun: 3-dars ochilishi
+      setTimeout(() => {
+        if (lessonsData[2].percent >= 80) {
+          simulateLessonCompletion(3);
+        }
+      }, 2000);
+    };
+
+    function simulateLessonCompletion(lessonIndex) {
+      if (lessonIndex >= 0 && lessonIndex < lessonsData.length) {
+        lessonsData[lessonIndex].unlocked = true;
+        
+        const card = document.querySelector(`.card[data-index="${lessonIndex}"]`);
+        if (card) {
+          card.classList.remove('locked', 'locked-state');
+          card.classList.add('active', 'in-progress', 'next-available');
+          
+          const statusIcon = card.querySelector('.status-icon');
+          if (statusIcon) statusIcon.outerHTML = '<i class="fas fa-play status-icon"></i>';
+          
+          card.style.background = 'linear-gradient(135deg, #4da3e2, #3b82f6)';
+          card.onclick = () => { window.location.href = `dars${lessonIndex + 1}.html`; };
+        }
+      }
+    }
   </script>
 </body>
 </html>
