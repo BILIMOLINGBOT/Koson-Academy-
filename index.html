@@ -13,11 +13,16 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: #000000;
       min-height: 100vh;
+      overflow-x: hidden;
     }
 
     /* Header */
@@ -64,35 +69,33 @@
       margin: 0 auto;
     }
 
-    /* Cards Grid - doira shaklidagi kartalar uchun maxsus grid */
+    /* Kubik Cards Grid - 3D transform */
     .cards-grid {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 30px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 25px;
       margin-top: 30px;
-      padding: 20px;
+      perspective: 1200px;
     }
 
-    /* Card Styles - DOIRA SHAKLIDA */
+    /* Kubik Card Styles */
     .card {
-      width: 220px;
-      height: 220px;
-      border-radius: 50%;
-      padding: 0;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border-radius: 20px;
+      padding: 20px;
       color: white;
-      transition: all 0.4s ease;
+      transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
       cursor: pointer;
-      box-shadow: 0 8px 20px rgba(255,255,255,0.1);
       position: relative;
       overflow: hidden;
-      border: 3px solid #ffffff;
       background: #000000;
+      border: 2px solid #ffffff;
+      transform-style: preserve-3d;
+      box-shadow: 0 10px 30px rgba(255,255,255,0.15);
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
+      justify-content: space-between;
     }
 
     .card::before {
@@ -101,15 +104,39 @@
       top: 0;
       left: 0;
       right: 0;
-      height: 5px;
+      height: 4px;
       background: #ffffff;
-      border-radius: 50% 50% 0 0;
+      z-index: 2;
+    }
+
+    /* Kubik effekt - 3D border */
+    .card::after {
+      content: '';
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      right: -12px;
+      bottom: -12px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 20px;
+      z-index: -1;
+      transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
     }
 
     .card:hover {
-      transform: translateY(-8px) scale(1.05);
-      box-shadow: 0 12px 25px rgba(255,255,255,0.3);
+      transform: translateY(-8px) rotateX(5deg) rotateY(-5deg) scale(1.03);
+      box-shadow: 
+        0 20px 40px rgba(255,255,255,0.3),
+        0 0 60px rgba(255,255,255,0.1);
       border-color: #ffffff;
+    }
+
+    .card:hover::after {
+      top: 8px;
+      left: 8px;
+      right: -8px;
+      bottom: -8px;
+      border-color: rgba(255,255,255,0.5);
     }
 
     .card.active {
@@ -119,37 +146,39 @@
 
     .card.locked {
       cursor: not-allowed;
-      opacity: 0.5;
-      filter: grayscale(0.5);
+      opacity: 0.4;
+      filter: grayscale(0.7);
     }
 
     .card.locked:hover {
       transform: none;
-      box-shadow: 0 8px 20px rgba(255,255,255,0.1);
-      border-color: #ffffff;
+      box-shadow: 0 10px 30px rgba(255,255,255,0.1);
+      border-color: #444;
     }
 
-    /* Card content - doira ichidagi kontent */
+    .card.locked:hover::after {
+      border-color: rgba(100,100,100,0.3);
+    }
+
+    /* Card content */
     .card-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      width: 80%;
-      position: absolute;
-      top: 15px;
-      left: 50%;
-      transform: translateX(-50%);
+      align-items: flex-start;
+      margin-bottom: 10px;
     }
 
     .card-number {
       font-size: 13px;
       opacity: 0.9;
       background: rgba(255,255,255,0.1);
-      padding: 3px 10px;
-      border-radius: 12px;
+      padding: 4px 12px;
+      border-radius: 20px;
       display: inline-block;
       color: #ffffff;
       border: 1px solid rgba(255,255,255,0.2);
+      font-weight: 600;
+      letter-spacing: 0.5px;
     }
 
     .lock-icon {
@@ -158,54 +187,49 @@
     }
 
     .card h3 {
-      margin: 0;
-      font-size: 15px;
+      margin: 0 0 10px 0;
+      font-size: 17px;
       font-weight: 600;
-      line-height: 1.2;
+      line-height: 1.3;
       color: #ffffff;
-      width: 80%;
-      max-height: 60px;
-      overflow: hidden;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-      margin-top: 30px;
+      flex-grow: 1;
+      display: flex;
+      align-items: center;
     }
 
     .percent-text {
-      font-size: 20px;
+      font-size: 32px;
       font-weight: bold;
-      margin: 5px 0;
+      margin: 8px 0;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       color: #ffffff;
     }
 
     .status-icon {
-      font-size: 16px;
+      font-size: 22px;
       color: #ffffff;
     }
 
-    /* Progress bar - doira ichida */
+    /* Progress bar */
     .progress-container {
-      width: 70%;
-      margin-top: 5px;
+      margin-top: auto;
     }
 
     .progress-info {
       display: flex;
       justify-content: space-between;
-      font-size: 11px;
-      margin-bottom: 3px;
-      opacity: 0.8;
+      font-size: 12px;
+      margin-bottom: 5px;
+      opacity: 0.9;
       color: #ffffff;
     }
 
     .progress-bg {
       width: 100%;
       height: 8px;
-      background: rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.15);
       border-radius: 10px;
       overflow: hidden;
       border: 1px solid rgba(255,255,255,0.1);
@@ -224,7 +248,7 @@
     .card.completed {
       background: #000000;
       border-color: #ffffff;
-      box-shadow: 0 0 30px rgba(255,255,255,0.2);
+      box-shadow: 0 0 40px rgba(255,255,255,0.3);
     }
 
     .card.completed::before {
@@ -234,7 +258,7 @@
     .card.in-progress {
       background: #000000;
       border-color: #ffffff;
-      box-shadow: 0 0 30px rgba(255,255,255,0.15);
+      box-shadow: 0 0 30px rgba(255,255,255,0.2);
     }
 
     .card.in-progress::before {
@@ -254,7 +278,7 @@
     .card.next-available {
       background: #000000;
       border-color: #ffffff;
-      box-shadow: 0 0 40px rgba(255,255,255,0.3);
+      box-shadow: 0 0 50px rgba(255,255,255,0.4);
       animation: pulse 2s infinite;
     }
 
@@ -264,39 +288,16 @@
 
     /* Pulse animation for next available lesson */
     @keyframes pulse {
-      0% { box-shadow: 0 0 20px rgba(255,255,255,0.2); }
-      50% { box-shadow: 0 0 50px rgba(255,255,255,0.5); }
-      100% { box-shadow: 0 0 20px rgba(255,255,255,0.2); }
+      0% { box-shadow: 0 0 20px rgba(255,255,255,0.3); }
+      50% { box-shadow: 0 0 60px rgba(255,255,255,0.6); }
+      100% { box-shadow: 0 0 20px rgba(255,255,255,0.3); }
     }
 
     /* Responsive */
     @media (max-width: 768px) {
       .cards-grid {
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
         gap: 20px;
-      }
-      
-      .card {
-        width: 150px;
-        height: 150px;
-      }
-      
-      .card h3 {
-        font-size: 11px;
-        max-height: 40px;
-        margin-top: 20px;
-      }
-      
-      .percent-text {
-        font-size: 14px;
-      }
-      
-      .card-number {
-        font-size: 10px;
-        padding: 2px 6px;
-      }
-      
-      .progress-info {
-        font-size: 8px;
       }
       
       .header h2 {
@@ -311,41 +312,47 @@
       .container {
         padding: 15px;
       }
-    }
-
-    @media (max-width: 480px) {
+      
       .card {
-        width: 120px;
-        height: 120px;
+        padding: 18px;
+        border-radius: 18px;
       }
       
-      .card h3 {
-        font-size: 9px;
-        max-height: 30px;
-        margin-top: 15px;
+      .card::after {
+        border-radius: 18px;
       }
       
       .percent-text {
-        font-size: 12px;
+        font-size: 26px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .cards-grid {
+        grid-template-columns: 1fr;
+        gap: 18px;
       }
       
-      .card-number {
-        font-size: 8px;
-      }
-      
-      .lock-icon {
-        font-size: 14px;
+      .card {
+        aspect-ratio: 1 / 0.9;
       }
     }
 
     /* Loading animation */
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(15px) scale(0.9); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
+      from { 
+        opacity: 0; 
+        transform: translateY(20px) rotateX(10deg);
+      }
+      to { 
+        opacity: 1; 
+        transform: translateY(0) rotateX(0);
+      }
     }
 
     .card {
       animation: fadeIn 0.6s ease forwards;
+      transform-origin: center bottom;
     }
 
     /* Footer */
