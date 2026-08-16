@@ -21,16 +21,16 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 40px 20px;
+      padding: 20px;
       box-sizing: border-box;
       overflow-x: auto;
     }
 
-    /* Cards Grid - Spiral layout */
+    /* Cards Container - Spiral layout */
     .cards-grid {
       position: relative;
       width: 600px;
-      height: 800px;
+      height: 600px;
       margin: 0 auto;
     }
 
@@ -42,10 +42,10 @@
       color: white;
       transition: all 0.4s ease;
       cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.12);
       position: absolute;
       overflow: hidden;
-      border: 2px solid rgba(255,255,255,0.3);
+      border: 3px solid rgba(255,255,255,0.3);
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -54,8 +54,8 @@
     }
 
     .card:hover {
-      transform: scale(1.1);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+      transform: translateY(-5px) scale(1.1);
+      box-shadow: 0 12px 25px rgba(0,0,0,0.18);
       z-index: 10;
     }
 
@@ -72,12 +72,12 @@
 
     .card.locked:hover {
       transform: none;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.12);
     }
 
     /* Card content */
     .card-number {
-      font-size: 18px;
+      font-size: 20px;
       font-weight: bold;
       opacity: 0.9;
     }
@@ -108,7 +108,7 @@
     /* Pulse animation for next available lesson */
     @keyframes pulse {
       0% { box-shadow: 0 0 0 0 rgba(77, 163, 226, 0.7); }
-      70% { box-shadow: 0 0 0 8px rgba(77, 163, 226, 0); }
+      70% { box-shadow: 0 0 0 15px rgba(77, 163, 226, 0); }
       100% { box-shadow: 0 0 0 0 rgba(77, 163, 226, 0); }
     }
 
@@ -116,29 +116,51 @@
     @media (max-width: 768px) {
       .cards-grid {
         width: 400px;
-        height: 600px;
-        transform: scale(0.7);
-        transform-origin: center;
+        height: 400px;
+      }
+      
+      .card {
+        width: 60px;
+        height: 60px;
+      }
+      
+      .card-number {
+        font-size: 16px;
+      }
+      
+      .status-icon {
+        font-size: 12px;
       }
     }
 
     @media (max-width: 480px) {
       .cards-grid {
         width: 300px;
-        height: 500px;
-        transform: scale(0.55);
-        transform-origin: center;
+        height: 300px;
+      }
+      
+      .card {
+        width: 50px;
+        height: 50px;
+      }
+      
+      .card-number {
+        font-size: 14px;
+      }
+      
+      .status-icon {
+        font-size: 10px;
       }
     }
 
     /* Loading animation */
     @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
+      from { opacity: 0; transform: scale(0.5); }
+      to { opacity: 1; transform: scale(1); }
     }
 
     .card {
-      animation: fadeIn 0.5s ease forwards;
+      animation: fadeIn 0.6s ease forwards;
     }
   </style>
 </head>
@@ -185,15 +207,23 @@
 
     const cardsContainer = document.getElementById('cardsContainer');
 
-    // Spiral pozitsiyalarini hisoblash
+    // Spiral pozitsiyalarni hisoblash
     function getSpiralPosition(index, total) {
       const centerX = 300;
-      const centerY = 400;
-      const angle = index * 0.8; // Har bir karta orasidagi burchak
-      const radius = 30 + (index * 18); // Radius asta-sekin oshib boradi
+      const centerY = 300;
+      const maxRadius = 250;
+      const minRadius = 20;
       
-      const x = centerX + radius * Math.cos(angle);
-      const y = centerY + radius * Math.sin(angle);
+      // Spiral parametrlari
+      const spiralTurns = 3; // Necha marta aylanishi
+      const angleStep = (spiralTurns * 2 * Math.PI) / total;
+      const radiusStep = (maxRadius - minRadius) / total;
+      
+      const angle = index * angleStep;
+      const radius = minRadius + (index * radiusStep);
+      
+      const x = centerX + (radius * Math.cos(angle));
+      const y = centerY + (radius * Math.sin(angle));
       
       return { x, y };
     }
@@ -214,12 +244,12 @@
         const card = document.createElement('div');
         card.className = 'card';
         card.setAttribute('data-index', index);
+        card.style.animationDelay = `${index * 0.1}s`;
         
         // Spiral pozitsiyani olish
-        const pos = getSpiralPosition(index, lessonsData.length);
-        card.style.left = pos.x + 'px';
-        card.style.top = pos.y + 'px';
-        card.style.animationDelay = `${index * 0.03}s`;
+        const position = getSpiralPosition(index, lessonsData.length);
+        card.style.left = position.x + 'px';
+        card.style.top = position.y + 'px';
         
         // Karta holatini aniqlash
         let cardClass = '';
