@@ -30,28 +30,17 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 35px; /* Kartalar orasidagi vertikal masofa kattalashtirildi */
+      gap: 20px; /* Kartalar orasidagi masofa */
       width: 100%;
       max-width: 600px;
       position: relative;
       padding: 20px 0;
     }
 
-    /* SVG chiziq uchun (Kartalar orqasidagi yo'lak) */
-    #path-svg {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 1; /* Kartalar orqasida turishi uchun */
-      pointer-events: none;
-    }
-
     /* Card Styles - Circular */
     .card {
-      width: 100px;
-      height: 100px;
+      width: 90px;
+      height: 90px;
       border-radius: 50%;
       color: white;
       transition: all 0.4s ease;
@@ -65,7 +54,7 @@
       justify-content: center;
       align-items: center;
       text-align: center;
-      z-index: 2; /* SVG chiziqdan ustunda turadi */
+      z-index: 2;
     }
 
     .card:hover {
@@ -92,13 +81,13 @@
 
     /* Card content */
     .card-number {
-      font-size: 24px;
+      font-size: 22px;
       font-weight: bold;
       opacity: 0.9;
     }
 
     .status-icon {
-      font-size: 18px;
+      font-size: 16px;
       margin-top: 3px;
     }
 
@@ -128,17 +117,15 @@
 
     /* Responsive */
     @media (max-width: 768px) {
-      .card { width: 85px; height: 85px; }
-      .card-number { font-size: 20px; }
-      .status-icon { font-size: 14px; }
-      .cards-grid { gap: 25px; }
+      .card { width: 75px; height: 75px; }
+      .card-number { font-size: 18px; }
+      .status-icon { font-size: 13px; }
     }
 
     @media (max-width: 480px) {
-      .card { width: 70px; height: 70px; }
-      .card-number { font-size: 18px; }
-      .status-icon { font-size: 12px; }
-      .cards-grid { gap: 20px; }
+      .card { width: 65px; height: 65px; }
+      .card-number { font-size: 16px; }
+      .status-icon { font-size: 11px; }
     }
 
     /* Loading animation */
@@ -152,14 +139,12 @@
 <body>
 
   <div class="cards-grid" id="cardsContainer">
-    <!-- SVG Bog'lovchi yo'lak -->
-    <svg id="path-svg"></svg>
     <!-- Kartalar JavaScript orqali shu yerga qo'shiladi -->
   </div>
 
   <script>
     // Darslar ma'lumotlari
-    const lessonsData = Array(30).fill(null).map((_, i) => {
+    const lessonsData = Array(20).fill(null).map((_, i) => {
       if (i < 2) return { percent: 100, completed: true, unlocked: true };
       if (i === 2) return { percent: 80, completed: false, unlocked: true };
       return { percent: 0, completed: false, unlocked: false };
@@ -168,56 +153,25 @@
     const cardsContainer = document.getElementById('cardsContainer');
 
     /* 
-       Siz chizib bergan aniq zigzag shaklining raqamli koeffitsientlari.
-       (O'ngga maksimal = 1.0, Chapga maksimal = -1.0)
+       Siz ko'rsatgan rasmdagi zigzag to'lqin shaklini takrorlovchi siljish nuqtalari
     */
-    const pathOffsets = [1.0, 0.5, 0.0, -0.3, 0.2, 0.6, 0.9, 0.3, -0.3, -1.0];
+    const pathOffsets = [0.8, 0.4, 0.0, -0.5, -0.9, -0.4, 0.0, 0.5, 0.9];
 
     // Kartalarning gorizontal joylashuvini o'rnatish
     function updateCardPositions() {
       const cards = document.querySelectorAll('.card');
       
-      let amplitude = 120; // Siljish radiusi (Keng ekranlar uchun)
+      let amplitude = 110; // Siljish kengligi
       if (window.innerWidth <= 480) {
-        amplitude = 80; // Telefonlar uchun
+        amplitude = 75; 
       } else if (window.innerWidth <= 768) {
-        amplitude = 100; // Planshetlar uchun
+        amplitude = 90; 
       }
 
       cards.forEach((card, index) => {
         const offsetMultiplier = pathOffsets[index % pathOffsets.length];
         card.style.left = `${offsetMultiplier * amplitude}px`;
       });
-    }
-
-    // Nuqtalarni bir-biriga ulovchi chiziqni (path) chizish
-    function drawPath() {
-      const svg = document.getElementById('path-svg');
-      const cards = document.querySelectorAll('.card');
-      if (cards.length === 0) return;
-      
-      let d = "";
-      cards.forEach((card, index) => {
-        // Har bir kartaning markaziy koordinatasini topamiz
-        const x = card.offsetLeft + (card.offsetWidth / 2);
-        const y = card.offsetTop + (card.offsetHeight / 2);
-        
-        if (index === 0) {
-          d += `M ${x} ${y} `; // Boshlang'ich nuqta
-        } else {
-          d += `L ${x} ${y} `; // Chiziq orqali ulash
-        }
-      });
-      
-      // Chiziq dizayni (qalinligi, rangi)
-      svg.innerHTML = `
-        <path d="${d}" 
-              stroke="rgba(77, 163, 226, 0.3)" 
-              stroke-width="16" 
-              fill="none" 
-              stroke-linecap="round" 
-              stroke-linejoin="round" />
-      `;
     }
 
     // Kartalarni yaratish funksiyasi
@@ -273,23 +227,14 @@
         cardsContainer.appendChild(card);
       });
 
-      // Kartalar yaratilgach ularning joyini to'g'irlaymiz
       updateCardPositions();
-      
-      // DOM joylashib bo'lgach orqa fon chizig'ini chizamiz
-      setTimeout(drawPath, 50);
     }
 
-    // Oyna o'lchami o'zgarganda dizayn buzilmasligi uchun qayta hisoblash
-    window.addEventListener('resize', () => {
-      updateCardPositions();
-      drawPath();
-    });
+    window.addEventListener('resize', updateCardPositions);
 
     window.onload = function() {
       createCards();
       
-      // Test uchun: 3-dars ochilishi
       setTimeout(() => {
         if (lessonsData[2].percent >= 80) {
           simulateLessonCompletion(3);
