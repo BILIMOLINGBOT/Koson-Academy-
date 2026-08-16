@@ -19,31 +19,33 @@
       background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
       min-height: 100vh;
       display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
+      justify-content: center; /* Gorizontal markazlashtirish */
+      padding: 50px 20px; /* Yuqori va pastdan joy tashlash */
       box-sizing: border-box;
-      overflow-x: auto;
+      overflow-x: hidden; /* Yon tomonga skroll chiqib ketmasligi uchun */
     }
 
-    /* Cards Container - Spiral layout */
+    /* Cards Grid - Vertikal ilon izi shakli */
     .cards-grid {
+      display: flex;
+      flex-direction: column; /* Vertikal joylashuv */
+      align-items: center;
+      gap: 15px; /* Kartalar orasidagi masofa */
+      width: 100%;
+      max-width: 600px;
       position: relative;
-      width: 600px;
-      height: 600px;
-      margin: 0 auto;
     }
 
     /* Card Styles - Circular */
     .card {
-      width: 70px;
-      height: 70px;
+      width: 100px;
+      height: 100px;
       border-radius: 50%;
       color: white;
       transition: all 0.4s ease;
       cursor: pointer;
       box-shadow: 0 8px 20px rgba(0,0,0,0.12);
-      position: absolute;
+      position: relative; /* Chap/O'ng siljishlar ishlashi uchun */
       overflow: hidden;
       border: 3px solid rgba(255,255,255,0.3);
       display: flex;
@@ -51,10 +53,11 @@
       justify-content: center;
       align-items: center;
       text-align: center;
+      z-index: 2; /* Kartalar doim ustun turishi uchun */
     }
 
     .card:hover {
-      transform: translateY(-5px) scale(1.1);
+      transform: translateY(-5px) scale(1.05);
       box-shadow: 0 12px 25px rgba(0,0,0,0.18);
       z-index: 10;
     }
@@ -77,17 +80,17 @@
 
     /* Card content */
     .card-number {
-      font-size: 20px;
+      font-size: 24px;
       font-weight: bold;
       opacity: 0.9;
     }
 
     .status-icon {
-      font-size: 14px;
-      margin-top: 2px;
+      font-size: 18px;
+      margin-top: 3px;
     }
 
-    /* Card states - Faqat moviy rang variantlari */
+    /* Card states */
     .card.completed {
       background: linear-gradient(135deg, #3498db, #2980b9);
     }
@@ -105,58 +108,43 @@
       animation: pulse 2s infinite;
     }
 
-    /* Pulse animation for next available lesson */
     @keyframes pulse {
       0% { box-shadow: 0 0 0 0 rgba(77, 163, 226, 0.7); }
-      70% { box-shadow: 0 0 0 15px rgba(77, 163, 226, 0); }
+      70% { box-shadow: 0 0 0 10px rgba(77, 163, 226, 0); }
       100% { box-shadow: 0 0 0 0 rgba(77, 163, 226, 0); }
     }
 
     /* Responsive */
     @media (max-width: 768px) {
-      .cards-grid {
-        width: 400px;
-        height: 400px;
-      }
-      
       .card {
-        width: 60px;
-        height: 60px;
+        width: 80px;
+        height: 80px;
       }
-      
+      .card-number {
+        font-size: 20px;
+      }
+      .status-icon {
+        font-size: 14px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .card {
+        width: 65px;
+        height: 65px;
+      }
       .card-number {
         font-size: 16px;
       }
-      
       .status-icon {
         font-size: 12px;
       }
     }
 
-    @media (max-width: 480px) {
-      .cards-grid {
-        width: 300px;
-        height: 300px;
-      }
-      
-      .card {
-        width: 50px;
-        height: 50px;
-      }
-      
-      .card-number {
-        font-size: 14px;
-      }
-      
-      .status-icon {
-        font-size: 10px;
-      }
-    }
-
     /* Loading animation */
     @keyframes fadeIn {
-      from { opacity: 0; transform: scale(0.5); }
-      to { opacity: 1; transform: scale(1); }
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .card {
@@ -171,7 +159,7 @@
   </div>
 
   <script>
-    // Darslar ma'lumotlari - ketma-ket ochilish
+    // Darslar ma'lumotlari
     const lessonsData = [
       { percent: 100, completed: true, unlocked: true },
       { percent: 100, completed: true, unlocked: true },
@@ -207,30 +195,29 @@
 
     const cardsContainer = document.getElementById('cardsContainer');
 
-    // Spiral pozitsiyalarni hisoblash
-    function getSpiralPosition(index, total) {
-      const centerX = 300;
-      const centerY = 300;
-      const maxRadius = 250;
-      const minRadius = 20;
+    // Siz so'ragan maxsus to'lqin shaklini yaratuvchi nuqtalar
+    const pathOffsets = [1.0, 0.5, 0.0, -0.4, 0.1, 0.6, 1.0, 0.3, -0.4, -1.0];
+
+    // Kartalarning gorizontal joylashuvini ekran o'lchamiga qarab sozlash
+    function updateCardPositions() {
+      const cards = document.querySelectorAll('.card');
       
-      // Spiral parametrlari
-      const spiralTurns = 3; // Necha marta aylanishi
-      const angleStep = (spiralTurns * 2 * Math.PI) / total;
-      const radiusStep = (maxRadius - minRadius) / total;
-      
-      const angle = index * angleStep;
-      const radius = minRadius + (index * radiusStep);
-      
-      const x = centerX + (radius * Math.cos(angle));
-      const y = centerY + (radius * Math.sin(angle));
-      
-      return { x, y };
+      // Ekranning kengligiga qarab to'lqinning kengligi (amplitudasi)
+      let amplitude = 140; 
+      if (window.innerWidth <= 480) {
+        amplitude = 70; // Telefonlar uchun
+      } else if (window.innerWidth <= 768) {
+        amplitude = 100; // Planshetlar uchun
+      }
+
+      cards.forEach((card, index) => {
+        const offsetMultiplier = pathOffsets[index % pathOffsets.length];
+        card.style.left = `${offsetMultiplier * amplitude}px`;
+      });
     }
 
     // Kartalarni yaratish
     function createCards() {
-      // Keyingi ochiladigan darsni aniqlash
       let nextAvailableIndex = -1;
       
       lessonsData.forEach((lesson, index) => {
@@ -239,19 +226,12 @@
         }
       });
 
-      // Har bir dars uchun karta yaratish
       lessonsData.forEach((lesson, index) => {
         const card = document.createElement('div');
         card.className = 'card';
         card.setAttribute('data-index', index);
-        card.style.animationDelay = `${index * 0.1}s`;
+        card.style.animationDelay = `${index * 0.05}s`;
         
-        // Spiral pozitsiyani olish
-        const position = getSpiralPosition(index, lessonsData.length);
-        card.style.left = position.x + 'px';
-        card.style.top = position.y + 'px';
-        
-        // Karta holatini aniqlash
         let cardClass = '';
         let statusIcon = '';
         
@@ -273,7 +253,6 @@
         
         card.classList.add(cardClass);
         
-        // Agar dars ochiq bo'lsa, active qilish
         if (lesson.unlocked) {
           card.classList.add('active');
           card.onclick = () => {
@@ -282,7 +261,6 @@
         } else {
           card.classList.add('locked');
           card.onclick = () => {
-            // Dars ochiq emasligi haqida xabar
             alert(`Iltimos, avval ${index}-darsni tugating!`);
           };
         }
@@ -294,75 +272,48 @@
         
         cardsContainer.appendChild(card);
       });
+
+      // Kartalar yaratilgandan so'ng ularning o'rnini joylashtiramiz
+      updateCardPositions();
     }
 
-    // Dasturni ishga tushirish
+    // Oyna o'lchami o'zgarganda dizaynni moslashtirish
+    window.addEventListener('resize', updateCardPositions);
+
     window.onload = function() {
       createCards();
       
       // Test uchun: 3-darsdan keyin 4-darsni ochish
-      // Haqiqiy loyihada bu ma'lumotlar bazasidan olinadi
       setTimeout(() => {
-        // Bu faqat demo maqsadida
         if (lessonsData[2].percent >= 80) {
-          // Agar 3-dars 80% dan ko'p bo'lsa, 4-darsni ochish
           simulateLessonCompletion(3);
         }
       }, 2000);
     };
 
-    // Darsni tugatishni simulyatsiya qilish (demo uchun)
     function simulateLessonCompletion(lessonIndex) {
       if (lessonIndex >= 0 && lessonIndex < lessonsData.length) {
         lessonsData[lessonIndex].unlocked = true;
         
-        // Karta holatini yangilash
         const card = document.querySelector(`.card[data-index="${lessonIndex}"]`);
         if (card) {
           card.classList.remove('locked', 'locked-state');
           card.classList.add('active', 'in-progress');
           
-          // Status ikonkani yangilash
           const statusIcon = card.querySelector('.status-icon');
           if (statusIcon) {
             statusIcon.outerHTML = '<i class="fas fa-play status-icon"></i>';
           }
           
-          // Karta rangini yangilash
           card.style.background = 'linear-gradient(135deg, #4da3e2, #3b82f6)';
           
-          // Karta bosilganda dars sahifasiga o'tish
           card.onclick = () => {
             window.location.href = `dars${lessonIndex + 1}.html`;
           };
-          
-          // Xabar chiqarish
-          setTimeout(() => {
-            alert(`Tabriklaymiz! ${lessonIndex}-dars ochildi. Endi siz bu darsni boshlashingiz mumkin.`);
-          }, 500);
         }
       }
     }
 
-    // Darsni tugatish funksiyasi (haqiqiy loyihada bu serverga so'rov yuboradi)
-    function completeLesson(lessonIndex) {
-      if (lessonIndex >= 0 && lessonIndex < lessonsData.length) {
-        lessonsData[lessonIndex].percent = 100;
-        lessonsData[lessonIndex].completed = true;
-        
-        // Keyingi darsni ochish (agar mavjud bo'lsa)
-        if (lessonIndex + 1 < lessonsData.length) {
-          lessonsData[lessonIndex + 1].unlocked = true;
-        }
-        
-        // Sahifani yangilash
-        setTimeout(() => {
-          location.reload();
-        }, 1000);
-      }
-    }
-
-    // PWA funksiyalari
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js').catch(err => {
