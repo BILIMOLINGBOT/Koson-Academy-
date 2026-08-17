@@ -3,463 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ibrat Farzandlari - 3D Cubes</title>
+    <title>Ibrat Farzandlari UI</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Nunito', sans-serif;
-        }
+        body { margin: 0; background-color: #1a1529; font-family: sans-serif; display: flex; justify-content: center; }
+        .container { width: 100%; max-width: 400px; height: 100vh; position: relative; overflow: hidden; background: radial-gradient(circle at top, #261e38, #0a080e 70%); }
 
-        body {
-            background: linear-gradient(180deg, #181124 0%, #08050c 100%);
-            color: #ffffff;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            overflow: hidden;
-        }
+        /* Zigzag yo'li */
+        .path { position: relative; height: 100%; width: 100%; margin-top: 50px; }
 
-        .app-container {
-            width: 100%;
-            max-width: 400px;
-            height: 100%;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            background: radial-gradient(circle at top, #231835, #08050c 60%);
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-        }
-
-        /* Yuqori Panel */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 15px 10px 15px;
-            z-index: 100;
-        }
-
-        .leagues-pill {
-            background: rgba(255, 255, 255, 0.08);
-            padding: 6px 12px 6px 35px;
-            border-radius: 20px;
-            position: relative;
-            font-size: 14px;
-            font-weight: 800;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            cursor: pointer;
-        }
-
-        .leagues-pill .trophy-icon {
-            position: absolute;
-            left: -10px;
-            top: -12px;
-            font-size: 32px;
-            color: #a482ff;
-            text-shadow: 0 0 15px rgba(164, 130, 255, 0.6);
-            transform: rotate(-10deg);
-        }
-
-        .leagues-pill .new-badge {
-            position: absolute;
-            top: -10px;
-            right: 10px;
-            background: #ff527b;
-            color: white;
-            font-size: 10px;
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-weight: 900;
-            letter-spacing: 0.5px;
-        }
-
-        .stats-pill {
-            background: rgba(0, 0, 0, 0.6);
-            padding: 6px 12px;
-            border-radius: 20px;
-            display: flex;
-            gap: 15px;
-            font-size: 14px;
-            font-weight: 800;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .stat-item { display: flex; align-items: center; gap: 6px; }
-        .stat-item .fa-star { color: #ffc800; font-size: 16px; }
-        .stat-item .xp-icon {
-            background: #2a8bf2;
-            color: white;
-            font-size: 10px;
-            padding: 2px 4px;
-            border-radius: 4px;
-            font-style: italic;
-            font-weight: 900;
-        }
-
-        /* Kurs Sarlavhasi */
-        .course-title {
-            text-align: center;
-            margin-top: 10px;
-            z-index: 100;
-        }
-
-        .course-title h2 { font-size: 15px; color: #b5b0c0; font-weight: 700; }
-        .course-title .subtitle {
-            display: inline-flex; align-items: center; justify-content: center;
-            gap: 8px; font-size: 17px; font-weight: 800; margin-top: 4px; cursor: pointer;
-        }
-        .course-title .subtitle i.fa-bullseye { color: #4db8ff; }
-        .course-title .subtitle i.fa-chevron-down { font-size: 12px; color: #888; }
-
-        /* -------------------------------------
-           3D KUBIKLAR QISMI (YANGILANGAN)
-           ------------------------------------- */
-        .path-container {
-            flex-grow: 1;
-            position: relative;
-            overflow: hidden;
-            margin-top: 10px;
-            margin-bottom: 90px;
-        }
-
-        .cube-wrapper {
-            position: absolute;
-            width: 64px;
-            height: 64px;
-            transform: translateX(-50%);
-        }
-
-        /* 3D Konteyner */
+        /* Umumiy kubik uslubi */
         .cube {
-            width: 100%;
-            height: 100%;
-            position: relative;
-            transform-style: preserve-3d;
-            transform: rotateX(60deg) rotateZ(45deg);
-        }
-
-        /* Har bir kubik qatlami (qalinlik berish uchun) */
-        .layer {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            border-radius: 12px;
-            transform: translateZ(calc(var(--i) * -2px));
-        }
-
-        /* Eng ustki qatlam (Ikonka turadigan joy) */
-        .layer.top {
-            transform: translateZ(0);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        /* Ikonkani tekislash (Rotationni bekor qilish) */
-        .layer.top i {
-            transform: rotateZ(-45deg);
-            font-size: 26px;
-            font-weight: 900;
-        }
-
-        /* -- Yashil Kubik -- */
-        .cube-green .layer.body {
-            /* Chap va o'ng qirralarga boshqa-boshqa rang (yorug'lik soyasi) */
-            background: linear-gradient(to top right, #58ab88 50%, #3d8a66 50%);
-        }
-        .cube-green .layer.top {
-            background: #8ae3b9;
-            border: 2px solid #a6f2cb;
-        }
-        .cube-green .layer.top i { color: #1a5c3d; }
-        .cube-green .shadow {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 12px;
-            transform: translateZ(-35px); background: rgba(138, 227, 185, 0.4);
-            box-shadow: 0 0 20px 10px rgba(138, 227, 185, 0.4); filter: blur(8px);
-        }
-
-        /* -- Binafsha Kubik (START) -- */
-        .cube-purple .layer.body {
-            background: linear-gradient(to top right, #7a4df0 50%, #5b2dc7 50%);
-        }
-        .cube-purple .layer.top {
-            background: #9b74ff;
-            border: 2px solid #bba3ff;
-        }
-        .cube-purple .shadow {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 12px;
-            transform: translateZ(-35px); background: rgba(155, 116, 255, 0.5);
-            box-shadow: 0 0 25px 12px rgba(155, 116, 255, 0.5); filter: blur(8px);
-        }
-
-        /* -- Kulrang Kubik (Qulflangan) -- */
-        .cube-gray .layer.body {
-            background: linear-gradient(to top right, #c8c8c8 50%, #a0a0a0 50%);
-        }
-        .cube-gray .layer.top {
-            background: #f0f0f0;
-            border: 2px solid #ffffff;
-        }
-        .cube-gray .layer.top i { color: #888; font-size: 22px; }
-        .cube-gray .shadow {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 12px;
-            transform: translateZ(-35px); background: rgba(255, 255, 255, 0.1);
-            box-shadow: 0 0 15px 5px rgba(255, 255, 255, 0.1); filter: blur(8px);
-        }
-
-        /* -- Bo'sh Kubik -- */
-        .cube-empty .layer.body {
-            background: linear-gradient(to top right, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 50%);
-        }
-        .cube-empty .layer.top {
-            background: rgba(255, 255, 255, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-        }
-        .cube-empty .shadow {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 12px;
-            transform: translateZ(-35px); background: rgba(255, 255, 255, 0.2);
-            box-shadow: 0 0 30px 15px rgba(255, 255, 255, 0.2); filter: blur(10px);
-        }
-
-        /* START Yozuvi */
-        .start-tooltip {
-            position: absolute;
-            top: -45px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #4b5563;
-            color: #ffffff;
-            padding: 6px 14px;
-            border-radius: 12px;
-            font-size: 13px;
-            font-weight: 800;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            z-index: 50;
-        }
-        .start-tooltip::after {
-            content: ''; position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%);
-            border-width: 6px 6px 0; border-style: solid; border-color: #4b5563 transparent transparent transparent;
-        }
-
-        /* Kubiklar Joylashuvi (Zigzag yo'li) */
-        .pos-1 { bottom: 5%; left: 25%; z-index: 7; }
-        .pos-2 { bottom: 18%; left: 50%; z-index: 6; }
-        .pos-3 { bottom: 31%; left: 75%; z-index: 5; }
-        .pos-4 { bottom: 44%; left: 50%; z-index: 4; }
-        .pos-5 { bottom: 57%; left: 25%; z-index: 3; } /* Purple */
-        .pos-6 { bottom: 70%; left: 50%; z-index: 2; } /* Lock */
-        .pos-7 { bottom: 83%; left: 75%; z-index: 1; } /* Empty */
-
-
-        /* Pastki Harakatlar Paneli */
-        .bottom-action {
-            padding: 20px 20px 30px 20px;
-            background: linear-gradient(to top, rgba(14,9,22,1) 40%, rgba(14,9,22,0));
-            z-index: 100;
-            position: absolute;
-            bottom: 70px;
-            width: 100%;
-        }
-
-        .continue-btn {
-            width: 100%;
-            background: #a482ff;
-            color: white;
-            border: none;
-            padding: 16px;
+            width: 80px; height: 80px;
             border-radius: 20px;
-            font-size: 16px;
-            font-weight: 800;
-            box-shadow: 0 5px 0 #7b58d6;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            position: absolute;
+            display: flex; justify-content: center; align-items: center;
+            transform: rotateX(50deg) rotateZ(45deg);
+            transition: 0.3s;
         }
-        .continue-btn:active { transform: translateY(5px); box-shadow: 0 0 0 #7b58d6; }
 
-        .next-level-hint {
-            text-align: center; margin-top: 25px; font-size: 13px; color: #666; font-weight: 700;
-            display: flex; justify-content: center; align-items: center; gap: 10px;
-        }
-        .next-level-hint .line { height: 1px; background: #333; width: 50px; }
+        /* Kubiklar uchun "porlash" (glow) */
+        .glow { box-shadow: 0 0 25px 5px rgba(255,255,255,0.1); }
 
-        /* Menyu */
-        .bottom-nav {
-            display: flex; justify-content: space-around; align-items: center;
-            background: #110b1a; padding: 15px 0 20px 0; border-top: 1px solid #221a30;
-            position: absolute; bottom: 0; width: 100%; z-index: 150;
+        /* Yashil kubik (bajarilgan) */
+        .cube-green {
+            background-color: #58cc02;
+            box-shadow: inset 0 -8px 0 #46a302, 0 10px 20px rgba(88, 204, 2, 0.4);
         }
-        .nav-item {
-            display: flex; flex-direction: column; align-items: center; gap: 6px;
-            color: #6c667a; font-size: 11px; font-weight: 800; text-decoration: none; cursor: pointer;
+
+        /* Binafsha kubik (START) */
+        .cube-purple {
+            background-color: #8952ff;
+            box-shadow: inset 0 -8px 0 #6830df, 0 10px 20px rgba(137, 82, 255, 0.4);
         }
-        .nav-item i { font-size: 22px; }
-        .nav-item.active { color: #a482ff; }
+
+        /* Kulrang kubik (qulflangan) */
+        .cube-gray {
+            background-color: #e5e5e5;
+            box-shadow: inset 0 -8px 0 #b3b3b3;
+        }
+
+        /* Keyingi bo'sh kubik */
+        .cube-next {
+            background-color: transparent;
+            border: 4px solid #4a4556;
+            box-shadow: 0 0 15px rgba(255,255,255,0.1);
+        }
+
+        /* Ikonkalar */
+        .icon { color: white; font-size: 30px; transform: rotate(-45deg) rotateX(-50deg); }
+
+        /* START yozuvi */
+        .start-label {
+            position: absolute; top: -50px; background: #3c354a; color: white;
+            padding: 5px 15px; border-radius: 10px; font-weight: bold;
+            font-size: 14px; transform: rotate(-45deg) rotateX(-50deg);
+        }
+
+        /* Pozitsiyalar */
+        .p1 { bottom: 10%; left: 20%; }
+        .p2 { bottom: 22%; left: 45%; }
+        .p3 { bottom: 34%; left: 70%; }
+        .p4 { bottom: 46%; left: 45%; }
+        .p5 { bottom: 58%; left: 20%; }
+        .p6 { bottom: 70%; left: 45%; }
+
+        /* Tugma */
+        .btn-continue {
+            position: absolute; bottom: 80px; width: 80%; left: 10%;
+            background: #8952ff; color: white; border: none; padding: 20px;
+            border-radius: 15px; font-weight: bold; font-size: 16px;
+            box-shadow: 0 5px 0 #5d35b5; text-transform: uppercase;
+        }
     </style>
 </head>
 <body>
 
-<div class="app-container">
-    
-    <!-- Yuqori panel -->
-    <div class="header">
-        <div class="leagues-pill">
-            <i class="fa-solid fa-trophy trophy-icon"></i> Leagues <i class="fa-solid fa-chevron-right" style="font-size:10px; margin-left:3px;"></i>
-            <div class="new-badge">New</div>
+<div class="container">
+    <div class="path">
+        <!-- Yo'l elementlari -->
+        <div class="cube cube-green p1 glow"><i class="fas fa-check icon"></i></div>
+        <div class="cube cube-green p2 glow"><i class="fas fa-check icon"></i></div>
+        <div class="cube cube-green p3 glow"><i class="fas fa-check icon"></i></div>
+        <div class="cube cube-green p4 glow"><i class="fas fa-check icon"></i></div>
+        
+        <!-- START elementi -->
+        <div class="cube cube-purple p5 glow">
+            <div class="start-label">START</div>
         </div>
-        <div class="stats-pill">
-            <div class="stat-item"><i class="fa-solid fa-star"></i> 328</div>
-            <div class="stat-item"><span class="xp-icon">XP</span> 261</div>
-        </div>
+
+        <!-- Qulflangan element -->
+        <div class="cube cube-gray p6"><i class="fas fa-lock icon"></i></div>
     </div>
 
-    <!-- Sarlavha -->
-    <div class="course-title">
-        <h2>Lv.2 Atrofimizdagi dunyo</h2>
-        <div class="subtitle"><i class="fa-solid fa-bullseye"></i> General English <i class="fa-solid fa-chevron-down"></i></div>
-    </div>
-
-    <!-- Yo'lak va 3D Kubiklar -->
-    <div class="path-container">
-
-        <!-- 1. Yashil (Pastki chap) -->
-        <div class="cube-wrapper pos-1">
-            <div class="cube cube-green">
-                <div class="shadow"></div>
-                <div class="layer body" style="--i:15"></div><div class="layer body" style="--i:14"></div>
-                <div class="layer body" style="--i:13"></div><div class="layer body" style="--i:12"></div>
-                <div class="layer body" style="--i:11"></div><div class="layer body" style="--i:10"></div>
-                <div class="layer body" style="--i:9"></div><div class="layer body" style="--i:8"></div>
-                <div class="layer body" style="--i:7"></div><div class="layer body" style="--i:6"></div>
-                <div class="layer body" style="--i:5"></div><div class="layer body" style="--i:4"></div>
-                <div class="layer body" style="--i:3"></div><div class="layer body" style="--i:2"></div>
-                <div class="layer body" style="--i:1"></div>
-                <div class="layer top"><i class="fa-solid fa-check"></i></div>
-            </div>
-        </div>
-
-        <!-- 2. Yashil (O'rta) -->
-        <div class="cube-wrapper pos-2">
-            <div class="cube cube-green">
-                <div class="shadow"></div>
-                <div class="layer body" style="--i:15"></div><div class="layer body" style="--i:14"></div>
-                <div class="layer body" style="--i:13"></div><div class="layer body" style="--i:12"></div>
-                <div class="layer body" style="--i:11"></div><div class="layer body" style="--i:10"></div>
-                <div class="layer body" style="--i:9"></div><div class="layer body" style="--i:8"></div>
-                <div class="layer body" style="--i:7"></div><div class="layer body" style="--i:6"></div>
-                <div class="layer body" style="--i:5"></div><div class="layer body" style="--i:4"></div>
-                <div class="layer body" style="--i:3"></div><div class="layer body" style="--i:2"></div>
-                <div class="layer body" style="--i:1"></div>
-                <div class="layer top"><i class="fa-solid fa-check"></i></div>
-            </div>
-        </div>
-
-        <!-- 3. Yashil (O'ng) -->
-        <div class="cube-wrapper pos-3">
-            <div class="cube cube-green">
-                <div class="shadow"></div>
-                <div class="layer body" style="--i:15"></div><div class="layer body" style="--i:14"></div>
-                <div class="layer body" style="--i:13"></div><div class="layer body" style="--i:12"></div>
-                <div class="layer body" style="--i:11"></div><div class="layer body" style="--i:10"></div>
-                <div class="layer body" style="--i:9"></div><div class="layer body" style="--i:8"></div>
-                <div class="layer body" style="--i:7"></div><div class="layer body" style="--i:6"></div>
-                <div class="layer body" style="--i:5"></div><div class="layer body" style="--i:4"></div>
-                <div class="layer body" style="--i:3"></div><div class="layer body" style="--i:2"></div>
-                <div class="layer body" style="--i:1"></div>
-                <div class="layer top"><i class="fa-solid fa-check"></i></div>
-            </div>
-        </div>
-
-        <!-- 4. Yashil (O'rta) -->
-        <div class="cube-wrapper pos-4">
-            <div class="cube cube-green">
-                <div class="shadow"></div>
-                <div class="layer body" style="--i:15"></div><div class="layer body" style="--i:14"></div>
-                <div class="layer body" style="--i:13"></div><div class="layer body" style="--i:12"></div>
-                <div class="layer body" style="--i:11"></div><div class="layer body" style="--i:10"></div>
-                <div class="layer body" style="--i:9"></div><div class="layer body" style="--i:8"></div>
-                <div class="layer body" style="--i:7"></div><div class="layer body" style="--i:6"></div>
-                <div class="layer body" style="--i:5"></div><div class="layer body" style="--i:4"></div>
-                <div class="layer body" style="--i:3"></div><div class="layer body" style="--i:2"></div>
-                <div class="layer body" style="--i:1"></div>
-                <div class="layer top"><i class="fa-solid fa-check"></i></div>
-            </div>
-        </div>
-
-        <!-- 5. Binafsha / START -->
-        <div class="cube-wrapper pos-5">
-            <div class="start-tooltip">START</div>
-            <div class="cube cube-purple">
-                <div class="shadow"></div>
-                <div class="layer body" style="--i:15"></div><div class="layer body" style="--i:14"></div>
-                <div class="layer body" style="--i:13"></div><div class="layer body" style="--i:12"></div>
-                <div class="layer body" style="--i:11"></div><div class="layer body" style="--i:10"></div>
-                <div class="layer body" style="--i:9"></div><div class="layer body" style="--i:8"></div>
-                <div class="layer body" style="--i:7"></div><div class="layer body" style="--i:6"></div>
-                <div class="layer body" style="--i:5"></div><div class="layer body" style="--i:4"></div>
-                <div class="layer body" style="--i:3"></div><div class="layer body" style="--i:2"></div>
-                <div class="layer body" style="--i:1"></div>
-                <div class="layer top"></div>
-            </div>
-        </div>
-
-        <!-- 6. Kulrang (Qulflangan) -->
-        <div class="cube-wrapper pos-6">
-            <div class="cube cube-gray">
-                <div class="shadow"></div>
-                <div class="layer body" style="--i:15"></div><div class="layer body" style="--i:14"></div>
-                <div class="layer body" style="--i:13"></div><div class="layer body" style="--i:12"></div>
-                <div class="layer body" style="--i:11"></div><div class="layer body" style="--i:10"></div>
-                <div class="layer body" style="--i:9"></div><div class="layer body" style="--i:8"></div>
-                <div class="layer body" style="--i:7"></div><div class="layer body" style="--i:6"></div>
-                <div class="layer body" style="--i:5"></div><div class="layer body" style="--i:4"></div>
-                <div class="layer body" style="--i:3"></div><div class="layer body" style="--i:2"></div>
-                <div class="layer body" style="--i:1"></div>
-                <div class="layer top"><i class="fa-solid fa-lock"></i></div>
-            </div>
-        </div>
-
-        <!-- 7. Bo'sh -->
-        <div class="cube-wrapper pos-7">
-            <div class="cube cube-empty">
-                <div class="shadow"></div>
-                <div class="layer body" style="--i:15"></div><div class="layer body" style="--i:14"></div>
-                <div class="layer body" style="--i:13"></div><div class="layer body" style="--i:12"></div>
-                <div class="layer body" style="--i:11"></div><div class="layer body" style="--i:10"></div>
-                <div class="layer body" style="--i:9"></div><div class="layer body" style="--i:8"></div>
-                <div class="layer body" style="--i:7"></div><div class="layer body" style="--i:6"></div>
-                <div class="layer body" style="--i:5"></div><div class="layer body" style="--i:4"></div>
-                <div class="layer body" style="--i:3"></div><div class="layer body" style="--i:2"></div>
-                <div class="layer body" style="--i:1"></div>
-                <div class="layer top"></div>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- Tugma -->
-    <div class="bottom-action">
-        <button class="continue-btn">CONTINUE THE TASK</button>
-        <div class="next-level-hint">
-            <div class="line"></div> Lv.1 Hello. English! <div class="line"></div>
-        </div>
-    </div>
-
-    <!-- Pastki menyu -->
-    <div class="bottom-nav">
-        <div class="nav-item"><i class="fa-solid fa-house"></i><span>Asosiy</span></div>
-        <div class="nav-item"><i class="fa-solid fa-layer-group"></i><span>O'rganish</span></div>
-        <div class="nav-item active"><i class="fa-solid fa-bullseye"></i><span>Missiya</span></div>
-        <div class="nav-item"><i class="fa-regular fa-flag"></i><span>O'yinlar</span></div>
-        <div class="nav-item"><i class="fa-solid fa-user"></i><span>Profil</span></div>
-    </div>
-
+    <button class="btn-continue">CONTINUE THE TASK</button>
 </div>
 
 </body>
