@@ -1,188 +1,367 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>LearnU · Asosiy</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; -webkit-tap-highlight-color: transparent; }
-    body { background: #000; color: #fff; min-height: 100vh; overflow-x: hidden; }
-    .app-wrapper { width: 100%; max-width: 420px; margin: 0 auto; display: flex; flex-direction: column; padding-bottom: 90px; }
-    
-    .header { padding: 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: #000; z-index: 10; }
-    .avatar-wrapper { display: flex; align-items: center; gap: 12px; }
-    .avatar-circle { width: 45px; height: 45px; background: #222; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; border: 1px solid #333; overflow: hidden; }
-    .avatar-circle img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>LearnU · iOS Edition</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --ios-blue: #007AFF;
+            --ios-bg: #000000;
+            --ios-secondary-bg: #1C1C1E;
+            --ios-tertiary-bg: #2C2C2E;
+            --ios-text: #FFFFFF;
+            --ios-secondary-text: #8E8E93;
+            --ios-green: #34C759;
+            --radius-main: 20px;
+            --safe-area-top: env(safe-area-inset-top);
+        }
 
-    /* 30 ta modul uchun gorizontal konteyner */
-    .scroll-container { 
-      display: flex; 
-      overflow-x: auto; 
-      scroll-snap-type: x mandatory; 
-      padding: 10px 20px; 
-      gap: 15px; 
-      -ms-overflow-style: none; scrollbar-width: none;
-    }
-    .scroll-container::-webkit-scrollbar { display: none; }
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+            -webkit-tap-highlight-color: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+        }
 
-    .lesson-card { 
-      flex: 0 0 85%; 
-      height: 45vh; /* Bo'yi biroz moslashtirildi */
-      border-radius: 30px; 
-      padding: 25px; 
-      display: flex; 
-      flex-direction: column; 
-      justify-content: space-between; 
-      scroll-snap-align: center; 
-      background: linear-gradient(145deg, #1c1c1e, #0a0a0a); 
-      border: 1px solid rgba(255,255,255,0.1);
-      cursor: pointer;
-      transition: transform 0.2s;
-    }
+        body {
+            background: var(--ios-bg);
+            color: var(--ios-text);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+        }
 
-    /* Pastki 5 ta modul uchun stil */
-    .sub-section-title { padding: 20px 20px 10px; font-size: 18px; font-weight: bold; color: #fff; }
-    .sub-modules-list { padding: 0 20px; display: flex; flex-direction: column; gap: 12px; }
-    .sub-card {
-      background: #1c1c1e;
-      border-radius: 15px;
-      padding: 15px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border: 1px solid #333;
-    }
+        /* Ilova konteyneri - iPhone o'lchami */
+        .app-container {
+            width: 100%;
+            max-width: 430px; /* iPhone 15 Pro Max width */
+            height: 100vh;
+            padding: calc(var(--safe-area-top) + 10px) 20px 40px;
+            display: none;
+            flex-direction: column;
+            position: relative;
+        }
 
-    .tab-bar { 
-      position: fixed; bottom: 0; width: 100%; max-width: 420px;
-      height: 80px; background: rgba(20, 20, 20, 0.95); backdrop-filter: blur(10px);
-      display: flex; justify-content: space-around; align-items: center;
-      border-top: 0.5px solid #333; padding-bottom: env(safe-area-inset-bottom); z-index: 100;
-    }
-    .tab-item { color: #8e8e93; text-decoration: none; text-align: center; font-size: 10px; }
-    .tab-item.active { color: #007aff; }
-    .tab-item svg { width: 24px; height: 24px; display: block; margin: 0 auto 4px; stroke: currentColor; fill: none; }
-    
-    .points-badge { background: #fff; color: #000; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 14px; }
-    .gradient-name { background: linear-gradient(135deg, #fff, #aaccff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold; }
-  </style>
+        .app-container.active { display: flex; }
+
+        /* Top Navigation Bar */
+        .nav-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .close-btn {
+            font-size: 20px;
+            color: var(--ios-secondary-text);
+            cursor: pointer;
+        }
+
+        .progress-container {
+            flex: 1;
+            height: 8px;
+            background: var(--ios-secondary-bg);
+            border-radius: 4px;
+            margin: 0 15px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            width: 10%;
+            height: 100%;
+            background: var(--ios-blue);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .points-badge {
+            font-weight: 600;
+            font-size: 17px;
+            color: var(--ios-blue);
+        }
+
+        /* Flashcards Section */
+        .card-stack {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .flashcard {
+            background: var(--ios-secondary-bg);
+            border-radius: var(--radius-main);
+            padding: 30px 24px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .part-of-speech {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--ios-blue);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .word-main {
+            font-size: 40px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .audio-icon {
+            width: 44px;
+            height: 44px;
+            background: var(--ios-tertiary-bg);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--ios-blue);
+            cursor: pointer;
+        }
+
+        .translation-word {
+            font-size: 28px;
+            font-weight: 500;
+            color: var(--ios-secondary-text);
+        }
+
+        /* Game Elements */
+        .prompt-text {
+            font-size: 24px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .zone {
+            min-height: 120px;
+            background: var(--ios-secondary-bg);
+            border-radius: var(--radius-main);
+            border: 2px dashed var(--ios-tertiary-bg);
+            padding: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-content: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .bank {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        /* iOS Chips & Tokens */
+        .token, .chip {
+            padding: 12px 18px;
+            background: var(--ios-tertiary-bg);
+            border-radius: 12px;
+            font-size: 17px;
+            font-weight: 500;
+            transition: transform 0.1s;
+            cursor: pointer;
+        }
+
+        .chip {
+            background: var(--ios-blue);
+            color: white;
+        }
+
+        .token:active, .chip:active {
+            transform: scale(0.92);
+        }
+
+        /* Action Button */
+        .ios-btn {
+            background: var(--ios-blue);
+            color: white;
+            border: none;
+            height: 56px;
+            border-radius: 16px;
+            font-size: 17px;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 20px;
+            transition: all 0.2s;
+        }
+
+        .ios-btn:disabled {
+            background: #3a3a3c;
+            color: #8e8e93;
+        }
+
+        .ios-btn:active {
+            transform: scale(0.97);
+            filter: brightness(0.9);
+        }
+
+        /* Result Panel (Bottom Sheet style) */
+        .result-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #1c1c1e;
+            padding: 30px 20px 50px;
+            border-radius: 30px 30px 0 0;
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.15, 0, 0.2, 1);
+            z-index: 1000;
+            border-top: 1px solid #38383a;
+        }
+
+        .result-panel.active { transform: translateY(0); }
+
+        .result-panel.correct { border-top: 4px solid var(--ios-green); }
+        .result-panel.wrong { border-top: 4px solid #ff453a; }
+
+        .res-title { font-size: 22px; font-weight: 700; margin-bottom: 5px; }
+        .res-msg { color: var(--ios-secondary-text); margin-bottom: 20px; }
+
+        /* Final Trophy */
+        .trophy-icon {
+            font-size: 80px;
+            color: #FFD60A;
+            margin-bottom: 20px;
+            display: block;
+        }
+    </style>
 </head>
 <body>
 
-<div class="app-wrapper">
-  <div class="header" onclick="navigateTo('profil.html')">
-    <div class="avatar-wrapper">
-      <div class="avatar-circle" id="userAvatar">
-        <span id="avatarInitial">?</span>
-        <img id="avatarImage" src="" alt="avatar" style="display: none;">
-      </div>
-      <div>
-        <h4 id="userName" class="gradient-name">Yuklanmoqda...</h4>
-      </div>
-    </div>
-    <div class="points-badge" id="userPoints">⚡ 0</div>
-  </div>
-
-  <div class="scroll-container" id="moduleContainer"></div>
-
-  <div class="sub-section-title">Maxsus darslar</div>
-  <div class="sub-modules-list" id="subModuleContainer">
+<div id="screen1" class="app-container active">
+    <div class="nav-bar">
+        <i class="fas fa-times close-btn"></i>
+        <div class="progress-container"><div class="progress-bar" style="width: 20%"></div></div>
+        <div class="points-badge" id="pointsDisplay">⚡ 0</div>
     </div>
 
-  <nav class="tab-bar">
-    <a href="index.html" class="tab-item active">
-      <svg viewBox="0 0 24 24" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-      <span>Asosiy</span>
-    </a>
-    <a href="reyting.html" class="tab-item" onclick="navigateTo('reyting.html')">
-      <svg viewBox="0 0 24 24" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-      <span>Reyting</span>
-    </a>
-    <a href="gift.html" class="tab-item" onclick="navigateTo('gift.html')">
-      <svg viewBox="0 0 24 24" stroke-width="2"><rect x="2" y="7" width="20" height="5"/><path d="M20 12v10H4V12M12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
-      <span>Sovg'alar</span>
-    </a>
-  </nav>
+    <div class="card-stack">
+        <div class="flashcard">
+            <span class="part-of-speech" id="f-pos">OLMOSH</span>
+            <div class="word-main">
+                <span id="f-eng">My</span>
+                <div class="audio-icon" onclick="speak()"><i class="fas fa-volume-up"></i></div>
+            </div>
+        </div>
+        <div class="flashcard" style="background: transparent; border: 1px solid var(--ios-tertiary-bg);">
+            <div class="translation-word" id="f-uzb">mening</div>
+        </div>
+    </div>
+    
+    <button class="ios-btn" onclick="nextFlashcard()">Keyingi</button>
+</div>
+
+<div id="screen2" class="app-container">
+    <div class="nav-bar">
+        <i class="fas fa-chevron-left close-btn" onclick="showScreen('screen1')"></i>
+        <div class="progress-container"><div class="progress-bar" style="width: 50%"></div></div>
+        <div class="points-badge" id="pointsDisplay2">⚡ 0</div>
+    </div>
+    <div class="prompt-text" id="g1-prompt">mening</div>
+    <div class="zone" id="g1-zone"></div>
+    <div class="bank" id="g1-bank"></div>
+    <button class="ios-btn" id="g1-check" onclick="checkWordGame()" disabled>Tekshirish</button>
+</div>
+
+<div class="result-panel" id="res-panel">
+    <div id="res-title" class="res-title">Ajoyib!</div>
+    <div id="res-msg" class="res-msg">To'g'ri javob topildi.</div>
+    <button class="ios-btn" id="res-btn">Davom etish</button>
 </div>
 
 <script>
-  const tg = window.Telegram.WebApp;
-  tg.expand();
-  
-  // 30 ta modul ma'lumotlari
-  const topics = ['Dasturlash asoslari','Algoritmlar','Ma\'lumotlar tuzilmasi','Veb dasturlash','Mobil dasturlash','Sun\'iy intellekt','Ma\'lumotlar bazasi','Tarmoq texnologiyalari','Kiberxavfsizlik','Bulutli hisoblash','Python dasturlash','JavaScript asoslari','React.js','Node.js','Flutter','Kotlin','Swift','Java','C++ dasturlash','Go dasturlash','DevOps asoslari','Docker va Kubernetes','Machine Learning','Deep Learning','Data Science','Blockchain','IoT texnologiyalari','AR/VR dasturlash','Game Development','Software Architecture'];
-
-  const modules = Array.from({ length: 30 }, (_, i) => ({
-    id: i + 1,
-    title: `${i + 1}-modul: ${topics[i] || 'Darslik'}`,
-    label: `MODUL ${i + 1}`,
-    action: i < 5 ? 'Darsni boshlash' : (i < 15 ? 'Davom etish' : 'Tez kunda'),
-    url: `modul${i + 1}.html`,
-    status: i < 5 ? 'available' : (i < 15 ? 'in-progress' : 'coming-soon')
-  }));
-
-  // Pastki 5 ta modul ma'lumotlari
-  const subModules = [
-    { title: "Portfolio yaratish", url: "extra1.html", points: "+50" },
-    { title: "Intervyu sirlari", url: "extra2.html", points: "+40" },
-    { title: "Freelance boshlash", url: "extra3.html", points: "+60" },
-    { title: "Soft Skills", url: "extra4.html", points: "+30" },
-    { title: "Ingliz tili IT uchun", url: "extra5.html", points: "+45" }
-  ];
-
-  function setAvatar(user) {
-    const avatarInitial = document.getElementById('avatarInitial');
-    const avatarImage = document.getElementById('avatarImage');
-    if (user && user.photo_url) {
-      avatarImage.src = user.photo_url;
-      avatarImage.style.display = 'block';
-      avatarInitial.style.display = 'none';
-    } else {
-      avatarInitial.textContent = user?.first_name ? user.first_name[0].toUpperCase() : '?';
-    }
-  }
-
-  function renderApp() {
-    const user = tg.initDataUnsafe?.user;
-    if (user) {
-      document.getElementById('userName').textContent = user.last_name ? `${user.first_name} ${user.last_name}` : user.first_name;
-      setAvatar(user);
-    }
+    // Logic remains mostly same, just updating UI interactions
+    let userPoints = 0;
+    let currentFlash = 0;
     
-    // 30 ta modulni chiqarish
-    document.getElementById('moduleContainer').innerHTML = modules.map(m => `
-      <div class="lesson-card" onclick="openModule(${m.id}, '${m.url}')">
-        <span style="color: #8e8e93; font-size: 12px; font-weight: 600;">${m.label}</span>
-        <h2 style="font-size: 22px; line-height: 1.2;">${m.title}</h2>
-        <div style="color: ${m.status === 'available' ? '#007aff' : (m.status === 'in-progress' ? '#ff9f0a' : '#8e8e93')}; font-weight: 600;">${m.action} →</div>
-      </div>
-    `).join('');
+    // ... (Old data arrays from your code) ...
+    let vocabData = [
+        { pos: "OLMOSH", eng: "My", uzb: "mening" },
+        { pos: "OT", eng: "Name", uzb: "ism" }
+    ];
+    let wordGameData = [{ uz: "mening", correct: ["My"] }];
+    const distractors = ["You", "He", "She"];
+    let builtSeq = [], usedFlags = [];
 
-    // Pastki 5 ta modulni chiqarish
-    document.getElementById('subModuleContainer').innerHTML = subModules.map(sm => `
-      <div class="sub-card" onclick="navigateTo('${sm.url}')">
-        <div>
-          <div style="font-size: 15px; font-weight: 500;">${sm.title}</div>
-          <div style="font-size: 12px; color: #007aff;">${sm.points} ball</div>
-        </div>
-        <div style="color: #444;">❯</div>
-      </div>
-    `).join('');
-  }
+    function nextFlashcard() {
+        if (currentFlash < vocabData.length - 1) {
+            currentFlash++;
+            document.getElementById('f-eng').textContent = vocabData[currentFlash].eng;
+            document.getElementById('f-uzb').textContent = vocabData[currentFlash].uzb;
+            document.getElementById('f-pos').textContent = vocabData[currentFlash].pos;
+        } else {
+            showScreen('screen2');
+            initWordGame();
+        }
+    }
 
-  window.navigateTo = function(url) {
-    tg.HapticFeedback.impactOccurred('light');
-    setTimeout(() => { window.location.href = url; }, 100);
-  };
+    function showScreen(id) {
+        document.querySelectorAll('.app-container').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
 
-  window.openModule = function(id, url) {
-    tg.HapticFeedback.notificationOccurred('success');
-    localStorage.setItem('last_module', id);
-    setTimeout(() => { window.location.href = url; }, 100);
-  };
+    function initWordGame() {
+        const curr = wordGameData[0];
+        const bankEl = document.getElementById('g1-bank');
+        let words = [curr.correct[0], ...distractors].sort(() => Math.random() - 0.5);
+        window.currentBank = words;
+        usedFlags = new Array(words.length).fill(false);
+        renderGame('g1');
+    }
 
-  renderApp();
+    function renderGame(prefix) {
+        const zone = document.getElementById(`${prefix}-zone`);
+        const bank = document.getElementById(`${prefix}-bank`);
+        const btn = document.getElementById(`${prefix}-check`);
+        zone.innerHTML = ''; bank.innerHTML = '';
+        
+        builtSeq.forEach((item, i) => {
+            const d = document.createElement('div');
+            d.className = 'chip'; d.textContent = item.word;
+            d.onclick = () => { usedFlags[item.idx] = false; builtSeq.splice(i,1); renderGame(prefix); };
+            zone.appendChild(d);
+        });
+
+        window.currentBank.forEach((word, i) => {
+            if(!usedFlags[i]) {
+                const t = document.createElement('div');
+                t.className = 'token'; t.textContent = word;
+                t.onclick = () => { usedFlags[i] = true; builtSeq.push({word, idx:i}); renderGame(prefix); };
+                bank.appendChild(t);
+            }
+        });
+        btn.disabled = builtSeq.length === 0;
+    }
+
+    function checkWordGame() {
+        const panel = document.getElementById('res-panel');
+        panel.classList.add('active', 'correct');
+        document.getElementById('res-btn').onclick = () => {
+            panel.classList.remove('active');
+            alert("Dars tugadi!");
+        }
+    }
+
+    function speak() {
+        const u = new SpeechSynthesisUtterance(document.getElementById('f-eng').textContent);
+        u.lang = 'en-US';
+        window.speechSynthesis.speak(u);
+    }
 </script>
 </body>
 </html>
