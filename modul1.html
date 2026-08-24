@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>To be fe'li | Am, Is, Are — typing effect</title>
+    <title>To be fe'li | Am, Is, Are</title>
     <style>
         /* Qora fon, oq matn — boshqa hech qanday o‘zgarish yo‘q */
         body {
@@ -12,187 +12,40 @@
             font-family: sans-serif;
             line-height: 1.6;
             margin: 2em;
-            min-height: 90vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            box-sizing: border-box;
         }
-
-        /* typing effect qilish uchun qulay konteyner */
-        .typing-container {
-            max-width: 780px;
-            width: 100%;
-            white-space: pre-wrap;      /* qatorlarni saqlash */
-            word-break: break-word;
-            font-size: 1.1rem;
-            letter-spacing: 0.3px;
-            border-left: 2px solid rgba(255,255,255,0.2);
-            padding-left: 1.5rem;
-            margin-top: 1rem;
-        }
-
-        /* faqat matn rangi va fon — qolgani brauzer standarti */
+        /* Faqat matn rangi va fon — qolgani brauzer standarti */
         p {
             margin-bottom: 1em;
-        }
-
-        /* yashirin kursor yoki oddiy matn ko'rinishi uchun */
-        .type-cursor {
-            display: inline-block;
-            background-color: white;
-            color: black;
-            width: 0.6em;
-            height: 1.2em;
-            vertical-align: text-bottom;
-            margin-left: 2px;
-            animation: blink 0.9s step-end infinite;
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0; }
-        }
-
-        /* boshlang'ich ko'rinish — faqat bo'sh joy */
-        .text-content {
-            display: block;
-        }
-
-        /* o'qish jarayonida to'liq matn ko'rinmaydi, faqat typing natijasi */
-        .progress-info {
-            font-size: 0.85rem;
-            opacity: 0.7;
-            margin-top: 1.8rem;
-            border-top: 1px solid #222;
-            padding-top: 0.8rem;
-            text-align: center;
         }
     </style>
 </head>
 <body>
+    <p>To be (am / is / are) — ingliz tilida eng muhim yordamchi fe’llardan biri. O‘zbekchadagi “bo‘lmoq”, ba’zan esa “-man, -san, -dir” ma’nolarini beradi.</p>
 
-    <!-- typing effekt chiqadigan asosiy matn qutisi -->
-    <div class="typing-container" id="typingContainer">
-        <!-- typing qilinadigan matn to'liq saqlanadi, lekin JS orqali bosqichma-bosqich ko'rsatiladi -->
-        <span class="text-content" id="fullText" style="display: none;">
-To be (am / is / are) — ingliz tilida eng muhim yordamchi fe’llardan biri. O‘zbekchadagi “bo‘lmoq”, ba’zan esa “-man, -san, -dir” ma’nolarini beradi.
+    <p>Qachon to be ishlatamiz?<br>
+    A) Kim yoki nima ekanligini aytganda<br>
+    I am a student.<br>
+    Men talabaman.<br>
+    He is a teacher.<br>
+    U o‘qituvchi.<br>
+    <br>
+    Formula:<br>
+    Ega + am/is/are + kasb/kim/nima</p>
 
-Qachon to be ishlatamiz?
-A) Kim yoki nima ekanligini aytganda
-I am a student.
-Men talabaman.
-He is a teacher.
-U o‘qituvchi.
+    <p>B) Sifat bilan<br>
+    I am happy. — Men xursandman.<br>
+    She is tired. — U charchagan.<br>
+    They are busy. — Ular band.<br>
+    <br>
+    Formula:<br>
+    Ega + am/is/are + sifat</p>
 
-Formula:
-Ega + am/is/are + kasb/kim/nima
-
-B) Sifat bilan
-I am happy. — Men xursandman.
-She is tired. — U charchagan.
-They are busy. — Ular band.
-
-Formula:
-Ega + am/is/are + sifat
-
-C) Joylashuvni aytganda
-I am at home. — Men uydaman.
-He is at school. — U maktabda.
-They are in Tashkent. — Ular Toshkentda.
-
-Formula:
-Ega + am/is/are + joy
-        </span>
-        <!-- typing natijasi shu yerga yoziladi -->
-        <span id="typedOutput"></span><span class="type-cursor" id="cursor"></span>
-    </div>
-
-    <!-- kichik holat ko'rsatkichi yoki takror boshlash imkoniyati (faqat dekorativ) -->
-    <div class="progress-info" id="progressMessage">typing boshlanadi...</div>
-
-    <script>
-        (function() {
-            // To'liq matnni olish (display: none qilib qo'yilgan #fullText elementidan)
-            const fullTextElement = document.getElementById('fullText');
-            // Matn ichidagi barcha qator uzilishlarini saqlab qolish uchun innerText ishlatamiz
-            // innerText orqali qatorlar (\n) bilan olinadi, bu yerda <br> yo'q, faqat oddiy matn
-            const fullText = fullTextElement.innerText; 
-
-            // typing ko'rsatiladigan joy
-            const typedOutputElement = document.getElementById('typedOutput');
-            const cursorElement = document.getElementById('cursor');
-            const progressMessage = document.getElementById('progressMessage');
-
-            // Matn uzunligi
-            const totalLength = fullText.length;
-            let currentIndex = 0;
-
-            // typing tezligi (ms) — har bir belgi orasidagi vaqt
-            const typingSpeed = 18; 
-
-            // Jarayon boshlanishidan oldin output bo'sh
-            typedOutputElement.innerText = '';
-
-            // typing funksiyasi
-            function typeNextChar() {
-                if (currentIndex < totalLength) {
-                    // hozirgi indeksgacha bo'lgan matnni olish
-                    const partialText = fullText.slice(0, currentIndex + 1);
-                    // matnni ko'rsatish (innerText orqali qatorlarni avtomatik saqlaydi)
-                    typedOutputElement.innerText = partialText;
-
-                    // progress yangilash
-                    const percent = Math.floor(((currentIndex + 1) / totalLength) * 100);
-                    progressMessage.innerText = `typing: ${percent}%  (${currentIndex + 1}/${totalLength})`;
-
-                    // indeksni oshirish
-                    currentIndex++;
-
-                    // keyingi belgi uchun rejalashtirish
-                    setTimeout(typeNextChar, typingSpeed);
-                } else {
-                    // typing tugadi
-                    progressMessage.innerText = `✅ to‘liq ko‘rsatildi (${totalLength} belgi) — typing effect tugadi`;
-                    // kursor yonib tursin, lekin matn to'liq
-                    // ixtiyoriy: kursor yashirishni xohlasangiz, style'ni o'zgartirish mumkin
-                    // Lekin kursor qolishi ham yaxshi, ko'rsatilgan effekt uchun
-                    // faqat kursor yonib turadi
-                }
-            }
-
-            // agar foydalanuvchi sahifani ochsa, typing darhol boshlansin
-            window.addEventListener('load', () => {
-                // kichik kechikish bilan boshlaymiz (0.2s) — vizual o'tish uchun
-                setTimeout(() => {
-                    typeNextChar();
-                }, 300);
-            });
-
-            // qo'shimcha: foydalanuvchi sahifani ko'rayotganda typing to'xtab qolmasligi uchun
-            // brauzer tab holati o'zgarsa ham ishlayveradi, lekin muammo yo'q.
-            // Agar foydalanuvchi matnni qayta ko'rishni xohlasa, F5 bosishi mumkin.
-
-            // Muqobil: kursor animatsiyasini vaqtinchalik to'xtatish yoki o'chirish shart emas.
-            // (Blink animation doimo ishlaydi, lekin matn tugagach ham kursor ko'rinadi)
-            // Kursor har doim ko'rinadi — bu typing effektiga mos.
-
-            // Ixtiyoriy: agar typing tugagandan so'ng kursor yonib turishini istasak, hozir holat shunday.
-            // Kursor element "type-cursor" sinfi bilan doim ekranda.
-        })();
-    </script>
-
-    <!-- 
-        Eslatma: 
-        - Asl HTMLdagi <p> va <br> teglari to'liq olib tashlandi, chunki typing effekt 
-          uchun matnni yaxlit string sifatida saqlash kerak. Ammo original ma'lumotlar 
-          saqlanib qoldi: barcha qator uzilishlari \n orqali ifodalanadi.
-        - Ko'rinishda hech qanday o'zgarish yo'q: qora fon, oq matn, sans-serif.
-        - Matn ichidagi "Formula:" qatorlari, misollar va izohlar to'liq mavjud.
-        - Agar matn ichida `p` teglari bo'lmagan bo'lsa ham, vizual jihatdan bir xil,
-          chunki `white-space: pre-wrap` va `line-height` ishlatilgan.
-        - Brauzer standart uslublari saqlab qolindi, qo'shimcha margin/padding minimal.
-    -->
+    <p>C) Joylashuvni aytganda<br>
+    I am at home. — Men uydaman.<br>
+    He is at school. — U maktabda.<br>
+    They are in Tashkent. — Ular Toshkentda.<br>
+    <br>
+    Formula:<br>
+    Ega + am/is/are + joy</p>
 </body>
 </html>
