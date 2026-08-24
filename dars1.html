@@ -1,303 +1,388 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>LearnU · 4 kun</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <style>
-    :root {
-      --ios-blue: #007AFF;
-      --bg-color: #000000;
-      --card-radius: 32px;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>Flashcards - Inglizcha Lug'at</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #141414;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --border-light: #2a2a2a;
+            --border-dark: #333333;
+            --accent-dark: #ffffff;
+            --correct-color: #4ade80;
+            --card-front: #1a1a1a;
+            --card-back: #2a2a2a;
+        }
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
-      -webkit-tap-highlight-color: transparent;
-    }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
 
-    body {
-      background: var(--bg-color);
-      color: #fff;
-      height: 100vh;
-      overflow: hidden;
-    }
+        body, html {
+            height: 100%;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow: hidden;
+        }
 
-    .app-wrapper {
-      width: 100%;
-      max-width: 450px;
-      height: 100vh;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      position: relative;
-    }
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom);
+            background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+        }
 
-    .vertical-container {
-      flex: 1;
-      overflow-y: auto;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
-      scroll-behavior: smooth;
-    }
+        .header {
+            padding: 20px 0;
+            text-align: center;
+            border-bottom: 1px solid var(--border-light);
+            margin-bottom: 20px;
+        }
 
-    .lesson-card {
-      position: relative;
-      min-height: 220px;
-      border-radius: var(--card-radius);
-      padding: 28px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      transition: all 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      overflow: hidden;
-      cursor: pointer;
-      background: linear-gradient(145deg, #1e1e1e, #111111);
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
-    }
+        .card-counter {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
 
-    .lesson-card::after {
-      content: '';
-      position: absolute;
-      top: -50px;
-      right: -50px;
-      width: 150px;
-      height: 150px;
-      background: var(--ios-blue);
-      filter: blur(100px);
-      opacity: 0.2;
-      pointer-events: none;
-    }
+        .card-title {
+            font-size: 18px;
+            font-weight: 400;
+            color: var(--text-secondary);
+        }
 
-    .lesson-card:active {
-      transform: scale(0.97);
-    }
+        /* Flashcard */
+        .flashcard-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 0;
+        }
 
-    .card-title {
-      font-size: 32px;
-      font-weight: 800;
-      line-height: 1.1;
-      color: #fff;
-    }
+        .flashcard {
+            width: 100%;
+            max-width: 350px;
+            height: 400px;
+            cursor: pointer;
+            perspective: 1000px;
+            margin-bottom: 30px;
+        }
 
-    .card-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 28px;
-    }
+        .flashcard-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            border-radius: 24px;
+        }
 
-    .btn-start {
-      background: #fff;
-      color: #000;
-      padding: 12px 28px;
-      border-radius: 30px;
-      font-weight: 700;
-      font-size: 16px;
-      box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
-      transition: 0.2s;
-    }
+        .flashcard.flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
 
-    .btn-start:active {
-      opacity: 0.7;
-      transform: scale(0.96);
-    }
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 24px;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid var(--border-light);
+            background: var(--card-front);
+        }
 
-    .reward-badge {
-      font-size: 16px;
-      font-weight: 700;
-      color: #ffffff;
-      background: rgba(255, 255, 255, 0.15);
-      padding: 8px 18px;
-      border-radius: 30px;
-    }
-    
-    .vertical-container::-webkit-scrollbar {
-      width: 4px;
-    }
-    .vertical-container::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    .vertical-container::-webkit-scrollbar-thumb {
-      background: #333;
-      border-radius: 10px;
-    }
-    
-    @media (max-width: 420px) {
-      .card-title { font-size: 28px; }
-      .lesson-card { padding: 24px; min-height: 200px; }
-      .btn-start { padding: 10px 22px; font-size: 15px; }
-      .reward-badge { font-size: 15px; padding: 6px 16px; }
-    }
-  </style>
+        .card-front {
+            background: linear-gradient(145deg, #1a1a1a, #222222);
+        }
+
+        .card-back {
+            background: linear-gradient(145deg, #2a2a2a, #333333);
+            transform: rotateY(180deg);
+        }
+
+        .word {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .translation {
+            font-size: 32px;
+            font-weight: 600;
+            color: var(--correct-color);
+            margin-bottom: 15px;
+        }
+
+        .example {
+            font-size: 16px;
+            color: var(--text-secondary);
+            font-style: italic;
+            max-width: 80%;
+        }
+
+        .hint {
+            margin-top: 20px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .action-btn {
+            width: 100%;
+            max-width: 400px;
+            height: 56px;
+            border: none;
+            border-radius: 16px;
+            background: var(--text-primary);
+            color: var(--bg-primary);
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .action-btn:active {
+            opacity: 0.8;
+        }
+
+        .progress-bar {
+            width: 100%;
+            max-width: 400px;
+            height: 8px;
+            background: var(--border-light);
+            border-radius: 4px;
+            margin: 30px auto 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--text-primary);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        /* Final Screen */
+        #final-screen {
+            display: none;
+            height: 100vh;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 60px 20px;
+            text-align: center;
+            background: #000;
+        }
+
+        .trophy-icon { 
+            font-size: 100px; 
+            color: white; 
+            margin-bottom: 20px; 
+        }
+
+        .stats-container { 
+            display: flex; 
+            gap: 15px; 
+            width: 100%; 
+            max-width: 400px; 
+            margin-top: -50px; 
+        }
+
+        .stat-card {
+            flex: 1; 
+            border-radius: 20px; 
+            padding: 10px;
+            display: flex; 
+            flex-direction: column; 
+            align-items: center;
+            border: 3px solid white; 
+            background: black;
+        }
+
+        .stat-label {
+            font-weight: bold; 
+            padding: 4px 15px; 
+            border-radius: 12px;
+            margin-top: -28px; 
+            margin-bottom: 15px; 
+            font-size: 14px;
+            background: white; 
+            color: black; 
+            text-transform: uppercase;
+        }
+
+        .footer-btn {
+            width: 100%; 
+            max-width: 400px; 
+            background: white; 
+            color: black;
+            border: none; 
+            padding: 20px; 
+            border-radius: 20px;
+            font-size: 18px; 
+            font-weight: 800; 
+            text-transform: uppercase;
+            cursor: pointer; 
+            box-shadow: 0 6px 0px rgba(255, 255, 255, 0.2);
+            transition: 0.1s;
+        }
+
+        .footer-btn:active { 
+            transform: translateY(4px); 
+            box-shadow: none; 
+        }
+
+        .small-text {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+    </style>
 </head>
 <body>
 
-<div class="app-wrapper">
-  <div class="vertical-container" id="cards-list">
-    <!-- 4 ta kartalar -->
-  </div>
+<div id="quiz-screen" class="app-container">
+    <div class="header">
+        <div class="card-counter" id="cardCounter">1 / 12</div>
+        <div class="card-title" id="cardSubtitle">Inglizcha - O'zbekcha</div>
+    </div>
+
+    <div class="flashcard-container">
+        <div class="flashcard" id="flashcard" onclick="toggleFlip()">
+            <div class="flashcard-inner">
+                <div class="card-front">
+                    <div class="word" id="englishWord">My</div>
+                    <div class="hint">
+                        <i class="fas fa-hand-pointer"></i>
+                        Kartani bosing
+                    </div>
+                </div>
+                <div class="card-back">
+                    <div class="translation" id="uzbekTranslation">Mening</div>
+                    <div class="example" id="exampleText">My book - Mening kitobim</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="action-btn" id="nextBtn" onclick="nextCard()">
+        <i class="fas fa-arrow-right"></i>
+        Keyingi
+    </button>
+
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill" style="width: 8.3%"></div>
+    </div>
+</div>
+
+<div id="final-screen">
+    <div class="trophy-section">
+        <i class="fas fa-check-circle trophy-icon"></i>
+        <h1 style="font-size: 28px; margin-top: 20px;">Tabriklaymiz!</h1>
+        <p style="color: #ccc; margin-top: 10px;">Siz barcha kartalarni ko'rib chiqdingiz</p>
+    </div>
+
+    <div class="stats-container">
+        <div class="stat-card">
+            <div class="stat-label">Kartalar</div>
+            <div style="display:flex; align-items:center; font-size:24px; font-weight:bold;">
+                <i class="fas fa-layer-group" style="margin-right:8px"></i>
+                <span id="totalCards">12</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Yakunlandi</div>
+            <div style="display:flex; align-items:center; font-size:24px; font-weight:bold;">
+                <i class="fas fa-check" style="margin-right:8px"></i>
+                <span>100%</span>
+            </div>
+        </div>
+    </div>
+
+    <button class="footer-btn" onclick="location.reload()">Qaytadan boshlash</button>
 </div>
 
 <script>
-  const tg = window.Telegram.WebApp;
-  tg.expand();
-  tg.enableClosingConfirmation();
-  
-  const haptic = (type = 'light') => {
-    try {
-      if (tg.HapticFeedback) {
-        if (type === 'success') tg.HapticFeedback.notificationOccurred('success');
-        else if (type === 'error') tg.HapticFeedback.notificationOccurred('error');
-        else tg.HapticFeedback.impactOccurred('light');
-      }
-    } catch(e) { console.log('haptic error'); }
-  };
-  
-  // 4 kun maxsus nomlar bilan
-  const dailyCourses = [
-    { id: 1, title: "Grammar", points: null, showPoints: false },
-    { id: 2, title: "Exercise", points: 5, showPoints: true, pointLabel: "⚡5" },
-    { id: 3, title: "Exercise", points: 5, showPoints: true, pointLabel: "⚡5" },
-    { id: 4, title: "Listening, Reading", points: null, showPoints: false }
-  ];
-  
-  let userPoints = 1750;
-  const POINTS_KEY = 'learnu_points';
-  const COMPLETED_KEY = 'learnu_completed_days';
-  let completedLessons = new Set();
-  
-  function loadUserData() {
-    const savedPoints = localStorage.getItem(POINTS_KEY);
-    if (savedPoints && !isNaN(parseInt(savedPoints))) {
-      userPoints = parseInt(savedPoints);
-    } else {
-      userPoints = 1750;
-    }
-    const savedCompleted = localStorage.getItem(COMPLETED_KEY);
-    if (savedCompleted) {
-      try {
-        const arr = JSON.parse(savedCompleted);
-        if (Array.isArray(arr)) completedLessons = new Set(arr);
-      } catch(e) {}
-    }
-  }
-  
-  function saveUserData() {
-    localStorage.setItem(POINTS_KEY, userPoints);
-    localStorage.setItem(COMPLETED_KEY, JSON.stringify([...completedLessons]));
-  }
-  
-  function renderCards() {
-    const container = document.getElementById('cards-list');
-    if (!container) return;
-    
-    const cardsHTML = dailyCourses.map(lesson => {
-      const lessonPage = `dars${lesson.id}.html`;
-      
-      // Ballarni ko'rsatish
-      let badgeHtml = '';
-      if (lesson.showPoints && lesson.pointLabel) {
-        badgeHtml = `<div class="reward-badge">${lesson.pointLabel}</div>`;
-      } else if (!lesson.showPoints) {
-        badgeHtml = `<div class="reward-badge" style="opacity:0; visibility:hidden;"></div>`;
-      }
-      
-      return `
-        <div class="lesson-card" data-lesson-id="${lesson.id}" data-page="${lessonPage}" data-show-points="${lesson.showPoints}" data-points="${lesson.points || 0}">
-          <div class="card-title">${lesson.title}</div>
-          <div class="card-footer">
-            <div class="btn-start">Boshlash</div>
-            ${badgeHtml}
-          </div>
-        </div>
-      `;
-    }).join('');
-    
-    container.innerHTML = cardsHTML;
-    
-    document.querySelectorAll('.lesson-card').forEach(card => {
-      card.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const lessonId = parseInt(card.getAttribute('data-lesson-id'));
-        const pageUrl = card.getAttribute('data-page');
-        const showPoints = card.getAttribute('data-show-points') === 'true';
-        const points = parseInt(card.getAttribute('data-points'));
-        if (lessonId && pageUrl) {
-          openLesson(lessonId, pageUrl, showPoints, points);
+    const flashcards = [
+        { english: "My", uzbek: "Mening", example: "My book - Mening kitobim" },
+        { english: "Name", uzbek: "Ism", example: "My name - Mening ismim" },
+        { english: "Is", uzbek: "Bo'lmoq (to be)", example: "He is a student - U talaba" },
+        { english: "I", uzbek: "Men", example: "I am a student - Men talabaman" },
+        { english: "Am", uzbek: "Bo'lmoq fe'li (to be)", example: "I am - Men (bo'lmoq)" },
+        { english: "From", uzbek: "Dan", example: "I am from Uzbekistan - Men O'zbekistondanman" },
+        { english: "Live", uzbek: "Yashamoq", example: "I live in Tashkent - Men Toshkentda yashayman" },
+        { english: "In", uzbek: "Da (joy)", example: "In the city - Shaharda" },
+        { english: "A", uzbek: "Artikl (bir)", example: "A book - Bir kitob" },
+        { english: "Student", uzbek: "Talaba", example: "I am a student - Men talabaman" },
+        { english: "Have", uzbek: "Ega bo'lmoq / Bor", example: "I have a book - Menda kitob bor" },
+        { english: "Family", uzbek: "Oila", example: "My family - Mening oilam" }
+    ];
+
+    let currentIdx = 0;
+    let isFlipped = false;
+
+    function loadCard() {
+        const card = flashcards[currentIdx];
+        document.getElementById('englishWord').textContent = card.english;
+        document.getElementById('uzbekTranslation').textContent = card.uzbek;
+        document.getElementById('exampleText').textContent = card.example;
+        document.getElementById('cardCounter').textContent = `${currentIdx + 1} / ${flashcards.length}`;
+        
+        // Progress barni yangilash
+        const progress = ((currentIdx + 1) / flashcards.length) * 100;
+        document.getElementById('progressFill').style.width = progress + '%';
+        
+        // Kartani oldingi holatiga qaytarish
+        if (isFlipped) {
+            document.getElementById('flashcard').classList.remove('flipped');
+            isFlipped = false;
         }
-      });
-    });
-    
-    document.querySelectorAll('.btn-start').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const parentCard = btn.closest('.lesson-card');
-        if (parentCard) {
-          const lessonId = parseInt(parentCard.getAttribute('data-lesson-id'));
-          const pageUrl = parentCard.getAttribute('data-page');
-          const showPoints = parentCard.getAttribute('data-show-points') === 'true';
-          const points = parseInt(parentCard.getAttribute('data-points'));
-          if (lessonId && pageUrl) openLesson(lessonId, pageUrl, showPoints, points);
+    }
+
+    function toggleFlip() {
+        document.getElementById('flashcard').classList.toggle('flipped');
+        isFlipped = !isFlipped;
+    }
+
+    function nextCard() {
+        if (currentIdx < flashcards.length - 1) {
+            currentIdx++;
+            loadCard();
+        } else {
+            // Final screen ko'rsatish
+            document.getElementById('quiz-screen').style.display = 'none';
+            document.getElementById('final-screen').style.display = 'flex';
+            document.getElementById('totalCards').textContent = flashcards.length;
         }
-      });
-    });
-  }
-  
-  function openLesson(lessonId, pageUrl, showPoints, points) {
-    haptic('light');
-    
-    const alreadyCompleted = completedLessons.has(lessonId);
-    
-    // Faqat ball tizimi mavjud bo'lgan kartalar uchun (2 va 3-kunlar)
-    if (showPoints && !alreadyCompleted) {
-      const reward = points;
-      userPoints += reward;
-      completedLessons.add(lessonId);
-      saveUserData();
-      haptic('success');
-      
-      let lessonTitle = "";
-      if (lessonId === 2) lessonTitle = "Exercise";
-      if (lessonId === 3) lessonTitle = "Exercise";
-      
-      tg.showPopup({
-        title: "🎉 Tabriklaymiz!",
-        message: `${lessonTitle} darsini ochdingiz! +${reward} ball qo'shildi. Jami: ${userPoints} ball`,
-        buttons: [{type: "ok"}]
-      });
-    } else if (showPoints && alreadyCompleted) {
-      haptic('light');
-    } else {
-      // Ball tizimi kerak bo'lmagan kartalar (1 va 4-kunlar)
-      haptic('light');
     }
-    
-    try {
-      let currentPath = window.location.pathname;
-      let basePath = currentPath.substring(0, currentPath.lastIndexOf('/') + 1);
-      let targetUrl = basePath + pageUrl;
-      tg.HapticFeedback.impactOccurred('medium');
-      window.location.href = targetUrl;
-    } catch (navErr) {
-      console.warn(navErr);
-      window.open(pageUrl, '_self');
-    }
-  }
-  
-  loadUserData();
-  renderCards();
-  
-  window.addEventListener('resize', () => {
-    tg.expand();
-  });
+
+    // Initial load
+    loadCard();
 </script>
+
 </body>
 </html>
