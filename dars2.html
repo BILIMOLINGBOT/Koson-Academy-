@@ -1,80 +1,388 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-  <meta charset="UTF-8">
-  <title>Omadli gʻildirak</title>
-  <style>
-    body {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      background: #f0f0f0;
-      font-family: Arial, sans-serif;
-    }
-    .wheel {
-      width: 300px;
-      height: 300px;
-      border-radius: 50%;
-      border: 10px solid #333;
-      position: relative;
-      overflow: hidden;
-      transition: transform 4s cubic-bezier(0.33, 1, 0.68, 1);
-    }
-    .segment {
-      position: absolute;
-      width: 50%;
-      height: 50%;
-      background: tomato;
-      transform-origin: 100% 100%;
-      clip-path: polygon(0 0, 100% 0, 100% 100%);
-    }
-    .segment:nth-child(1) { transform: rotate(0deg); background: #ff6666; }
-    .segment:nth-child(2) { transform: rotate(60deg); background: #66ccff; }
-    .segment:nth-child(3) { transform: rotate(120deg); background: #99ff99; }
-    .segment:nth-child(4) { transform: rotate(180deg); background: #ffcc66; }
-    .segment:nth-child(5) { transform: rotate(240deg); background: #cc99ff; }
-    .segment:nth-child(6) { transform: rotate(300deg); background: #ff99cc; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>Flashcards - Nemischa Lug'at</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #141414;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --border-light: #2a2a2a;
+            --border-dark: #333333;
+            --accent-dark: #ffffff;
+            --correct-color: #4ade80;
+            --card-front: #1a1a1a;
+            --card-back: #2a2a2a;
+        }
 
-    .pointer {
-      width: 0;
-      height: 0;
-      border-left: 20px solid transparent;
-      border-right: 20px solid transparent;
-      border-bottom: 30px solid #333;
-      margin-top: 20px;
-    }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
 
-    button {
-      margin-top: 20px;
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-  </style>
+        body, html {
+            height: 100%;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow: hidden;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom);
+            background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+        }
+
+        .header {
+            padding: 20px 0;
+            text-align: center;
+            border-bottom: 1px solid var(--border-light);
+            margin-bottom: 20px;
+        }
+
+        .card-counter {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 400;
+            color: var(--text-secondary);
+        }
+
+        /* Flashcard */
+        .flashcard-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 0;
+        }
+
+        .flashcard {
+            width: 100%;
+            max-width: 350px;
+            height: 400px;
+            cursor: pointer;
+            perspective: 1000px;
+            margin-bottom: 30px;
+        }
+
+        .flashcard-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            border-radius: 24px;
+        }
+
+        .flashcard.flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 24px;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid var(--border-light);
+            background: var(--card-front);
+        }
+
+        .card-front {
+            background: linear-gradient(145deg, #1a1a1a, #222222);
+        }
+
+        .card-back {
+            background: linear-gradient(145deg, #2a2a2a, #333333);
+            transform: rotateY(180deg);
+        }
+
+        .word {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .translation {
+            font-size: 32px;
+            font-weight: 600;
+            color: var(--correct-color);
+            margin-bottom: 15px;
+        }
+
+        .example {
+            font-size: 16px;
+            color: var(--text-secondary);
+            font-style: italic;
+            max-width: 80%;
+        }
+
+        .hint {
+            margin-top: 20px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .action-btn {
+            width: 100%;
+            max-width: 400px;
+            height: 56px;
+            border: none;
+            border-radius: 16px;
+            background: var(--text-primary);
+            color: var(--bg-primary);
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .action-btn:active {
+            opacity: 0.8;
+        }
+
+        .progress-bar {
+            width: 100%;
+            max-width: 400px;
+            height: 8px;
+            background: var(--border-light);
+            border-radius: 4px;
+            margin: 30px auto 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--text-primary);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        /* Final Screen */
+        #final-screen {
+            display: none;
+            height: 100vh;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 60px 20px;
+            text-align: center;
+            background: #000;
+        }
+
+        .trophy-icon { 
+            font-size: 100px; 
+            color: white; 
+            margin-bottom: 20px; 
+        }
+
+        .stats-container { 
+            display: flex; 
+            gap: 15px; 
+            width: 100%; 
+            max-width: 400px; 
+            margin-top: -50px; 
+        }
+
+        .stat-card {
+            flex: 1; 
+            border-radius: 20px; 
+            padding: 10px;
+            display: flex; 
+            flex-direction: column; 
+            align-items: center;
+            border: 3px solid white; 
+            background: black;
+        }
+
+        .stat-label {
+            font-weight: bold; 
+            padding: 4px 15px; 
+            border-radius: 12px;
+            margin-top: -28px; 
+            margin-bottom: 15px; 
+            font-size: 14px;
+            background: white; 
+            color: black; 
+            text-transform: uppercase;
+        }
+
+        .footer-btn {
+            width: 100%; 
+            max-width: 400px; 
+            background: white; 
+            color: black;
+            border: none; 
+            padding: 20px; 
+            border-radius: 20px;
+            font-size: 18px; 
+            font-weight: 800; 
+            text-transform: uppercase;
+            cursor: pointer; 
+            box-shadow: 0 6px 0px rgba(255, 255, 255, 0.2);
+            transition: 0.1s;
+        }
+
+        .footer-btn:active { 
+            transform: translateY(4px); 
+            box-shadow: none; 
+        }
+
+        .small-text {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+    </style>
 </head>
 <body>
-  <div class="wheel" id="wheel">
-    <div class="segment"></div>
-    <div class="segment"></div>
-    <div class="segment"></div>
-    <div class="segment"></div>
-    <div class="segment"></div>
-    <div class="segment"></div>
-  </div>
-  <div class="pointer"></div>
-  <button onclick="spin()">Aylantir!</button>
 
-  <script>
-    let wheel = document.getElementById('wheel');
-    let deg = 0;
+<div id="quiz-screen" class="app-container">
+    <div class="header">
+        <div class="card-counter" id="cardCounter">1 / 12</div>
+        <div class="card-title" id="cardSubtitle">Nemis tili - O'zbekcha</div>
+    </div>
 
-    function spin() {
-      let rand = Math.floor(Math.random() * 360) + 720; // 2 to'liq aylanish + tasodifiy
-      deg += rand;
-      wheel.style.transform = `rotate(${deg}deg)`;
+    <div class="flashcard-container">
+        <div class="flashcard" id="flashcard" onclick="toggleFlip()">
+            <div class="flashcard-inner">
+                <div class="card-front">
+                    <div class="word" id="englishWord">Ich</div>
+                    <div class="hint">
+                        <i class="fas fa-hand-pointer"></i>
+                        Kartani bosing
+                    </div>
+                </div>
+                <div class="card-back">
+                    <div class="translation" id="uzbekTranslation">Men</div>
+                    <div class="example" id="exampleText">Ich bin Student — Men talabaman</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="action-btn" id="nextBtn" onclick="nextCard()">
+        <i class="fas fa-arrow-right"></i>
+        Keyingi
+    </button>
+
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill" style="width: 8.3%"></div>
+    </div>
+</div>
+
+<div id="final-screen">
+    <div class="trophy-section">
+        <i class="fas fa-check-circle trophy-icon"></i>
+        <h1 style="font-size: 28px; margin-top: 20px;">Tabriklaymiz!</h1>
+        <p style="color: #ccc; margin-top: 10px;">Siz barcha kartalarni ko'rib chiqdingiz</p>
+    </div>
+
+    <div class="stats-container">
+        <div class="stat-card">
+            <div class="stat-label">Kartalar</div>
+            <div style="display:flex; align-items:center; font-size:24px; font-weight:bold;">
+                <i class="fas fa-layer-group" style="margin-right:8px"></i>
+                <span id="totalCards">12</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Yakunlandi</div>
+            <div style="display:flex; align-items:center; font-size:24px; font-weight:bold;">
+                <i class="fas fa-check" style="margin-right:8px"></i>
+                <span>100%</span>
+            </div>
+        </div>
+    </div>
+
+    <button class="footer-btn" onclick="location.reload()">Qaytadan boshlash</button>
+</div>
+
+<script>
+    const flashcards = [
+        { german: "Ich", uzbek: "Men", example: "Ich bin Student — Men talabaman" },
+        { german: "Du", uzbek: "Sen", example: "Du bist müde — Sen charchagansan" },
+        { german: "Er", uzbek: "U (erkak)", example: "Er ist Lehrer — U o'qituvchi" },
+        { german: "Sie", uzbek: "U (ayol)", example: "Sie ist Ärztin — U shifokor" },
+        { german: "Es", uzbek: "U (narsa)", example: "Es ist gut — Bu yaxshi" },
+        { german: "Wir", uzbek: "Biz", example: "Wir lernen Deutsch — Biz nemis tilini o'rganamiz" },
+        { german: "Ihr", uzbek: "Sizlar / Siz (ko'plik)", example: "Ihr seid Studenten — Sizlar talabasizlar" },
+        { german: "Sie", uzbek: "Ular / Siz (rasmiy)", example: "Sie sind Lehrer — Ular o'qituvchilar" },
+        { german: "sein", uzbek: "bo'lmoq (fe'l)", example: "Ich bin — Men ...man" },
+        { german: "haben", uzbek: "ega bo'lmoq (fe'l)", example: "Ich habe Zeit — Menda vaqt bor" },
+        { german: "heißen", uzbek: "deb atalmoq", example: "Ich heiße Anna — Mening ismim Anna" },
+        { german: "kommen", uzbek: "kelmoq", example: "Ich komme aus Buxoro — Men Buxorodanman" }
+    ];
+
+    let currentIdx = 0;
+    let isFlipped = false;
+
+    function loadCard() {
+        const card = flashcards[currentIdx];
+        document.getElementById('englishWord').textContent = card.german;
+        document.getElementById('uzbekTranslation').textContent = card.uzbek;
+        document.getElementById('exampleText').textContent = card.example;
+        document.getElementById('cardCounter').textContent = `${currentIdx + 1} / ${flashcards.length}`;
+        
+        // Progress barni yangilash
+        const progress = ((currentIdx + 1) / flashcards.length) * 100;
+        document.getElementById('progressFill').style.width = progress + '%';
+        
+        // Kartani oldingi holatiga qaytarish
+        if (isFlipped) {
+            document.getElementById('flashcard').classList.remove('flipped');
+            isFlipped = false;
+        }
     }
-  </script>
+
+    function toggleFlip() {
+        document.getElementById('flashcard').classList.toggle('flipped');
+        isFlipped = !isFlipped;
+    }
+
+    function nextCard() {
+        if (currentIdx < flashcards.length - 1) {
+            currentIdx++;
+            loadCard();
+        } else {
+            // Final screen ko'rsatish
+            document.getElementById('quiz-screen').style.display = 'none';
+            document.getElementById('final-screen').style.display = 'flex';
+            document.getElementById('totalCards').textContent = flashcards.length;
+        }
+    }
+
+    // Initial load
+    loadCard();
+</script>
+
 </body>
 </html>
