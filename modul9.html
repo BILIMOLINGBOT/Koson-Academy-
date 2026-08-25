@@ -3,19 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>LearnU · Ingliz tili</title>
+    <title>LearnU · Will be · Inkor</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* LearnU ranglar palitrasi – faqat qora, oq va kulrang */
         :root {
-            --bg-primary: #000000;           /* qora fon */
-            --card-bg: #0f0f0f;               /* karta uchun bir oz ochiqroq qora */
-            --surface: #1a1a1a;                /* bank/zonadagi fon */
-            --text-primary: #ffffff;           /* asosiy matn */
-            --text-secondary: #a0a0a0;          /* yordamchi matn */
-            --border-subtle: rgba(255,255,255,0.08);
-            --chip-bg: #1c1c1e;                  /* tokenlar uchun */
-            --glow: 0 4px 20px rgba(255,255,255,0.08);
+            --bg-primary: #000000;
+            --text-primary: #ffffff;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
@@ -36,101 +29,41 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
-            padding: 20px 20px 20px;
-            display: none;
-            position: relative;
+            padding: 20px;
         }
 
-        .app-container.active { display: flex; }
-
-        /* Ballar ko'rsatkichi – MARKAZDA */
-        .points-header {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 0 0 20px 0;
-            z-index: 5;
-            width: 100%;
+        /* Matn qismi */
+        .lesson-content {
+            flex: 1;
+            overflow-y: auto;
+            padding-top: 20px;
+            line-height: 1.6;
         }
 
-        .points-badge {
-            background: rgba(255,255,255,0.95);
-            color: #000;
-            padding: 8px 18px;
-            border-radius: 40px;
+        .lesson-content h2 {
+            font-size: 22px;
+            margin-bottom: 20px;
             font-weight: 700;
+        }
+
+        .lesson-content p {
+            margin-bottom: 15px;
             font-size: 16px;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            backdrop-filter: blur(4px);
-            box-shadow: var(--glow);
-            letter-spacing: -0.2px;
         }
 
-        /* FLASHCARDS – to'liq LearnU look */
-        .card-stack { flex: 1; display: flex; flex-direction: column; gap: 20px; justify-content: center; }
-        
-        .flashcard {
-            background: var(--card-bg);
-            border: 1px solid var(--border-subtle);
-            border-radius: 36px;
-            padding: 28px 25px;
-            box-shadow: var(--glow);
-            backdrop-filter: blur(10px);
-            transition: transform 0.2s ease;
-        }
-        .flashcard:active { transform: scale(0.99); }
-
-        .flag-row { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
-        .flag-img { width: 42px; height: 28px; border-radius: 6px; object-fit: cover; filter: brightness(0.95); }
-        .part-of-speech {
-            color: var(--text-secondary);
-            font-weight: 600;
-            letter-spacing: 1.5px;
-            font-size: 14px;
-            text-transform: uppercase;
-            background: rgba(255,255,255,0.03);
-            padding: 4px 12px;
-            border-radius: 30px;
-        }
-
-        .word-main {
-            font-size: 44px;
-            font-weight: 800;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            background: linear-gradient(135deg, #fff, #cccccc);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        .audio-icon {
-            color: #cccccc;
-            font-size: 32px;
-            cursor: pointer;
-            transition: 0.2s;
-            -webkit-text-fill-color: initial;
-            color: #cccccc;
-        }
-        .audio-icon:hover { opacity: 0.8; transform: scale(1.05); }
-
-        .translation-word {
-            font-size: 32px;
-            font-weight: 700;
-            line-height: 1.3;
+        .lesson-content b {
+            display: block;
+            margin-top: 10px;
             color: #ffffff;
-            opacity: 0.95;
+            font-weight: 600;
         }
 
-        /* Universal tugma – OQ FON, QORA MATN */
-        .next-btn, .check-btn {
+        /* Navigatsiya tugmasi */
+        .next-btn {
             width: 100%;
             height: 65px;
-            background: #ffffff;              /* oq fon */
-            color: #000000;                    /* qora matn */
+            background: #ffffff;
+            color: #000000;
             border: none;
             border-radius: 32px;
             font-size: 18px;
@@ -142,401 +75,62 @@
             justify-content: center;
             gap: 10px;
             transition: 0.2s;
-            margin-top: 20px;
             box-shadow: 0 8px 20px rgba(255,255,255,0.1);
-            letter-spacing: 0.5px;
+            margin-top: 10px;
         }
-        .next-btn:active, .check-btn:active { transform: scale(0.96); opacity: 0.9; }
-        .next-btn:disabled, .check-btn:disabled {
-            background: #2a2a2a;
-            color: #666;
-            box-shadow: none;
-            cursor: not-allowed;
-            pointer-events: none;
-        }
+        .next-btn:active { transform: scale(0.96); opacity: 0.9; }
 
-        /* Header va prompt */
-        .header { text-align: center; margin-bottom: 30px; }
-        .prompt-text {
-            font-size: 28px;
-            font-weight: 700;
-            background: linear-gradient(135deg, #ffffff, #cccccc);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .game-content { flex: 1; display: flex; flex-direction: column; justify-content: center; }
-
-        .zone {
-            min-height: 90px;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 30px;
-            background: rgba(255,255,255,0.02);
-            border-radius: 28px;
-            padding: 18px;
-            border: 1px dashed rgba(255,255,255,0.2);
-        }
-
-        .bank {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .chip, .token {
-            background: var(--chip-bg);
-            padding: 14px 22px;
-            border-radius: 24px;
-            border: 1px solid rgba(255,255,255,0.05);
-            font-size: 18px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: 0.15s;
-            color: var(--text-primary);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
-            backdrop-filter: blur(4px);
-        }
-
-        .chip {
-            background: #333333;
-            color: white;
-            border: none;
-            font-weight: 600;
-        }
-        .token:hover { background: #2a2a2e; border-color: #666666; }
-
-        .result-panel {
-            position: fixed;
-            bottom: 0; left: 0; right: 0;
-            background: #0f0f0f;
-            color: white;
-            border-radius: 36px 36px 0 0;
-            padding: 40px 25px 35px;
-            transform: translateY(100%);
-            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 1000;
-            border-top: 2px solid #666666;
-            box-shadow: 0 -10px 30px rgba(255,255,255,0.1);
-        }
-        .result-panel.active { transform: translateY(0); }
-        .res-title {
-            font-size: 28px;
-            font-weight: 800;
-            margin-bottom: 8px;
-            background: linear-gradient(135deg, #fff, #cccccc);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .res-msg { font-size: 18px; margin-bottom: 30px; color: #b0b0b0; }
-        #res-btn { background: white !important; color: black !important; box-shadow: none; }
-
-        .trophy-icon { font-size: 90px; color: #ffd966; filter: drop-shadow(0 0 15px rgba(255,215,0,0.5)); margin-bottom: 25px; }
-
-        /* Kichik kosmetik */
-        .gradient-name {
-            background: linear-gradient(135deg, #fff, #cccccc);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        hr { border: 0.5px solid rgba(255,255,255,0.05); margin: 15px 0; }
+        /* Scrollbarni yashirish */
+        .lesson-content::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body>
 
-<!-- 1. FLASHCARDS SCREEN (LearnU) -->
-<div id="screen1" class="app-container active">
-    <div class="points-header">
-        <div class="points-badge" id="pointsDisplay">⚡ 170</div>
+<div class="app-container">
+    <div class="lesson-content">
+        <h2>"Will be" — Inkor shakl (Negative)</h2>
+
+        <p>1. Holatni bildirish (State)<br>
+        <b>I will not be happy. — Men baxtli bo'lmayman.</b>
+        <b>She will not be tired. — U charchagan bo'lmaydi.</b>
+        <b>They will not be ready. — Ular tayyor bo'lmaydi.</b></p>
+
+        <p>2. Kasb yoki maqom (Job / Status)<br>
+        <b>He will not be a teacher. — U o'qituvchi bo'lmaydi.</b>
+        <b>I will not be a doctor. — Men shifokor bo'lmayman.</b>
+        <b>We will not be students. — Biz talaba bo'lmaymiz.</b></p>
+
+        <p>3. Yoshi (Age)<br>
+        <b>I will not be 20 years old. — Men 20 yoshda bo'lmayman.</b>
+        <b>She will not be 25 years old. — U 25 yoshda bo'lmaydi.</b>
+        <b>They will not be adults. — Ular katta bo'lmaydi.</b></p>
+
+        <p>4. Qayerda ekanini aytish (Place)<br>
+        <b>I will not be at home. — Men uyda bo'lmayman.</b>
+        <b>He will not be at work. — U ishda bo'lmaydi.</b>
+        <b>We will not be in Tashkent. — Biz Toshkentda bo'lmaymiz.</b></p>
+
+        <p>5. Sifat bilan gap (Adjective)<br>
+        <b>The weather will not be warm. — Ob-havo iliq bo'lmaydi.</b>
+        <b>My phone will not be new. — Mening telefonim yangi bo'lmaydi.</b>
+        <b>The exam will not be difficult. — Imtihon qiyin bo'lmaydi.</b></p>
+
+        <p>6. Vaqt va sana (Time & Date)<br>
+        <b>It will not be Monday tomorrow. — Ertaga dushanba bo'lmaydi.</b>
+        <b>It will not be 9 o'clock. — Soat 9 bo'lmaydi.</b>
+        <b>It will not be summer soon. — Tez orada yoz bo'lmaydi.</b></p>
     </div>
-    <div class="header"></div>
-    <div class="card-stack">
-        <div class="flashcard">
-            <div class="flag-row">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Flag_of_the_United_Kingdom_%283-5%29.svg" class="flag-img">
-                <span class="part-of-speech" id="f-pos">OLMOSH</span>
-            </div>
-            <div class="word-main">
-                <span id="f-eng">I</span>
-                <i class="fas fa-volume-up audio-icon" onclick="speak()"></i>
-            </div>
-        </div>
-        <div class="flashcard">
-            <div class="flag-row">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/8/84/Flag_of_Uzbekistan.svg" class="flag-img">
-            </div>
-            <div class="translation-word" id="f-uzb">men</div>
-        </div>
-    </div>
-    <button class="next-btn" onclick="nextFlashcard()">
+
+    <button class="next-btn" onclick="goToIndex()">
         Keyingi <i class="fas fa-arrow-right"></i>
     </button>
 </div>
 
-<!-- 2. WORD GAME SCREEN -->
-<div id="screen2" class="app-container">
-    <div class="points-header">
-        <div class="points-badge" id="pointsDisplay2">⚡ 170</div>
-    </div>
-    <div class="header">
-        <div class="prompt-text" id="g1-prompt">men</div>
-    </div>
-    <div class="game-content">
-        <div class="zone" id="g1-zone"></div>
-        <div class="bank" id="g1-bank"></div>
-    </div>
-    <button class="check-btn" id="g1-check" onclick="checkWordGame()" disabled>Tekshirish</button>
-</div>
-
-<!-- 3. SENTENCE BUILDER SCREEN (O'zbekcha inkor gap -> Inglizcha inkor gap) -->
-<div id="screen3" class="app-container">
-    <div class="points-header">
-        <div class="points-badge" id="pointsDisplay3">⚡ 170</div>
-    </div>
-    <div class="header">
-        <div class="prompt-text" id="g2-prompt">Men bugun charchagan emasman.</div>
-    </div>
-    <div class="game-content">
-        <div class="zone" id="g2-zone"></div>
-        <div class="bank" id="g2-bank"></div>
-    </div>
-    <button class="check-btn" id="g2-check" onclick="checkSentenceGame()" disabled>Tekshirish</button>
-</div>
-
-<!-- FINAL SCREEN -->
-<div id="screen-final" class="app-container" style="text-align: center; justify-content: center;">
-    <div class="points-header">
-        <div class="points-badge" id="pointsDisplay4">⚡ 170</div>
-    </div>
-    <i class="fas fa-trophy trophy-icon"></i>
-    <h1 style="font-size: 36px; margin-bottom: 10px; background: linear-gradient(135deg,#fff,#cccccc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Tabriklaymiz!</h1>
-    <p style="color: var(--text-secondary); margin-bottom: 40px;">Barcha bosqichlarni muvaffaqiyatli yakunladingiz.</p>
-    <button class="next-btn" onclick="continueToMain()">
-        Davom etish <i class="fas fa-arrow-right"></i>
-    </button>
-</div>
-
-<div class="result-panel" id="res-panel">
-    <div id="res-title" class="res-title">Ajoyib!</div>
-    <div id="res-msg" class="res-msg">To'g'ri javob topildi.</div>
-    <button class="next-btn" id="res-btn">Davom etish</button>
-</div>
-
 <script>
-    // Ballar va modul id
-    let userPoints = parseInt(localStorage.getItem('user_points')) || 170;  // ⚡170 ko‘rsatish uchun
-    let currentModulePoints = 0;
-    let moduleId = new URLSearchParams(window.location.search).get('id') || '1';
-
-    function updatePointsDisplay() {
-        const displays = document.querySelectorAll('[id^="pointsDisplay"]');
-        displays.forEach(el => {
-            if (el) el.textContent = `⚡ ${userPoints}`;
-        });
-    }
-
-    function addPoints(amount = 1) {
-        userPoints += amount;
-        currentModulePoints += amount;
-        localStorage.setItem('user_points', userPoints);
-        updatePointsDisplay();
-        if (window.Telegram?.WebApp) {
-            window.Telegram.WebApp.sendData(JSON.stringify({
-                action: 'add_points',
-                points: userPoints,
-                module: moduleId
-            }));
-        }
-    }
-
-    
-    // Ma'lumotlar - yangi inkor gaplar asosida
-    let vocabData = [
-        { pos: "OLMOSH", eng: "I", uzb: "men" },
-        { pos: "FE'L (to be)", eng: "am", uzb: "bo'lmoq (1-shaxs)" },
-        { pos: "INKOR", eng: "not", uzb: "emas" },
-        { pos: "SIFAT", eng: "tired", uzb: "charchagan" },
-        { pos: "HOL", eng: "today", uzb: "bugun" },
-        { pos: "OLMOSH", eng: "He", uzb: "u (erkak)" },
-        { pos: "FE'L (to be)", eng: "is", uzb: "bo'lmoq (3-shaxs)" },
-        { pos: "PREDLOG", eng: "in", uzb: "da (ichida)" },
-        { pos: "ARTIKL", eng: "the", uzb: "aniq artikl" },
-        { pos: "OT", eng: "office", uzb: "ofis" },
-        { pos: "OLMOSH", eng: "She", uzb: "u (ayol)" },
-        { pos: "ARTIKL", eng: "a", uzb: "bir" },
-        { pos: "OT", eng: "nurse", uzb: "hamshira" },
-        { pos: "OLMOSH", eng: "You", uzb: "sen / siz" },
-        { pos: "FE'L (to be)", eng: "are", uzb: "bo'lmoq (ko'plik)" },
-        { pos: "SIFAT", eng: "very", uzb: "juda" },
-        { pos: "SIFAT", eng: "friendly", uzb: "do'stona" },
-        { pos: "OLMOSH", eng: "They", uzb: "ular" },
-        { pos: "OT", eng: "city", uzb: "shahar" }
-    ];
-
-    let wordGameData = [
-        { uz: "men", correct: ["I"] },
-        { uz: "bo'lmoq (1-shaxs)", correct: ["am"] },
-        { uz: "emas", correct: ["not"] },
-        { uz: "charchagan", correct: ["tired"] },
-        { uz: "bugun", correct: ["today"] },
-        { uz: "u (erkak)", correct: ["He"] },
-        { uz: "bo'lmoq (3-shaxs)", correct: ["is"] },
-        { uz: "da (ichida)", correct: ["in"] },
-        { uz: "aniq artikl", correct: ["the"] },
-        { uz: "ofis", correct: ["office"] },
-        { uz: "u (ayol)", correct: ["She"] },
-        { uz: "bir", correct: ["a"] },
-        { uz: "hamshira", correct: ["nurse"] },
-        { uz: "sen / siz", correct: ["You"] },
-        { uz: "bo'lmoq (ko'plik)", correct: ["are"] },
-        { uz: "juda", correct: ["very"] },
-        { uz: "do'stona", correct: ["friendly"] },
-        { uz: "ular", correct: ["They"] },
-        { uz: "shahar", correct: ["city"] }
-    ];
-
-    // SENTENCE BUILDER - O'zbekcha inkor gaplar -> Inglizcha inkor gaplar
-    let sentenceData = [
-        { uz: "Men bugun charchagan emasman.", correct: ["I", "am", "not", "tired", "today."] },
-        { uz: "U ofisda emas.", correct: ["He", "is", "not", "in", "the", "office."] },
-        { uz: "U hamshira emas.", correct: ["She", "is", "not", "a", "nurse."] },
-        { uz: "Sen juda do'stona emassan.", correct: ["You", "are", "not", "very", "friendly."] },
-        { uz: "Ular shaharda emas.", correct: ["They", "are", "not", "in", "the", "city."] }
-    ];
-
-    const distractors = ["I", "am", "not", "tired", "today", "He", "is", "in", "the", "office", "She", "a", "nurse", "You", "are", "very", "friendly", "They", "city", "at", "on", "with", "from", "and", "but", "or", "my", "your", "his", "her", "our", "their"];
-
-    let currentFlash = 0, g1Idx = 0, g2Idx = 0, builtSeq = [], usedFlags = [];
-
-    updatePointsDisplay();
-
-    function showScreen(id) {
-        document.querySelectorAll('.app-container').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-    }
-
-    function togglePanel(show, title = "", msg = "", callback = null, isCorrect = false) {
-        const panel = document.getElementById('res-panel');
-        if (show) {
-            document.getElementById('res-title').textContent = title;
-            document.getElementById('res-msg').textContent = msg;
-            panel.classList.add('active');
-            if (isCorrect) addPoints(1);
-            document.getElementById('res-btn').onclick = () => {
-                panel.classList.remove('active');
-                if (callback) callback();
-            };
-        } else panel.classList.remove('active');
-    }
-
-    function nextFlashcard() {
-        if (currentFlash < vocabData.length - 1) {
-            currentFlash++;
-            const item = vocabData[currentFlash];
-            document.getElementById('f-pos').textContent = item.pos;
-            document.getElementById('f-eng').textContent = item.eng;
-            document.getElementById('f-uzb').textContent = item.uzb;
-        } else {
-            showScreen('screen2');
-            initWordGame();
-        }
-    }
-
-    function speak() {
-        const text = document.getElementById('f-eng').textContent;
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = 'en-GB';
-        window.speechSynthesis.speak(u);
-    }
-
-    function initWordGame() {
-        const curr = wordGameData[g1Idx];
-        document.getElementById('g1-prompt').textContent = curr.uz;
-        let words = [curr.correct[0]];
-        let availD = distractors.filter(d => d !== curr.correct[0]);
-        for (let i = 0; i < 2; i++) {
-            const rIdx = Math.floor(Math.random() * availD.length);
-            words.push(availD[rIdx]);
-            availD.splice(rIdx, 1);
-        }
-        words.sort(() => Math.random() - 0.5);
-        builtSeq = []; usedFlags = new Array(words.length).fill(false);
-        window.currentBank = words;
-        renderGame('g1');
-    }
-
-    function checkWordGame() {
-        const currentItem = wordGameData[g1Idx];
-        const correct = currentItem.correct;
-        const isCorrect = builtSeq.length === correct.length && builtSeq[0].word === correct[0];
-        togglePanel(true, isCorrect ? "Barakalla!" : "Xato!", 
-                   isCorrect ? "To'g'ri topdingiz." : "To'g'ri javob: " + correct[0], () => {
-            if (!isCorrect) wordGameData.push(currentItem, currentItem, currentItem);
-            if (g1Idx < wordGameData.length - 1) { g1Idx++; initWordGame(); } 
-            else { showScreen('screen3'); initSentenceGame(); }
-        }, isCorrect);
-    }
-
-    function initSentenceGame() {
-        const curr = sentenceData[g2Idx];
-        document.getElementById('g2-prompt').textContent = curr.uz; // O'zbekcha inkor gap ko'rsatiladi
-        let words = [...curr.correct].sort(() => Math.random() - 0.5);
-        builtSeq = []; usedFlags = new Array(words.length).fill(false);
-        window.currentBank = words;
-        renderGame('g2');
-    }
-
-    function checkSentenceGame() {
-        const currentItem = sentenceData[g2Idx];
-        const correct = currentItem.correct;
-        const isCorrect = builtSeq.length === correct.length && builtSeq.every((v, i) => v.word === correct[i]);
-        togglePanel(true, isCorrect ? "Zo'r!" : "E'tiborli bo'ling!", 
-                   isCorrect ? "Inkor gap to'g'ri tuzildi." : "To'g'ri tartib: " + correct.join(' '), () => {
-            if (!isCorrect) sentenceData.push(currentItem, currentItem, currentItem);
-            if (g2Idx < sentenceData.length - 1) { g2Idx++; initSentenceGame(); } 
-            else { showScreen('screen-final'); }
-        }, isCorrect);
-    }
-
-    function continueToMain() {
-        localStorage.setItem('last_module_points', currentModulePoints);
-        localStorage.setItem(`module_${moduleId}_points`, currentModulePoints);
-        localStorage.setItem(`module_${moduleId}_completed`, 'true');
+    function goToIndex() {
         window.location.href = 'index.html';
     }
-
-    function renderGame(prefix) {
-        const zone = document.getElementById(`${prefix}-zone`);
-        const bank = document.getElementById(`${prefix}-bank`);
-        const btn = document.getElementById(`${prefix}-check`);
-        zone.innerHTML = '';
-        builtSeq.forEach((item, i) => {
-            const d = document.createElement('div');
-            d.className = 'chip'; d.textContent = item.word;
-            d.onclick = () => { usedFlags[item.idx] = false; builtSeq.splice(i, 1); renderGame(prefix); };
-            zone.appendChild(d);
-        });
-        bank.innerHTML = '';
-        window.currentBank.forEach((word, i) => {
-            if (!usedFlags[i]) {
-                const t = document.createElement('div');
-                t.className = 'token'; t.textContent = word;
-                t.onclick = () => { usedFlags[i] = true; builtSeq.push({word, idx: i}); renderGame(prefix); };
-                bank.appendChild(t);
-            }
-        });
-        btn.disabled = builtSeq.length === 0;
-        btn.style.opacity = btn.disabled ? '0.5' : '1';
-    }
-
-    const firstItem = vocabData[0];
-    document.getElementById('f-pos').textContent = firstItem.pos;
-    document.getElementById('f-eng').textContent = firstItem.eng;
-    document.getElementById('f-uzb').textContent = firstItem.uzb;
 </script>
+
 </body>
 </html>
