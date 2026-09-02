@@ -19,20 +19,78 @@
     }
 
     /* Header */
-    .header { padding: 20px; display: flex; align-items: center; justify-content: space-between; }
+    .header { padding: 20px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
     .avatar-wrapper { display: flex; align-items: center; gap: 12px; }
     .avatar-circle { width: 45px; height: 45px; background: #222; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; }
     .avatar-circle img { width: 100%; height: 100%; object-fit: cover; }
     .points-badge { background: #fff; color: #000; padding: 6px 14px; border-radius: 20px; font-weight: 800; font-size: 0.9rem; }
 
-    /* Bo'sh konteyner */
+    /* Modullar uchun asosiy konteyner */
     .scroll-container { 
       flex: 1; 
       display: flex; 
+      overflow-x: auto; 
+      scroll-snap-type: x mandatory; 
       padding: 10px 20px; 
+      gap: 15px; 
       align-items: center;
-      justify-content: center;
     }
+    .scroll-container::-webkit-scrollbar { display: none; }
+
+    /* MODUL KARTASI */
+    .lesson-card { 
+      flex: 0 0 85%; 
+      height: 65vh;
+      min-height: 400px;
+      border-radius: 45px; 
+      padding: 40px; 
+      display: flex; 
+      flex-direction: column; 
+      justify-content: flex-start;
+      scroll-snap-align: center; 
+      background: linear-gradient(145deg, #1c1c1e, #0a0a0a); 
+      border: 1px solid rgba(255,255,255,0.05); 
+      transition: transform 0.2s; 
+      position: relative;
+      cursor: pointer;
+    }
+    
+    .lesson-card:active { transform: scale(0.97); }
+
+    .modul-label { color: #8e8e93; font-size: 0.8rem; letter-spacing: 1px; margin-bottom: 25px; }
+    .modul-title { font-size: 2.2rem; font-weight: 700; line-height: 1.2; margin-bottom: auto; }
+    .start-btn { color: #007aff; font-weight: 600; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; margin-top: 20px; }
+    
+    /* Progress bar */
+    .progress-bar {
+      width: 100%;
+      height: 4px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 2px;
+      margin-top: 15px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: #007aff;
+      border-radius: 2px;
+      transition: width 0.3s;
+    }
+
+    /* Bottom Tab Bar */
+    .tab-bar { 
+      height: 85px; 
+      background: rgba(20, 20, 20, 0.8); 
+      backdrop-filter: blur(20px); 
+      display: flex; 
+      align-items: center; 
+      justify-content: space-around; 
+      padding-bottom: 20px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    .tab-item { display: flex; flex-direction: column; align-items: center; gap: 5px; color: #8e8e93; text-decoration: none; font-size: 0.7rem; }
+    .tab-item.active { color: #ffffff; }
+    .tab-item svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; }
   </style>
 </head>
 <body>
@@ -53,8 +111,23 @@
   </div>
 
   <div class="scroll-container" id="moduleList">
-    <!-- Kartalar olib tashlandi -->
+    <!-- Kartalar JavaScript orqali yaratiladi -->
   </div>
+
+  <nav class="tab-bar">
+    <a href="index.html" class="tab-item active">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      <span>Asosiy</span>
+    </a>
+    <a href="rating.html" class="tab-item">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span>Reyting</span>
+    </a>
+    <a href="gift.html" class="tab-item">
+      <svg viewBox="0 0 24 24"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+      <span>Sovg'a</span>
+    </a>
+  </nav>
 </div>
 
 <script>
@@ -68,6 +141,40 @@
 
   const user = tg.initDataUnsafe?.user;
 
+  // 30 ta modul ma'lumotlari
+  const modules = [
+    { id: 1, title: "Kvant fizikasi asoslari", subtitle: "Boshlang'ich daraja", progress: 75 },
+    { id: 2, title: "Algoritmlar va Ma'lumotlar", subtitle: "O'rta daraja", progress: 40 },
+    { id: 3, title: "Sun'iy intellekt asoslari", subtitle: "Boshlang'ich daraja", progress: 0 },
+    { id: 4, title: "Python dasturlash", subtitle: "Boshlang'ich daraja", progress: 100 },
+    { id: 5, title: "Veb-dasturlash", subtitle: "O'rta daraja", progress: 25 },
+    { id: 6, title: "Mobil ilovalar yaratish", subtitle: "Yuqori daraja", progress: 0 },
+    { id: 7, title: "Ma'lumotlar bazalari", subtitle: "O'rta daraja", progress: 60 },
+    { id: 8, title: "Kiberxavfsizlik", subtitle: "Boshlang'ich daraja", progress: 15 },
+    { id: 9, title: "Blokcheyn texnologiyasi", subtitle: "Yuqori daraja", progress: 0 },
+    { id: 10, title: "Robototexnika", subtitle: "O'rta daraja", progress: 30 },
+    { id: 11, title: "UI/UX dizayn", subtitle: "Boshlang'ich daraja", progress: 80 },
+    { id: 12, title: "Data Science", subtitle: "Yuqori daraja", progress: 10 },
+    { id: 13, title: "Machine Learning", subtitle: "Yuqori daraja", progress: 0 },
+    { id: 14, title: "Kompyuter tarmoqlari", subtitle: "O'rta daraja", progress: 45 },
+    { id: 15, title: "Operatsion tizimlar", subtitle: "O'rta daraja", progress: 55 },
+    { id: 16, title: "Bulutli texnologiyalar", subtitle: "Boshlang'ich daraja", progress: 0 },
+    { id: 17, title: "IoT (Internet of Things)", subtitle: "O'rta daraja", progress: 20 },
+    { id: 18, title: "O'yin dasturlash", subtitle: "Yuqori daraja", progress: 0 },
+    { id: 19, title: "3D modellashtirish", subtitle: "Boshlang'ich daraja", progress: 90 },
+    { id: 20, title: "Raqamli marketing", subtitle: "Boshlang'ich daraja", progress: 35 },
+    { id: 21, title: "Grafik dizayn", subtitle: "O'rta daraja", progress: 70 },
+    { id: 22, title: "Video montaj", subtitle: "Boshlang'ich daraja", progress: 0 },
+    { id: 23, title: "Ovoz muhandisligi", subtitle: "O'rta daraja", progress: 50 },
+    { id: 24, title: "Fotografiya san'ati", subtitle: "Boshlang'ich daraja", progress: 65 },
+    { id: 25, title: "Arxitektura va BIM", subtitle: "Yuqori daraja", progress: 0 },
+    { id: 26, title: "Elektronika", subtitle: "O'rta daraja", progress: 85 },
+    { id: 27, title: "Nanotexnologiya", subtitle: "Yuqori daraja", progress: 0 },
+    { id: 28, title: "Biotexnologiya", subtitle: "Yuqori daraja", progress: 5 },
+    { id: 29, title: "Astronomiya", subtitle: "Boshlang'ich daraja", progress: 95 },
+    { id: 30, title: "Falsafa va mantiq", subtitle: "Boshlang'ich daraja", progress: 0 }
+  ];
+
   function loadUserData() {
     if (user) {
       document.getElementById('userName').textContent = user.first_name;
@@ -79,15 +186,62 @@
         img.style.display = 'block';
         document.getElementById('avatarText').style.display = 'none';
       }
+    } else {
+      // Test uchun default ma'lumotlar
+      document.getElementById('userName').textContent = 'Foydalanuvchi';
+      document.getElementById('userStatus').textContent = '@user';
     }
+  }
+
+  function openModule(moduleId, moduleName) {
+    tg.HapticFeedback.impactOccurred('medium');
+    
+    // Modul ma'lumotlarini saqlash
+    localStorage.setItem('currentModule', moduleId);
+    localStorage.setItem('currentModuleName', moduleName);
+    
+    console.log(`Ochilyapti: ${moduleName} (modul${moduleId}.html)`);
+    
+    // Tegishli modul sahifasiga o'tish
+    window.location.href = `modul${moduleId}.html`;
   }
 
   function openProfile() {
     tg.HapticFeedback.impactOccurred('light');
-    console.log("Profil ochildi");
+    console.log("Profil ochilmoqda...");
+    window.location.href = 'profile.html';
+  }
+
+  function createModuleCards() {
+    const container = document.getElementById('moduleList');
+    
+    modules.forEach(module => {
+      const card = document.createElement('div');
+      card.className = 'lesson-card';
+      card.onclick = () => openModule(module.id, module.title);
+      
+      const progressText = module.progress === 0 ? 'Boshlash' : 
+                          module.progress === 100 ? 'Takrorlash' : 'Davom etish';
+      
+      card.innerHTML = `
+        <span class="modul-label">MODUL ${module.id}</span>
+        <h2 class="modul-title">${module.title}</h2>
+        <div style="color: #8e8e93; font-size: 0.9rem; margin-top: 10px;">${module.subtitle}</div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: ${module.progress}%"></div>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+          <span style="color: #8e8e93; font-size: 0.9rem;">${module.progress}% bajarilgan</span>
+          <div class="start-btn">${progressText} →</div>
+        </div>
+      `;
+      
+      container.appendChild(card);
+    });
   }
 
   loadUserData();
+  createModuleCards();
 </script>
 
 </body>
