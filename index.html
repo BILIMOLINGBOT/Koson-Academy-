@@ -1,513 +1,188 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uz">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>3D Learning Path · General English</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>LearnU · Asosiy</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    :root {
-      --bg-deep: #08090B;
-      --glow-purple: rgba(100, 60, 180, 0.18);
-      --header-bg: rgba(28, 22, 40, 0.88);
-      --header-border: rgba(180, 140, 255, 0.15);
-      --text-white: #ffffff;
-      --text-soft: #eae6f5;
-      --gray-blue: #4B5561;
-      --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.7);
-      --cubic-light: #ffffff;
-      --cube-size: clamp(180px, 42vw, 250px);
-      --cube-radius: 32px;
-      --path-side-gap: 8%;
-      --diagonal-offset: 18%;
-      --font-sans: 'Inter', 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background: #000; color: #fff; min-height: 100vh; overflow-x: hidden; }
+    .app-wrapper { width: 100%; max-width: 420px; margin: 0 auto; display: flex; flex-direction: column; padding-bottom: 90px; }
+    
+    .header { padding: 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: #000; z-index: 10; }
+    .avatar-wrapper { display: flex; align-items: center; gap: 12px; }
+    .avatar-circle { width: 45px; height: 45px; background: #222; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; border: 1px solid #333; overflow: hidden; }
+    .avatar-circle img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    /* 30 ta modul uchun gorizontal konteyner */
+    .scroll-container { 
+      display: flex; 
+      overflow-x: auto; 
+      scroll-snap-type: x mandatory; 
+      padding: 10px 20px; 
+      gap: 15px; 
+      -ms-overflow-style: none; scrollbar-width: none;
     }
+    .scroll-container::-webkit-scrollbar { display: none; }
 
-    html, body {
-      background: var(--bg-deep);
-      height: 100%;
-      width: 100%;
-      overflow-x: hidden;
-      font-family: var(--font-sans);
-      scroll-behavior: smooth;
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    body {
-      position: relative;
-      background: radial-gradient(circle at 50% 0%, rgba(130, 80, 220, 0.2) 0%, transparent 60%), 
-                  linear-gradient(180deg, #0d0d13 0%, #08090B 40%);
-      background-attachment: fixed;
-      min-height: 100vh;
-    }
-
-    /* hide scrollbar but keep scrolling */
-    ::-webkit-scrollbar {
-      width: 0;
-      height: 0;
-      background: transparent;
-    }
-    * {
-      scrollbar-width: none; /* firefox */
-    }
-
-    /* main scroll container */
-    .app-wrapper {
-      position: relative;
-      width: 100%;
-      max-width: 480px;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 0 0 40px;
-      scrollbar-width: none;
-    }
-
-    /* floating header – sticky */
-    .floating-header {
-      position: sticky;
-      top: 18px;
-      z-index: 40;
-      width: 92%;
-      max-width: 380px;
-      height: 76px;
-      border-radius: 40px;
-      background: linear-gradient(145deg, rgba(32, 24, 48, 0.95) 0%, rgba(18, 12, 30, 0.9) 100%);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(200, 170, 255, 0.1) inset;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 24px;
-      margin-bottom: 10px;
-      border: 1px solid rgba(190, 150, 255, 0.2);
-      transition: background 0.2s;
-    }
-
-    .language-icon {
-      width: 48px;
-      height: 48px;
-      background: #3B7BFF;
-      border-radius: 30px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: 700;
-      font-size: 22px;
-      letter-spacing: 0.5px;
-      box-shadow: 0 8px 16px rgba(0, 30, 255, 0.3);
-      background: radial-gradient(circle at 30% 30%, #6EA8FF, #1f4ed8);
-    }
-    .language-icon span {
-      transform: scale(1.1);
-    }
-
-    .header-title {
-      font-size: clamp(26px, 7vw, 31px);
-      font-weight: 700;
-      color: var(--text-white);
-      letter-spacing: -0.02em;
-      margin-left: 12px;
-      text-shadow: 0 2px 8px rgba(0,0,0,0.6);
-      white-space: nowrap;
-    }
-
-    .down-chevron {
-      width: 28px;
-      height: 28px;
-      color: white;
-      stroke-width: 3;
-      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
-    }
-
-    /* path container — vertical zigzag */
-    .path-container {
-      position: relative;
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 42px; /* vertical spacing */
-      margin-top: 20px;
-      padding-bottom: 30px;
-    }
-
-    /* cube wrapper */
-    .cube-item {
-      position: relative;
-      width: var(--cube-size);
-      height: var(--cube-size);
-      transition: transform 0.15s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    /* custom offsets for zigzag */
-    .cube-pos-1 { transform: translateX(28%); }
-    .cube-pos-2 { transform: translateX(-18%); }
-    .cube-pos-3 { transform: translateX(26%); }
-    .cube-pos-4 { transform: translateX(-30%); }
-    .cube-pos-5 { transform: translateX(32%); }
-    .cube-pos-6 { transform: translateX(-22%); }
-    .cube-pos-purple { transform: translateX(8%); }
-    .cube-pos-green-1 { transform: translateX(-20%); }
-    .cube-pos-green-2 { transform: translateX(18%); }
-
-    /* base 3D cube styling — rounded bevel, recessed top */
-    .cube {
-      width: 100%;
-      height: 100%;
-      border-radius: var(--cube-radius);
-      background: linear-gradient(145deg, #f0f0f0 0%, #cccccc 100%);
-      box-shadow: 
-        inset 0 -10px 15px rgba(0,0,0,0.4),
-        inset 0 10px 20px rgba(255,255,255,0.5),
-        inset -8px 0 12px rgba(255,255,255,0.4),
-        0 30px 30px -5px rgba(0,0,0,0.8),
-        0 15px 25px rgba(0,0,0,0.6);
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transform: rotateX(2deg) rotateY(-2deg);
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    /* recessed top surface effect (pseudo-element) */
-    .cube::before {
-      content: "";
-      position: absolute;
-      inset: 10%;
-      border-radius: 28px;
-      background: rgba(0,0,0,0.05);
-      box-shadow: inset 0 5px 12px rgba(0,0,0,0.2), 0 2px 4px rgba(255,255,255,0.6);
-      pointer-events: none;
-    }
-
-    /* locked cube specific */
-    .cube-locked {
-      background: linear-gradient(145deg, #dddddd 0%, #a8a8ad 100%);
-      box-shadow: 
-        inset 0 -12px 18px rgba(0,0,0,0.5),
-        inset 0 10px 16px rgba(255,255,255,0.6),
-        inset -6px 0 10px rgba(255,255,255,0.5),
-        0 30px 30px -5px rgba(0,0,0,0.8),
-        0 15px 25px rgba(0,0,0,0.6);
-    }
-
-    .lock-icon {
-      width: 45px;
-      height: 45px;
-      object-fit: contain;
-      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
-      z-index: 5;
-      opacity: 0.9;
-    }
-
-    /* purple active cube */
-    .cube-purple {
-      background: linear-gradient(145deg, #B58AFF 0%, #8B55F3 45%, #32136E 100%);
-      box-shadow: 
-        inset 0 -16px 22px rgba(20, 0, 50, 0.7),
-        inset 0 14px 20px rgba(255, 220, 255, 0.5),
-        inset -6px 0 12px rgba(255, 200, 255, 0.6),
-        0 30px 30px -5px rgba(0,0,0,0.9),
-        0 10px 30px rgba(140, 80, 255, 0.35);
-      border: 1px solid rgba(220, 190, 255, 0.4);
-    }
-
-    /* green completed cubes */
-    .cube-green {
-      background: linear-gradient(145deg, #C8FFE5 0%, #72DDB5 50%, #23916B 100%);
-      box-shadow: 
-        inset 0 -16px 22px rgba(0, 30, 20, 0.6),
-        inset 0 14px 22px rgba(255, 255, 240, 0.7),
-        inset -6px 0 12px rgba(240, 255, 250, 0.7),
-        0 30px 30px -5px rgba(0,0,0,0.9),
-        0 8px 20px rgba(40, 180, 120, 0.3);
-      border: 1px solid rgba(220, 255, 230, 0.4);
-    }
-
-    .completed-check {
-      width: 50px;
-      height: 50px;
-      object-fit: contain;
-      filter: drop-shadow(0 2px 6px rgba(0,60,30,0.3));
-      z-index: 6;
-    }
-
-    /* start button wrapper */
-    .start-button-wrapper {
-      position: relative;
-      width: 290px;
-      height: 74px;
-      margin: 14px 0 6px;
-      z-index: 25;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      transform: translateY(8px);
-    }
-
-    .start-btn {
-      width: 100%;
-      height: 100%;
-      background: #4B5561;
-      border-radius: 40px;
-      border: none;
-      color: white;
-      font-weight: 800;
-      text-transform: uppercase;
-      font-size: 30px;
-      letter-spacing: 4px;
-      box-shadow: 0 18px 25px -5px rgba(0,0,0,0.8), 0 5px 12px rgba(0,0,0,0.5), inset 0 2px 6px rgba(255,255,255,0.15);
+    .lesson-card { 
+      flex: 0 0 85%; 
+      height: 45vh; /* Bo'yi biroz moslashtirildi */
+      border-radius: 30px; 
+      padding: 25px; 
+      display: flex; 
+      flex-direction: column; 
+      justify-content: space-between; 
+      scroll-snap-align: center; 
+      background: linear-gradient(145deg, #1c1c1e, #0a0a0a); 
+      border: 1px solid rgba(255,255,255,0.1);
       cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    /* Pastki 5 ta modul uchun stil */
+    .sub-section-title { padding: 20px 20px 10px; font-size: 18px; font-weight: bold; color: #fff; }
+    .sub-modules-list { padding: 0 20px; display: flex; flex-direction: column; gap: 12px; }
+    .sub-card {
+      background: #1c1c1e;
+      border-radius: 15px;
+      padding: 15px 20px;
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      justify-content: center;
-      transition: transform 0.1s, background 0.2s;
-      text-shadow: 0 2px 4px black;
+      border: 1px solid #333;
     }
 
-    .start-btn:active {
-      transform: scale(0.96);
-      background: #3f4852;
+    .tab-bar { 
+      position: fixed; bottom: 0; width: 100%; max-width: 420px;
+      height: 80px; background: rgba(20, 20, 20, 0.95); backdrop-filter: blur(10px);
+      display: flex; justify-content: space-around; align-items: center;
+      border-top: 0.5px solid #333; padding-bottom: env(safe-area-inset-bottom); z-index: 100;
     }
-
-    .pointer-triangle {
-      width: 0;
-      height: 0;
-      border-left: 18px solid transparent;
-      border-right: 18px solid transparent;
-      border-top: 20px solid #4B5561;
-      filter: drop-shadow(0 8px 6px rgba(0,0,0,0.5));
-      margin-top: -4px;
-    }
-
-    /* scroll extra cubes to show scrollable */
-    .scroll-spacer {
-      height: 60px;
-      width: 10px;
-    }
-
-    /* press animation for cubes (active) */
-    .cube-item:active .cube {
-      transform: scale(0.96);
-      transition: 0.1s;
-    }
-    .cube-item.locked:active .cube {
-      transform: scale(1.0);
-    }
-
-    /* disable interaction on locked cubes visual */
-    .cube-item.locked .cube {
-      cursor: not-allowed;
-    }
-
-    /* responsive smaller screens */
-    @media (max-width: 400px) {
-      :root {
-        --cube-size: 180px;
-      }
-      .floating-header {
-        height: 68px;
-        padding: 0 18px;
-      }
-      .header-title {
-        font-size: 24px;
-      }
-      .start-button-wrapper {
-        width: 250px;
-        height: 64px;
-      }
-      .start-btn {
-        font-size: 26px;
-      }
-    }
-
-    /* accessibility / focus */
-    button:focus-visible {
-      outline: 2px solid #B58AFF;
-      outline-offset: 4px;
-    }
+    .tab-item { color: #8e8e93; text-decoration: none; text-align: center; font-size: 10px; }
+    .tab-item.active { color: #007aff; }
+    .tab-item svg { width: 24px; height: 24px; display: block; margin: 0 auto 4px; stroke: currentColor; fill: none; }
+    
+    .points-badge { background: #fff; color: #000; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 14px; }
+    .gradient-name { background: linear-gradient(135deg, #fff, #aaccff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold; }
   </style>
 </head>
 <body>
-  <div class="app-wrapper">
-    <!-- floating header -->
-    <div class="floating-header">
-      <div class="language-icon">🇬🇧</div>
-      <span class="header-title">General English</span>
-      <svg class="down-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <polyline points="6 9 12 15 18 9" />
-      </svg>
+
+<div class="app-wrapper">
+  <div class="header" onclick="navigateTo('profil.html')">
+    <div class="avatar-wrapper">
+      <div class="avatar-circle" id="userAvatar">
+        <span id="avatarInitial">?</span>
+        <img id="avatarImage" src="" alt="avatar" style="display: none;">
+      </div>
+      <div>
+        <h4 id="userName" class="gradient-name">Yuklanmoqda...</h4>
+      </div>
     </div>
-
-    <!-- zigzag path container -->
-    <div class="path-container">
-      
-      <!-- 1. LOCKED upper-right -->
-      <div class="cube-item cube-pos-1 locked">
-        <div class="cube cube-locked">
-          <img src="https://kommodo.ai/i/Hc2IivT0BxnM5Bpc7TXV" alt="lock" class="lock-icon">
-        </div>
-      </div>
-      
-      <!-- 2. LOCKED upper-middle/left -->
-      <div class="cube-item cube-pos-2 locked">
-        <div class="cube cube-locked">
-          <img src="https://kommodo.ai/i/Hc2IivT0BxnM5Bpc7TXV" alt="lock" class="lock-icon">
-        </div>
-      </div>
-      
-      <!-- 3. LOCKED far-left -->
-      <div class="cube-item cube-pos-3 locked">
-        <div class="cube cube-locked">
-          <img src="https://kommodo.ai/i/Hc2IivT0BxnM5Bpc7TXV" alt="lock" class="lock-icon">
-        </div>
-      </div>
-      
-      <!-- 4. LOCKED center -->
-      <div class="cube-item cube-pos-4 locked">
-        <div class="cube cube-locked">
-          <img src="https://kommodo.ai/i/Hc2IivT0BxnM5Bpc7TXV" alt="lock" class="lock-icon">
-        </div>
-      </div>
-      
-      <!-- 5. LOCKED right -->
-      <div class="cube-item cube-pos-5 locked">
-        <div class="cube cube-locked">
-          <img src="https://kommodo.ai/i/Hc2IivT0BxnM5Bpc7TXV" alt="lock" class="lock-icon">
-        </div>
-      </div>
-      
-      <!-- 6. LOCKED lower-right -->
-      <div class="cube-item cube-pos-6 locked">
-        <div class="cube cube-locked">
-          <img src="https://kommodo.ai/i/Hc2IivT0BxnM5Bpc7TXV" alt="lock" class="lock-icon">
-        </div>
-      </div>
-
-      <!-- START BUTTON + pointer overlapping purple cube -->
-      <div class="start-button-wrapper">
-        <button class="start-btn" id="startButton">START</button>
-        <div class="pointer-triangle"></div>
-      </div>
-
-      <!-- PURPLE ACTIVE CUBE (directly below start button) -->
-      <div class="cube-item cube-pos-purple active-cube" id="purpleCubeItem">
-        <div class="cube cube-purple">
-          <img src="https://kommodo.ai/i/oatf5U6Dx34b5SAAWyQG" alt="active lesson" style="width: 55px; height: 55px; object-fit: contain; z-index: 6; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4));">
-        </div>
-      </div>
-      
-      <!-- COMPLETED GREEN 1 -->
-      <div class="cube-item cube-pos-green-1 completed-green">
-        <div class="cube cube-green">
-          <img src="https://kommodo.ai/i/F5blHS7GfI2FpCnbrEzu" alt="completed" class="completed-check">
-        </div>
-      </div>
-      
-      <!-- COMPLETED GREEN 2 -->
-      <div class="cube-item cube-pos-green-2 completed-green">
-        <div class="cube cube-green">
-          <img src="https://kommodo.ai/i/F5blHS7GfI2FpCnbrEzu" alt="completed" class="completed-check">
-        </div>
-      </div>
-
-      <!-- additional hidden scroll area to show scrollable continuation -->
-      <div style="height: 20px;"></div>
-    </div>
+    <div class="points-badge" id="userPoints">⚡ 0</div>
   </div>
 
-  <script>
-    (function(){
-      // subtle press interaction for START and purple cube
-      const startBtn = document.getElementById('startButton');
-      const purpleCubeItem = document.getElementById('purpleCubeItem');
-      
-      function addPressEffect(element) {
-        if (!element) return;
-        element.addEventListener('pointerdown', function(e) {
-          // only if not locked
-          if (element.classList.contains('locked')) return;
-          element.style.transform = 'scale(0.96)';
-          element.style.transition = 'transform 0.1s ease';
-        });
-        element.addEventListener('pointerup', function() {
-          if (element.classList.contains('locked')) return;
-          element.style.transform = '';
-          element.style.transition = 'transform 0.2s ease';
-        });
-        element.addEventListener('pointerleave', function() {
-          if (element.classList.contains('locked')) return;
-          element.style.transform = '';
-          element.style.transition = 'transform 0.2s ease';
-        });
-      }
+  <div class="scroll-container" id="moduleContainer"></div>
 
-      // START button press
-      if (startBtn) {
-        startBtn.addEventListener('pointerdown', () => {
-          startBtn.style.transform = 'scale(0.95)';
-        });
-        startBtn.addEventListener('pointerup', () => {
-          startBtn.style.transform = 'scale(1)';
-        });
-        startBtn.addEventListener('pointerleave', () => {
-          startBtn.style.transform = 'scale(1)';
-        });
-      }
+  <div class="sub-section-title">Maxsus darslar</div>
+  <div class="sub-modules-list" id="subModuleContainer">
+    </div>
 
-      // purple cube press (active)
-      if (purpleCubeItem) {
-        const purpleCube = purpleCubeItem.querySelector('.cube');
-        purpleCubeItem.addEventListener('pointerdown', () => {
-          purpleCubeItem.style.transform = purpleCubeItem.style.transform.includes('translateX') ? 
-            purpleCubeItem.style.transform + ' scale(0.96)' : 'scale(0.96)';
-        });
-        purpleCubeItem.addEventListener('pointerup', () => {
-          purpleCubeItem.style.transform = '';
-          purpleCubeItem.style.transition = 'transform 0.2s';
-        });
-        purpleCubeItem.addEventListener('pointerleave', () => {
-          purpleCubeItem.style.transform = '';
-          purpleCubeItem.style.transition = 'transform 0.2s';
-        });
-      }
+  <nav class="tab-bar">
+    <a href="index.html" class="tab-item active">
+      <svg viewBox="0 0 24 24" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      <span>Asosiy</span>
+    </a>
+    <a href="reyting.html" class="tab-item" onclick="navigateTo('reyting.html')">
+      <svg viewBox="0 0 24 24" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span>Reyting</span>
+    </a>
+    <a href="gift.html" class="tab-item" onclick="navigateTo('gift.html')">
+      <svg viewBox="0 0 24 24" stroke-width="2"><rect x="2" y="7" width="20" height="5"/><path d="M20 12v10H4V12M12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+      <span>Sovg'alar</span>
+    </a>
+  </nav>
+</div>
 
-      // completed green cubes are clickable (no action, just visual)
-      document.querySelectorAll('.completed-green').forEach(green => {
-        green.addEventListener('click', () => {
-          green.querySelector('.cube').style.transform = 'scale(0.97)';
-          setTimeout(() => {
-            green.querySelector('.cube').style.transform = '';
-          }, 120);
-        });
-      });
+<script>
+  const tg = window.Telegram.WebApp;
+  tg.expand();
+  
+  // 30 ta modul ma'lumotlari
+  const topics = ['Dasturlash asoslari','Algoritmlar','Ma\'lumotlar tuzilmasi','Veb dasturlash','Mobil dasturlash','Sun\'iy intellekt','Ma\'lumotlar bazasi','Tarmoq texnologiyalari','Kiberxavfsizlik','Bulutli hisoblash','Python dasturlash','JavaScript asoslari','React.js','Node.js','Flutter','Kotlin','Swift','Java','C++ dasturlash','Go dasturlash','DevOps asoslari','Docker va Kubernetes','Machine Learning','Deep Learning','Data Science','Blockchain','IoT texnologiyalari','AR/VR dasturlash','Game Development','Software Architecture'];
 
-      // locked cubes do nothing on tap (prevent any accidental scaling)
-      document.querySelectorAll('.cube-item.locked').forEach(locked => {
-        locked.addEventListener('pointerdown', (e) => {
-          e.preventDefault();
-        });
-      });
+  const modules = Array.from({ length: 30 }, (_, i) => ({
+    id: i + 1,
+    title: `${i + 1}-modul: ${topics[i] || 'Darslik'}`,
+    label: `MODUL ${i + 1}`,
+    action: i < 5 ? 'Darsni boshlash' : (i < 15 ? 'Davom etish' : 'Tez kunda'),
+    url: `modul${i + 1}.html`,
+    status: i < 5 ? 'available' : (i < 15 ? 'in-progress' : 'coming-soon')
+  }));
 
-      // ensure smooth scroll and hide scrollbar handled by CSS
-    })();
-  </script>
+  // Pastki 5 ta modul ma'lumotlari
+  const subModules = [
+    { title: "Portfolio yaratish", url: "extra1.html", points: "+50" },
+    { title: "Intervyu sirlari", url: "extra2.html", points: "+40" },
+    { title: "Freelance boshlash", url: "extra3.html", points: "+60" },
+    { title: "Soft Skills", url: "extra4.html", points: "+30" },
+    { title: "Ingliz tili IT uchun", url: "extra5.html", points: "+45" }
+  ];
+
+  function setAvatar(user) {
+    const avatarInitial = document.getElementById('avatarInitial');
+    const avatarImage = document.getElementById('avatarImage');
+    if (user && user.photo_url) {
+      avatarImage.src = user.photo_url;
+      avatarImage.style.display = 'block';
+      avatarInitial.style.display = 'none';
+    } else {
+      avatarInitial.textContent = user?.first_name ? user.first_name[0].toUpperCase() : '?';
+    }
+  }
+
+  function renderApp() {
+    const user = tg.initDataUnsafe?.user;
+    if (user) {
+      document.getElementById('userName').textContent = user.last_name ? `${user.first_name} ${user.last_name}` : user.first_name;
+      setAvatar(user);
+    }
+    
+    // 30 ta modulni chiqarish
+    document.getElementById('moduleContainer').innerHTML = modules.map(m => `
+      <div class="lesson-card" onclick="openModule(${m.id}, '${m.url}')">
+        <span style="color: #8e8e93; font-size: 12px; font-weight: 600;">${m.label}</span>
+        <h2 style="font-size: 22px; line-height: 1.2;">${m.title}</h2>
+        <div style="color: ${m.status === 'available' ? '#007aff' : (m.status === 'in-progress' ? '#ff9f0a' : '#8e8e93')}; font-weight: 600;">${m.action} →</div>
+      </div>
+    `).join('');
+
+    // Pastki 5 ta modulni chiqarish
+    document.getElementById('subModuleContainer').innerHTML = subModules.map(sm => `
+      <div class="sub-card" onclick="navigateTo('${sm.url}')">
+        <div>
+          <div style="font-size: 15px; font-weight: 500;">${sm.title}</div>
+          <div style="font-size: 12px; color: #007aff;">${sm.points} ball</div>
+        </div>
+        <div style="color: #444;">❯</div>
+      </div>
+    `).join('');
+  }
+
+  window.navigateTo = function(url) {
+    tg.HapticFeedback.impactOccurred('light');
+    setTimeout(() => { window.location.href = url; }, 100);
+  };
+
+  window.openModule = function(id, url) {
+    tg.HapticFeedback.notificationOccurred('success');
+    localStorage.setItem('last_module', id);
+    setTimeout(() => { window.location.href = url; }, 100);
+  };
+
+  renderApp();
+</script>
 </body>
 </html>
