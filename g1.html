@@ -137,9 +137,25 @@
         #res-btn { background: black !important; color: white !important; }
 
         .trophy-icon { font-size: 80px; color: gold; margin-bottom: 20px; }
+        
+        .score-display {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            color: black;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 16px;
+            z-index: 100;
+        }
     </style>
 </head>
 <body>
+
+<!-- Ball ko'rsatkichi -->
+<div class="score-display" id="scoreDisplay">⚡ 0</div>
 
 <!-- 1. FLASHCARDS SCREEN -->
 <div id="screen1" class="app-container active">
@@ -195,8 +211,9 @@
 <div id="screen-final" class="app-container" style="text-align: center; justify-content: center;">
     <i class="fas fa-trophy trophy-icon"></i>
     <h1 style="font-size: 32px; margin-bottom: 10px;">Tabriklaymiz!</h1>
-    <p style="color: var(--text-secondary); margin-bottom: 40px;">Barcha bosqichlarni muvaffaqiyatli yakunladingiz.</p>
-    <button class="next-btn" onclick="location.reload()">Qaytadan boshlash</button>
+    <p style="color: var(--text-secondary); margin-bottom: 20px;">Barcha bosqichlarni muvaffaqiyatli yakunladingiz.</p>
+    <p style="font-size: 24px; font-weight: 800; margin-bottom: 40px;">Jami: <span id="totalScore">0</span> ⚡</p>
+    <button class="next-btn" onclick="returnToIndex()">Keyingi</button>
 </div>
 
 <div class="result-panel" id="res-panel">
@@ -248,6 +265,38 @@
     const distractors = ["You", "He", "She", "It", "We", "They", "the", "at", "on", "book", "car"];
 
     let currentFlash = 0, g1Idx = 0, g2Idx = 0, builtSeq = [], usedFlags = [];
+    let userScore = 0;
+
+    // Ballarni yuklash
+    function loadScore() {
+        const saved = localStorage.getItem('userPoints');
+        userScore = saved ? parseInt(saved) : 0;
+        updateScoreDisplay();
+    }
+
+    // Ballarni saqlash
+    function saveScore() {
+        localStorage.setItem('userPoints', userScore);
+        updateScoreDisplay();
+    }
+
+    // Ball ko'rsatkichini yangilash
+    function updateScoreDisplay() {
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        if (scoreDisplay) {
+            scoreDisplay.textContent = `⚡ ${userScore}`;
+        }
+        const totalScore = document.getElementById('totalScore');
+        if (totalScore) {
+            totalScore.textContent = userScore;
+        }
+    }
+
+    // To'g'ri javob uchun ball qo'shish
+    function addPoint() {
+        userScore++;
+        saveScore();
+    }
 
     function showScreen(id) {
         document.querySelectorAll('.app-container').forEach(s => s.classList.remove('active'));
@@ -308,8 +357,12 @@
         const correct = currentItem.correct;
         const isCorrect = builtSeq.length === correct.length && builtSeq[0].word === correct[0];
         
+        if (isCorrect) {
+            addPoint(); // To'g'ri javob uchun ball qo'shish
+        }
+        
         togglePanel(true, isCorrect ? "Barakalla!" : "Xato!", 
-                   isCorrect ? "To'g'ri topdingiz." : "To'g'ri javob: " + correct[0], () => {
+                   isCorrect ? "To'g'ri topdingiz! +1 ⚡" : "To'g'ri javob: " + correct[0], () => {
             if (!isCorrect) {
                 // Xato bo'lsa savolni massiv oxiriga 3 marta qo'shish
                 wordGameData.push(currentItem, currentItem, currentItem);
@@ -336,16 +389,28 @@
         const correct = currentItem.correct;
         const isCorrect = builtSeq.length === correct.length && builtSeq.every((v, i) => v.word === correct[i]);
 
+        if (isCorrect) {
+            addPoint(); // To'g'ri javob uchun ball qo'shish
+        }
+
         togglePanel(true, isCorrect ? "Zo'r!" : "E'tiborli bo'ling!", 
-                   isCorrect ? "Gap to'g'ri tuzildi." : "To'g'ri tartib: " + correct.join(' '), () => {
+                   isCorrect ? "Gap to'g'ri tuzildi! +1 ⚡" : "To'g'ri tartib: " + correct.join(' '), () => {
             if (!isCorrect) {
                 // Xato bo'lsa gapni massiv oxiriga 3 marta qo'shish
                 sentenceData.push(currentItem, currentItem, currentItem);
             }
             if (g2Idx < sentenceData.length - 1) {
                 g2Idx++; initSentenceGame();
-            } else { showScreen('screen-final'); }
+            } else { 
+                showScreen('screen-final');
+            }
         });
+    }
+
+    function returnToIndex() {
+        // Ballarni saqlash va index.html ga qaytish
+        saveScore();
+        window.location.href = 'index.html';
     }
 
     function renderGame(prefix) {
@@ -371,6 +436,9 @@
         btn.disabled = builtSeq.length === 0;
         btn.style.opacity = btn.disabled ? '0.5' : '1';
     }
+
+    // Sahifa yuklanganda ballarni yuklash
+    loadScore();
 
     const firstItem = vocabData[0];
     document.getElementById('f-pos').textContent = firstItem.pos;
