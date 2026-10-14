@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Ilovasi</title>
+    <!-- Tailwind CSS ulash -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000000;
+            color: #ffffff;
+            margin: 0;
+            overflow: hidden; /* Sahifa umuman skroll bo'lmasligi uchun */
+        }
+        /* Scrollbar dizayni */
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3f3f46;
+            border-radius: 10px;
+        }
+        /* Xabar pufakchalari animatsiyasi */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .message-anim {
+            animation: fadeIn 0.2s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="flex h-screen w-full bg-zinc-950">
+
+    <!-- CHAP TOMON: Sidebar (Logotip, Qidiruv, Chatlar) -->
+    <div class="w-full max-w-[350px] border-r border-zinc-800 bg-black flex flex-col h-full flex-shrink-0">
+        
+        <!-- Logotip "L" -->
+        <div class="px-6 py-5 border-b border-zinc-900">
+            <h1 class="font-serif font-black text-4xl italic tracking-tighter cursor-pointer">L</h1>
+        </div>
+
+        <!-- Qidiruv (Input) -->
+        <div class="p-4">
+            <div class="relative">
+                <svg class="absolute left-3 top-2.5 w-5 h-5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                <input type="text" placeholder="Qidiruv..." class="w-full bg-zinc-900 text-white text-sm rounded-full pl-10 pr-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-zinc-700 transition-shadow">
+            </div>
+        </div>
+
+        <!-- Chatlar bo'limi nomi -->
+        <div class="px-5 pb-2 text-zinc-400 font-semibold text-sm">
+            Xabar
+        </div>
+
+        <!-- 3 ta Chat ro'yxati -->
+        <div class="flex-1 overflow-y-auto" id="chat-list">
+            <!-- Chat 1 -->
+            <div class="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-zinc-900 transition-colors bg-zinc-900" onclick="openChat(1, this)">
+                <img src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=100&auto=format&fit=crop&q=80" alt="Ali" class="w-12 h-12 rounded-full object-cover">
+                <div class="flex-1 min-w-0">
+                    <div class="flex justify-between items-center mb-0.5">
+                        <h3 class="font-semibold text-[15px] truncate">Ali Valiyev</h3>
+                        <span class="text-xs text-zinc-500">10:42</span>
+                    </div>
+                    <p class="text-sm text-zinc-400 truncate" id="last-msg-1">Qachon ko'rishamiz?</p>
+                </div>
+            </div>
+
+            <!-- Chat 2 -->
+            <div class="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-zinc-900 transition-colors" onclick="openChat(2, this)">
+                <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&auto=format&fit=crop&q=80" alt="Malika" class="w-12 h-12 rounded-full object-cover">
+                <div class="flex-1 min-w-0">
+                    <div class="flex justify-between items-center mb-0.5">
+                        <h3 class="font-semibold text-[15px] truncate">Malika</h3>
+                        <span class="text-xs text-zinc-500">Kecha</span>
+                    </div>
+                    <p class="text-sm text-zinc-400 truncate" id="last-msg-2">Yangi dizaynni yubordim</p>
+                </div>
+            </div>
+
+            <!-- Chat 3 -->
+            <div class="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-zinc-900 transition-colors" onclick="openChat(3, this)">
+                <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80" alt="Sardor" class="w-12 h-12 rounded-full object-cover">
+                <div class="flex-1 min-w-0">
+                    <div class="flex justify-between items-center mb-0.5">
+                        <h3 class="font-semibold text-[15px] truncate">Sardor Aka</h3>
+                        <span class="text-xs text-zinc-500">Du</span>
+                    </div>
+                    <p class="text-sm text-zinc-400 truncate" id="last-msg-3">Loyiha zo'r chiqibdi, rahmat!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- O'NG TOMON: Chat Oynasi -->
+    <div class="flex-1 flex flex-col h-full bg-zinc-950 relative">
+        
+        <!-- Chat Header -->
+        <div class="px-6 py-4 border-b border-zinc-900 bg-black/80 backdrop-blur flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <img id="active-chat-img" src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=100&auto=format&fit=crop&q=80" alt="Avatar" class="w-10 h-10 rounded-full object-cover">
+                <div>
+                    <h2 id="active-chat-name" class="font-semibold text-base">Ali Valiyev</h2>
+                    <p class="text-xs text-green-500">Onlayn</p>
+                </div>
+            </div>
+            <button class="text-zinc-400 hover:text-white">
+                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
+            </button>
+        </div>
+
+        <!-- Chat Xabarlari chiqadigan joy -->
+        <div class="flex-1 overflow-y-auto p-6 flex flex-col gap-4" id="messages-container">
+            <!-- Xabarlar JS orqali shu yerga qo'shiladi -->
+        </div>
+
+        <!-- Xabar yozish (Input) -->
+        <div class="p-4 bg-black border-t border-zinc-900">
+            <form id="message-form" class="flex gap-2 items-end max-w-4xl mx-auto">
+                <button type="button" class="p-3 text-zinc-400 hover:text-white transition-colors">
+                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                </button>
+                <div class="flex-1 bg-zinc-900 rounded-2xl flex items-center pr-2">
+                    <input type="text" id="message-input" autocomplete="off" placeholder="Xabar yozing..." class="w-full bg-transparent text-white px-4 py-3 focus:outline-none">
+                    <button type="button" class="p-2 text-zinc-400 hover:text-white transition-colors">
+                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 21a2.5 2.5 0 0 0 5-5V5a2 2 0 0 0-4 0v11"></path><path d="M10 21a2.5 2.5 0 0 0 5-5V5a2 2 0 0 0-4 0v11"></path></svg>
+                    </button>
+                </div>
+                <button type="submit" class="p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </button>
+            </form>
+        </div>
+        
+    </div>
+
+    <!-- JAVASCRIPT: Xabarlarni boshqarish -->
+    <script>
+        // Chatlar ma'lumotlar bazasi (Sobiq xabarlar bilan)
+        const chatsData = {
+            1: {
+                name: "Ali Valiyev",
+                img: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=100&auto=format&fit=crop&q=80",
+                messages: [
+                    { type: 'received', text: 'Salom!', time: '10:40' },
+                    { type: 'received', text: 'Qachon ko\'rishamiz?', time: '10:42' }
+                ]
+            },
+            2: {
+                name: "Malika",
+                img: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&auto=format&fit=crop&q=80",
+                messages: [
+                    { type: 'received', text: 'Yangi dizaynni yubordim', time: 'Kecha' }
+                ]
+            },
+            3: {
+                name: "Sardor Aka",
+                img: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80",
+                messages: [
+                    { type: 'received', text: 'Loyiha zo\'r chiqibdi, rahmat!', time: 'Dushanba' }
+                ]
+            }
+        };
+
+        let currentChatId = 1; // Boshlang'ich ochilgan chat
+        const messagesContainer = document.getElementById('messages-container');
+        const messageForm = document.getElementById('message-form');
+        const messageInput = document.getElementById('message-input');
+
+        // Vaqtni olish uchun yordamchi funksiya
+        function getCurrentTime() {
+            const now = new Date();
+            return now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+        }
+
+        // Xabarni ekranga chizuvchi funksiya
+        function renderMessage(msg) {
+            const div = document.createElement('div');
+            div.className = `max-w-[70%] rounded-2xl px-4 py-2 message-anim ${msg.type === 'sent' ? 'bg-blue-600 text-white self-end rounded-br-sm' : 'bg-zinc-800 text-zinc-100 self-start rounded-bl-sm'}`;
+            div.innerHTML = `
+                <p class="text-[15px] leading-relaxed">${msg.text}</p>
+                <span class="text-[10px] ${msg.type === 'sent' ? 'text-blue-200' : 'text-zinc-500'} block text-right mt-1">${msg.time}</span>
+            `;
+            messagesContainer.appendChild(div);
+            // Skrollni doim eng pastga tushirish
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Chatni ochish funksiyasi
+        function openChat(id, element) {
+            currentChatId = id;
+            
+            // Chap paneldagi aktiv fonni almashtirish
+            document.querySelectorAll('#chat-list > div').forEach(el => el.classList.remove('bg-zinc-900'));
+            if(element) element.classList.add('bg-zinc-900');
+
+            // Header ma'lumotlarini o'zgartirish
+            document.getElementById('active-chat-name').innerText = chatsData[id].name;
+            document.getElementById('active-chat-img').src = chatsData[id].img;
+
+            // Xabarlar oynasini tozalash va yangi xabarlarni yuklash
+            messagesContainer.innerHTML = '';
+            chatsData[id].messages.forEach(msg => renderMessage(msg));
+            
+            messageInput.focus();
+        }
+
+        // Yangi xabar yuborish
+        messageForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const text = messageInput.value.trim();
+            
+            if(text) {
+                const newMsg = { type: 'sent', text: text, time: getCurrentTime() };
+                
+                // Ma'lumotlar bazasiga saqlash
+                chatsData[currentChatId].messages.push(newMsg);
+                
+                // Ekranga chiqarish
+                renderMessage(newMsg);
+                
+                // Chap paneldagi oxirgi xabar matnini yangilash
+                document.getElementById(`last-msg-${currentChatId}`).innerText = text;
+                document.getElementById(`last-msg-${currentChatId}`).classList.add('text-white');
+
+                // Inputni tozalash
+                messageInput.value = '';
+            }
+        });
+
+        // Ilova ishga tushganda 1-chatni yuklash
+        openChat(1, document.querySelector('#chat-list > div'));
+
+    </script>
+</body>
+</html>
