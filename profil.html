@@ -12,7 +12,7 @@
   body {
     margin: 0;
     padding: 0;
-    background-color: var(--tg-theme-bg-color, #000000); /* Telegram mavzusiga moslashuvchanlik */
+    background-color: var(--tg-theme-bg-color, #000000);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     display: flex;
     justify-content: center;
@@ -141,7 +141,6 @@
     overflow: hidden;
   }
 
-  /* Statistika qismi (yuqorida) */
   .profile-stats {
     display: flex;
     justify-content: space-evenly;
@@ -169,7 +168,6 @@
     font-weight: 500;
   }
 
-  /* O'rtadagi nozik ajratuvchi chiziq */
   .panel-divider {
     height: 1px;
     background-color: rgba(255, 255, 255, 0.08);
@@ -177,7 +175,6 @@
     margin: 0 auto;
   }
 
-  /* Navigatsiya qismi (pastda) */
   .profile-nav {
     display: flex;
     justify-content: space-between;
@@ -193,6 +190,7 @@
     padding: 10px 14px;
     border-radius: 20px;
     transition: all 0.3s ease;
+    cursor: pointer;
   }
 
   .nav-item.active {
@@ -203,13 +201,35 @@
   .nav-item:hover:not(.active) {
     color: #d1d1d6;
   }
+
+  /* --- KONTENT BLOKLARI UCHUN STIL --- */
+  .tab-contents-container {
+    padding: 25px 20px;
+    color: white;
+  }
+
+  .tab-pane {
+    display: none;
+    animation: fadeIn 0.3s ease;
+    color: #8e8e93;
+    text-align: center;
+    font-size: 15px;
+  }
+
+  .tab-pane.active-tab {
+    display: block;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 </style>
 </head>
 <body>
 
 <div class="mobile-container">
   
-  <!-- Katta dumaloq burchakli profil kartochkasi -->
   <div class="header-card">
     <div class="profile-content">
       <div class="avatar">
@@ -229,10 +249,8 @@
     </div>
   </div>
 
-  <!-- Birlashtirilgan muallaq panel (Statistika + Navigatsiya) -->
   <div class="combined-island-panel">
     
-    <!-- Statistika bloki -->
     <div class="profile-stats">
       <div class="stat-item">
         <span class="stat-value">5</span>
@@ -248,49 +266,84 @@
       </div>
     </div>
 
-    <!-- Ajratuvchi chiziq -->
     <div class="panel-divider"></div>
 
-    <!-- Navigatsiya bloki -->
     <nav class="profile-nav">
-      <a href="#" class="nav-item active">Bosh sahifa</a>
-      <a href="#" class="nav-item">Postlar</a>
-      <a href="#" class="nav-item">Foto</a>
-      <a href="#" class="nav-item">Video</a>
+      <!-- Data-target orqali qaysi tab ochilishini bog'laymiz -->
+      <a class="nav-item active" data-target="tab-home">Bosh sahifa</a>
+      <a class="nav-item" data-target="tab-posts">Postlar</a>
+      <a class="nav-item" data-target="tab-photos">Foto</a>
+      <a class="nav-item" data-target="tab-videos">Video</a>
     </nav>
     
   </div>
 
+  <!-- NAVIGATSIYA KONTENTLARI -->
+  <div class="tab-contents-container">
+    
+    <div id="tab-home" class="tab-pane active-tab">
+      <p>Bu yerdan bosh sahifadagi asosiy ma'lumotlar o'rin oladi.</p>
+    </div>
+
+    <div id="tab-posts" class="tab-pane">
+      <p>Bu foydalanuvchining barcha yozgan postlari shu yerda ko'rinadi.</p>
+    </div>
+
+    <div id="tab-photos" class="tab-pane">
+      <p>Foydalanuvchi joylagan rasmlar galereyasi.</p>
+    </div>
+
+    <div id="tab-videos" class="tab-pane">
+      <p>Video materiallar uchun ajratilgan bo'lim.</p>
+    </div>
+
+  </div>
+
 </div>
 
-<!-- Telegram Mini App va telefon Back tugmasi uchun skriptlar -->
+<!-- JavaScript Qismi -->
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // 1. Telegram Mini App sozlamalari
+        
+        // 1. NAVIGATSIYANI BOShQARISh (TABLAR)
+        const navItems = document.querySelectorAll('.nav-item');
+        const tabPanes = document.querySelectorAll('.tab-pane');
+
+        navItems.forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Hamma tablardan active va active-tab klaslarini olib tashlaymiz
+                navItems.forEach(nav => nav.classList.remove('active'));
+                tabPanes.forEach(pane => pane.classList.remove('active-tab'));
+                
+                // Bosilgan tugmaga 'active' klassini beramiz
+                this.classList.add('active');
+                
+                // Tugmaga mos keluvchi kontent blokini topib, 'active-tab' beramiz
+                const targetId = this.getAttribute('data-target');
+                document.getElementById(targetId).classList.add('active-tab');
+            });
+        });
+
+
+        // 2. TELEGRAM VA ORQAGA QAYTISH TUGMALARI
         if (window.Telegram && window.Telegram.WebApp) {
             const tg = window.Telegram.WebApp;
             tg.ready();
             
-            // To'liq ekran rejimi (ixtiyoriy, agar header'ni yo'qotmoqchi bo'lsangiz)
             tg.expand();
             if (tg.requestFullscreen) {
                 tg.requestFullscreen();
             }
             
-            // Telegram tepa panelidagi "Orqaga" (Back) tugmasini ko'rsatish
             tg.BackButton.show();
-            
-            // Telegram Back tugmasi bosilganda
             tg.BackButton.onClick(function() {
                 window.location.href = 'index.html';
             });
         }
 
-        // 2. Telefonning jismoniy yoki ishora orqali (swipe) orqaga qaytish hodisasi
-        // Brauzer tarixiga soxta sahifa qo'shamiz
         window.history.pushState({page: 'profil'}, "Profil", "");
-        
-        // Foydalanuvchi telefonda "Orqaga" qilganda ushlab qolib yo'naltirish
         window.addEventListener('popstate', function(event) {
             window.location.href = 'index.html';
         });
