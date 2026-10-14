@@ -17,7 +17,6 @@
             background-color: var(--tg-theme-bg-color, #000000);
             -webkit-font-smoothing: antialiased;
             -webkit-tap-highlight-color: transparent;
-            overflow: hidden; /* Splash vaqtida scroll bo'lmasligi uchun */
         }
         ::-webkit-scrollbar { width: 4px; background: transparent; }
         ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
@@ -28,139 +27,88 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
+        /* Aktiv nav tugmasi */
         .nav-active { color: #ffffff; }
         .nav-inactive { color: #a1a1aa; }
         .nav-inactive:hover { color: #ffffff; }
 
         /* ===== SPLASH SCREEN ===== */
-        #splash {
-            position: fixed;
-            inset: 0;
-            z-index: 9999;
-            background: #000000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: opacity 0.8s ease, visibility 0.8s ease;
+        #splashScreen {
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.8s ease-out, visibility 0.8s ease-out;
         }
-        #splash.hide {
+        #splashScreen.hide {
             opacity: 0;
             visibility: hidden;
-            pointer-events: none;
         }
 
-        /* "L" logotipi konteyner */
-        .logo-container {
-            position: relative;
-            width: 140px;
-            height: 140px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* Aylanuvchi halqa */
-        .logo-ring {
-            position: absolute;
-            inset: 0;
-            border-radius: 50%;
-            border: 2px solid transparent;
-            border-top-color: #ffffff;
-            border-right-color: rgba(255,255,255,0.3);
-            animation: spin 1.2s linear infinite;
-        }
-        .logo-ring::before {
-            content: '';
-            position: absolute;
-            inset: 12px;
-            border-radius: 50%;
-            border: 2px solid transparent;
-            border-bottom-color: rgba(255,255,255,0.6);
-            border-left-color: rgba(255,255,255,0.15);
-            animation: spin-reverse 1.8s linear infinite;
-        }
-
-        /* "L" harfi */
-        .logo-letter {
-            font-family: 'Inter', sans-serif;
-            font-weight: 900;
-            font-style: italic;
-            font-size: 72px;
-            letter-spacing: -4px;
-            color: #ffffff;
-            line-height: 1;
-            opacity: 0;
-            transform: scale(0.3) rotate(-15deg);
-            animation: letterIn 1.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-            text-shadow: 0 0 30px rgba(255,255,255,0.35);
-        }
-
-        /* Yorug'lik effekti */
-        .logo-glow {
-            position: absolute;
-            width: 180px;
-            height: 180px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
-            animation: pulse 2s ease-in-out infinite;
-            pointer-events: none;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        @keyframes spin-reverse {
-            to { transform: rotate(-360deg); }
-        }
-        @keyframes letterIn {
+        /* Logo paydo bo'lish animatsiyasi */
+        @keyframes logoFadeIn {
             0% {
                 opacity: 0;
                 transform: scale(0.3) rotate(-15deg);
-                filter: blur(10px);
             }
-            50% {
+            60% {
                 opacity: 1;
-                filter: blur(0);
+                transform: scale(1.15) rotate(5deg);
             }
             100% {
                 opacity: 1;
                 transform: scale(1) rotate(0deg);
-                filter: blur(0);
             }
         }
-        @keyframes pulse {
-            0%, 100% { transform: scale(0.95); opacity: 0.6; }
-            50% { transform: scale(1.15); opacity: 1; }
+
+        /* Logo g'oyib bo'lish animatsiyasi */
+        @keyframes logoFadeOut {
+            0% {
+                opacity: 1;
+                transform: scale(1) rotate(0deg);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(1.8) rotate(10deg);
+            }
         }
 
-        /* Chiqish animatsiyasi (logotip kattalashib g'oyib bo'ladi) */
-        #splash.exit .logo-letter {
-            animation: letterOut 0.6s ease forwards;
-        }
-        #splash.exit .logo-ring,
-        #splash.exit .logo-glow {
-            animation: fadeOut 0.5s ease forwards;
+        #splashScreen .logo-text {
+            animation: logoFadeIn 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         }
 
-        @keyframes letterOut {
-            0% { transform: scale(1) rotate(0deg); opacity: 1; }
-            100% { transform: scale(1.6) rotate(8deg); opacity: 0; filter: blur(6px); }
+        #splashScreen.hide .logo-text {
+            animation: logoFadeOut 0.7s ease-in forwards;
         }
-        @keyframes fadeOut {
-            to { opacity: 0; transform: scale(1.2); }
+
+        /* Orqa fondagi nafas olish effekti */
+        @keyframes glowPulse {
+            0%, 100% {
+                opacity: 0.15;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.35;
+                transform: scale(1.2);
+            }
         }
+        .glow-effect {
+            animation: glowPulse 2s ease-in-out infinite;
+        }
+        /* ===== SPLASH SCREEN TUGADI ===== */
     </style>
 </head>
 <body class="text-white antialiased flex justify-center min-h-screen selection:bg-zinc-800">
 
     <!-- ===== SPLASH SCREEN ===== -->
-    <div id="splash">
-        <div class="logo-container">
-            <div class="logo-glow"></div>
-            <div class="logo-ring"></div>
-            <div class="logo-letter">L</div>
+    <div id="splashScreen" class="fixed inset-0 z-[9999] bg-black flex items-center justify-center">
+        <!-- Orqa fondagi nur -->
+        <div class="glow-effect absolute w-64 h-64 rounded-full bg-white blur-[100px]"></div>
+        
+        <!-- L logotipi -->
+        <div class="logo-text relative text-white font-serif font-black text-8xl italic tracking-tighter select-none drop-shadow-[0_0_30px_rgba(255,255,255,0.5)]">
+            L
         </div>
     </div>
+    <!-- ===== SPLASH SCREEN TUGADI ===== -->
 
     <div class="w-full max-w-lg border-x border-zinc-900 min-h-screen flex flex-col relative bg-black pb-28 no-scrollbar">
         
@@ -270,6 +218,7 @@
     <nav class="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 w-[92%] max-w-[400px] bg-zinc-900/90 backdrop-blur-xl border border-zinc-700/50 rounded-[2rem] z-50 shadow-[0_10px_40px_rgba(0,0,0,0.8)] pb-safe">
         <div class="flex justify-around items-center px-2 py-3">
             
+            <!-- Uy - AKTIV -->
             <a href="index.html" class="nav-btn flex flex-col items-center gap-1 nav-active px-3 sm:px-4">
                 <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
@@ -278,6 +227,7 @@
                 <span class="text-[10px] font-semibold tracking-wide">Uy</span>
             </a>
 
+            <!-- Reels -->
             <a href="reels.html" class="nav-btn flex flex-col items-center gap-1 nav-inactive px-3 sm:px-4">
                 <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
@@ -290,6 +240,7 @@
                 <span class="text-[10px] font-medium tracking-wide">Reels</span>
             </a>
 
+            <!-- Xabar -->
             <a href="xabar.html" class="nav-btn flex flex-col items-center gap-1 nav-inactive px-3 sm:px-4 relative">
                 <div class="relative">
                     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="-scale-x-100">
@@ -300,6 +251,7 @@
                 <span class="text-[10px] font-medium tracking-wide">Xabar</span>
             </a>
 
+            <!-- Qidiruv -->
             <a href="qidiruv.html" class="nav-btn flex flex-col items-center gap-1 nav-inactive px-3 sm:px-4">
                 <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="11" cy="11" r="8"></circle>
@@ -308,6 +260,7 @@
                 <span class="text-[10px] font-medium tracking-wide">Qidiruv</span>
             </a>
 
+            <!-- Profil -->
             <a href="profil.html" class="nav-btn flex flex-col items-center gap-1 nav-inactive px-3 sm:px-4">
                 <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80" alt="Profile" class="w-6 h-6 rounded-full object-cover ring-2 ring-transparent">
                 <span class="text-[10px] font-medium tracking-wide">Profil</span>
@@ -318,7 +271,7 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            // Telegram WebApp init
+            // Telegram WebApp sozlamalari
             if (window.Telegram && window.Telegram.WebApp) {
                 const tg = window.Telegram.WebApp;
                 tg.ready();
@@ -328,34 +281,16 @@
                 tg.setBackgroundColor('#000000');
             }
 
-            // ===== SPLASH SCREEN LOGIC =====
-            const splash = document.getElementById('splash');
-            const TOTAL_SPLASH_TIME = 2200; // Logotip ko'rinish vaqti (ms)
-            const EXIT_ANIM_TIME = 600;     // Chiqish animatsiyasi (ms)
-
-            // Session davomida faqat 1 marta ko'rsatish (ixtiyoriy)
-            const alreadyShown = sessionStorage.getItem('splashShown');
-
-            if (alreadyShown) {
-                // Agar allaqachon ko'rsatilgan bo'lsa, darhol yashirish
-                splash.style.display = 'none';
-                document.body.style.overflow = '';
-            } else {
-                sessionStorage.setItem('splashShown', 'true');
-
-                // Belgilangan vaqtdan keyin chiqish animatsiyasini boshlash
+            // Splash screen'ni 2 soniyadan keyin yashirish
+            const splash = document.getElementById('splashScreen');
+            if (splash) {
                 setTimeout(() => {
-                    splash.classList.add('exit');
-
-                    // Chiqish animatsiyasi tugagach butunlay olib tashlash
+                    splash.classList.add('hide');
+                    // Animatsiya tugagach butunlay DOM'dan o'chirish
                     setTimeout(() => {
-                        splash.classList.add('hide');
-                        document.body.style.overflow = ''; // Scroll qayta yoqiladi
-                        // Animatsiya tugagach DOM dan olib tashlash
-                        setTimeout(() => splash.remove(), 900);
-                    }, EXIT_ANIM_TIME);
-
-                }, TOTAL_SPLASH_TIME);
+                        splash.remove();
+                    }, 800);
+                }, 2000); // 2000ms = 2 soniya
             }
         });
     </script>
