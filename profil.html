@@ -47,7 +47,7 @@
             min-height: 100vh;
         }
 
-        /* Profil rasmi - PASTGA TUSHIRILDI va O'RTADA */
+        /* Profil rasmi */
         .profile-pic-wrapper {
             display: flex;
             justify-content: center;
@@ -61,7 +61,7 @@
             height: 120px;
             border-radius: 50%;
             object-fit: cover;
-            background-color: #333;
+            background-color: #1c1c1e;
             border: 3px solid #1c1c1e;
         }
 
@@ -124,7 +124,7 @@
             margin-bottom: 30px;
         }
 
-        /* ===== OBUNA BO'LISH TUGMASI - OQ RANG ===== */
+        /* OBUNA BO'LISH TUGMASI - OQ RANG */
         .btn-subscribe {
             flex: 1;
             background-color: #ffffff;
@@ -144,14 +144,13 @@
             transform: scale(0.98);
         }
 
-        /* Obuna bo'lingan holatda - kulrang */
         .btn-subscribe.subscribed {
             background-color: #1c1c1e;
             color: #ffffff;
             border: 1px solid #2c2c2e;
         }
 
-        /* ===== XABAR TUGMASI - KAPSULA SHAKLIDA ===== */
+        /* XABAR TUGMASI - KAPSULA */
         .btn-message {
             flex: 1;
             background-color: #1c1c1e;
@@ -185,7 +184,7 @@
             stroke-linejoin: round;
         }
 
-        /* ===== ULASHISH TUGMASI - DUMAALOQ ===== */
+        /* ULASHISH TUGMASI - DUMAALOQ */
         .btn-share {
             background-color: #1c1c1e;
             border: none;
@@ -215,7 +214,7 @@
             stroke-linejoin: round;
         }
 
-        /* Menyular (Tablar) */
+        /* Tablar */
         .tabs {
             display: flex;
             background-color: #1c1c1e;
@@ -260,7 +259,6 @@
             text-align: center;
             width: 100%;
             padding: 40px 0;
-            transition: opacity 0.2s ease;
         }
 
         .content-area .empty-icon {
@@ -285,7 +283,7 @@
             stroke-linejoin: round;
         }
 
-        /* ===== BOTTOM NAVIGATION ===== */
+        /* BOTTOM NAVIGATION */
         .bottom-nav {
             position: fixed;
             bottom: 16px;
@@ -353,6 +351,7 @@
             height: 24px;
             border-radius: 50%;
             object-fit: cover;
+            background-color: #1c1c1e;
         }
 
         .nav-btn .nav-icon-wrapper {
@@ -376,7 +375,7 @@
             box-shadow: 0 0 0 2px #18181b;
         }
 
-        /* Toast xabarnoma */
+        /* Toast */
         .toast {
             position: fixed;
             bottom: 110px;
@@ -407,12 +406,14 @@
     <div class="mobile-container">
         <!-- Profil rasmi -->
         <div class="profile-pic-wrapper">
-            <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80" alt="Profil rasmi" class="profile-pic">
+            <img id="userPhoto"
+                 src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%231c1c1e'/><circle cx='50' cy='40' r='18' fill='%233f3f46'/><ellipse cx='50' cy='90' rx='30' ry='22' fill='%233f3f46'/></svg>"
+                 alt="Profil rasmi" class="profile-pic">
         </div>
 
         <!-- Ism va holat -->
-        <h1 class="name">M</h1>
-        <p class="last-seen">5-sen kuni 14:54 da kirgan</p>
+        <h1 class="name" id="userName">Yuklanmoqda...</h1>
+        <p class="last-seen" id="userStatus">Telegram foydalanuvchisi</p>
 
         <!-- Statistika -->
         <div class="stats-container">
@@ -450,7 +451,7 @@
             </button>
         </div>
 
-        <!-- Menyu tablari -->
+        <!-- Tablar -->
         <div class="tabs" id="tabsContainer">
             <div class="tab-item" data-tab="stories">Storylar</div>
             <div class="tab-item active" data-tab="posts">Postlar</div>
@@ -471,7 +472,7 @@
         </div>
     </div>
 
-    <!-- ===== BOTTOM NAVIGATION ===== -->
+    <!-- BOTTOM NAVIGATION -->
     <nav class="bottom-nav">
         <div class="bottom-nav-inner">
             <a href="index.html" class="nav-btn nav-inactive">
@@ -513,17 +514,21 @@
             </a>
 
             <a href="profil.html" class="nav-btn nav-active">
-                <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80" alt="Profile" class="nav-avatar">
+                <img id="navUserPhoto"
+                     src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%231c1c1e'/><circle cx='50' cy='40' r='18' fill='%233f3f46'/><ellipse cx='50' cy='90' rx='30' ry='22' fill='%233f3f46'/></svg>"
+                     alt="Profile" class="nav-avatar">
                 <span class="nav-label">Profil</span>
             </a>
         </div>
     </nav>
 
-    <!-- Toast xabarnoma -->
+    <!-- Toast -->
     <div class="toast" id="toast"></div>
 
     <script>
-        // ===== TELEGRAM WEB APP =====
+        // ============================================================
+        // 1. TELEGRAM WEB APP INITSIALIZATSIYASI
+        // ============================================================
         let tg = null;
         if (window.Telegram && window.Telegram.WebApp) {
             tg = window.Telegram.WebApp;
@@ -534,7 +539,67 @@
             tg.setBackgroundColor('#000000');
         }
 
-        // ===== TELEFON ORQAGA TUGMASI =====
+        // ============================================================
+        // 2. FOYDALANUVCHI MA'LUMOTLARINI YUKLASH
+        // ============================================================
+        function loadTelegramUser() {
+            // Brauzerda ochilgan bo'lsa — demo ma'lumot ko'rsatamiz
+            let user = tg?.initDataUnsafe?.user;
+
+            // === TEST REJIMI (faqat brauzerda) ===
+            if (!user) {
+                console.warn('⚠️ Telegram foydalanuvchi ma\'lumotlari topilmadi. Demo rejim.');
+                user = {
+                    first_name: 'Mehmon',
+                    last_name: 'Foydalanuvchi',
+                    username: 'mehmon',
+                    photo_url: null
+                };
+            }
+
+            // --- Ismni yuklash ---
+            const fullName = [user.first_name, user.last_name]
+                .filter(Boolean)
+                .join(' ') || 'Foydalanuvchi';
+
+            const userNameEl = document.getElementById('userName');
+            if (userNameEl) userNameEl.textContent = fullName;
+
+            // --- Status sifatida @username ---
+            const userStatusEl = document.getElementById('userStatus');
+            if (userStatusEl) {
+                userStatusEl.textContent = user.username
+                    ? '@' + user.username
+                    : 'Telegram foydalanuvchisi';
+            }
+
+            // --- Profil rasmini yuklash ---
+            const userPhotoEl = document.getElementById('userPhoto');
+            const navPhotoEl  = document.getElementById('navUserPhoto');
+
+            if (user.photo_url) {
+                if (userPhotoEl) userPhotoEl.src = user.photo_url;
+                if (navPhotoEl)  navPhotoEl.src  = user.photo_url;
+            } else {
+                // Rasm yo'q — bosh harflardan avatar yasash
+                const initials = encodeURIComponent(
+                    (user.first_name?.[0] || 'U') + (user.last_name?.[0] || '')
+                );
+                const fallback = `https://ui-avatars.com/api/?name=${initials}&background=1c1c1e&color=ffffff&size=200&bold=true`;
+                if (userPhotoEl) userPhotoEl.src = fallback;
+                if (navPhotoEl)  navPhotoEl.src  = fallback;
+            }
+
+            // Keyinchalik ishlatish uchun global saqlash
+            window.__tgUser = user;
+        }
+
+        // Chaqirish
+        loadTelegramUser();
+
+        // ============================================================
+        // 3. TELEFON ORQAGA TUGMASI
+        // ============================================================
         if (tg && tg.BackButton) {
             tg.BackButton.show();
             tg.BackButton.onClick(function() {
@@ -546,15 +611,9 @@
             });
         }
 
-        window.addEventListener('popstate', function() {
-            if (window.history.length > 1) {
-                window.history.back();
-            } else {
-                window.location.href = 'index.html';
-            }
-        });
-
-        // ===== OBUNA BO'LISH TUGMASI =====
+        // ============================================================
+        // 4. OBUNA BO'LISH TUGMASI
+        // ============================================================
         const subscribeBtn = document.getElementById('subscribeBtn');
         const followersCount = document.getElementById('followersCount');
         let isSubscribed = false;
@@ -582,16 +641,22 @@
             }
         });
 
-        // ===== XABAR TUGMASI =====
+        // ============================================================
+        // 5. XABAR TUGMASI
+        // ============================================================
         document.getElementById('messageBtn').addEventListener('click', function() {
             if (tg && tg.HapticFeedback) {
                 tg.HapticFeedback.impactOccurred('light');
             }
-            // Xabar sahifasiga o'tish
-            window.location.href = 'xabar.html';
+            showToast('Xabar sahifasiga o\'tilmoqda...');
+            setTimeout(() => {
+                window.location.href = 'xabar.html';
+            }, 300);
         });
 
-        // ===== ULASHISH TUGMASI =====
+        // ============================================================
+        // 6. ULASHISH TUGMASI
+        // ============================================================
         document.getElementById('shareBtn').addEventListener('click', function() {
             const shareData = {
                 title: 'Profil',
@@ -614,8 +679,9 @@
             }
         });
 
-        
-        // ===== TABLAR (PANEL) =====
+        // ============================================================
+        // 7. TABLAR (PANEL)
+        // ============================================================
         const tabsContainer = document.getElementById('tabsContainer');
         const contentText = document.getElementById('contentText');
 
@@ -644,7 +710,9 @@
             }
         });
 
-        // ===== TOAST XABARNOMA =====
+        // ============================================================
+        // 8. TOAST XABARNOMA
+        // ============================================================
         let toastTimeout = null;
         function showToast(message) {
             const toast = document.getElementById('toast');
@@ -657,7 +725,9 @@
             }, 2000);
         }
 
-        // ===== BOTTOM NAV TUGMALARI UCHUN HAPTIC =====
+        // ============================================================
+        // 9. BOTTOM NAV UCHUN HAPTIC
+        // ============================================================
         document.querySelectorAll('.nav-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 if (tg && tg.HapticFeedback) {
@@ -666,7 +736,9 @@
             });
         });
 
-        // ===== TARIXGA HOLAT QO'SHISH =====
+        // ============================================================
+        // 10. TARIXGA HOLAT QO'SHISH
+        // ============================================================
         if (window.history && window.history.pushState) {
             window.history.pushState({ page: 'profil' }, '', window.location.href);
         }
