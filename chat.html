@@ -1,168 +1,230 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Suhbat — Chumchuq</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f9f9f9;
-      color: #111;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-
-    header {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 12px;
-      background-color: #fff;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      font-size: 20px;
-      font-weight: bold;
-    }
-
-    main {
-      flex-grow: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 24px;
-    }
-
-    main h2 {
-      font-size: 22px;
-      margin-bottom: 12px;
-    }
-
-    main p {
-      font-size: 16px;
-      color: #555;
-      margin-bottom: 24px;
-    }
-
-    .start-chat {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 16px;
-      border: 1.5px solid #ccc;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: 0.3s;
-      text-decoration: none;
-      color: inherit;
-    }
-
-    .start-chat:hover {
-      background-color: #f0f0f0;
-    }
-
-    .start-chat svg {
-      width: 24px;
-      height: 24px;
-      stroke: #333;
-    }
-
-    nav {
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      background-color: #fff;
-      border-top: 1px solid #ddd;
-      padding: 10px 0;
-      position: sticky;
-      bottom: 0;
-      z-index: 10;
-    }
-
-    nav a {
-      text-decoration: none;
-    }
-
-    nav svg {
-      width: 28px;
-      height: 28px;
-      stroke: #333;
-      transition: 0.3s;
-    }
-
-    nav svg:hover {
-      stroke: #007bff;
-      transform: scale(1.1);
-    }
-
-    @media (prefers-color-scheme: dark) {
-      body {
-        background-color: #121212;
-        color: #eee;
-      }
-      header, nav {
-        background-color: #1e1e1e;
-      }
-      main p {
-        color: #aaa;
-      }
-      .start-chat {
-        border-color: #444;
-      }
-      .start-chat:hover {
-        background-color: #2a2a2a;
-      }
-      .start-chat svg,
-      nav svg {
-        stroke: #eee;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Xabar - Chat</title>
+    
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--tg-theme-bg-color, #000000);
+            -webkit-font-smoothing: antialiased;
+            -webkit-tap-highlight-color: transparent;
+        }
+        ::-webkit-scrollbar { width: 4px; background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
+        .safe-top { padding-top: env(safe-area-inset-top); }
+        .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+        .nav-btn { transition: transform 0.15s ease, opacity 0.15s ease; }
+        .nav-btn:active { transform: scale(0.85); opacity: 0.7; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Chat elementlari uchun aktiv effekt */
+        .chat-item { transition: background-color 0.15s ease, transform 0.1s ease; }
+        .chat-item:active { transform: scale(0.98); background-color: #18181b; }
+        
+        /* Aktiv nav tugmasi */
+        .nav-active { color: #ffffff; }
+        .nav-inactive { color: #a1a1aa; }
+        .nav-inactive:hover { color: #ffffff; }
+    </style>
 </head>
-<body>
+<body class="text-white antialiased flex justify-center min-h-screen selection:bg-zinc-800 bg-black">
 
-  <header>Suhbat chat</header>
+    <div class="w-full max-w-lg border-x border-zinc-900 min-h-screen flex flex-col relative bg-black pb-28 no-scrollbar">
+        
+        <!-- Header - PASTGA TUSHIRILDI (balandlik oshirildi) -->
+        <header class="sticky top-0 z-50 bg-black/80 backdrop-blur-xl border-b border-zinc-900 flex items-end px-4 pb-4 safe-top" style="height: 160px;">
+            <!-- Sarlavha -->
+            <h1 class="text-3xl font-bold tracking-tight text-white">Xabarlar</h1>
+        </header>
 
-  <main>
-    <h2>Suhbat chat</h2>
-    <p>Sizda hali hech qanday suhbat yo‘q 😊<br>Do‘stingiz bilan birinchi marta yozishishni boshlang!</p>
-    <a href="chat1.html" class="start-chat">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-pen-icon lucide-square-pen">
-        <path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-        <path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/>
-      </svg>
-      <span>Yozishni boshlash</span>
-    </a>
-  </main>
+        <!-- Qidiruv qismi -->
+        <div class="px-4 pt-4 pb-2">
+            <div class="relative">
+                <svg class="absolute left-3 top-2.5 w-5 h-5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                <input type="text" placeholder="Qidiruv..." class="w-full bg-zinc-900 text-white text-sm rounded-full pl-10 pr-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-zinc-700 transition-shadow">
+            </div>
+        </div>
 
-  <nav>
-    <a href="index.html">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-    </a>
-    <a href="search.html">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
-    </a>
-    <a href="chat.html">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/></svg>
-    </a>
-    <a href="notifications.html">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg>
-    </a>
-    <a href="account.html">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18 20a6 6 0 0 0-12 0"/><circle cx="12" cy="10" r="4"/><circle cx="12" cy="12" r="10"/></svg>
-    </a>
-  </nav>
+        <!-- Chatlar bo'limi nomi -->
+        <div class="px-5 py-2 text-zinc-400 font-semibold text-sm">
+            Barcha suhbatlar
+        </div>
 
+        <!-- Chat ro'yxati -->
+        <div class="flex-1 overflow-y-auto no-scrollbar" id="chat-list">
+            
+            <!-- Chat 1 - Ali Valiyev -->
+            <div onclick="openChat('Ali Valiyev', 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=100&auto=format&fit=crop&q=80', true)" 
+                 class="chat-item flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-zinc-900 bg-zinc-900/50">
+                <img src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=100&auto=format&fit=crop&q=80" alt="Ali" class="w-14 h-14 rounded-full object-cover border border-zinc-800">
+                <div class="flex-1 min-w-0">
+                    <div class="flex justify-between items-center mb-0.5">
+                        <h3 class="font-semibold text-[16px] truncate text-white">Ali Valiyev</h3>
+                        <span class="text-xs text-zinc-500">10:42</span>
+                    </div>
+                    <p class="text-[14px] text-zinc-400 truncate">Qachon ko'rishamiz?</p>
+                </div>
+                <!-- O'qilmagan xabar nishoni -->
+                <div class="w-2.5 h-2.5 bg-blue-500 rounded-full"></div>
+            </div>
+
+            <!-- Chat 2 - Malika -->
+            <div onclick="openChat('Malika', 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&auto=format&fit=crop&q=80', false)" 
+                 class="chat-item flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-zinc-900">
+                <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&auto=format&fit=crop&q=80" alt="Malika" class="w-14 h-14 rounded-full object-cover border border-zinc-800">
+                <div class="flex-1 min-w-0">
+                    <div class="flex justify-between items-center mb-0.5">
+                        <h3 class="font-semibold text-[16px] truncate text-white">Malika</h3>
+                        <span class="text-xs text-zinc-500">Kecha</span>
+                    </div>
+                    <p class="text-[14px] text-zinc-400 truncate">Yangi dizaynni yubordim</p>
+                </div>
+            </div>
+
+            <!-- Chat 3 - Sardor Aka -->
+            <div onclick="openChat('Sardor Aka', 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80', false)" 
+                 class="chat-item flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-zinc-900">
+                <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80" alt="Sardor" class="w-14 h-14 rounded-full object-cover border border-zinc-800">
+                <div class="flex-1 min-w-0">
+                    <div class="flex justify-between items-center mb-0.5">
+                        <h3 class="font-semibold text-[16px] truncate text-white">Sardor Aka</h3>
+                        <span class="text-xs text-zinc-500">Du</span>
+                    </div>
+                    <p class="text-[14px] text-zinc-400 truncate">Loyiha zo'r chiqibdi, rahmat!</p>
+                </div>
+            </div>
+
+            <!-- Chat 4 - Dilnoza -->
+            <div onclick="openChat('Dilnoza', 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&auto=format&fit=crop&q=80', false)" 
+                 class="chat-item flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-zinc-900">
+                <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&auto=format&fit=crop&q=80" alt="Dilnoza" class="w-14 h-14 rounded-full object-cover border border-zinc-800">
+                <div class="flex-1 min-w-0">
+                    <div class="flex justify-between items-center mb-0.5">
+                        <h3 class="font-semibold text-[16px] truncate text-white">Dilnoza</h3>
+                        <span class="text-xs text-zinc-500">12:15</span>
+                    </div>
+                    <p class="text-[14px] text-zinc-400 truncate">Rahmat, ertaga ko'rishamiz</p>
+                </div>
+            </div>
+
+            <!-- Chat 5 - Jasur -->
+            <div onclick="openChat('Jasur', 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80', false)" 
+                 class="chat-item flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-zinc-900">
+                <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80" alt="Jasur" class="w-14 h-14 rounded-full object-cover border border-zinc-800">
+                <div class="flex-1 min-w-0">
+                    <div class="flex justify-between items-center mb-0.5">
+                        <h3 class="font-semibold text-[16px] truncate text-white">Jasur</h3>
+                        <span class="text-xs text-zinc-500">Sesh</span>
+                    </div>
+                    <p class="text-[14px] text-zinc-400 truncate">Fayllarni yubordim, tekshir</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 w-[92%] max-w-[400px] bg-zinc-900/90 backdrop-blur-xl border border-zinc-700/50 rounded-[2rem] z-50 shadow-[0_10px_40px_rgba(0,0,0,0.8)] pb-safe">
+        <div class="flex justify-around items-center px-2 py-3">
+            
+            <!-- Uy -->
+            <a href="index.html" class="nav-btn flex flex-col items-center gap-1 nav-inactive px-3 sm:px-4">
+                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+                <span class="text-[10px] font-medium tracking-wide">Uy</span>
+            </a>
+
+            <!-- Reels -->
+            <a href="reels.html" class="nav-btn flex flex-col items-center gap-1 nav-inactive px-3 sm:px-4">
+                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                    <line x1="2" y1="8" x2="22" y2="8"></line>
+                    <line x1="2" y1="16" x2="22" y2="16"></line>
+                    <line x1="8" y1="2" x2="8" y2="8"></line>
+                    <line x1="16" y1="2" x2="16" y2="8"></line>
+                    <polygon points="10 12 15 14.5 10 17 10 12" fill="currentColor"></polygon>
+                </svg>
+                <span class="text-[10px] font-medium tracking-wide">Reels</span>
+            </a>
+
+            <!-- Xabar - AKTIV -->
+            <a href="xabar.html" class="nav-btn flex flex-col items-center gap-1 nav-active px-3 sm:px-4 relative">
+                <div class="relative">
+                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="-scale-x-100">
+                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                    </svg>
+                    <span class="absolute -top-1.5 -right-2 w-4 h-4 bg-red-500 text-white rounded-full text-[9px] flex items-center justify-center font-bold ring-2 ring-zinc-900">3</span>
+                </div>
+                <span class="text-[10px] font-semibold tracking-wide">Xabar</span>
+            </a>
+
+            <!-- Qidiruv -->
+            <a href="qidiruv.html" class="nav-btn flex flex-col items-center gap-1 nav-inactive px-3 sm:px-4">
+                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <span class="text-[10px] font-medium tracking-wide">Qidiruv</span>
+            </a>
+
+            <!-- Profil -->
+            <a href="profil.html" class="nav-btn flex flex-col items-center gap-1 nav-inactive px-3 sm:px-4">
+                <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80" alt="Profile" class="w-6 h-6 rounded-full object-cover ring-2 ring-transparent">
+                <span class="text-[10px] font-medium tracking-wide">Profil</span>
+            </a>
+            
+        </div>
+    </nav>
+
+    <script>
+        // Chatni ochish funksiyasi
+        function openChat(name, avatar, isOnline) {
+            // URL parametrlarini tayyorlash
+            const params = new URLSearchParams({
+                name: name,
+                avatar: avatar,
+                online: isOnline ? '1' : '0'
+            });
+            
+            // Chat sahifasiga o'tish
+            window.location.href = 'chat.html?' + params.toString();
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            // Telegram Web App integratsiyasi
+            if (window.Telegram && window.Telegram.WebApp) {
+                const tg = window.Telegram.WebApp;
+                tg.ready();
+                tg.expand();
+                tg.setHeaderColor('#000000');
+                tg.setBackgroundColor('#000000');
+                
+                // Telegramning yuqori chap burchagidagi "Orqaga" (Back) tugmasini ko'rsatish
+                tg.BackButton.show();
+                tg.BackButton.onClick(function() {
+                    window.location.href = 'index.html';
+                });
+            }
+
+            // Brauzer va Android apparat orqaga qaytish tugmasini nazorat qilish
+            window.history.pushState({ page: 1 }, "", "");
+            window.onpopstate = function(event) {
+                window.location.href = 'index.html';
+            };
+        });
+    </script>
 </body>
 </html>
