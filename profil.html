@@ -17,10 +17,10 @@
             theme: {
                 extend: {
                     colors: {
-                        'app-bg': '#141A21',       /* Asosiy fon rangi */
-                        'app-card': '#272D35',     /* O'rtadagi blok rangi */
-                        'app-btn': '#434954',      /* Yuqori tugmalar rangi */
-                        'app-input-bg': '#171B21'  /* Pastki input fon rangi */
+                        'app-bg': '#000000',        /* Asosiy fon rangi - QORA */
+                        'app-card': '#1A1A1A',      /* O'rtadagi blok rangi */
+                        'app-btn': '#2A2A2A',       /* Yuqori tugmalar rangi */
+                        'app-input-bg': '#0A0A0A'   /* Pastki input fon rangi */
                     }
                 }
             }
@@ -28,18 +28,23 @@
     </script>
     <style>
         body {
-            background-color: #141A21;
+            background-color: #000000;
             color: #ffffff;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
+        /* Input focus bo'lganda border rangi o'zgaradi */
+        .input-wrapper:focus-within {
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
     </style>
 </head>
-<body class="flex flex-col h-screen mx-auto max-w-md w-full relative sm:border-x sm:border-gray-800">
+<body class="flex flex-col h-screen mx-auto max-w-md w-full relative sm:border-x sm:border-gray-800 bg-black">
 
-    <!-- YUQORI QISM (Header) -->
-    <header class="flex items-center justify-between p-4 mt-2">
+    <!-- YUQORI QISM (Header) - PASTGA TUSHIRILDI -->
+    <header class="flex items-center justify-between p-4 mt-12 pt-4">
         <!-- Orqaga tugmasi -->
-        <button class="w-11 h-11 rounded-full bg-app-btn flex items-center justify-center text-gray-200 hover:bg-gray-500 transition duration-200">
+        <button onclick="history.back()" class="w-11 h-11 rounded-full bg-app-btn flex items-center justify-center text-gray-200 hover:bg-gray-700 transition duration-200">
             <i class="fa-solid fa-chevron-left"></i>
         </button>
 
@@ -54,16 +59,16 @@
 
         <!-- Qo'ng'iroq va Profil rasmi -->
         <div class="flex items-center gap-3">
-            <button class="w-11 h-11 rounded-full bg-app-btn flex items-center justify-center text-gray-200 hover:bg-gray-500 transition duration-200">
+            <button class="w-11 h-11 rounded-full bg-app-btn flex items-center justify-center text-gray-200 hover:bg-gray-700 transition duration-200">
                 <i class="fa-solid fa-phone"></i>
             </button>
             <img src="https://i.pravatar.cc/150?img=11" alt="Profil rasmi" class="w-11 h-11 rounded-full object-cover">
         </div>
     </header>
 
-    <!-- ASOSIY QISM (Xabarlar maydoni / Bo'sh holat) -->
-    <main class="flex-1 flex flex-col items-center justify-center p-4">
-        <div class="bg-app-card w-full max-w-[340px] rounded-[24px] p-8 pb-10 flex flex-col items-center text-center shadow-lg">
+    <!-- ASOSIY QISM (Xabarlar maydoni) -->
+    <main id="chatMessages" class="flex-1 flex flex-col items-center justify-center p-4 overflow-y-auto">
+        <div id="emptyState" class="bg-app-card w-full max-w-[340px] rounded-[24px] p-8 pb-10 flex flex-col items-center text-center shadow-lg">
             <h2 class="text-[20px] font-bold mb-2">Bu yerda hali xabarlar yo'q...</h2>
             <p class="text-gray-400 text-[15px] leading-relaxed mb-8">
                 Suhbatni boshlash uchun xabar<br>yuboring.
@@ -80,19 +85,98 @@
             <i class="fa-solid fa-paperclip text-lg"></i>
         </button>
 
-        <!-- Matn kiritish maydoni -->
-        <div class="flex-1 border border-gray-700 rounded-full px-4 py-3 flex items-center bg-app-input-bg">
-            <input type="text" placeholder="Xabar yozing..." class="bg-transparent border-none outline-none text-white w-full placeholder-gray-500 text-[16px]">
+        <!-- Matn kiritish maydoni - FAOLLASHTIRILDI -->
+        <div class="input-wrapper flex-1 border border-gray-700 rounded-full px-4 py-3 flex items-center bg-app-input-bg transition duration-200">
+            <input 
+                type="text" 
+                id="messageInput"
+                placeholder="Xabar yozing..." 
+                class="bg-transparent border-none outline-none text-white w-full placeholder-gray-500 text-[16px]"
+                autocomplete="off"
+            >
             <button class="text-gray-400 ml-2 hover:text-white transition duration-200">
                 <i class="fa-regular fa-face-smile text-xl"></i>
             </button>
         </div>
 
-        <!-- Mikrofon tugmasi -->
-        <button class="w-12 h-12 rounded-full border border-gray-700 flex-shrink-0 flex items-center justify-center text-gray-300 hover:bg-gray-800 transition duration-200 bg-app-input-bg">
-            <i class="fa-solid fa-microphone text-lg"></i>
+        <!-- Mikrofon / Yuborish tugmasi -->
+        <button id="sendBtn" class="w-12 h-12 rounded-full border border-gray-700 flex-shrink-0 flex items-center justify-center text-gray-300 hover:bg-gray-800 transition duration-200 bg-app-input-bg">
+            <i id="sendIcon" class="fa-solid fa-microphone text-lg"></i>
         </button>
     </footer>
+
+    <script>
+        const input = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const sendIcon = document.getElementById('sendIcon');
+        const chatMessages = document.getElementById('chatMessages');
+        const emptyState = document.getElementById('emptyState');
+
+        // Input bo'sh yoki to'la ekanligiga qarab ikonkani o'zgartirish
+        input.addEventListener('input', function() {
+            if (this.value.trim().length > 0) {
+                sendIcon.classList.remove('fa-microphone');
+                sendIcon.classList.add('fa-paper-plane');
+                sendBtn.classList.add('bg-blue-600', 'border-blue-600');
+                sendBtn.classList.remove('bg-app-input-bg');
+            } else {
+                sendIcon.classList.remove('fa-paper-plane');
+                sendIcon.classList.add('fa-microphone');
+                sendBtn.classList.remove('bg-blue-600', 'border-blue-600');
+                sendBtn.classList.add('bg-app-input-bg');
+            }
+        });
+
+        // Xabar yuborish funksiyasi
+        function sendMessage() {
+            const text = input.value.trim();
+            if (!text) return;
+
+            // Bo'sh holatni yashirish
+            if (emptyState) {
+                emptyState.style.display = 'none';
+            }
+
+            // Xabar elementini yaratish
+            const msgWrapper = document.createElement('div');
+            msgWrapper.className = 'w-full flex justify-end mb-3 px-2';
+
+            const bubble = document.createElement('div');
+            bubble.className = 'bg-blue-600 text-white px-4 py-2.5 rounded-2xl rounded-br-md max-w-[75%] text-[15px] break-words shadow-md';
+            bubble.textContent = text;
+
+            msgWrapper.appendChild(bubble);
+            chatMessages.classList.remove('justify-center', 'items-center');
+            chatMessages.classList.add('justify-end');
+            chatMessages.appendChild(msgWrapper);
+
+            // Inputni tozalash
+            input.value = '';
+            sendIcon.classList.remove('fa-paper-plane');
+            sendIcon.classList.add('fa-microphone');
+            sendBtn.classList.remove('bg-blue-600', 'border-blue-600');
+            sendBtn.classList.add('bg-app-input-bg');
+
+            // Pastga scroll qilish
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Yuborish tugmasi bosilganda
+        sendBtn.addEventListener('click', sendMessage);
+
+        // Enter tugmasi bosilganda
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Sahifa yuklanganda inputga fokus berish
+        window.addEventListener('load', () => {
+            input.focus();
+        });
+    </script>
 
 </body>
 </html>
