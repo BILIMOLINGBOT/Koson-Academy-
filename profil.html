@@ -19,8 +19,12 @@
             -webkit-tap-highlight-color: transparent;
         }
 
+        html, body {
+            background-color: #000000 !important;
+        }
+
         body {
-            background-color: var(--tg-theme-bg-color, #000000);
+            background-color: #000000 !important;
             color: #ffffff;
             display: flex;
             justify-content: center;
@@ -36,17 +40,19 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding-bottom: 130px; /* Bottom nav uchun joy */
+            padding-bottom: 130px;
+            background-color: #000000;
             border-left: 1px solid #18181b;
             border-right: 1px solid #18181b;
+            min-height: 100vh;
         }
 
-        /* Profil rasmi - O'RTADA */
+        /* Profil rasmi - PASTGA TUSHIRILDI va O'RTADA */
         .profile-pic-wrapper {
             display: flex;
             justify-content: center;
             width: 100%;
-            margin-top: 30px;
+            margin-top: 80px;      /* ← pastga tushirildi */
             margin-bottom: 20px;
         }
 
@@ -65,6 +71,7 @@
             font-weight: 600;
             margin-bottom: 8px;
             text-align: center;
+            color: #ffffff;
         }
 
         .last-seen {
@@ -101,6 +108,7 @@
             font-size: 20px;
             font-weight: 600;
             margin-bottom: 6px;
+            color: #ffffff;
         }
 
         .stat-label {
@@ -135,7 +143,6 @@
             transform: scale(0.98);
         }
 
-        /* Obuna bo'lingan holat */
         .btn-subscribe.subscribed {
             background-color: #1c1c1e;
             color: #ffffff;
@@ -169,7 +176,7 @@
             stroke-linejoin: round;
         }
 
-        /* Menyular (Tablar) - FAOLLASHTIRILGAN */
+        /* Menyular (Tablar) */
         .tabs {
             display: flex;
             background-color: #1c1c1e;
@@ -239,7 +246,7 @@
             stroke-linejoin: round;
         }
 
-        /* ===== BOTTOM NAVIGATION (Index.html dagi bilan bir xil) ===== */
+        /* ===== BOTTOM NAVIGATION ===== */
         .bottom-nav {
             position: fixed;
             bottom: 16px;
@@ -359,7 +366,7 @@
 <body>
 
     <div class="mobile-container">
-        <!-- Profil rasmi - O'RTADA -->
+        <!-- Profil rasmi - PASTGA TUSHIRILDI va O'RTADA -->
         <div class="profile-pic-wrapper">
             <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80" alt="Profil rasmi" class="profile-pic">
         </div>
@@ -398,7 +405,7 @@
             </button>
         </div>
 
-        <!-- Menyu tablari - FAOLLASHTIRILGAN -->
+        <!-- Menyu tablari -->
         <div class="tabs" id="tabsContainer">
             <div class="tab-item" data-tab="stories">Storylar</div>
             <div class="tab-item active" data-tab="posts">Postlar</div>
@@ -488,21 +495,17 @@
         }
 
         // ===== TELEFON ORQAGA TUGMASI =====
-        // Telegram BackButton ni sozlash
         if (tg && tg.BackButton) {
             tg.BackButton.show();
             tg.BackButton.onClick(function() {
-                // Tarixda oldingi sahifa bo'lsa, orqaga qaytish
                 if (window.history.length > 1) {
                     window.history.back();
                 } else {
-                    // Agar tarix bo'sh bo'lsa, index.html ga o'tish
                     window.location.href = 'index.html';
                 }
             });
         }
 
-        // Brauzer uchun ham orqaga qaytishni qo'llab-quvvatlash
         window.addEventListener('popstate', function() {
             if (window.history.length > 1) {
                 window.history.back();
@@ -534,7 +537,6 @@
 
             followersCount.textContent = followers;
 
-            // Telegram Haptic Feedback
             if (tg && tg.HapticFeedback) {
                 tg.HapticFeedback.impactOccurred('light');
             }
@@ -551,7 +553,6 @@
             if (navigator.share) {
                 navigator.share(shareData).catch(() => {});
             } else {
-                // Clipboard ga nusxalash
                 navigator.clipboard.writeText(window.location.href).then(() => {
                     showToast('Havola nusxalandi');
                 }).catch(() => {
@@ -579,19 +580,15 @@
             const tab = e.target.closest('.tab-item');
             if (!tab) return;
 
-            // Barcha tablardan active ni olib tashlash
             tabsContainer.querySelectorAll('.tab-item').forEach(t => {
                 t.classList.remove('active');
             });
 
-            // Bosilgan tabga active qo'shish
             tab.classList.add('active');
 
-            // Kontentni yangilash
             const tabName = tab.dataset.tab;
             contentText.textContent = tabContents[tabName] || 'Ma\'lumot yo\'q';
 
-            // Haptic feedback
             if (tg && tg.HapticFeedback) {
                 tg.HapticFeedback.selectionChanged();
             }
@@ -620,7 +617,6 @@
         });
 
         // ===== TARIXGA HOLAT QO'SHISH =====
-        // Bu orqaga tugmasi to'g'ri ishlashi uchun
         if (window.history && window.history.pushState) {
             window.history.pushState({ page: 'profil' }, '', window.location.href);
         }
