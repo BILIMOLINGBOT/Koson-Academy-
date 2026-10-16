@@ -1,437 +1,116 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
-<title>Profil UI Dizayni - Island Tugma</title>
-
-<!-- Telegram Web App SDK va Tailwind CSS -->
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script src="https://cdn.tailwindcss.com"></script>
-
-<style>
-  body {
-    margin: 0;
-    padding: 0;
-    background-color: var(--tg-theme-bg-color, #000000);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    min-height: 100vh;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  .mobile-container {
-    width: 100%;
-    max-width: 400px;
-    background-color: #000000;
-    min-height: 100vh;
-    padding-bottom: 120px; 
-    box-shadow: 0 0 20px rgba(255,255,255,0.02);
-    position: relative;
-  }
-
-  .header-card {
-    background: url('https://images.unsplash.com/photo-1472214103451-9374bd1c798e?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80');
-    background-size: cover;
-    background-position: center;
-    height: 380px;
-    border-bottom-left-radius: 50px;
-    border-bottom-right-radius: 50px;
-    position: relative;
-    padding: 20px;
-    box-sizing: border-box;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.1);
-  }
-
-  .profile-content {
-    position: absolute;
-    bottom: 30px;
-    left: 25px;
-    right: 25px;
-  }
-
-  .avatar {
-    width: 75px;
-    height: 75px;
-    background-image: url('https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80');
-    background-size: cover;
-    background-position: center;
-    border: 3px solid white;
-    border-radius: 50%;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-    margin-bottom: 12px;
-    position: relative;
-  }
-
-  .status-dot {
-    position: absolute;
-    bottom: 2px;
-    right: 2px;
-    width: 14px;
-    height: 14px;
-    background-color: #e6007e;
-    border-radius: 4px;
-    border: 2px solid white;
-  }
-
-  .profile-name {
-    color: white;
-    font-size: 24px;
-    margin: 0 0 16px 0;
-    font-weight: 600;
-    letter-spacing: -0.5px;
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
-  }
-
-  .action-buttons {
-    display: flex;
-    gap: 12px;
-  }
-
-  /* --- Island tugmalar dizayni --- */
-  button {
-    border: none;
-    border-radius: 30px; /* Island (Pill) uslubi */
-    padding: 12px 10px;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    transition: all 0.3s ease;
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-  }
-
-  button:active {
-    transform: scale(0.95);
-  }
-
-  /* Dastlabki (Obuna bo'lish) holat */
-  .btn-subscribe {
-    flex: 1;
-    background-color: rgba(28, 28, 30, 0.85); /* Shishasimon to'q fon */
-    color: #ffffff; /* Oq yozuv */
-    border: 1px solid rgba(255, 255, 255, 0.15);
-  }
-
-  /* Bosilganda (Obuna bo'lingan) holat */
-  .btn-subscribe.subscribed {
-    background-color: #ffffff; /* Fon oq (#ffffff) */
-    color: #000000; /* Matn qora (#000000) */
-    border: 1px solid #ffffff;
-  }
-
-  .btn-share {
-    width: 46px;
-    height: 46px; /* Bo'yi va eni bir xil, aylana (island) bo'lishi uchun */
-    padding: 0;
-    flex: 0 0 46px;
-    background-color: rgba(28, 28, 30, 0.85);
-    color: #ffffff;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 50%; /* Doira tugma */
-  }
-
-  .btn-share svg {
-    width: 20px;
-    height: 20px;
-    stroke: #ffffff;
-  }
-
-  /* --- Birlashtirilgan bitta panel dizayni --- */
-  .combined-island-panel {
-    margin: 25px auto 0;
-    width: calc(100% - 40px);
-    max-width: 360px;
-    background-color: rgba(28, 28, 30, 0.85); 
-    border-radius: 32px; 
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
-    box-sizing: border-box;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  .profile-stats {
-    display: flex;
-    justify-content: space-evenly;
-    align-items: center;
-    padding: 18px 15px;
-  }
-
-  .stat-item {
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-  }
-
-  .stat-value {
-    color: #ffffff;
-    font-size: 18px;
-    font-weight: 700;
-  }
-
-  .stat-label {
-    color: #8e8e93;
-    font-size: 13px;
-    font-weight: 500;
-  }
-
-  .panel-divider {
-    height: 1px;
-    background-color: rgba(255, 255, 255, 0.08);
-    width: 88%;
-    margin: 0 auto;
-  }
-
-  .profile-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 12px 14px 12px;
-  }
-
-  .nav-item {
-    color: #8e8e93;
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 500;
-    padding: 10px 14px;
-    border-radius: 20px;
-    transition: all 0.3s ease;
-    cursor: pointer;
-  }
-
-  .nav-item.active {
-    color: #ffffff;
-    background-color: rgba(255, 255, 255, 0.12);
-  }
-
-  .nav-item:hover:not(.active) {
-    color: #d1d1d6;
-  }
-
-  /* --- KONTENT BLOKLARI UCHUN STIL --- */
-  .tab-contents-container {
-    padding: 25px 20px;
-    color: white;
-  }
-
-  .tab-pane {
-    display: none;
-    animation: fadeIn 0.3s ease;
-    color: #8e8e93;
-    text-align: center;
-    font-size: 15px;
-  }
-
-  .tab-pane.active-tab {
-    display: block;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  /* --- NAVIGATSIYA UCHUN STIL --- */
-  .nav-btn { transition: transform 0.15s ease, opacity 0.15s ease; }
-  .nav-btn:active { transform: scale(0.85); opacity: 0.7; }
-  .nav-active { color: #ffffff; }
-  .nav-inactive { color: #a1a1aa; }
-  .nav-inactive:hover { color: #ffffff; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil UI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        /* Rasm joylari uchun placeholder fon */
+        .img-placeholder {
+            background: linear-gradient(135deg, #2d3748, #1a202c);
+        }
+    </style>
 </head>
-<body>
+<body class="flex justify-center min-h-screen">
 
-<div class="mobile-container relative">
-  
-  <div class="header-card">
-    <div class="profile-content">
-      <div class="avatar">
-        <div class="status-dot"></div>
-      </div>
-      <h2 class="profile-name">T2</h2>
-      <div class="action-buttons">
-        <!-- Island tugmasi qo'yildi -->
-        <button class="btn-subscribe">Obuna bo‘lish</button>
-        <button class="btn-share" aria-label="Ulashish">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-            <polyline points="15 3 21 3 21 9"></polyline>
-            <line x1="10" y1="14" x2="21" y2="3"></line>
-          </svg>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <div class="combined-island-panel">
-    
-    <div class="profile-stats">
-      <div class="stat-item">
-        <span class="stat-value">5</span>
-        <span class="stat-label">Obunalar</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-value">44</span>
-        <span class="stat-label">Obunachilar</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-value">3</span>
-        <span class="stat-label">Postlar</span>
-      </div>
-    </div>
-
-    <div class="panel-divider"></div>
-
-    <nav class="profile-nav">
-      <a class="nav-item active" data-target="tab-home">Bosh sahifa</a>
-      <a class="nav-item" data-target="tab-posts">Postlar</a>
-      <a class="nav-item" data-target="tab-photos">Foto</a>
-      <a class="nav-item" data-target="tab-videos">Video</a>
-    </nav>
-    
-  </div>
-
-  <!-- NAVIGATSIYA KONTENTLARI -->
-  <div class="tab-contents-container">
-    
-    <div id="tab-home" class="tab-pane active-tab">
-      <p>Bu yerdan bosh sahifadagi asosiy ma'lumotlar o'rin oladi.</p>
-    </div>
-
-    <div id="tab-posts" class="tab-pane">
-      <p>Bu foydalanuvchining barcha yozgan postlari shu yerda ko'rinadi.</p>
-    </div>
-
-    <div id="tab-photos" class="tab-pane">
-      <p>Foydalanuvchi joylagan rasmlar galereyasi.</p>
-    </div>
-
-    <div id="tab-videos" class="tab-pane">
-      <p>Video materiallar uchun ajratilgan bo'lim.</p>
-    </div>
-
-  </div>
-
-</div>
-
-<!-- Bottom Navigation -->
-<nav class="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 w-[92%] max-w-[400px] bg-zinc-900/90 backdrop-blur-xl border border-zinc-700/50 rounded-[2rem] z-50 shadow-[0_10px_40px_rgba(0,0,0,0.8)] pb-safe">
-    <div class="flex justify-around items-center px-2 py-3 text-white">
+    <!-- Mobil ekran o'lchami uchun konteyner -->
+    <div class="w-full max-w-md bg-black min-h-screen relative pb-10">
         
-        <a href="index.html" class="nav-btn flex flex-col items-center gap-1 nav-inactive px-3 sm:px-4">
-            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                <polyline points="9 22 9 12 15 12 15 22"></polyline>
-            </svg>
-            <span class="text-[10px] font-medium tracking-wide">Uy</span>
-        </a>
+        <!-- Yuqori panel (App Bar) -->
+        <div class="flex justify-between items-center p-4">
+            <button class="bg-[#242424] text-white p-2 rounded-full w-10 h-10 flex items-center justify-center">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            </button>
+            <button class="bg-[#242424] text-white p-2 rounded-full w-10 h-10 flex items-center justify-center">
+                <svg fill="currentColor" viewBox="0 0 20 20" class="w-5 h-5"><path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z"></path></svg>
+            </button>
+        </div>
 
-        <a href="reels.html" class="nav-btn flex flex-col items-center gap-1 nav-inactive px-3 sm:px-4">
-            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-                <line x1="2" y1="8" x2="22" y2="8"></line>
-                <line x1="2" y1="16" x2="22" y2="16"></line>
-                <line x1="8" y1="2" x2="8" y2="8"></line>
-                <line x1="16" y1="2" x2="16" y2="8"></line>
-                <polygon points="10 12 15 14.5 10 17 10 12" fill="currentColor"></polygon>
-            </svg>
-            <span class="text-[10px] font-medium tracking-wide">Reels</span>
-        </a>
-
-        <a href="xabar.html" class="nav-btn flex flex-col items-center gap-1 nav-inactive px-3 sm:px-4 relative">
-            <div class="relative">
-                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="-scale-x-100">
-                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
-                </svg>
-                <span class="absolute -top-1.5 -right-2 w-4 h-4 bg-red-500 text-white rounded-full text-[9px] flex items-center justify-center font-bold ring-2 ring-zinc-900">3</span>
+        <!-- Profil ma'lumotlari -->
+        <div class="flex flex-col items-center mt-2">
+            <!-- Rasm -->
+            <div class="w-24 h-24 rounded-full img-placeholder overflow-hidden border border-gray-800">
+                <img src="https://via.placeholder.com/150" alt="Profile Picture" class="w-full h-full object-cover">
             </div>
-            <span class="text-[10px] font-medium tracking-wide">Xabar</span>
-        </a>
+            
+            <!-- Ism va holat -->
+            <h1 class="text-3xl font-semibold mt-4 tracking-wide">Saydalimov Murodbek</h1>
+            <p class="text-gray-400 text-sm mt-1.5">15-avg kuni 00:32 da kirgan</p>
+        </div>
 
-        <a href="qidiruv.html" class="nav-btn flex flex-col items-center gap-1 nav-inactive px-3 sm:px-4">
-            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-            <span class="text-[10px] font-medium tracking-wide">Qidiruv</span>
-        </a>
+        <!-- Statistikalar -->
+        <div class="flex justify-center items-center mt-6 pt-2 px-6">
+            <div class="flex-1 text-center border-r border-[#242424]">
+                <div class="text-2xl font-bold">0</div>
+                <div class="text-[#888888] text-[13px] mt-1">Obunalar</div>
+            </div>
+            <div class="flex-1 text-center border-r border-[#242424]">
+                <div class="text-2xl font-bold">0</div>
+                <div class="text-[#888888] text-[13px] mt-1">Obunachilar</div>
+            </div>
+            <div class="flex-1 text-center">
+                <div class="text-2xl font-bold">2</div>
+                <div class="text-[#888888] text-[13px] mt-1">Postlar</div>
+            </div>
+        </div>
 
-        <a href="profil.html" class="nav-btn flex flex-col items-center gap-1 nav-active px-3 sm:px-4">
-            <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80" alt="Profile" class="w-6 h-6 rounded-full object-cover ring-2 ring-white">
-            <span class="text-[10px] font-semibold tracking-wide">Profil</span>
-        </a>
-        
+        <!-- Tugmalar -->
+        <div class="flex gap-2 px-4 mt-8">
+            <button class="bg-[#007aff] hover:bg-blue-600 active:bg-blue-700 text-white font-semibold py-3 rounded-xl flex-1 text-[15px]">
+                Obuna bo'lish
+            </button>
+            <button class="bg-[#242424] hover:bg-[#333] p-3 rounded-xl w-14 flex items-center justify-center">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+            </button>
+        </div>
+
+        <!-- Tablar (Menyular) -->
+        <div class="px-4 mt-6">
+            <div class="bg-[#242424] rounded-full flex p-1 h-12 items-center">
+                <button class="flex-1 text-[#888888] text-[14px] font-medium tracking-wide">Storylar</button>
+                <button class="flex-1 bg-[#4a4a4a] text-white rounded-full h-full text-[14px] font-semibold tracking-wide shadow-sm">Postlar</button>
+                <button class="flex-1 text-[#888888] text-[14px] font-medium tracking-wide">Quote'lar</button>
+                <button class="flex-1 text-[#888888] text-[14px] font-medium tracking-wide">Giftlar</button>
+            </div>
+        </div>
+
+        <!-- Postlar tarmog'i (Grid) -->
+        <div class="grid grid-cols-2 gap-0.5 mt-4 px-4">
+            
+            <!-- 1-post -->
+            <div class="relative aspect-[3/4] img-placeholder rounded-l-md overflow-hidden">
+                <img src="https://via.placeholder.com/300x400" alt="Post 1" class="w-full h-full object-cover">
+                <!-- Musiqa belgisi -->
+                <div class="absolute top-2 left-2 bg-black/40 p-1.5 rounded-full">
+                    <svg fill="currentColor" viewBox="0 0 20 20" class="w-4 h-4 text-white"><path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z"></path></svg>
+                </div>
+                <!-- Karusel belgisi -->
+                <div class="absolute top-2 right-2 p-1">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5 text-white"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                </div>
+            </div>
+
+            <!-- 2-post -->
+            <div class="relative aspect-[3/4] img-placeholder rounded-r-md overflow-hidden">
+                <img src="https://via.placeholder.com/300x400" alt="Post 2" class="w-full h-full object-cover">
+                <!-- Musiqa belgisi -->
+                <div class="absolute top-2 left-2 bg-black/40 p-1.5 rounded-full">
+                    <svg fill="currentColor" viewBox="0 0 20 20" class="w-4 h-4 text-white"><path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z"></path></svg>
+                </div>
+            </div>
+            
+        </div>
+
+        <!-- iOS pastki chizig'i (Home Indicator) -->
+        <div class="fixed bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-white rounded-full"></div>
+
     </div>
-</nav>
-
-<!-- JavaScript Qismi -->
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        
-        // 1. NAVIGATSIYANI BOSHQARISH (TABLAR)
-        const navItems = document.querySelectorAll('.profile-nav .nav-item');
-        const tabPanes = document.querySelectorAll('.tab-pane');
-
-        navItems.forEach(item => {
-            item.addEventListener('click', function(e) {
-                e.preventDefault();
-                navItems.forEach(nav => nav.classList.remove('active'));
-                tabPanes.forEach(pane => pane.classList.remove('active-tab'));
-                this.classList.add('active');
-                const targetId = this.getAttribute('data-target');
-                document.getElementById(targetId).classList.add('active-tab');
-            });
-        });
-
-        // 2. OBUNA BO'LISH TUGMASINI FAULLASHTIRISH (OQ VA QORA)
-        const subscribeBtn = document.querySelector('.btn-subscribe');
-        if(subscribeBtn) {
-            subscribeBtn.addEventListener('click', function() {
-                this.classList.toggle('subscribed');
-                
-                if(this.classList.contains('subscribed')) {
-                    this.textContent = 'Obuna bo‘lingan';
-                } else {
-                    this.textContent = 'Obuna bo‘lish';
-                }
-            });
-        }
-
-        // 3. TELEGRAM VA ORQAGA QAYTISH TUGMALARI
-        if (window.Telegram && window.Telegram.WebApp) {
-            const tg = window.Telegram.WebApp;
-            tg.ready();
-            
-            tg.expand();
-            if (tg.requestFullscreen) {
-                tg.requestFullscreen();
-            }
-            
-            tg.BackButton.show();
-            tg.BackButton.onClick(function() {
-                window.location.href = 'index.html';
-            });
-        }
-
-        window.history.pushState({page: 'profil'}, "Profil", "");
-        window.addEventListener('popstate', function(event) {
-            window.location.href = 'index.html';
-        });
-    });
-</script>
 
 </body>
 </html>
