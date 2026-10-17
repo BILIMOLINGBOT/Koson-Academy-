@@ -2,288 +2,350 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Uy - Social Feed</title>
-    
+    <title>Profil</title>
+
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
+
     <style>
-        body {
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background-color: var(--tg-theme-bg-color, #000000);
-            -webkit-font-smoothing: antialiased;
             -webkit-tap-highlight-color: transparent;
         }
-        ::-webkit-scrollbar { width: 4px; background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
-        .safe-top { padding-top: env(safe-area-inset-top); }
-        .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
-        .nav-btn { transition: transform 0.15s ease, opacity 0.15s ease; }
-        .nav-btn:active { transform: scale(0.85); opacity: 0.7; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        .nav-active { color: #ffffff; }
-        .nav-inactive { color: #a1a1aa; }
-        .nav-inactive:hover { color: #ffffff; }
 
-        #splashScreen {
-            opacity: 1;
-            visibility: visible;
-            transition: opacity 1.5s ease-out, visibility 1.5s ease-out;
+        html, body {
+            background-color: #000000 !important;
+            color: #ffffff;
+            overflow-x: hidden;
         }
-        #splashScreen.hide {
-            opacity: 0;
-            visibility: hidden;
+
+        body {
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
         }
-        .logo-text {
-            opacity: 1;
-            transition: opacity 1.5s ease-out;
+
+        .container {
+            width: 100%;
+            max-width: 420px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-bottom: 120px;
         }
-        #splashScreen.hide .logo-text {
-            opacity: 0;
+
+        .profile-pic-wrapper {
+            margin-top: 40px;
+            margin-bottom: 20px;
         }
-        @keyframes loadingBar {
-            0% { width: 0%; }
-            100% { width: 100%; }
+
+        .profile-pic {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            background-color: #1c1c1e;
+            border: 3px solid #1c1c1e;
         }
-        .loading-bar {
-            animation: loadingBar 4s linear forwards;
+
+        .name {
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            text-align: center;
         }
+
+        .last-seen {
+            color: #8e8e93;
+            font-size: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stats-container {
+            display: flex;
+            width: 100%;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            padding: 0 10px;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+        }
+
+        .stat-divider {
+            width: 1px;
+            background-color: #2c2c2e;
+            height: 40px;
+        }
+
+        .stat-number { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+        .stat-label { color: #8e8e93; font-size: 13px; }
+
+        .action-buttons {
+            display: flex;
+            width: 100%;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            flex: 1;
+            border: none;
+            border-radius: 100px;
+            padding: 14px 0;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, opacity 0.2s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn:active { transform: scale(0.96); opacity: 0.8; }
+        .btn-light { background-color: #ffffff; color: #000000; }
+        .btn-dark { background-color: #1c1c1e; color: #ffffff; }
+        .btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+        .btn-circle {
+            background-color: #1c1c1e;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            flex-shrink: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        /* --- ZAMONAVIY PILL (ISLAND) TUGMA --- */
+        .start-pill-btn {
+            position: fixed;
+            right: 20px;
+            bottom: 100px; /* Pastki menyudan teparoqda */
+            z-index: 100;
+            display: none; /* Dastlab yashiringan (faqat o'z profilida chiqadi) */
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.95);
+            color: #000000;
+            padding: 14px 28px;
+            border-radius: 100px; /* Pill shakli */
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 15px;
+            letter-spacing: -0.3px;
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            box-shadow: 
+                0 10px 30px rgba(0, 0, 0, 0.5), 
+                0 0 0 1px rgba(255, 255, 255, 0.2) inset,
+                0 0 20px rgba(255, 255, 255, 0.15);
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .start-pill-btn:active {
+            transform: scale(0.92);
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .start-pill-btn svg {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            stroke-width: 2.5;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        /* ----------------------------------- */
+
+        .tabs {
+            display: flex;
+            background-color: #1c1c1e;
+            width: 100%;
+            border-radius: 20px;
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+
+        .tab-item {
+            color: #8e8e93;
+            font-size: 14px;
+            padding: 12px 6px;
+            border-radius: 16px;
+            text-align: center;
+            flex: 1;
+            font-weight: 500;
+        }
+        .tab-item.active { background-color: #48484a; color: #ffffff; }
+
+        /* Pastki Menyu */
+        .bottom-nav {
+            position: fixed;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 92%;
+            max-width: 400px;
+            background-color: rgba(24, 24, 27, 0.9);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(63, 63, 70, 0.5);
+            border-radius: 2rem;
+            z-index: 50;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .bottom-nav-inner {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 12px 8px;
+        }
+
+        .nav-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 0 12px;
+            color: #a1a1aa;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        .nav-btn.nav-active { color: #ffffff; }
+        .nav-btn svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 2.2; }
+        .nav-btn .nav-label { font-size: 10px; font-weight: 500; }
+        .nav-avatar { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; }
+
     </style>
 </head>
-<body class="text-white antialiased flex justify-center min-h-screen selection:bg-zinc-800">
+<body>
 
-    <!-- SPLASH SCREEN -->
-    <div id="splashScreen" class="fixed inset-0 z-[9999] bg-black flex flex-col items-center justify-center">
-        <div class="logo-text text-white font-serif font-black text-[12rem] sm:text-[16rem] italic tracking-tighter select-none leading-none">
-            L
+    <div class="container">
+        <!-- Profil qismi -->
+        <div class="profile-pic-wrapper">
+            <img id="userPhoto" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%231c1c1e'/><circle cx='50' cy='40' r='18' fill='%233f3f46'/><ellipse cx='50' cy='90' rx='30' ry='22' fill='%233f3f46'/></svg>" class="profile-pic">
         </div>
-        <div class="absolute bottom-24 w-40 h-1 bg-zinc-800 rounded-full overflow-hidden">
-            <div class="loading-bar h-full bg-white rounded-full"></div>
-        </div>
-    </div>
 
-    <div class="w-full max-w-lg border-x border-zinc-900 min-h-screen flex flex-col relative bg-black pb-28 no-scrollbar">
+        <h1 class="name" id="userName">Foydalanuvchi</h1>
+        <p class="last-seen" id="userStatus">@username</p>
+
+        <div class="stats-container">
+            <div class="stat-item"><span class="stat-number">0</span><span class="stat-label">Obunalar</span></div>
+            <div class="stat-divider"></div>
+            <div class="stat-item"><span class="stat-number">0</span><span class="stat-label">Obunachilar</span></div>
+            <div class="stat-divider"></div>
+            <div class="stat-item"><span class="stat-number">0</span><span class="stat-label">Postlar</span></div>
+        </div>
+
+        <!-- Tugmalar -->
+        <div class="action-buttons">
+            <div id="ownProfileActions" style="display:none; width:100%; gap:10px;">
+                <a href="tahrirlash.html" class="btn btn-light">
+                    <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg> 
+                    Tahrirlash
+                </a>
+                <a href="setting.html" class="btn-circle">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                </a>
+            </div>
+            
+            <div id="otherProfileActions" style="display:none; width:100%; gap:10px;">
+                <button class="btn btn-light" id="subscribeBtn">Obuna bo'lish</button>
+                <a href="xabar.html" class="btn btn-dark">Xabar</a>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <div class="tab-item active">Bosh sahifa</div>
+            <div class="tab-item">Postlar</div>
+            <div class="tab-item">Video</div>
+        </div>
         
-        <!-- HEADER: faqat L logotipi (ism/avatar YO'Q) -->
-        <header class="sticky top-0 z-50 bg-black/80 backdrop-blur-xl border-b border-zinc-900 flex items-end px-4 pb-2 safe-top" style="height: 120px;">
-            <div class="text-white font-serif font-black text-[1.65rem] italic tracking-tighter cursor-pointer select-none leading-none">L</div>
-        </header>
-
-        <!-- Post 1 -->
-        <article class="flex flex-col border-b border-zinc-900 pb-3">
-            <div class="flex items-center justify-between px-4 py-3">
-                <div class="flex items-center gap-3 group">
-                    <a href="profil.html" class="shrink-0 block">
-                        <img src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=150&auto=format&fit=crop&q=80" alt="zzz" class="w-9 h-9 rounded-full object-cover border border-zinc-800 hover:opacity-80 transition-opacity">
-                    </a>
-                    <div class="flex items-center gap-2 cursor-pointer">
-                        <a href="profil.html" class="font-semibold text-[15px] hover:underline">zzz</a>
-                        <span class="text-zinc-500 text-[14px]">Aug 10</span>
-                    </div>
-                </div>
-                <button class="text-zinc-500 hover:text-zinc-300 transition-colors p-1.5 rounded-full hover:bg-zinc-900 active:scale-95">
-                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="1"></circle>
-                        <circle cx="19" cy="12" r="1"></circle>
-                        <circle cx="5" cy="12" r="1"></circle>
-                    </svg>
-                </button>
-            </div>
-
-            <div class="w-full bg-zinc-950 relative">
-                <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=1000&auto=format&fit=crop&q=80" alt="Phones" class="w-full h-auto max-h-[600px] object-cover">
-            </div>
-
-            <div class="flex justify-between items-center px-4 pt-4 pb-2">
-                <div class="flex items-center gap-5 text-white">
-                    <button class="hover:text-zinc-400 transition-colors group active:scale-90">
-                        <svg viewBox="0 0 24 24" width="26" height="26" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                        </svg>
-                    </button>
-                    <a href="xabar.html" class="hover:text-zinc-400 transition-colors group active:scale-90">
-                        <svg viewBox="0 0 24 24" width="26" height="26" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="-scale-x-100">
-                            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
-                        </svg>
-                    </a>
-                    <button class="hover:text-zinc-400 transition-colors group active:scale-90 pl-0.5">
-                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="22" y1="2" x2="11" y2="13"></line>
-                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                        </svg>
-                    </button>
-                    <button class="hover:text-zinc-400 transition-colors group active:scale-90 pl-0.5">
-                        <svg viewBox="0 0 24 24" width="26" height="26" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="17 1 21 5 17 9"></polyline>
-                            <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
-                            <polyline points="7 23 3 19 7 15"></polyline>
-                            <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
-                        </svg>
-                    </button>
-                </div>
-                <button class="text-white hover:text-zinc-400 transition-colors group active:scale-90">
-                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-                    </svg>
-                </button>
-            </div>
-
-            <div class="px-4 pb-2">
-                <span class="font-semibold text-[15px] cursor-pointer hover:underline">8,932 likes</span>
-            </div>
-        </article>
-
-        <!-- Post 2 -->
-        <article class="flex flex-col border-b border-zinc-900 pb-3">
-            <div class="flex items-center justify-between px-4 py-3">
-                <div class="flex items-center gap-3 group">
-                    <a href="profil.html" class="shrink-0 block">
-                        <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80" alt="Alex" class="w-9 h-9 rounded-full object-cover border border-zinc-800 hover:opacity-80 transition-opacity">
-                    </a>
-                    <div class="flex items-center gap-2 cursor-pointer">
-                        <a href="profil.html" class="font-semibold text-[15px] hover:underline">Alex M</a>
-                        <span class="text-zinc-500 text-[14px]">Sep 02</span>
-                    </div>
-                </div>
-                <button class="text-zinc-500 hover:text-zinc-300 transition-colors p-1.5 rounded-full hover:bg-zinc-900 active:scale-95">
-                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="1"></circle>
-                        <circle cx="19" cy="12" r="1"></circle>
-                        <circle cx="5" cy="12" r="1"></circle>
-                    </svg>
-                </button>
-            </div>
-            <div class="w-full bg-zinc-950 relative">
-                <img src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1000&auto=format&fit=crop&q=80" alt="Forest" class="w-full h-auto max-h-[600px] object-cover">
-            </div>
-        </article>
-
+        <p style="color: #8e8e93; font-size: 14px; text-align: center; margin-top: 20px;">Hali ma'lumot yo'q</p>
     </div>
 
-    <!-- Bottom Navigation -->
-    <nav class="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 w-[92%] max-w-[400px] bg-zinc-900/90 backdrop-blur-xl border border-zinc-700/50 rounded-[2rem] z-50 shadow-[0_10px_40px_rgba(0,0,0,0.8)] pb-safe">
-        <div class="flex justify-around items-center px-2 py-3">
-            
-            <a href="index.html" class="nav-btn flex flex-col items-center gap-1 nav-active px-3 sm:px-4">
-                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                </svg>
-                <span class="text-[10px] font-semibold tracking-wide">Uy</span>
-            </a>
+    <!-- ZAMONAVIY "BOSHLASH" PILL TUGMASI -->
+    <!-- Unga href="boshlash.html" biriktirilgan -->
+    <a href="boshlash.html" class="start-pill-btn" id="startPillBtn">
+        Boshlash
+        <svg viewBox="0 0 24 24">
+            <path d="M5 12h14M12 5l7 7-7 7" />
+        </svg>
+    </a>
 
-            <a href="reels.html" class="nav-btn flex flex-col items-center gap-1 nav-inactive px-3 sm:px-4">
-                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-                    <line x1="2" y1="8" x2="22" y2="8"></line>
-                    <line x1="2" y1="16" x2="22" y2="16"></line>
-                    <line x1="8" y1="2" x2="8" y2="8"></line>
-                    <line x1="16" y1="2" x2="16" y2="8"></line>
-                    <polygon points="10 12 15 14.5 10 17 10 12" fill="currentColor"></polygon>
-                </svg>
-                <span class="text-[10px] font-medium tracking-wide">Reels</span>
-            </a>
-
-            <a href="xabar.html" class="nav-btn flex flex-col items-center gap-1 nav-inactive px-3 sm:px-4 relative">
-                <div class="relative">
-                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="-scale-x-100">
-                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
-                    </svg>
-                    <span class="absolute -top-1.5 -right-2 w-4 h-4 bg-red-500 text-white rounded-full text-[9px] flex items-center justify-center font-bold ring-2 ring-zinc-900">3</span>
-                </div>
-                <span class="text-[10px] font-medium tracking-wide">Xabar</span>
-            </a>
-
-            <a href="qidiruv.html" class="nav-btn flex flex-col items-center gap-1 nav-inactive px-3 sm:px-4">
-                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-                <span class="text-[10px] font-medium tracking-wide">Qidiruv</span>
-            </a>
-
-            <a href="profil.html" class="nav-btn flex flex-col items-center gap-1 nav-inactive px-3 sm:px-4">
-                <img id="navUserAvatar" 
-                     src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='20' fill='%233f3f46'/%3E%3C/svg%3E" 
-                     alt="Profile" 
-                     class="w-6 h-6 rounded-full object-cover ring-2 ring-transparent">
-                <span class="text-[10px] font-medium tracking-wide">Profil</span>
-            </a>
-            
+    <!-- Pastki menyu oddiy sahifalarga yo'naltirilgan -->
+    <nav class="bottom-nav">
+        <div class="bottom-nav-inner">
+            <a href="index.html" class="nav-btn"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg><span class="nav-label">Uy</span></a>
+            <a href="reels.html" class="nav-btn"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><polygon points="10 12 15 14.5 10 17 10 12" fill="currentColor"></polygon></svg><span class="nav-label">Reels</span></a>
+            <a href="xabar.html" class="nav-btn"><svg viewBox="0 0 24 24" style="transform: scaleX(-1);"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg><span class="nav-label">Xabar</span></a>
+            <a href="qidiruv.html" class="nav-btn"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><span class="nav-label">Qidiruv</span></a>
+            <a href="profil.html" class="nav-btn nav-active"><img id="navUserPhoto" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%231c1c1e'/><circle cx='50' cy='40' r='18' fill='%233f3f46'/><ellipse cx='50' cy='90' rx='30' ry='22' fill='%233f3f46'/></svg>" class="nav-avatar"><span class="nav-label">Profil</span></a>
         </div>
     </nav>
 
     <script>
-    document.addEventListener("DOMContentLoaded", function() {
         const tg = window.Telegram?.WebApp;
-        
         if (tg) {
             tg.ready();
             tg.expand();
-            if (tg.requestFullscreen) {
-                try { tg.requestFullscreen(); } catch(e) {}
-            }
-            try {
-                tg.setHeaderColor('#000000');
-                tg.setBackgroundColor('#000000');
-                if (tg.disableVerticalSwipes) tg.disableVerticalSwipes();
-            } catch(e) {}
+            tg.setHeaderColor('#000000');
+            tg.setBackgroundColor('#000000');
+        }
+
+        // Foydalanuvchini aniqlash
+        const urlParams = new URLSearchParams(window.location.search);
+        const profileUserId = urlParams.get('id');
+        const user = tg?.initDataUnsafe?.user;
+        const myUserId = user?.id;
+        
+        const isOwnProfile = !profileUserId || String(profileUserId) === String(myUserId);
+
+        if (isOwnProfile) {
+            document.getElementById('ownProfileActions').style.display = 'flex';
             
-            loadTelegramUser(tg);
+            // "Boshlash" tugmasini faqat o'z profilida ko'rsatish
+            document.getElementById('startPillBtn').style.display = 'flex';
+
+            if (user) {
+                const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ') || 'Foydalanuvchi';
+                document.getElementById('userName').textContent = fullName;
+                document.getElementById('userStatus').textContent = user.username ? '@' + user.username : 'Telegram foydalanuvchisi';
+                if (user.photo_url) {
+                    document.getElementById('userPhoto').src = user.photo_url;
+                    document.getElementById('navUserPhoto').src = user.photo_url;
+                }
+            }
+        } else {
+            document.getElementById('otherProfileActions').style.display = 'flex';
+            document.getElementById('userName').textContent = 'Foydalanuvchi';
+            document.getElementById('userStatus').textContent = 'Profil #' + profileUserId;
         }
 
-        const splash = document.getElementById('splashScreen');
-        if (splash) {
-            setTimeout(() => {
-                splash.classList.add('hide');
-                setTimeout(() => splash.remove(), 1500);
-            }, 4000);
-        }
-    });
-
-    function loadTelegramUser(tg) {
-        const user = tg.initDataUnsafe?.user;
-        if (!user) return;
-        
-        const fullName = [user.first_name, user.last_name]
-            .filter(Boolean).join(' ').trim() || user.username || 'Foydalanuvchi';
-        
-        // Faqat bottom nav avatar yangilanadi
-        const navAvatarEl = document.getElementById('navUserAvatar');
-        if (navAvatarEl) {
-            navAvatarEl.src = user.photo_url || generateAvatarPlaceholder(fullName);
-            navAvatarEl.onerror = () => {
-                navAvatarEl.src = generateAvatarPlaceholder(fullName);
-            };
-        }
-        
-        document.title = fullName + ' - L';
-    }
-
-    function generateAvatarPlaceholder(name) {
-        const initial = (name || '?').charAt(0).toUpperCase();
-        const colors = ['#ef4444','#f97316','#f59e0b','#eab308','#84cc16','#22c55e',
-                        '#10b981','#14b8a6','#06b6d4','#0ea5e9','#3b82f6','#6366f1',
-                        '#8b5cf6','#a855f7','#d946ef','#ec4899','#f43f5e','#71717a'];
-        let hash = 0;
-        for (let i = 0; i < (name || '').length; i++) {
-            hash = name.charCodeAt(i) + ((hash << 5) - hash);
-        }
-        const bgColor = colors[Math.abs(hash) % colors.length];
-        const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-            <circle cx="50" cy="50" r="50" fill="${bgColor}"/>
-            <text x="50" y="50" text-anchor="middle" dominant-baseline="central" 
-                  font-family="Inter, Arial, sans-serif" font-size="46" font-weight="700" 
-                  fill="#ffffff">${initial}</text>
-        </svg>`;
-        return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
-    }
+        // Kichik vizual effektlar (Haptic)
+        document.querySelectorAll('a, button').forEach(el => {
+            el.addEventListener('click', () => {
+                tg?.HapticFeedback?.selectionChanged();
+            });
+        });
     </script>
 </body>
 </html>
