@@ -31,7 +31,6 @@
         .nav-inactive { color: #a1a1aa; }
         .nav-inactive:hover { color: #ffffff; }
 
-        /* ===== SPLASH SCREEN ===== */
         #splashScreen {
             opacity: 1;
             visibility: visible;
@@ -55,22 +54,11 @@
         .loading-bar {
             animation: loadingBar 4s linear forwards;
         }
-
-        /* User info fade-in */
-        #userInfo {
-            opacity: 0;
-            transform: translateX(10px);
-            transition: opacity 0.6s ease, transform 0.6s ease;
-        }
-        #userInfo.show {
-            opacity: 1;
-            transform: translateX(0);
-        }
     </style>
 </head>
 <body class="text-white antialiased flex justify-center min-h-screen selection:bg-zinc-800">
 
-    <!-- ===== SPLASH SCREEN ===== -->
+    <!-- SPLASH SCREEN -->
     <div id="splashScreen" class="fixed inset-0 z-[9999] bg-black flex flex-col items-center justify-center">
         <div class="logo-text text-white font-serif font-black text-[12rem] sm:text-[16rem] italic tracking-tighter select-none leading-none">
             L
@@ -82,15 +70,9 @@
 
     <div class="w-full max-w-lg border-x border-zinc-900 min-h-screen flex flex-col relative bg-black pb-28 no-scrollbar">
         
-        <!-- Header - L chap burchakda + ism/username o'ngda (avatarsiz) -->
-        <header class="sticky top-0 z-50 bg-black/80 backdrop-blur-xl border-b border-zinc-900 flex items-end justify-between px-4 pb-2 safe-top" style="height: 120px;">
+        <!-- HEADER: faqat L logotipi (ism/avatar YO'Q) -->
+        <header class="sticky top-0 z-50 bg-black/80 backdrop-blur-xl border-b border-zinc-900 flex items-end px-4 pb-2 safe-top" style="height: 120px;">
             <div class="text-white font-serif font-black text-[1.65rem] italic tracking-tighter cursor-pointer select-none leading-none">L</div>
-            
-            <!-- FOYDALANUVCHI ISMI (avatarsiz) -->
-            <div id="userInfo" class="flex flex-col items-end leading-tight mb-1">
-                <span id="userName" class="text-white text-[14px] font-semibold tracking-tight">Yuklanmoqda...</span>
-                <span id="userUsername" class="text-zinc-500 text-[11px]"></span>
-            </div>
         </header>
 
         <!-- Post 1 -->
@@ -254,14 +236,6 @@
             } catch(e) {}
             
             loadTelegramUser(tg);
-        } else {
-            console.warn('⚠️ Telegram WebApp topilmadi');
-            updateUserUI({
-                first_name: 'Demo',
-                last_name: 'Foydalanuvchi',
-                username: 'demo_user',
-                photo_url: null
-            });
         }
 
         const splash = document.getElementById('splashScreen');
@@ -275,51 +249,12 @@
 
     function loadTelegramUser(tg) {
         const user = tg.initDataUnsafe?.user;
+        if (!user) return;
         
-        if (!user) {
-            console.warn('⚠️ Foydalanuvchi topilmadi');
-            updateUserUI({
-                first_name: 'Mehmon',
-                last_name: '',
-                username: 'guest',
-                photo_url: null
-            });
-            return;
-        }
-        
-        console.log('✅ Telegram user:', user);
-        updateUserUI(user);
-        
-        // Faqat NAV avatar uchun localStorage
-        if (!user.photo_url) {
-            const savedPhoto = localStorage.getItem('tg_user_photo_' + user.id);
-            if (savedPhoto) {
-                const navAvatarEl = document.getElementById('navUserAvatar');
-                if (navAvatarEl) navAvatarEl.src = savedPhoto;
-            }
-        } else {
-            try {
-                localStorage.setItem('tg_user_photo_' + user.id, user.photo_url);
-            } catch(e) {}
-        }
-    }
-
-    function updateUserUI(user) {
         const fullName = [user.first_name, user.last_name]
-            .filter(Boolean)
-            .join(' ')
-            .trim() || user.username || 'Foydalanuvchi';
+            .filter(Boolean).join(' ').trim() || user.username || 'Foydalanuvchi';
         
-        const username = user.username ? '@' + user.username : '';
-        
-        // Header: ism va username
-        const userNameEl = document.getElementById('userName');
-        if (userNameEl) userNameEl.textContent = fullName;
-        
-        const userUsernameEl = document.getElementById('userUsername');
-        if (userUsernameEl) userUsernameEl.textContent = username;
-        
-        // Faqat NAV avatar yangilanadi (header'da avatar yo'q)
+        // Faqat bottom nav avatar yangilanadi
         const navAvatarEl = document.getElementById('navUserAvatar');
         if (navAvatarEl) {
             navAvatarEl.src = user.photo_url || generateAvatarPlaceholder(fullName);
@@ -329,49 +264,25 @@
         }
         
         document.title = fullName + ' - L';
-        
-        const userInfo = document.getElementById('userInfo');
-        if (userInfo) {
-            setTimeout(() => {
-                userInfo.classList.add('show');
-            }, 200);
-        }
     }
 
     function generateAvatarPlaceholder(name) {
         const initial = (name || '?').charAt(0).toUpperCase();
-        
-        const colors = [
-            '#ef4444', '#f97316', '#f59e0b', '#eab308',
-            '#84cc16', '#22c55e', '#10b981', '#14b8a6',
-            '#06b6d4', '#0ea5e9', '#3b82f6', '#6366f1',
-            '#8b5cf6', '#a855f7', '#d946ef', '#ec4899',
-            '#f43f5e', '#71717a'
-        ];
-        
+        const colors = ['#ef4444','#f97316','#f59e0b','#eab308','#84cc16','#22c55e',
+                        '#10b981','#14b8a6','#06b6d4','#0ea5e9','#3b82f6','#6366f1',
+                        '#8b5cf6','#a855f7','#d946ef','#ec4899','#f43f5e','#71717a'];
         let hash = 0;
         for (let i = 0; i < (name || '').length; i++) {
             hash = name.charCodeAt(i) + ((hash << 5) - hash);
         }
         const bgColor = colors[Math.abs(hash) % colors.length];
-        
         const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
             <circle cx="50" cy="50" r="50" fill="${bgColor}"/>
             <text x="50" y="50" text-anchor="middle" dominant-baseline="central" 
                   font-family="Inter, Arial, sans-serif" font-size="46" font-weight="700" 
-                  fill="#ffffff">${escapeXml(initial)}</text>
+                  fill="#ffffff">${initial}</text>
         </svg>`;
-        
         return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
-    }
-
-    function escapeXml(str) {
-        return String(str)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&apos;');
     }
     </script>
 </body>
