@@ -2,12 +2,12 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Profil</title>
 
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js" defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
@@ -28,6 +28,7 @@
             display: flex;
             justify-content: center;
             min-height: 100vh;
+            min-height: 100dvh; /* #19 tuzatildi */
             -webkit-font-smoothing: antialiased;
         }
 
@@ -40,6 +41,7 @@
             align-items: center;
             padding-bottom: 200px;
             min-height: 100vh;
+            min-height: 100dvh;
         }
 
         .profile-pic-wrapper {
@@ -99,6 +101,11 @@
             font-size: 20px;
             font-weight: 600;
             margin-bottom: 6px;
+            transition: opacity 0.2s;
+        }
+
+        .stat-number.loading {
+            opacity: 0.4;
         }
 
         .stat-label {
@@ -133,6 +140,11 @@
         .btn-edit:active {
             opacity: 0.8;
             transform: scale(0.98);
+        }
+
+        .btn-edit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
 
         .btn-edit svg {
@@ -231,7 +243,7 @@
         .empty-icon svg {
             width: 28px;
             height: 28px;
-            stroke: currentColor;
+            stroke: currentColor; /* #9 tuzatildi - stroke aniq berildi */
             fill: none;
             stroke-width: 2;
             stroke-linecap: round;
@@ -241,7 +253,8 @@
         .start-btn {
             position: fixed;
             right: 20px;
-            bottom: 110px;
+            /* #18 tuzatildi - safe-area hisobga olindi */
+            bottom: calc(110px + env(safe-area-inset-bottom, 0px));
             z-index: 60;
             display: inline-flex;
             align-items: center;
@@ -286,7 +299,8 @@
 
         .bottom-nav {
             position: fixed;
-            bottom: 16px;
+            /* #17 tuzatildi - safe-area to'g'ri hisoblandi */
+            bottom: calc(16px + env(safe-area-inset-bottom, 0px));
             left: 50%;
             transform: translateX(-50%);
             width: 92%;
@@ -298,7 +312,6 @@
             border-radius: 2rem;
             z-index: 50;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
-            padding-bottom: env(safe-area-inset-bottom);
         }
 
         .bottom-nav-inner {
@@ -320,6 +333,7 @@
             background: none;
             border: none;
             font-family: inherit;
+            color: inherit;
         }
 
         .nav-btn:active {
@@ -362,6 +376,31 @@
         #otherProfileActions .btn-message svg {
             stroke: #ffffff;
         }
+
+        .toast {
+            position: fixed;
+            bottom: calc(180px + env(safe-area-inset-bottom, 0px));
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: rgba(40, 40, 45, 0.95);
+            backdrop-filter: blur(20px);
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            z-index: 100;
+            max-width: 90%;
+            text-align: center;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
     </style>
 </head>
 <body>
@@ -369,7 +408,7 @@
     <div class="mobile-container">
         <div class="profile-pic-wrapper">
             <img id="userPhoto"
-                 src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%231c1c1e'/><circle cx='50' cy='40' r='18' fill='%233f3f46'/><ellipse cx='50' cy='90' rx='30' ry='22' fill='%233f3f46'/></svg>"
+                 src="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%231c1c1e'/%3E%3Ccircle cx='50' cy='40' r='18' fill='%233f3f46'/%3E%3Cellipse cx='50' cy='90' rx='30' ry='22' fill='%233f3f46'/%3E%3C/svg%3E"
                  alt="Profil rasmi" class="profile-pic">
         </div>
 
@@ -378,24 +417,24 @@
 
         <div class="stats-container">
             <div class="stat-item">
-                <span class="stat-number" id="subsCount">0</span>
+                <span class="stat-number loading" id="subsCount">—</span>
                 <span class="stat-label">Obunalar</span>
             </div>
             <div class="stat-divider"></div>
             <div class="stat-item">
-                <span class="stat-number" id="followersCount">0</span>
+                <span class="stat-number loading" id="followersCount">—</span>
                 <span class="stat-label">Obunachilar</span>
             </div>
             <div class="stat-divider"></div>
             <div class="stat-item">
-                <span class="stat-number" id="postsCount">0</span>
+                <span class="stat-number loading" id="postsCount">—</span>
                 <span class="stat-label">Postlar</span>
             </div>
         </div>
 
         <div class="action-buttons">
             <!-- O'z profili -->
-            <div id="ownProfileActions" style="display:none; width:100%; gap:10px;">
+            <div id="ownProfileActions" style="display:none; width:100%; gap:10px; align-items:center;">
                 <button class="btn-edit" id="editBtn">
                     <svg viewBox="0 0 24 24">
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -495,14 +534,21 @@
 
             <a href="profil.html" class="nav-btn nav-active">
                 <img id="navUserPhoto"
-                     src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%231c1c1e'/><circle cx='50' cy='40' r='18' fill='%233f3f46'/><ellipse cx='50' cy='90' rx='30' ry='22' fill='%233f3f46'/></svg>"
+                     src="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%231c1c1e'/%3E%3Ccircle cx='50' cy='40' r='18' fill='%233f3f46'/%3E%3Cellipse cx='50' cy='90' rx='30' ry='22' fill='%233f3f46'/%3E%3C/svg%3E"
                      alt="Profile" class="nav-avatar">
                 <span class="nav-label">Profil</span>
             </a>
         </div>
     </nav>
 
+    <div class="toast" id="toast"></div>
+
     <script>
+        // ============ SOZLAMALAR ============
+        const API_BASE = 'https://your-backend.com/api'; // #1 - real backendga almashtiring
+        const USE_MOCK_API = true; // demo uchun; real backendda false qiling
+
+        // ============ TELEGRAM WEBAPP ============
         const tg = window.Telegram?.WebApp;
         if (tg) {
             tg.ready();
@@ -511,77 +557,298 @@
             tg.setBackgroundColor('#000000');
         }
 
-        // Profil egasini aniqlash
+        // #2 - initDataUnsafe faqat UI uchun, mantiqiy tekshiruv emas
+        // Haqiqiy tekshiruv serverda: POST {initData} -> {valid: true, user}
+        const tgUser = tg?.initDataUnsafe?.user;
+
+        
+        // ============ YORDAMCHI FUNKSIYALAR ============
+        function showToast(msg, duration = 2000) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            clearTimeout(t._timer);
+            t._timer = setTimeout(() => t.classList.remove('show'), duration);
+        }
+
+        function haptic(type = 'light') {
+            try { tg?.HapticFeedback?.impactOccurred(type); } catch (e) { /* eski versiya */ }
+        }
+
+        function hapticSelect() {
+            try { tg?.HapticFeedback?.selectionChanged(); } catch (e) {}
+        }
+
+        // #14 - rasm yuklanmasa fallback
+        const FALLBACK_PHOTO = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%231c1c1e'/%3E%3Ccircle cx='50' cy='40' r='18' fill='%233f3f46'/%3E%3Cellipse cx='50' cy='90' rx='30' ry='22' fill='%233f3f46'/%3E%3C/svg%3E";
+
+        function setPhoto(imgId, url) {
+            const img = document.getElementById(imgId);
+            if (!img) return;
+            img.onerror = () => { img.onerror = null; img.src = FALLBACK_PHOTO; };
+            img.src = url || FALLBACK_PHOTO;
+        }
+
+        // ============ MOCK API (#1, #3, #5 tuzatildi) ============
+        // Real backendga ulash uchun USE_MOCK_API = false qiling va API_BASE ni o'zgartiring
+        const MOCK_DB = {
+            // Demo foydalanuvchilar
+            users: {
+                'self': null, // keyin to'ldiriladi
+                '100': {
+                    id: 100,
+                    first_name: 'Ali',
+                    last_name: 'Valiyev',
+                    username: 'ali_valiyev',
+                    photo_url: null,
+                    last_seen: '5 daqiqa oldin',
+                    stats: { subs: 42, followers: 128, posts: 17 },
+                    is_subscribed: false
+                },
+                '200': {
+                    id: 200,
+                    first_name: 'Zulfiya',
+                    last_name: 'Karimova',
+                    username: 'zulfiya_k',
+                    photo_url: null,
+                    last_seen: '1 soat oldin',
+                    stats: { subs: 89, followers: 340, posts: 52 },
+                    is_subscribed: true
+                }
+            },
+            // Obuna holatlari (demo)
+            subscriptions: new Set(['200']) // self -> 200 obuna
+        };
+
+        async function apiGetUser(userId, initData) {
+            if (USE_MOCK_API) {
+                await new Promise(r => setTimeout(r, 400));
+                if (String(userId) === String(tgUser?.id)) {
+                    // O'z profili - Telegram ma'lumotlaridan
+                    return {
+                        id: tgUser.id,
+                        first_name: tgUser.first_name,
+                        last_name: tgUser.last_name,
+                        username: tgUser.username,
+                        photo_url: tgUser.photo_url,
+                        last_seen: 'Hozir onlayn',
+                        stats: { subs: 12, followers: 34, posts: 5 },
+                        is_self: true,
+                        is_subscribed: false
+                    };
+                }
+                const u = MOCK_DB.users[String(userId)];
+                if (!u) throw new Error('Foydalanuvchi topilmadi');
+                return { ...u, is_self: false, is_subscribed: MOCK_DB.subscriptions.has(String(userId)) };
+            }
+            // Real backend
+            const res = await fetch(`${API_BASE}/user/${encodeURIComponent(userId)}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ initData })
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return res.json();
+        }
+
+        async function apiToggleSubscribe(userId, action, initData) {
+            if (USE_MOCK_API) {
+                await new Promise(r => setTimeout(r, 500));
+                const key = String(userId);
+                if (action === 'subscribe') MOCK_DB.subscriptions.add(key);
+                else MOCK_DB.subscriptions.delete(key);
+                // statistika mock
+                const u = MOCK_DB.users[key];
+                if (u) u.stats.followers += action === 'subscribe' ? 1 : -1;
+                return { ok: true, is_subscribed: action === 'subscribe' };
+            }
+            const res = await fetch(`${API_BASE}/subscribe`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ initData, targetId: userId, action })
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return res.json();
+        }
+
+        // ============ PROFIL YUKLASH ============
         const urlParams = new URLSearchParams(window.location.search);
         const profileUserId = urlParams.get('id');
-        const myUserId = tg?.initDataUnsafe?.user?.id;
-        const isOwnProfile = !profileUserId || String(profileUserId) === String(myUserId);
+        // #10 - isOwnProfile faqat UI uchun, lekin serverdan javob kelguncha
+        const isOwnProfile = !profileUserId;
 
-        // Tugmalarni ko'rsatish
         const startBtn = document.getElementById('startBtn');
+        const subscribeBtn = document.getElementById('subscribeBtn');
+        const messageBtn = document.getElementById('messageBtn');
+
         if (isOwnProfile) {
             document.getElementById('ownProfileActions').style.display = 'flex';
+            startBtn.style.display = ''; // #10 - default ko'rinadi
         } else {
             document.getElementById('otherProfileActions').style.display = 'flex';
             startBtn.style.display = 'none';
         }
 
-        // Foydalanuvchi ma'lumotlari
-        if (isOwnProfile) {
-            const user = tg?.initDataUnsafe?.user;
-            if (user) {
-                const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ') || 'Foydalanuvchi';
-                document.getElementById('userName').textContent = fullName;
-                document.getElementById('userStatus').textContent = user.username ? '@' + user.username : 'Telegram foydalanuvchisi';
-                if (user.photo_url) {
-                    document.getElementById('userPhoto').src = user.photo_url;
-                    document.getElementById('navUserPhoto').src = user.photo_url;
-                }
-            }
-        } else {
-            document.getElementById('userName').textContent = 'Foydalanuvchi';
-            document.getElementById('userStatus').textContent = 'Profil #' + profileUserId;
-        }
-
-        // O'z profili tugmalari
-        document.getElementById('editBtn')?.addEventListener('click', () => {
-            tg?.HapticFeedback?.impactOccurred('light');
-            window.location.href = 'tahrirlash.html';
-        });
-
-        document.getElementById('settingsBtn')?.addEventListener('click', () => {
-            tg?.HapticFeedback?.impactOccurred('light');
-            window.location.href = 'setting.html';
-        });
-
-        
-        // Boshqa foydalanuvchi tugmalari
-        document.getElementById('subscribeBtn')?.addEventListener('click', () => {
-            tg?.HapticFeedback?.impactOccurred('medium');
-            const btn = document.getElementById('subscribeBtn');
-            btn.innerHTML = `<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg> Obuna bo'lindi`;
-            btn.style.opacity = '0.7';
-            btn.disabled = true;
-        });
-
-        document.getElementById('messageBtn')?.addEventListener('click', () => {
-            tg?.HapticFeedback?.impactOccurred('light');
-            window.location.href = `xabar.html?chat=${profileUserId}`;
-        });
-
-        // Boshlash tugmasi
-        if (isOwnProfile) {
-            startBtn.addEventListener('click', () => {
-                tg?.HapticFeedback?.impactOccurred('medium');
-                window.location.href = 'boshlash.html';
+        function renderStats(stats) {
+            const items = [
+                ['subsCount', stats.subs],
+                ['followersCount', stats.followers],
+                ['postsCount', stats.posts]
+            ];
+            items.forEach(([id, val]) => {
+                const el = document.getElementById(id);
+                el.textContent = typeof val === 'number' ? val.toLocaleString('uz-UZ') : '—';
+                el.classList.remove('loading');
             });
         }
 
-        // Tablar
+        function renderUser(data) {
+            document.getElementById('userName').textContent =
+                [data.first_name, data.last_name].filter(Boolean).join(' ') || 'Foydalanuvchi';
+            document.getElementById('userStatus').textContent =
+                data.username ? '@' + data.username : (data.last_seen || 'Telegram foydalanuvchisi');
+
+            setPhoto('userPhoto', data.photo_url);
+            if (data.is_self) setPhoto('navUserPhoto', data.photo_url);
+
+            renderStats(data.stats || { subs: 0, followers: 0, posts: 0 });
+
+            // #3 - obuna holati serverdan
+            if (!data.is_self && subscribeBtn) {
+                updateSubscribeButton(data.is_subscribed);
+            }
+
+            // Boshlash tugmasi faqat o'ziniki uchun
+            if (data.is_self) {
+                document.getElementById('ownProfileActions').style.display = 'flex';
+                document.getElementById('otherProfileActions').style.display = 'none';
+                startBtn.style.display = '';
+            } else {
+                document.getElementById('ownProfileActions').style.display = 'none';
+                document.getElementById('otherProfileActions').style.display = 'flex';
+                startBtn.style.display = 'none';
+            }
+        }
+
+        function updateSubscribeButton(isSubscribed) {
+            if (!subscribeBtn) return;
+            if (isSubscribed) {
+                subscribeBtn.innerHTML = `
+                    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    Obuna bo'lingan`;
+                subscribeBtn.style.opacity = '0.7';
+            } else {
+                subscribeBtn.innerHTML = `
+                    <svg viewBox="0 0 24 24">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="8.5" cy="7" r="4"></circle>
+                        <line x1="20" y1="8" x2="20" y2="14"></line>
+                        <line x1="23" y1="11" x2="17" y2="11"></line>
+                    </svg>
+                    Obuna bo'lish`;
+                subscribeBtn.style.opacity = '1';
+            }
+            subscribeBtn.dataset.subscribed = isSubscribed ? 'true' : 'false';
+            subscribeBtn.disabled = false;
+        }
+
+        async function loadProfile() {
+            try {
+                const userId = profileUserId || tgUser?.id || 'self';
+                // #2 - initData serverga yuboriladi (real backendda tekshiriladi)
+                const data = await apiGetUser(userId, tg?.initData || '');
+                renderUser(data);
+            } catch (err) {
+                console.error('Profil yuklashda xato:', err);
+                document.getElementById('userName').textContent = 'Xatolik';
+                document.getElementById('userStatus').textContent = 'Profil yuklanmadi';
+                renderStats({ subs: 0, followers: 0, posts: 0 });
+                showToast('Profil yuklanmadi. Qayta urinib ko\'ring.');
+            }
+        }
+
+        // ============ TUGMALAR ============
+        document.getElementById('editBtn')?.addEventListener('click', () => {
+            haptic('light');
+            // #6 - sahifa mavjudligini tekshirish (fallback bilan)
+            safeNavigate('tahrirlash.html');
+        });
+
+        document.getElementById('settingsBtn')?.addEventListener('click', () => {
+            haptic('light');
+            safeNavigate('setting.html');
+        });
+
+        function safeNavigate(url) {
+            // #6 - 404 oldini olish: fetch bilan tekshirish
+            fetch(url, { method: 'HEAD' })
+                .then(r => {
+                    if (r.ok) window.location.href = url;
+                    else showToast('Sahifa topilmadi: ' + url);
+                })
+                .catch(() => showToast('Sahifa topilmadi: ' + url));
+        }
+
+        // #3 - obuna real ishlaydi (server bilan)
+        subscribeBtn?.addEventListener('click', async () => {
+            if (subscribeBtn.disabled) return;
+            haptic('medium');
+
+            const currentlySubscribed = subscribeBtn.dataset.subscribed === 'true';
+            const action = currentlySubscribed ? 'unsubscribe' : 'subscribe';
+
+            // Optimistic UI
+            subscribeBtn.disabled = true;
+            subscribeBtn.style.opacity = '0.6';
+
+            try {
+                const res = await apiToggleSubscribe(profileUserId, action, tg?.initData || '');
+                updateSubscribeButton(res.is_subscribed);
+                showToast(res.is_subscribed ? 'Obuna bo\'lindi ✓' : 'Obuna bekor qilindi');
+                // Statistikani yangilash
+                const followersEl = document.getElementById('followersCount');
+                const cur = parseInt(followersEl.textContent.replace(/\D/g, '')) || 0;
+                followersEl.textContent = (cur + (res.is_subscribed ? 1 : -1)).toLocaleString('uz-UZ');
+            } catch (err) {
+                console.error('Obuna xatosi:', err);
+                showToast('Xatolik. Qayta urinib ko\'ring.');
+                updateSubscribeButton(currentlySubscribed);
+            }
+        });
+
+        // #4 - xabar: Telegram deep link ishlatish
+        messageBtn?.addEventListener('click', () => {
+            haptic('light');
+            if (!profileUserId) {
+                showToast('Foydalanuvchi aniqlanmadi');
+                return;
+            }
+            // Username bo'lsa Telegram'da ochish
+            const username = document.getElementById('userStatus').textContent;
+            if (username.startsWith('@')) {
+                const link = `https://t.me/${username.slice(1)}`;
+                if (tg?.openTelegramLink) {
+                    tg.openTelegramLink(link);
+                } else {
+                    window.open(link, '_blank');
+                }
+            } else {
+                // Fallback: ichki xabar sahifasi
+                safeNavigate(`xabar.html?chat=${encodeURIComponent(profileUserId)}`);
+            }
+        });
+
+        startBtn?.addEventListener('click', () => {
+            haptic('medium');
+            safeNavigate('boshlash.html');
+        });
+
+        // ============ TABLAR ============
+        // #9 - SVG'larga stroke aniq berildi
         const icons = {
-            home: `<svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
-            posts: `<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`,
-            video: `<svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>`
+            home: `<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
+            posts: `<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`,
+            video: `<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>`
         };
 
         const tabTexts = {
@@ -597,12 +864,32 @@
             document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
 
+            // #13 - key validatsiyasi
             const key = tab.dataset.tab;
+            if (!icons[key] || !tabTexts[key]) return;
+
             document.getElementById('contentText').textContent = tabTexts[key];
             document.getElementById('emptyIcon').innerHTML = icons[key];
 
-            tg?.HapticFeedback?.selectionChanged();
+            hapticSelect();
         });
+
+        // ============ ISHGA TUSHIRISH ============
+        // telegram-web-app.js defer bilan yuklangani uchun kutish
+        function init() {
+            loadProfile();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+
+        // Telegram skript kechiksa qayta urinish
+        if (!window.Telegram && !USE_MOCK_API) {
+            console.warn('Telegram WebApp skripti yuklanmagan');
+        }
     </script>
 </body>
 </html>
