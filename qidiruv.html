@@ -2,1278 +2,141 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Boshlash</title>
-
+    <title>Qidiruv</title>
+    
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
+    
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--tg-theme-bg-color, #000000);
+            -webkit-font-smoothing: antialiased;
             -webkit-tap-highlight-color: transparent;
         }
-
-        html, body {
-            background: #000;
-            color: #fff;
-            min-height: 100vh;
-        }
-
-        body {
-            display: flex;
-            justify-content: center;
-        }
-
-        .mobile-container {
-            width: 100%;
-            max-width: 420px;
-            padding: 20px;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border-left: 1px solid #18181b;
-            border-right: 1px solid #18181b;
-        }
-
-        /* ============================================================
-           "BOSHLASH" PILL TUGMASI
-           ============================================================ */
-        .btn-start {
-            position: relative;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            padding: 18px 56px;
-            border: none;
-            border-radius: 100px;
-            background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
-            color: #000;
-            font-size: 17px;
-            font-weight: 700;
-            letter-spacing: 0.3px;
-            cursor: pointer;
-            overflow: hidden;
-            box-shadow:
-                0 8px 24px rgba(255, 255, 255, 0.15),
-                0 2px 8px rgba(0, 0, 0, 0.4);
-            transition: transform 0.15s ease, box-shadow 0.2s ease;
-            font-family: inherit;
-        }
-
-        .btn-start::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, transparent 30%, rgba(255,255,255,0.9) 50%, transparent 70%);
-            transform: translateX(-120%);
-            transition: transform 0.6s ease;
-        }
-
-        .btn-start:active {
-            transform: scale(0.96);
-            box-shadow:
-                0 4px 12px rgba(255, 255, 255, 0.1),
-                0 1px 4px rgba(0, 0, 0, 0.4);
-        }
-
-        .btn-start:active::before {
-            transform: translateX(120%);
-        }
-
-        .btn-start svg {
-            width: 20px;
-            height: 20px;
-            fill: #000;
-            flex-shrink: 0;
-        }
-
-        /* ============================================================
-           MODAL OYNA
-           ============================================================ */
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.75);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            display: flex;
-            align-items: flex-end;
-            justify-content: center;
-            z-index: 1000;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.25s ease;
-        }
-
-        .modal-overlay.show {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .modal-sheet {
-            width: 100%;
-            max-width: 420px;
-            background: #1c1c1e;
-            border-radius: 28px 28px 0 0;
-            padding: 12px 20px calc(28px + env(safe-area-inset-bottom));
-            transform: translateY(100%);
-            transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
-            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.6);
-        }
-
-        .modal-overlay.show .modal-sheet {
-            transform: translateY(0);
-        }
-
-        .modal-handle {
-            width: 40px;
-            height: 4px;
-            background: #3f3f46;
-            border-radius: 2px;
-            margin: 0 auto 20px;
-        }
-
-        .modal-title {
-            font-size: 20px;
-            font-weight: 600;
-            text-align: center;
-            margin-bottom: 6px;
-        }
-
-        .modal-subtitle {
-            font-size: 14px;
-            color: #8e8e93;
-            text-align: center;
-            margin-bottom: 24px;
-        }
-
-        /* ============================================================
-           MODAL ICHIDAGI VARIANTLAR
-           ============================================================ */
-        .option-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-
-        .option-card {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            padding: 18px;
-            background: #2c2c2e;
-            border: 1.5px solid #3f3f46;
-            border-radius: 18px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-family: inherit;
-            color: #fff;
-            text-align: left;
-            width: 100%;
-        }
-
-        .option-card:active {
-            transform: scale(0.97);
-            background: #3a3a3c;
-            border-color: #52525b;
-        }
-
-        .option-icon {
-            width: 52px;
-            height: 52px;
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .option-icon.video {
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-        }
-
-        .option-icon.live {
-            background: linear-gradient(135deg, #ef4444, #f97316);
-            position: relative;
-        }
-
-        .option-icon.live::after {
-            content: '';
-            position: absolute;
-            inset: -3px;
-            border-radius: 17px;
-            border: 2px solid #ef4444;
-            animation: livePulse 1.5s ease-in-out infinite;
-        }
-
-        @keyframes livePulse {
-            0%, 100% { opacity: 0.6; transform: scale(1); }
-            50% { opacity: 0; transform: scale(1.15); }
-        }
-
-        .option-icon svg {
-            width: 26px;
-            height: 26px;
-            fill: none;
-            stroke: #fff;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-
-        .option-text {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .option-title {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 3px;
-        }
-
-        .option-desc {
-            font-size: 13px;
-            color: #8e8e93;
-            line-height: 1.3;
-        }
-
-        .option-arrow {
-            color: #636366;
-            flex-shrink: 0;
-        }
-
-        .option-arrow svg {
-            width: 20px;
-            height: 20px;
-            stroke: currentColor;
-            fill: none;
-            stroke-width: 2.5;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-
-        .modal-cancel {
-            width: 100%;
-            padding: 16px;
-            background: transparent;
-            border: none;
-            color: #8e8e93;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            border-radius: 14px;
-            transition: background 0.2s ease;
-            font-family: inherit;
-        }
-
-        .modal-cancel:active {
-            background: #2c2c2e;
-        }
-
-        /* ============================================================
-           VIDEO YUKLASH EKRANI
-           ============================================================ */
-        .screen {
-            position: fixed;
-            inset: 0;
-            background: #000;
-            z-index: 1100;
-            display: flex;
-            flex-direction: column;
-            transform: translateX(100%);
-            transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
-        }
-
-        .screen.show {
-            transform: translateX(0);
-        }
-
-        .screen-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px 20px;
-            padding-top: calc(16px + env(safe-area-inset-top));
-            border-bottom: 1px solid #1c1c1e;
-        }
-
-        .screen-title {
-            font-size: 17px;
-            font-weight: 600;
-        }
-
-        .screen-close {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: #1c1c1e;
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: #fff;
-        }
-
-        .screen-close svg {
-            width: 20px;
-            height: 20px;
-            stroke: currentColor;
-            fill: none;
-            stroke-width: 2;
-            stroke-linecap: round;
-        }
-
-        .screen-body {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            overflow-y: auto;
-        }
-
-        /* 9:16 PREVIEW */
-        .video-preview-wrapper {
-            position: relative;
-            width: 100%;
-            max-width: 260px;
-            aspect-ratio: 9 / 16;
-            border-radius: 20px;
-            background: #1c1c1e;
-            border: 2px dashed #3f3f46;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            overflow: hidden;
-            cursor: pointer;
-            transition: border-color 0.2s ease;
-        }
-
-        .video-preview-wrapper:active {
-            border-color: #6366f1;
-        }
-
-        .video-preview-wrapper.has-video {
-            border-style: solid;
-            border-color: #6366f1;
-        }
-
-        .video-preview-wrapper video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .video-preview-wrapper .ratio-badge {
-            position: absolute;
-            top: 12px;
-            left: 12px;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(8px);
-            padding: 4px 10px;
-            border-radius: 100px;
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
-
-        .upload-icon {
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            background: #2c2c2e;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .upload-icon svg {
-            width: 26px;
-            height: 26px;
-            stroke: #8e8e93;
-            fill: none;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-
-        .upload-text {
-            font-size: 14px;
-            color: #8e8e93;
-            text-align: center;
-            padding: 0 20px;
-        }
-
-        .upload-hint {
-            font-size: 12px;
-            color: #636366;
-            margin-top: 16px;
-            text-align: center;
-            line-height: 1.4;
-        }
-
-        .screen-footer {
-            padding: 16px 20px calc(16px + env(safe-area-inset-bottom));
-            border-top: 1px solid #1c1c1e;
-        }
-
-        .btn-primary {
-            width: 100%;
-            padding: 16px;
-            background: #fff;
-            color: #000;
-            border: none;
-            border-radius: 100px;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            font-family: inherit;
-            transition: all 0.2s ease;
-        }
-
-        .btn-primary:active {
-            transform: scale(0.98);
-            opacity: 0.9;
-        }
-
-        .btn-primary:disabled {
-            background: #2c2c2e;
-            color: #636366;
-            cursor: not-allowed;
-        }
-
-        /* ============================================================
-           JONLI EFIR EKRANI (KAMERA)
-           ============================================================ */
-        .live-camera {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            background: #000;
-        }
-
-        .live-overlay {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            pointer-events: none;
-        }
-
-        .live-top {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px 20px;
-            padding-top: calc(16px + env(safe-area-inset-top));
-            pointer-events: auto;
-        }
-
-        .live-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(239, 68, 68, 0.95);
-            backdrop-filter: blur(8px);
-            padding: 8px 14px;
-            border-radius: 100px;
-            font-size: 13px;
-            font-weight: 700;
-            letter-spacing: 0.3px;
-        }
-
-        .live-dot {
-            width: 8px;
-            height: 8px;
-            background: #fff;
-            border-radius: 50%;
-            animation: blink 1s ease-in-out infinite;
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-
-        .live-controls {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-            padding: 20px;
-            padding-bottom: calc(30px + env(safe-area-inset-bottom));
-            pointer-events: auto;
-        }
-
-        .live-actions {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 32px;
-            width: 100%;
-        }
-
-        .live-action-btn {
-            width: 52px;
-            height: 52px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(12px);
-            border: 1.5px solid rgba(255, 255, 255, 0.25);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: #fff;
-            transition: all 0.2s ease;
-        }
-
-        .live-action-btn:active {
-            transform: scale(0.9);
-            background: rgba(255, 255, 255, 0.25);
-        }
-
-        .live-action-btn.active {
-            background: #fff;
-            color: #000;
-        }
-
-        .live-action-btn svg {
-            width: 22px;
-            height: 22px;
-            stroke: currentColor;
-            fill: none;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-
-        .btn-go-live {
-            width: 76px;
-            height: 76px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #ef4444, #f97316);
-            border: 4px solid rgba(255, 255, 255, 0.9);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: #fff;
-            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
-            animation: goLivePulse 2s ease-out infinite;
-            transition: transform 0.2s ease;
-        }
-
-        .btn-go-live:active {
-            transform: scale(0.92);
-        }
-
-        .btn-go-live svg {
-            width: 30px;
-            height: 30px;
-            fill: #fff;
-        }
-
-        @keyframes goLivePulse {
-            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-            70% { box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-        }
-
-        .live-hint {
-            font-size: 13px;
-            color: rgba(255, 255, 255, 0.7);
-            text-align: center;
-            padding: 0 20px;
-        }
-
-        /* Yuklash holati */
-        .loading-overlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(8px);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 16px;
-            z-index: 10;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s ease;
-        }
-
-        .loading-overlay.show {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .spinner {
-            width: 44px;
-            height: 44px;
-            border: 3px solid rgba(255, 255, 255, 0.2);
-            border-top-color: #fff;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .loading-text {
-            font-size: 14px;
-            color: #fff;
-            font-weight: 500;
-        }
-
-        /* Toast */
-        .toast {
-            position: fixed;
-            bottom: 40px;
-            left: 50%;
-            transform: translateX(-50%) translateY(20px);
-            background: #2c2c2e;
-            color: #fff;
-            padding: 12px 24px;
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: 500;
-            opacity: 0;
-            pointer-events: none;
-            transition: all 0.3s ease;
-            z-index: 2000;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-            white-space: nowrap;
-            max-width: 90vw;
-        }
-
-        .toast.show {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
+        ::-webkit-scrollbar { width: 4px; background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
+        .safe-top { padding-top: env(safe-area-inset-top); }
+        .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+        .nav-btn { transition: transform 0.15s ease, opacity 0.15s ease; }
+        .nav-btn:active { transform: scale(0.85); opacity: 0.7; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Aktiv nav tugmasi */
+        .nav-active { color: #ffffff; }
+        .nav-inactive { color: #a1a1aa; }
+        .nav-inactive:hover { color: #ffffff; }
     </style>
 </head>
-<body>
+<body class="text-white antialiased flex justify-center min-h-screen selection:bg-zinc-800 bg-black">
 
-    <div class="mobile-container">
-        <!-- BOSHLASH TUGMASI -->
-        <button class="btn-start" id="startBtn">
-            <svg viewBox="0 0 24 24">
-                <path d="M8 5v14l11-7z"/>
-            </svg>
-            Boshlash
-        </button>
-    </div>
+    <div class="w-full max-w-lg border-x border-zinc-900 min-h-screen flex flex-col relative bg-black pb-28 no-scrollbar">
+        
+        <!-- Header - Balandlik va dizayn saqlangan, logotip olib tashlangan -->
+        <header class="sticky top-0 z-50 bg-black/80 backdrop-blur-xl border-b border-zinc-900 flex items-end px-4 pb-2 safe-top" style="height: 120px;">
+            
+        </header>
 
-    <!-- ============================================================
-         1. MODAL: Video / Jonli efir tanlovi
-         ============================================================ -->
-    <div class="modal-overlay" id="choiceModal">
-        <div class="modal-sheet">
-            <div class="modal-handle"></div>
-            <h2 class="modal-title">Nima joylashtirmoqchisiz?</h2>
-            <p class="modal-subtitle">Turini tanlang</p>
-
-            <div class="option-grid">
-                <!-- Video -->
-                <button class="option-card" id="chooseVideo">
-                    <div class="option-icon video">
-                        <svg viewBox="0 0 24 24">
-                            <rect x="2" y="6" width="14" height="12" rx="2"/>
-                            <polygon points="22 8 16 12 22 16 22 8" fill="currentColor" stroke="none"/>
-                        </svg>
-                    </div>
-                    <div class="option-text">
-                        <div class="option-title">Video</div>
-                        <div class="option-desc">9:16 formatda video yuklang</div>
-                    </div>
-                    <div class="option-arrow">
-                        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-                    </div>
-                </button>
-
-                <!-- Jonli efir -->
-                <button class="option-card" id="chooseLive">
-                    <div class="option-icon live">
-                        <svg viewBox="0 0 24 24">
-                            <circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/>
-                            <path d="M6.3 6.3a8 8 0 0 0 0 11.4M17.7 6.3a8 8 0 0 1 0 11.4"/>
-                            <path d="M3 3a12 12 0 0 0 0 18M21 3a12 12 0 0 1 0 18"/>
-                        </svg>
-                    </div>
-                    <div class="option-text">
-                        <div class="option-title">Jonli efir</div>
-                        <div class="option-desc">To'g'ridan-to'g'ri kameraga o'ting</div>
-                    </div>
-                    <div class="option-arrow">
-                        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-                    </div>
-                </button>
+        <!-- Qidiruv qismi (Xabar.html bilan aynan bir xil) -->
+        <div class="px-4 pt-4 pb-2">
+            <div class="relative">
+                <svg class="absolute left-3 top-2.5 w-5 h-5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                <input type="text" placeholder="Qidiruv..." class="w-full bg-zinc-900 text-white text-sm rounded-full pl-10 pr-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-zinc-700 transition-shadow">
             </div>
-
-            <button class="modal-cancel" id="modalCancel">Bekor qilish</button>
         </div>
+
+        <!-- Qidiruv natijalari uchun bo'sh joy -->
+        <div class="flex-1 overflow-y-auto no-scrollbar px-4 pt-2">
+            <p class="text-zinc-500 text-sm text-center mt-10">Qidirish uchun so'z kiriting</p>
+        </div>
+
     </div>
 
-    <!-- ============================================================
-         2. VIDEO YUKLASH EKRANI (9:16)
-         ============================================================ -->
-    <div class="screen" id="videoScreen">
-        <div class="screen-header">
-            <div class="screen-title">Video yuklash</div>
-            <button class="screen-close" id="videoClose">
-                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </button>
-        </div>
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 w-[92%] max-w-[400px] bg-zinc-900/90 backdrop-blur-xl border border-zinc-700/50 rounded-[2rem] z-50 shadow-[0_10px_40px_rgba(0,0,0,0.8)] pb-safe">
+        <div class="flex justify-around items-center px-2 py-3">
+            
+            <!-- Uy -->
+            <a href="index.html" class="nav-btn flex flex-col items-center gap-1 nav-inactive px-3 sm:px-4">
+                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+                <span class="text-[10px] font-medium tracking-wide">Uy</span>
+            </a>
 
-        <div class="screen-body">
-            <div class="video-preview-wrapper" id="videoPreview">
-                <div class="ratio-badge">9:16</div>
-                <div class="upload-icon">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                        <polyline points="17 8 12 3 7 8"/>
-                        <line x1="12" y1="3" x2="12" y2="15"/>
+            <!-- Reels -->
+            <a href="reels.html" class="nav-btn flex flex-col items-center gap-1 nav-inactive px-3 sm:px-4">
+                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                    <line x1="2" y1="8" x2="22" y2="8"></line>
+                    <line x1="2" y1="16" x2="22" y2="16"></line>
+                    <line x1="8" y1="2" x2="8" y2="8"></line>
+                    <line x1="16" y1="2" x2="16" y2="8"></line>
+                    <polygon points="10 12 15 14.5 10 17 10 12" fill="currentColor"></polygon>
+                </svg>
+                <span class="text-[10px] font-medium tracking-wide">Reels</span>
+            </a>
+
+            <!-- Xabar -->
+            <a href="xabar.html" class="nav-btn flex flex-col items-center gap-1 nav-inactive px-3 sm:px-4 relative">
+                <div class="relative">
+                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="-scale-x-100">
+                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
                     </svg>
+                    <span class="absolute -top-1.5 -right-2 w-4 h-4 bg-red-500 text-white rounded-full text-[9px] flex items-center justify-center font-bold ring-2 ring-zinc-900">3</span>
                 </div>
-                <div class="upload-text">Videoni tanlash uchun bosing</div>
-            </div>
+                <span class="text-[10px] font-medium tracking-wide">Xabar</span>
+            </a>
 
-            <p class="upload-hint">
-                📱 Faqat 9:16 (vertikal) formatdagi videolar qabul qilinadi<br>
-                Maksimal hajm: 50 MB · Davomiyligi: 60 soniyagacha
-            </p>
+            <!-- Qidiruv - AKTIV -->
+            <a href="qidiruv.html" class="nav-btn flex flex-col items-center gap-1 nav-active px-3 sm:px-4">
+                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <span class="text-[10px] font-semibold tracking-wide">Qidiruv</span>
+            </a>
 
-            <input type="file" id="videoInput" accept="video/*" hidden>
-
-            <!-- Yuklash holati -->
-            <div class="loading-overlay" id="videoLoading">
-                <div class="spinner"></div>
-                <div class="loading-text" id="videoLoadingText">Yuklanmoqda...</div>
-            </div>
+            <!-- Profil -->
+            <a href="profil.html" class="nav-btn flex flex-col items-center gap-1 nav-inactive px-3 sm:px-4">
+                <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80" alt="Profile" class="w-6 h-6 rounded-full object-cover ring-2 ring-transparent">
+                <span class="text-[10px] font-medium tracking-wide">Profil</span>
+            </a>
+            
         </div>
-
-        <div class="screen-footer">
-            <button class="btn-primary" id="videoUploadBtn" disabled>
-                Joylashtirish
-            </button>
-        </div>
-    </div>
-
-    <!-- ============================================================
-         3. JONLI EFIR EKRANI (KAMERA)
-         ============================================================ -->
-    <div class="screen" id="liveScreen">
-        <video id="cameraStream" class="live-camera" autoplay playsinline muted></video>
-
-        <div class="live-overlay">
-            <div class="live-top">
-                <div class="live-badge">
-                    <span class="live-dot"></span>
-                    JONLI
-                </div>
-                <button class="screen-close" id="liveClose" style="background: rgba(0,0,0,0.5);">
-                    <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                </button>
-            </div>
-
-            <div class="live-controls">
-                <div class="live-actions">
-                    <!-- Kamera almashtirish -->
-                    <button class="live-action-btn" id="flipCamera" aria-label="Kamerani almashtirish">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M20 5h-3l-2-2H9L7 5H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z"/>
-                            <circle cx="12" cy="12" r="4"/>
-                            <path d="M17 9l-2 2 2 2M7 15l2-2-2-2"/>
-                        </svg>
-                    </button>
-
-                    <!-- JONLI EFIRGA CHIQISH -->
-                    <button class="btn-go-live" id="goLiveBtn" aria-label="Efirga chiqish">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M8 5v14l11-7z"/>
-                        </svg>
-                    </button>
-
-                    <!-- Mikrofon -->
-                    <button class="live-action-btn active" id="micToggle" aria-label="Mikrofon">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                            <line x1="12" y1="19" x2="12" y2="23"/>
-                            <line x1="8" y1="23" x2="16" y2="23"/>
-                        </svg>
-                    </button>
-                </div>
-
-                <p class="live-hint">
-                    "Efirga chiqish" tugmasini bosing — obunachilaringiz sizni real vaqtda ko'radi
-                </p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Toast -->
-    <div class="toast" id="toast"></div>
+    </nav>
 
     <script>
-        // ============================================================
-        // TELEGRAM INIT
-        // ============================================================
-        let tg = null;
-        if (window.Telegram && window.Telegram.WebApp) {
-            tg = window.Telegram.WebApp;
-            tg.ready();
-            tg.expand();
-            tg.setHeaderColor('#000000');
-            tg.setBackgroundColor('#000000');
-        }
-
-        const haptic = (type = 'light') => {
-            try {
-                if (tg?.HapticFeedback) {
-                    tg.HapticFeedback.impactOccurred(type);
-                } else if (navigator.vibrate) {
-                    navigator.vibrate(10);
-                }
-            } catch (e) {}
-        };
-
-        // ============================================================
-        // TOAST
-        // ============================================================
-        let toastTimer = null;
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            t.textContent = msg;
-            t.classList.add('show');
-            clearTimeout(toastTimer);
-            toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
-        }
-
-        // ============================================================
-        // 1. "BOSHLASH" → MODAL OCHISH
-        // ============================================================
-        const choiceModal = document.getElementById('choiceModal');
-
-        document.getElementById('startBtn').addEventListener('click', () => {
-            haptic('medium');
-            choiceModal.classList.add('show');
-        });
-
-        // Modal yopish (overlay'ga bosish)
-        choiceModal.addEventListener('click', (e) => {
-            if (e.target === choiceModal) {
-                closeModal();
-            }
-        });
-
-        document.getElementById('modalCancel').addEventListener('click', () => {
-            haptic('light');
-            closeModal();
-        });
-
-        function closeModal() {
-            choiceModal.classList.remove('show');
-        }
-
-        // ============================================================
-        // 2. VIDEO TANLASH → VIDEO EKRANIGA O'TISH
-        // ============================================================
-        const videoScreen = document.getElementById('videoScreen');
-        const videoInput = document.getElementById('videoInput');
-        const videoPreview = document.getElementById('videoPreview');
-        const videoUploadBtn = document.getElementById('videoUploadBtn');
-        const videoLoading = document.getElementById('videoLoading');
-        const videoLoadingText = document.getElementById('videoLoadingText');
-
-        let selectedVideoFile = null;
-
-        document.getElementById('chooseVideo').addEventListener('click', () => {
-            haptic('medium');
-            closeModal();
-            setTimeout(() => videoScreen.classList.add('show'), 250);
-        });
-
-        document.getElementById('videoClose').addEventListener('click', () => {
-            haptic('light');
-            videoScreen.classList.remove('show');
-            resetVideoState();
-        });
-
-        // Preview'ga bosish → fayl tanlash
-        videoPreview.addEventListener('click', () => {
-            haptic('light');
-            videoInput.click();
-        });
-
-        // Fayl tanlanganda
-        videoInput.addEventListener('change', (e) => {
-            const file = e.target.files?.[0];
-            if (!file) return;
-
-            // 1) Format tekshirish
-            if (!file.type.startsWith('video/')) {
-                showToast('❌ Faqat video fayl yuklang');
-                return;
+        document.addEventListener("DOMContentLoaded", function() {
+            // Telegram Web App integratsiyasi
+            if (window.Telegram && window.Telegram.WebApp) {
+                const tg = window.Telegram.WebApp;
+                tg.ready();
+                tg.expand();
+                tg.setHeaderColor('#000000');
+                tg.setBackgroundColor('#000000');
+                
+                // Telegramning yuqori chap burchagidagi "Orqaga" tugmasini ko'rsatish
+                tg.BackButton.show();
+                tg.BackButton.onClick(function() {
+                    window.location.href = 'index.html';
+                });
             }
 
-            // 2) Hajm tekshirish (50 MB)
-            if (file.size > 50 * 1024 * 1024) {
-                showToast('❌ Video hajmi 50 MB dan oshmasligi kerak');
-                return;
-            }
-
-            // 3) 9:16 nisbatni tekshirish
-            const tempVideo = document.createElement('video');
-            tempVideo.preload = 'metadata';
-            tempVideo.src = URL.createObjectURL(file);
-
-            tempVideo.onloadedmetadata = () => {
-                const ratio = tempVideo.videoWidth / tempVideo.videoHeight;
-                const targetRatio = 9 / 16;
-                const tolerance = 0.05;
-
-                URL.revokeObjectURL(tempVideo.src);
-
-                if (Math.abs(ratio - targetRatio) > tolerance) {
-                    showToast('❌ Faqat 9:16 formatdagi video qabul qilinadi');
-                    videoInput.value = '';
-                    return;
-                }
-
-                // 4) Davomiylik tekshirish (60 s)
-                if (tempVideo.duration > 61) {
-                    showToast('❌ Video 60 soniyadan oshmasligi kerak');
-                    videoInput.value = '';
-                    return;
-                }
-
-                // ✅ Muvaffaqiyatli → preview
-                selectedVideoFile = file;
-                renderVideoPreview(file);
-            };
-
-            tempVideo.onerror = () => {
-                showToast('❌ Videoni o\'qib bo\'lmadi');
+            // Brauzer va Android apparat orqaga qaytish tugmasini nazorat qilish
+            window.history.pushState({ page: 'qidiruv' }, "", "");
+            window.onpopstate = function(event) {
+                window.location.href = 'index.html';
             };
         });
-
-        function renderVideoPreview(file) {
-            const url = URL.createObjectURL(file);
-            videoPreview.classList.add('has-video');
-            videoPreview.innerHTML = `
-                <div class="ratio-badge">9:16</div>
-                <video src="${url}" autoplay loop muted playsinline></video>
-            `;
-            videoUploadBtn.disabled = false;
-            haptic('medium');
-        }
-
-        function resetVideoState() {
-            selectedVideoFile = null;
-            videoInput.value = '';
-            videoPreview.classList.remove('has-video');
-            videoPreview.innerHTML = `
-                <div class="ratio-badge">9:16</div>
-                <div class="upload-icon">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                        <polyline points="17 8 12 3 7 8"/>
-                        <line x1="12" y1="3" x2="12" y2="15"/>
-                    </svg>
-                </div>
-                <div class="upload-text">Videoni tanlash uchun bosing</div>
-            `;
-            videoUploadBtn.disabled = true;
-            videoLoading.classList.remove('show');
-        }
-
-        // ============================================================
-        // 3. VIDEO JOYLASHTIRISH (YUKLASH)
-        // ============================================================
-        videoUploadBtn.addEventListener('click', async () => {
-            if (!selectedVideoFile) return;
-
-            haptic('medium');
-            videoLoading.classList.add('show');
-            videoUploadBtn.disabled = true;
-
-            try {
-                const formData = new FormData();
-                formData.append('video', selectedVideoFile);
-                formData.append('initData', tg?.initData || '');
-
-                const xhr = new XMLHttpRequest();
-
-                xhr.upload.addEventListener('progress', (e) => {
-                    if (e.lengthComputable) {
-                        const percent = Math.round((e.loaded / e.total) * 100);
-                        videoLoadingText.textContent = `Yuklanmoqda... ${percent}%`;
-                    }
-                });
-
-                const uploadPromise = new Promise((resolve, reject) => {
-                    xhr.onload = () => {
-                        if (xhr.status >= 200 && xhr.status < 300) {
-                            resolve(JSON.parse(xhr.responseText));
-                        } else {
-                            reject(new Error(`HTTP ${xhr.status}`));
-                        }
-                    };
-                    xhr.onerror = () => reject(new Error('Tarmoq xatosi'));
-                });
-
-                xhr.open('POST', '/api/upload/video');
-                xhr.send(formData);
-
-                const result = await uploadPromise;
-
-                videoLoadingText.textContent = '✅ Muvaffaqiyatli!';
-                haptic('heavy');
-
-                setTimeout(() => {
-                    videoScreen.classList.remove('show');
-                    resetVideoState();
-                    showToast('✅ Video muvaffaqiyatli joylashtirildi');
-                }, 800);
-
-            } catch (err) {
-                console.error(err);
-                videoLoading.classList.remove('show');
-                videoUploadBtn.disabled = false;
-                showToast('❌ Yuklashda xatolik yuz berdi');
-            }
-        });
-
-        // ============================================================
-        // 4. JONLI EFIR → KAMERAGA KIRISH
-        // ============================================================
-        const liveScreen = document.getElementById('liveScreen');
-        const cameraStream = document.getElementById('cameraStream');
-
-        let currentStream = null;
-        let currentFacingMode = 'user';
-        let isMicOn = true;
-        let isLive = false;
-
-        document.getElementById('chooseLive').addEventListener('click', async () => {
-            haptic('medium');
-            closeModal();
-            setTimeout(async () => {
-                liveScreen.classList.add('show');
-                await startCamera();
-            }, 250);
-        });
-
-        document.getElementById('liveClose').addEventListener('click', () => {
-            haptic('light');
-            stopCamera();
-            liveScreen.classList.remove('show');
-        });
-
-        // Kamera ochish
-        async function startCamera(facingMode = 'user') {
-            try {
-                // Eski stream'ni to'xtatish
-                stopCamera();
-
-                if (!navigator.mediaDevices?.getUserMedia) {
-                    showToast('❌ Kamera qo\'llab-quvvatlanmaydi');
-                    liveScreen.classList.remove('show');
-                    return;
-                }
-
-                currentStream = await navigator.mediaDevices.getUserMedia({
-                    video: {
-                        facingMode: facingMode,
-                        width: { ideal: 720 },
-                        height: { ideal: 1280 },
-                        aspectRatio: { ideal: 9 / 16 }
-                    },
-                    audio: isMicOn
-                });
-
-                currentFacingMode = facingMode;
-                cameraStream.srcObject = currentStream;
-                cameraStream.muted = true;
-                cameraStream.play();
-                haptic('medium');
-
-            } catch (err) {
-                console.error('Kamera xatosi:', err);
-                let msg = '❌ Kameraga ulanib bo\'lmadi';
-                if (err.name === 'NotAllowedError') {
-                    msg = '❌ Kamera ruxsati berilmadi';
-                } else if (err.name === 'NotFoundError') {
-                    msg = '❌ Kamera topilmadi';
-                }
-                showToast(msg);
-                liveScreen.classList.remove('show');
-            }
-        }
-
-        function stopCamera() {
-            if (currentStream) {
-                currentStream.getTracks().forEach(t => t.stop());
-                currentStream = null;
-            }
-            cameraStream.srcObject = null;
-            isLive = false;
-        }
-
-        // Kamera almashtirish
-        document.getElementById('flipCamera').addEventListener('click', async () => {
-            haptic('light');
-            const next = currentFacingMode === 'user' ? 'environment' : 'user';
-            await startCamera(next);
-        });
-
-        // Mikrofon yoqish/o'chirish
-        document.getElementById('micToggle').addEventListener('click', function() {
-            haptic('light');
-            isMicOn = !isMicOn;
-            this.classList.toggle('active', isMicOn);
-
-            if (currentStream) {
-                currentStream.getAudioTracks().forEach(t => {
-                    t.enabled = isMicOn;
-                });
-            }
-
-            showToast(isMicOn ? '🎤 Mikrofon yoqildi' : '🔇 Mikrofon o\'chirildi');
-        });
-
-        // EFIRGA CHIQISH
-        document.getElementById('goLiveBtn').addEventListener('click', async () => {
-            if (isLive) {
-                showToast('⚠️ Siz allaqachon efirdasiz');
-                return;
-            }
-
-            haptic('heavy');
-
-            try {
-                // Telegram WebRTC (agar mavjud bo'lsa)
-                // Yoki WebSocket orqali signaling
-                const liveId = await startLiveBroadcast();
-
-                isLive = true;
-                showToast(`🔴 Efir boshlandi · ID: ${liveId.slice(0, 8)}`);
-
-                // Efirdagi holatni ko'rsatish
-                document.querySelector('.live-badge').style.background = '#16a34a';
-                document.querySelector('.live-badge').innerHTML =
-                    '<span class="live-dot"></span> EFIRDA';
-
-            } catch (err) {
-                console.error(err);
-                showToast('❌ Efirni boshlashda xatolik');
-            }
-        });
-
-        // ============================================================
-        // EFIR BOSHLASH (namuna — backend bilan almashtiring)
-        // ============================================================
-        async function startLiveBroadcast() {
-            // ⚠️ HAQIQIY ISHLATISH UCHUN backend kerak:
-            // - WebRTC signaling server (masalan, mediasoup, janus)
-            // - yoki RTMP bridge (masalan, nginx-rtmp + ffmpeg)
-            //
-            // Quyida namuna WebSocket orqali:
-
-            return new Promise((resolve, reject) => {
-                try {
-                    const ws = new WebSocket('wss://your-backend.com/live/stream');
-
-                    ws.onopen = () => {
-                        // Signaling boshlanishi
-                        ws.send(JSON.stringify({
-                            type: 'start',
-                            initData: tg?.initData || '',
-                            timestamp: Date.now()
-                        }));
-                    };
-
-                    ws.onmessage = (event) => {
-                        const data = JSON.parse(event.data);
-                        if (data.type === 'live-started') {
-                            resolve(data.liveId);
-                        }
-                    };
-
-                    ws.onerror = () => reject(new Error('WebSocket xatosi'));
-
-                    // Fallback — 5 s ichida javob bo'lmasa
-                    setTimeout(() => {
-                        // Demo rejimda muvaffaqiyat
-                        resolve('demo-' + Date.now().toString(36));
-                    }, 3000);
-
-                } catch (e) {
-                    // Demo rejimda ishlash
-                    resolve('demo-' + Date.now().toString(36));
-                }
-            });
-        }
-
-        // ============================================================
-        // XAVFSIZLIK: sahifa yopilganda kamerani o'chirish
-        // ============================================================
-        window.addEventListener('beforeunload', stopCamera);
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden && liveScreen.classList.contains('show')) {
-                stopCamera();
-            }
-        });
-
-        // ============================================================
-        // TELEGRAM BACKBUTTON
-        // ============================================================
-        if (tg?.BackButton) {
-            tg.BackButton.show();
-            tg.BackButton.onClick(() => {
-                // Avval ochiq ekranlarni yopish
-                if (liveScreen.classList.contains('show')) {
-                    stopCamera();
-                    liveScreen.classList.remove('show');
-                    return;
-                }
-                if (videoScreen.classList.contains('show')) {
-                    videoScreen.classList.remove('show');
-                    resetVideoState();
-                    return;
-                }
-                if (choiceModal.classList.contains('show')) {
-                    closeModal();
-                    return;
-                }
-                // Aks holda — orqaga
-                window.history.length > 1
-                    ? window.history.back()
-                    : window.location.href = 'index.html';
-            });
-        }
     </script>
 </body>
 </html>
