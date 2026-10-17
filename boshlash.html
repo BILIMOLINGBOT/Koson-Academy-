@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Jonli Efir</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Kamera ekrani */
+        #camera-feed {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            transform: scaleX(-1); /* Oyna effekti uchun */
+        }
+
+        /* Ustki qatlam (UI) */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: env(safe-area-inset-top, 20px) 16px env(safe-area-inset-bottom, 20px) 16px;
+            pointer-events: none; /* Faqat tugmalar bosilishi uchun */
+        }
+
+        /* Yuqori qism */
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 10px;
+            pointer-events: auto;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Profil chipi */
+        .profile-chip {
+            display: flex;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 4px 12px 4px 4px;
+            gap: 8px;
+        }
+
+        .profile-chip img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .profile-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .profile-name {
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            max-width: 100px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Live va Viewers badgelari */
+        .live-badge {
+            background-color: #ff3b30;
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 6px 10px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .live-dot {
+            width: 6px;
+            height: 6px;
+            background-color: white;
+            border-radius: 50%;
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .viewers-badge {
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 6px 10px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Yopish tugmasi */
+        .close-btn {
+            width: 36px;
+            height: 36px;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: none;
+            cursor: pointer;
+        }
+
+        .close-btn .stop-icon {
+            width: 14px;
+            height: 14px;
+            background-color: white;
+            border-radius: 3px;
+        }
+
+        /* O'ng tomon tugmalari */
+        .side-tools {
+            position: absolute;
+            right: 16px;
+            top: 100px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            pointer-events: auto;
+        }
+
+        .tool-btn {
+            width: 44px;
+            height: 44px;
+            background-color: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .tool-btn:active {
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        .tool-btn svg {
+            width: 22px;
+            height: 22px;
+            fill: currentColor;
+        }
+
+        /* Pastki qism (Xabar yozish) */
+        .bottom-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            pointer-events: auto;
+            margin-bottom: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 14px 20px;
+            color: white;
+            font-size: 15px;
+            outline: none;
+        }
+
+        .chat-input::placeholder {
+            color: #e5e5ea;
+        }
+
+        .share-btn {
+            width: 48px;
+            height: 48px;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            cursor: pointer;
+        }
+
+        .share-btn svg {
+            width: 22px;
+            height: 22px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Kamera ulanishi -->
+    <video id="camera-feed" autoplay playsinline muted></video>
+
+    <!-- UI Overlay -->
+    <div class="overlay">
+        <!-- Yuqori panel -->
+        <div class="top-bar">
+            <div class="header-left">
+                <div class="profile-chip">
+                    <img id="liveUserPhoto" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%231c1c1e'/></svg>" alt="User">
+                    <div class="profile-info">
+                        <span class="profile-name" id="liveUserName">Yuklanmoqda...</span>
+                    </div>
+                </div>
+                <div class="live-badge">
+                    <div class="live-dot"></div>
+                    LIVE
+                </div>
+                <div class="viewers-badge">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    1
+                </div>
+            </div>
+            
+            <button class="close-btn" id="closeLiveBtn">
+                <div class="stop-icon"></div>
+            </button>
+        </div>
+
+        <!-- Yon panel (Mikrofon, Kamera, Effektlar) -->
+        <div class="side-tools">
+            <button class="tool-btn">
+                <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+            </button>
+            <button class="tool-btn" id="switchCameraBtn">
+                <svg viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4zM10 15l-3-3h2V9h2v3h2l-3 3z"/></svg>
+            </button>
+            <button class="tool-btn">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>
+            </button>
+        </div>
+
+        <!-- Pastki qism -->
+        <div class="bottom-bar">
+            <input type="text" class="chat-input" placeholder="Xabar yozing...">
+            <button class="share-btn">
+                <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+            
+            // Foydalanuvchi ma'lumotlarini yuklash
+            const user = tg.initDataUnsafe?.user;
+            if (user) {
+                const fullName = user.first_name || 'Foydalanuvchi';
+                document.getElementById('liveUserName').textContent = fullName;
+                
+                if (user.photo_url) {
+                    document.getElementById('liveUserPhoto').src = user.photo_url;
+                }
+            }
+        }
+
+        // Yopish tugmasi profils.html ga qaytaradi
+        document.getElementById('closeLiveBtn').addEventListener('click', () => {
+            tg?.HapticFeedback?.impactOccurred('heavy');
+            window.location.href = 'profil.html';
+        });
+
+        // Kamera ulanishini sozlash (WebRTC)
+        const videoElement = document.getElementById('camera-feed');
+        let currentFacingMode = "user"; // Dastlab old kamera
+
+        async function startCamera(facingMode = "user") {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: facingMode },
+                    audio: false // Odatda brauzer audio ruxsati uchun alohida e'tibor talab qiladi
+                });
+                videoElement.srcObject = stream;
+                
+                // Old kamerada oyna effekti, orqa kamerada normal ko'rsatish
+                videoElement.style.transform = facingMode === "user" ? "scaleX(-1)" : "scaleX(1)";
+            } catch (err) {
+                console.error("Kameraga ulanishda xatolik:", err);
+                // Agar kameraga ruxsat berilmasa yoki topilmasa alert chiqarish mumkin
+            }
+        }
+
+        // Kamera almashtirish tugmasi
+        document.getElementById('switchCameraBtn').addEventListener('click', () => {
+            tg?.HapticFeedback?.impactOccurred('light');
+            currentFacingMode = currentFacingMode === "user" ? "environment" : "user";
+            startCamera(currentFacingMode);
+        });
+
+        // Sahifa yuklanganda kamerani yoqish
+        startCamera();
+    </script>
+</body>
+</html>
