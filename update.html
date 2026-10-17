@@ -1,614 +1,704 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>Video Yuklash — Yangi video</title>
-  <style>
-    /* RESET & BASE */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Video yuklash</title>
 
-    body {
-      background-color: #000;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      min-height: 100vh;
-      padding: 24px 16px;
-    }
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    /* Asosiy karta — header butunlay yo'q (hech qanday header qismi mavjud emas) */
-    .video-modal-content {
-      background-color: #000;
-      width: 100%;
-      max-width: 600px;
-      border-radius: 24px;
-      border: 1px solid #2f3336;
-      overflow: hidden;
-      box-shadow: 0 8px 28px rgba(0,0,0,0.6);
-    }
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-    /* HEADER TAMOMAN OLIB TASHLANDI: hech qanday header/sarlavha/qator mavjud emas */
-    /* video-modal-header va video-cancel-btn CSS i butunlay ishlatilmaydi, faqat eski kod qoldiqlari yo'q */
+        html, body {
+            background-color: #000000 !important;
+            color: #ffffff;
+        }
 
-    .video-form-container {
-      padding: 20px 20px 24px;
-    }
+        body {
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
 
-    /* PREVIEW BOX */
-    .video-preview {
-      width: 100%;
-      background-color: #0a0a0a;
-      border-radius: 20px;
-      overflow: hidden;
-      position: relative;
-      border: 1.5px solid #2f3336;
-      transition: border-color 0.2s;
-      aspect-ratio: 16 / 9; /* 16:9 aniq nisbat, padding-bottom usuliga alternativ */
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      margin-bottom: 20px;
-    }
+        .update-container {
+            width: 100%;
+            max-width: 420px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 16px 20px calc(20px + env(safe-area-inset-bottom));
+        }
 
-    .video-preview:hover {
-      border-color: #1da1f2;
-    }
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-top: 8px;
+        }
 
-    /* video elementi preview ichida */
-    .video-preview video {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      background: #000;
-      display: block;
-    }
+        .back-btn {
+            width: 40px; height: 40px;
+            background-color: #1c1c1e;
+            border: none;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #fff;
+        }
 
-    /* Placeholder (video tanlanmagan) */
-    .video-preview-placeholder {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background-color: #0a0a0a;
-      color: #8b98a5;
-      cursor: pointer;
-      gap: 12px;
-      transition: background 0.2s;
-    }
+        .back-btn:active { transform: scale(0.92); background-color: #2c2c2e; }
 
-    .video-preview-placeholder svg {
-      width: 56px;
-      height: 56px;
-      stroke-width: 1.2;
-      color: #5e6f7e;
-    }
+        .back-btn svg {
+            width: 20px; height: 20px;
+            stroke: currentColor; fill: none;
+            stroke-width: 2.2;
+            stroke-linecap: round; stroke-linejoin: round;
+        }
 
-    .video-preview-placeholder span {
-      font-size: 15px;
-      font-weight: 500;
-      letter-spacing: -0.2px;
-    }
+        .header-title {
+            font-size: 17px;
+            font-weight: 600;
+        }
 
-    .upload-video-btn {
-      background-color: #1da1f2;
-      color: white;
-      border: none;
-      border-radius: 40px;
-      padding: 8px 20px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.05s;
-      margin-top: 8px;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.2);
-    }
+        .header-spacer {
+            width: 40px;
+        }
 
-    .upload-video-btn:hover {
-      background-color: #0c84d1;
-    }
+        /* ========================= */
+        /* 1-BOSQICH: GALEREYA       */
+        /* ========================= */
+        .step-gallery {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            text-align: center;
+            padding: 40px 0;
+        }
 
-    /* Sarlavha maydoni */
-    .video-form-group {
-      margin-bottom: 24px;
-    }
+        .gallery-icon {
+            width: 100px; height: 100px;
+            border-radius: 24px;
+            background: linear-gradient(135deg, #007aff 0%, #0051d5 100%);
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 12px 32px rgba(0, 122, 255, 0.35);
+            animation: float 3s ease-in-out infinite;
+        }
 
-    .video-form-group input {
-      width: 100%;
-      background-color: #000;
-      border: 1px solid #2f3336;
-      border-radius: 16px;
-      padding: 14px 18px;
-      color: #fff;
-      font-size: 16px;
-      font-weight: 500;
-      transition: all 0.2s;
-      outline: none;
-    }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
 
-    .video-form-group input:focus {
-      border-color: #1da1f2;
-      box-shadow: 0 0 0 2px rgba(29, 161, 242, 0.2);
-    }
+        .gallery-icon svg {
+            width: 48px; height: 48px;
+            stroke: #fff; fill: none;
+            stroke-width: 2;
+            stroke-linecap: round; stroke-linejoin: round;
+        }
 
-    .video-form-group input::placeholder {
-      color: #6e767d;
-      font-weight: 400;
-    }
+        .gallery-title {
+            font-size: 22px;
+            font-weight: 700;
+        }
 
-    /* Fayl ma'lumotlari */
-    .video-info {
-      background-color: #16181c;
-      border-radius: 14px;
-      padding: 10px 14px;
-      margin-top: 12px;
-      font-size: 13px;
-      color: #b0b8c0;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
+        .gallery-desc {
+            font-size: 15px;
+            color: #8e8e93;
+            max-width: 300px;
+            line-height: 1.5;
+        }
 
-    .file-name {
-      color: #1da1f2;
-      font-weight: 500;
-      max-width: 220px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
+        .pick-btn {
+            margin-top: 10px;
+            background: linear-gradient(135deg, #ffffff 0%, #e5e5e5 100%);
+            color: #000;
+            border: none;
+            border-radius: 100px;
+            padding: 16px 36px;
+            font-size: 16px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 8px 24px rgba(255, 255, 255, 0.15);
+            transition: transform 0.2s ease;
+        }
 
-    .file-size {
-      background: #2f3336;
-      padding: 2px 10px;
-      border-radius: 30px;
-      font-size: 12px;
-      font-weight: 500;
-      letter-spacing: 0.2px;
-    }
+        .pick-btn:active { transform: scale(0.95); }
 
-    /* YUKLASH ASOSIY TUGMA */
-    .upload-action-btn {
-      background-color: #1da1f2;
-      color: #fff;
-      border: none;
-      border-radius: 40px;
-      padding: 14px 0;
-      font-size: 17px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background 0.2s;
-      width: 100%;
-      margin-top: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
+        .pick-btn svg {
+            width: 20px; height: 20px;
+            stroke: #000; fill: none;
+            stroke-width: 2.2;
+            stroke-linecap: round; stroke-linejoin: round;
+        }
 
-    .upload-action-btn:hover:not(:disabled) {
-      background-color: #0c84d1;
-    }
+        /* ========================= */
+        /* 2-BOSQICH: PREVIEW        */
+        /* ========================= */
+        .step-preview {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            gap: 16px;
+        }
 
-    .upload-action-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      background-color: #1da1f2;
-    }
+        .step-preview.active { display: flex; }
 
-    /* Qo'shimcha kichik yozuv */
-    .helper-text {
-      text-align: center;
-      font-size: 12px;
-      color: #5b6773;
-      margin-top: 20px;
-      border-top: 1px solid #1e252b;
-      padding-top: 16px;
-    }
+        .video-wrapper {
+            width: 100%;
+            aspect-ratio: 9 / 16;
+            max-height: 55vh;
+            background-color: #1c1c1e;
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+        }
 
-    @media (max-width: 520px) {
-      .video-form-container {
-        padding: 16px;
-      }
-      .upload-action-btn {
-        font-size: 15px;
-        padding: 12px 0;
-      }
-      .video-preview {
-        border-radius: 18px;
-      }
-      .video-form-group input {
-        padding: 12px 16px;
-      }
-    }
-  </style>
+        .video-wrapper video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: #000;
+        }
+
+        .video-badge-96 {
+            position: absolute;
+            top: 12px; left: 12px;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(8px);
+            border-radius: 100px;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex; align-items: center; gap: 6px;
+            color: #fff;
+        }
+
+        .video-badge-96 svg {
+            width: 12px; height: 12px;
+            stroke: #4ade80; fill: none;
+            stroke-width: 2.5;
+            stroke-linecap: round; stroke-linejoin: round;
+        }
+
+        /* Input qismi */
+        .input-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .input-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #8e8e93;
+            padding-left: 4px;
+        }
+
+        .title-input {
+            width: 100%;
+            background-color: #1c1c1e;
+            border: 1.5px solid #2c2c2e;
+            border-radius: 16px;
+            padding: 16px 18px;
+            font-size: 15px;
+            color: #fff;
+            font-family: inherit;
+            outline: none;
+            transition: all 0.2s ease;
+            resize: none;
+            min-height: 54px;
+            max-height: 120px;
+            line-height: 1.4;
+        }
+
+        .title-input:focus {
+            border-color: #007aff;
+            background-color: #1a1a1c;
+        }
+
+        .title-input::placeholder {
+            color: #5c5c5e;
+        }
+
+        /* Yuborish tugmasi */
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #ffffff 0%, #e5e5e5 100%);
+            color: #000;
+            border: none;
+            border-radius: 100px;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.2s ease;
+            margin-top: 8px;
+        }
+
+        .submit-btn:active { transform: scale(0.97); }
+
+        .submit-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .submit-btn svg {
+            width: 20px; height: 20px;
+            stroke: #000; fill: none;
+            stroke-width: 2.5;
+            stroke-linecap: round; stroke-linejoin: round;
+        }
+
+        /* ========================= */
+        /* 3-BOSQICH: YUKLANISH      */
+        /* ========================= */
+        .step-uploading {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            text-align: center;
+            padding: 40px 0;
+        }
+
+        .step-uploading.active { display: flex; }
+
+        .upload-spinner {
+            width: 72px; height: 72px;
+            border-radius: 50%;
+            border: 4px solid #2c2c2e;
+            border-top-color: #007aff;
+            animation: spin 0.9s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .upload-title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .upload-desc {
+            font-size: 14px;
+            color: #8e8e93;
+        }
+
+        .progress-bar {
+            width: 100%;
+            max-width: 260px;
+            height: 6px;
+            background-color: #2c2c2e;
+            border-radius: 100px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #007aff, #4ade80);
+            border-radius: 100px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 13px;
+            color: #8e8e93;
+            font-weight: 500;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background-color: #2c2c2e;
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            z-index: 300;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+            white-space: nowrap;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
 </head>
 <body>
 
-<div class="video-modal-content">
-  <!-- HEADER TAMOMAN YO'Q: Bekor qilish tugmasi, sarlavha qatori, hech narsa mavjud emas -->
-  <!-- Faqat forma va video yuklash interfeysi -->
-  
-  <div class="video-form-container">
-    <!-- Video preview va tanlash maydoni -->
-    <div class="video-form-group">
-      <div class="video-preview" id="videoPreview">
-        <div class="video-preview-placeholder" id="uploadPlaceholder">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2ZM6 20V4H13V9H18V20H6Z" fill="currentColor"/>
-            <path d="M8 12H16V14H8V12ZM8 16H16V18H8V16Z" fill="currentColor"/>
-          </svg>
-          <span>Video yuklang</span>
-          <button type="button" class="upload-video-btn" id="uploadVideoBtn">Fayl tanlash</button>
+    <div class="update-container">
+        <!-- Header -->
+        <div class="header">
+            <button class="back-btn" id="backBtn" aria-label="Orqaga">
+                <svg viewBox="0 0 24 24">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+            </button>
+            <h1 class="header-title" id="headerTitle">Video yuklash</h1>
+            <div class="header-spacer"></div>
         </div>
-      </div>
-      <div id="fileInfo" class="video-info" style="display: none;"></div>
+
+        <!-- 1-BOSQICH: Galereya -->
+        <div class="step-gallery" id="stepGallery">
+            <div class="gallery-icon">
+                <svg viewBox="0 0 24 24">
+                    <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+            </div>
+            <h2 class="gallery-title">Video tanlang</h2>
+            <p class="gallery-desc">Galereyadan 9:16 o'lchamidagi videoni tanlang</p>
+            <button class="pick-btn" id="pickBtn">
+                <svg viewBox="0 0 24 24">
+                    <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+                Galereyadan tanlash
+            </button>
+        </div>
+
+        <!-- 2-BOSQICH: Preview + Sarlavha -->
+        <div class="step-preview" id="stepPreview">
+            <div class="video-wrapper">
+                <video id="previewVideo" controls playsinline></video>
+                <div class="video-badge-96">
+                    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    9:16
+                </div>
+            </div>
+
+            <div class="input-section">
+                <label class="input-label" for="titleInput">Sarlavha</label>
+                <textarea
+                    id="titleInput"
+                    class="title-input"
+                    placeholder="Videongizga sarlavha yozing..."
+                    rows="2"
+                    maxlength="150"
+                ></textarea>
+            </div>
+
+            <button class="submit-btn" id="submitBtn" disabled>
+                Yuborish
+                <svg viewBox="0 0 24 24">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+            </button>
+        </div>
+
+        <!-- 3-BOSQICH: Yuklanmoqda -->
+        <div class="step-uploading" id="stepUploading">
+            <div class="upload-spinner"></div>
+            <div>
+                <h2 class="upload-title">Yuklanmoqda...</h2>
+                <p class="upload-desc">Iltimos, kuting</p>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">0%</div>
+        </div>
     </div>
-    
-    <!-- Sarlavha maydoni (majburiy) -->
-    <div class="video-form-group">
-      <input type="text" id="videoTitle" placeholder="Video sarlavhasi (masalan: Eng zo‘r lavhalar)" autocomplete="off">
-    </div>
-    
-    <!-- Tavsif maydoni butunlay olib tashlandi (textarea yo'q) -->
-    
-    <!-- Asosiy yuklash tugmasi -->
-    <button class="upload-action-btn" id="finalUploadBtn" disabled>
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 4px;">
-        <path d="M19 13H5V11H19V13ZM12 4L7 9H11V15H13V9H17L12 4Z" fill="currentColor"/>
-      </svg>
-      Yuklash
-    </button>
-    <div class="helper-text">Maksimal hajm: 500 MB | MP4, MOV va boshqa formatlar</div>
-  </div>
-</div>
 
-<!-- Yashirin file input -->
-<input type="file" id="videoInput" accept="video/*" style="display: none;">
+    <!-- Hidden file input -->
+    <input type="file" id="videoFileInput" accept="video/*" style="display:none">
 
-<script>
-  (function() {
-    // DOM elementlari
-    const uploadVideoBtn = document.getElementById('uploadVideoBtn');
-    const videoInput = document.getElementById('videoInput');
-    const videoPreview = document.getElementById('videoPreview');
-    const uploadPlaceholder = document.getElementById('uploadPlaceholder');
-    const videoTitle = document.getElementById('videoTitle');
-    const finalUploadBtn = document.getElementById('finalUploadBtn');
-    const fileInfoDiv = document.getElementById('fileInfo');
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
 
-    // State
-    let selectedVideoFile = null;      // tanlangan fayl obyekti
-    let videoObjectURL = null;         // blob URL (tozalash uchun)
-    
-    // Helper: previewni placeholder holatiga qaytarish (header yo'q, faqat vizual)
-    function resetToPlaceholder() {
-      // Agar videoPreview ichida video elementi mavjud bo'lsa, uni o'chirib placeholder qo'shamiz
-      const existingVideo = videoPreview.querySelector('video');
-      if (existingVideo) {
-        existingVideo.remove();
-      }
-      // placeholder mavjudmi? agar yo'q yoki buzilgan bo'lsa yaratamiz
-      let placeholder = document.getElementById('uploadPlaceholder');
-      if (!placeholder || !videoPreview.contains(placeholder)) {
-        // agar placeholder mavjud bo'lmasa, yangisini yaratamiz
-        if (placeholder && placeholder.parentNode) placeholder.remove();
-        const newPlaceholder = document.createElement('div');
-        newPlaceholder.className = 'video-preview-placeholder';
-        newPlaceholder.id = 'uploadPlaceholder';
-        newPlaceholder.innerHTML = `
-          <svg width="56" height="56" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2ZM6 20V4H13V9H18V20H6Z" fill="currentColor"/>
-            <path d="M8 12H16V14H8V12ZM8 16H16V18H8V16Z" fill="currentColor"/>
-          </svg>
-          <span>Video yuklang</span>
-          <button type="button" class="upload-video-btn" id="uploadVideoBtn">Fayl tanlash</button>
-        `;
-        videoPreview.innerHTML = '';
-        videoPreview.appendChild(newPlaceholder);
-        placeholder = newPlaceholder;
-      }
-      // Tugma va placeholder eventlarini qayta bog'lash
-      const btnInside = placeholder.querySelector('#uploadVideoBtn');
-      if (btnInside) {
-        // eski eventlarni tozalash uchun yangi nusxa yoki clone? oddiy usul: listener qo'shishdan oldin removeEventListener xavfi, lekin yangi element, to'g'ridan to'g'ri qo'shamiz
-        btnInside.replaceWith(btnInside.cloneNode(true));
-        const freshBtn = placeholder.querySelector('#uploadVideoBtn');
-        freshBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          videoInput.click();
+    <script>
+        // ============================
+        // TELEGRAM
+        // ============================
+        const tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+            tg.setHeaderColor('#000000');
+            tg.setBackgroundColor('#000000');
+        }
+
+        // ============================
+        // TOAST
+        // ============================
+        let toastTimer = null;
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            if (toastTimer) clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+        }
+
+        // ============================
+        // STORAGE
+        // ============================
+        const STORAGE_KEY = 'profile_posts_v1';
+
+        function getPosts() {
+            try {
+                return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            } catch { return []; }
+        }
+
+        function savePosts(posts) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
+        }
+
+        function addPost(post) {
+            const posts = getPosts();
+            posts.unshift(post);
+            savePosts(posts);
+        }
+
+        // ============================
+        // BOSQICHLAR
+        // ============================
+        const stepGallery = document.getElementById('stepGallery');
+        const stepPreview = document.getElementById('stepPreview');
+        const stepUploading = document.getElementById('stepUploading');
+        const headerTitle = document.getElementById('headerTitle');
+
+        function showStep(name) {
+            stepGallery.style.display = 'none';
+            stepPreview.classList.remove('active');
+            stepUploading.classList.remove('active');
+
+            if (name === 'gallery') {
+                stepGallery.style.display = 'flex';
+                headerTitle.textContent = 'Video yuklash';
+            } else if (name === 'preview') {
+                stepPreview.classList.add('active');
+                headerTitle.textContent = 'Video ko\'rish';
+            } else if (name === 'uploading') {
+                stepUploading.classList.add('active');
+                headerTitle.textContent = 'Yuklanmoqda';
+            }
+        }
+
+        // ============================
+        // VIDEO TANLASH
+        // ============================
+        const fileInput = document.getElementById('videoFileInput');
+        let selectedFile = null;
+        let selectedVideoURL = null;
+
+        document.getElementById('pickBtn').addEventListener('click', () => {
+            tg?.HapticFeedback?.impactOccurred('light');
+            fileInput.click();
         });
-      }
-      // placeholder ustiga bosganda ham videoInput ochilishi
-      placeholder.addEventListener('click', (e) => {
-        if (e.target.tagName !== 'BUTTON') {
-          videoInput.click();
-        }
-      });
-      // fileInfo yashirish
-      if (fileInfoDiv) fileInfoDiv.style.display = 'none';
-    }
-    
-    // Previewda video ko'rsatish (fayl tanlanganda)
-    function displayVideoPreview(file) {
-      if (!file) return;
-      // eski URL ni tozalash
-      if (videoObjectURL) {
-        URL.revokeObjectURL(videoObjectURL);
-        videoObjectURL = null;
-      }
-      videoObjectURL = URL.createObjectURL(file);
-      const videoElement = document.createElement('video');
-      videoElement.src = videoObjectURL;
-      videoElement.controls = true;
-      videoElement.setAttribute('controlslist', 'nodownload');
-      videoElement.style.width = '100%';
-      videoElement.style.height = '100%';
-      videoElement.style.objectFit = 'contain';
-      videoElement.style.backgroundColor = '#000';
-      // videoPreview ichidagi barcha narsalarni tozalab, videoni joylashtirish
-      videoPreview.innerHTML = '';
-      videoPreview.appendChild(videoElement);
-      videoElement.addEventListener('loadedmetadata', () => {
-        // video yuklangan, hech qanday header yo'q, faqat vizual
-      });
-    }
-    
-    // Fayl tanlanganda validatsiya va preview
-    function handleFileSelect(file) {
-      if (!file) {
-        selectedVideoFile = null;
-        resetToPlaceholder();
-        if (fileInfoDiv) fileInfoDiv.style.display = 'none';
-        checkForm();
-        return;
-      }
-      // Hajm tekshiruvi (500 MB)
-      const maxSize = 500 * 1024 * 1024;
-      if (file.size > maxSize) {
-        alert('Video hajmi 500 MB dan oshmasligi kerak! Iltimos, kichikroq fayl tanlang.');
-        videoInput.value = '';
-        selectedVideoFile = null;
-        resetToPlaceholder();
-        if (fileInfoDiv) fileInfoDiv.style.display = 'none';
-        checkForm();
-        return;
-      }
-      
-      // Fayl turi (video) qabul qilamiz
-      if (!file.type.startsWith('video/')) {
-        alert('Faqat video fayllar qabul qilinadi (MP4, MOV, AVI va boshqalar).');
-        videoInput.value = '';
-        selectedVideoFile = null;
-        resetToPlaceholder();
-        if (fileInfoDiv) fileInfoDiv.style.display = 'none';
-        checkForm();
-        return;
-      }
-      
-      selectedVideoFile = file;
-      // Videoni preview qilish
-      displayVideoPreview(file);
-      
-      // Fayl hajmi va nomi ma'lumotlarini ko'rsatish
-      const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
-      const fileNameShort = file.name.length > 35 ? file.name.substring(0, 32) + '...' : file.name;
-      if (fileInfoDiv) {
-        fileInfoDiv.style.display = 'flex';
-        fileInfoDiv.innerHTML = `
-          <span class="file-name" title="${escapeHtml(file.name)}">📹 ${escapeHtml(fileNameShort)}</span>
-          <span class="file-size">${fileSizeMB} MB</span>
-        `;
-      }
-      
-      // Agar sarlavha maydoni bo'sh bo'lsa, fayl nomidan (kengaytmasiz) sarlavha qilib qo'yamiz
-      if (!videoTitle.value.trim()) {
-        let baseName = file.name.replace(/\.[^/.]+$/, "");
-        if (baseName.length > 60) baseName = baseName.substring(0, 57) + '...';
-        videoTitle.value = baseName;
-      }
-      
-      checkForm();
-    }
-    
-    // XSS oldini olish uchun oddiy escape
-    function escapeHtml(str) {
-      return str.replace(/[&<>]/g, function(m) {
-        if (m === '&') return '&amp;';
-        if (m === '<') return '&lt;';
-        if (m === '>') return '&gt;';
-        return m;
-      }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
-        return c;
-      });
-    }
-    
-    // VideoInput o'zgarishi
-    videoInput.addEventListener('change', (e) => {
-      const file = e.target.files && e.target.files[0];
-      if (file) {
-        handleFileSelect(file);
-      } else {
-        handleFileSelect(null);
-      }
-    });
-    
-    // Tugma orqali fayl tanlash (ikkala joy)
-    function attachUploadButtonEvents() {
-      // Har qanday dinamik tugmaga ishlov berish uchun delegatsiya yoki qayta bog'lash
-      const btn = document.querySelector('#uploadVideoBtn');
-      if (btn) {
-        // oldingi listenerlarni to'xtatish uchun yangi nusxa yoki removeEventListener aniq emas, oddiy usul: clone + event
-        const newBtn = btn.cloneNode(true);
-        btn.parentNode.replaceChild(newBtn, btn);
-        newBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          videoInput.click();
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Tekshirish: video ekanligiga
+            if (!file.type.startsWith('video/')) {
+                showToast('Iltimos, video fayl tanlang');
+                return;
+            }
+
+            selectedFile = file;
+            selectedVideoURL = URL.createObjectURL(file);
+
+            // Preview'ga o'tish
+            const video = document.getElementById('previewVideo');
+            video.src = selectedVideoURL;
+
+            showStep('preview');
+
+            // Sarlavha inputga fokus
+            setTimeout(() => document.getElementById('titleInput').focus(), 350);
         });
-      }
-    }
-    
-    // Placeholder va tugmalar uchun umumiy init (DOM o'zgarishlari va dastlabki)
-    function initEventDelegation() {
-      // videoPreview ustiga bosilganda ham fayl tanlash (agar placeholder ko'rinishda bo'lsa)
-      videoPreview.addEventListener('click', (e) => {
-        // agar bosilgan element video yoki uning ichidagi tugma bo'lmasa va placeholder ko'rinadigan bo'lsa (video element mavjud emas) -> fayl tanlash
-        const hasVideoElem = videoPreview.querySelector('video');
-        if (!hasVideoElem) {
-          // Agar placeholder ko'rinishda bo'lsa, input ochiladi
-          if (e.target.closest('#uploadVideoBtn')) return; // tugma o'z ishini qiladi
-          videoInput.click();
+
+        // ============================
+        // SARLAVHA INPUT
+        // ============================
+        const titleInput = document.getElementById('titleInput');
+        const submitBtn = document.getElementById('submitBtn');
+
+        titleInput.addEventListener('input', () => {
+            const hasTitle = titleInput.value.trim().length > 0;
+            submitBtn.disabled = !hasTitle;
+        });
+
+        // ============================
+        // YUBORISH
+        // ============================
+        submitBtn.addEventListener('click', async () => {
+            if (!selectedFile) {
+                showToast('Avval video tanlang');
+                return;
+            }
+
+            const title = titleInput.value.trim();
+            if (!title) {
+                showToast('Sarlavha yozing');
+                return;
+            }
+
+            tg?.HapticFeedback?.impactOccurred('medium');
+
+            // Yuklanish bosqichiga o'tish
+            showStep('uploading');
+
+            // Simulyatsiya: progress
+            await simulateUpload();
+
+            // Saqlash
+            try {
+                // Blob URL ni saqlash uchun base64'ga aylantirish
+                const base64 = await fileToBase64(selectedFile);
+
+                const post = {
+                    id: Date.now().toString(),
+                    type: 'video',
+                    title: title,
+                    url: base64,
+                    createdAt: new Date().toISOString()
+                };
+
+                addPost(post);
+
+                showToast('Muvaffaqiyatli yuklandi! ✓');
+
+                tg?.HapticFeedback?.notificationOccurred('success');
+
+                // Profilga qaytish
+                setTimeout(() => {
+                    window.location.href = 'profil.html';
+                }, 900);
+            } catch (err) {
+                console.error('Xatolik:', err);
+                showToast('Xatolik yuz berdi. Qayta urinib ko\'ring.');
+                showStep('preview');
+            }
+        });
+
+        
+        // Progress simulyatsiya
+        function simulateUpload() {
+            return new Promise((resolve) => {
+                const fill = document.getElementById('progressFill');
+                const text = document.getElementById('progressText');
+                let progress = 0;
+
+                const timer = setInterval(() => {
+                    progress += Math.random() * 18 + 5;
+                    if (progress >= 100) {
+                        progress = 100;
+                        clearInterval(timer);
+                        fill.style.width = '100%';
+                        text.textContent = '100%';
+                        setTimeout(resolve, 400);
+                        return;
+                    }
+                    fill.style.width = progress + '%';
+                    text.textContent = Math.floor(progress) + '%';
+                }, 180);
+            });
         }
-      });
-      // global uploadVideoBtn mavjud bo'lsa
-      attachUploadButtonEvents();
-    }
-    
-    // Form tekshiruvi: video fayl va sarlavha mavjudligi
-    function checkForm() {
-      const titleValid = videoTitle.value.trim().length > 0;
-      const hasFile = selectedVideoFile !== null;
-      finalUploadBtn.disabled = !(titleValid && hasFile);
-    }
-    
-    // Sarlavha kiritilganda tugmani yangilash
-    videoTitle.addEventListener('input', () => {
-      checkForm();
-    });
-    
-    // YUKLASH JARAYONI (localStorage + videopage)
-    async function uploadVideoProcess() {
-      if (!selectedVideoFile) {
-        alert('Iltimos, videoni tanlang!');
-        return;
-      }
-      const titleRaw = videoTitle.value.trim();
-      if (!titleRaw) {
-        alert('Video sarlavhasini kiriting.');
-        videoTitle.focus();
-        return;
-      }
-      
-      // Yuklash tugmasini bloklash va matnni o'zgartirish
-      finalUploadBtn.disabled = true;
-      const originalText = finalUploadBtn.innerHTML;
-      finalUploadBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="animation: spin 1s linear infinite; transform-origin: center;"><circle cx="12" cy="12" r="10" stroke="white" stroke-width="2" fill="none" stroke-dasharray="30 30"/><path d="M12 2 L12 6 M12 12 L12 18" stroke="white" stroke-width="2"/></svg> Yuklanmoqda...`;
-      finalUploadBtn.style.opacity = '0.9';
-      
-      try {
-        // Faylni base64 ga o'tkazish (katta videolar uchun biroz vaqt talab qiladi, lekin local storage demo uchun)
-        const videoBase64 = await fileToBase64(selectedVideoFile);
-        
-        // Video URL ni tozalash (blob URL)
-        if (videoObjectURL) {
-          URL.revokeObjectURL(videoObjectURL);
-          videoObjectURL = null;
+
+        // Fayl → base64
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
         }
-        
-        // Yangi video obyekti yaratish (tavsif yo'q, description bo'sh string)
-        const newVideo = {
-          id: Date.now(),
-          title: titleRaw,
-          description: "",    // Tavsif maydoni butunlay olib tashlanganligi sababli bo'sh
-          videoUrl: videoBase64,
-          status: 'uploaded',
-          createdAt: new Date().toISOString(),
-          views: "0",
-          timeAgo: "hozirgina",
-          likes: 0,
-          comments: 0,
-          commentsData: [],
-          fileName: selectedVideoFile.name,
-          fileSize: (selectedVideoFile.size / (1024 * 1024)).toFixed(2) + ' MB',
-          author: "Siz",
-          channel: "Shaxsiy kanal"
-        };
-        
-        // LocalStorage dan mavjud videolarni olish
-        let videos = JSON.parse(localStorage.getItem('videos')) || [];
-        videos.unshift(newVideo);   // yangi videoni eng yuqoriga qo'shish
-        localStorage.setItem('videos', JSON.stringify(videos));
-        
-        // Hozirgi ko'rilayotgan video sifatida saqlash (videopage uchun)
-        localStorage.setItem('currentVideo', JSON.stringify(newVideo));
-        
-        // Muvaffaqiyatli yuklandi, videopage.html ga o'tish
-        setTimeout(() => {
-          alert('Video muvaffaqiyatli yuklandi! Videopage ochiladi.');
-          window.location.href = 'videopage.html';
-        }, 600);
-        
-      } catch (err) {
-        console.error('Yuklash xatoligi:', err);
-        alert('Video yuklashda xatolik yuz berdi. Internet aloqasini tekshiring yoki qayta urinib ko‘ring.');
-        finalUploadBtn.disabled = false;
-        finalUploadBtn.innerHTML = originalText;
-        finalUploadBtn.style.opacity = '1';
-        checkForm(); // tugma holatini tiklash
-      }
-    }
-    
-    // Base64 converter
-    function fileToBase64(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = (error) => reject(error);
-        reader.readAsDataURL(file);
-      });
-    }
-    
-    // Final upload tugmasi bosilganda
-    finalUploadBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      if (finalUploadBtn.disabled) return;
-      uploadVideoProcess();
-    });
-    
-    // Bekor qilish funksiyasi YO'Q, header butunlay olib tashlangan.
-    // Foydalanuvchi sahifadan chiqish uchun brauzer orqasiga o'tishi mumkin yoki biz "Orqaga" opsiyasini bermaymiz,
-    // chunki talabda header (bekor qilish tugmasi) yo'q qilingan. 
-    // Agar istalmasa, hech qanday navigatsiya tugmasi mavjud emas.
-    // Profilga qaytish uchun hech qanday tugma yo'q — bu dizayn to'liq header'siz.
-    
-    
-    // Dastlabki holatni sozlash: placeholder ko'rinishi va eventlar
-    function initialize() {
-      // agar placeholder mavjud bo'lsa, uning tugmasini bog'lash
-      resetToPlaceholder();  // previewni placeholder holatiga keltirish
-      attachUploadButtonEvents();
-      initEventDelegation();
-      // sarlavha bo'sh, video yo'q, tugma disabled
-      checkForm();
-      // fileInfo dastlab yashirin
-      if (fileInfoDiv) fileInfoDiv.style.display = 'none';
-      selectedVideoFile = null;
-      if (videoObjectURL) {
-        URL.revokeObjectURL(videoObjectURL);
-        videoObjectURL = null;
-      }
-    }
-    
-    // DOMContentLoaded da ishga tushirish
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initialize);
-    } else {
-      initialize();
-    }
-  })();
-</script>
+
+        // ============================
+        // ORQAGA
+        // ============================
+        document.getElementById('backBtn').addEventListener('click', () => {
+            tg?.HapticFeedback?.impactOccurred('light');
+
+            if (stepPreview.classList.contains('active') || stepUploading.classList.contains('active')) {
+                // Preview'dan galereyaga qaytish
+                if (selectedVideoURL) URL.revokeObjectURL(selectedVideoURL);
+                selectedFile = null;
+                selectedVideoURL = null;
+                titleInput.value = '';
+                submitBtn.disabled = true;
+                showStep('gallery');
+            } else {
+                // Galereyadan profilga
+                window.location.href = 'profil.html';
+            }
+        });
+
+        // ============================
+        // URL PARAMETR
+        // ============================
+        const params = new URLSearchParams(window.location.search);
+        const type = params.get('type'); // 'video' | 'live'
+
+        if (type === 'live') {
+            headerTitle.textContent = 'Jonli efir';
+            showToast('Jonli efir tez orada...');
+            setTimeout(() => window.location.href = 'profil.html', 1500);
+        } else {
+            // 'video' bo'lsa yoki parametrsiz — galereyani ko'rsatish
+            showStep('gallery');
+        }
+
+        // Auto-open gallery (ixtiyoriy)
+        if (type === 'video') {
+            setTimeout(() => {
+                tg?.HapticFeedback?.impactOccurred('light');
+                fileInput.click();
+            }, 500);
+        }
+    </script>
 </body>
 </html>
