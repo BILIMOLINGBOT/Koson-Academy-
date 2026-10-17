@@ -32,7 +32,7 @@
             top: 0;
             left: 0;
             z-index: 1;
-            transform: scaleX(-1); /* Oyna effekti uchun */
+            transform: scaleX(-1);
         }
 
         /* Ustki qatlam (UI) */
@@ -47,7 +47,7 @@
             flex-direction: column;
             justify-content: space-between;
             padding: env(safe-area-inset-top, 20px) 16px env(safe-area-inset-bottom, 20px) 16px;
-            pointer-events: none; /* Faqat tugmalar bosilishi uchun */
+            pointer-events: none;
         }
 
         /* Yuqori qism */
@@ -55,7 +55,6 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            /* PROFIL QISM PASTGA TUSHIRILDI: 10px -> 90px */
             margin-top: 90px;
             pointer-events: auto;
         }
@@ -98,6 +97,29 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+        }
+
+        /* Obuna bo'lish tugmasi */
+        .subscribe-btn {
+            background-color: #0095f6;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 7px 14px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: opacity 0.2s, transform 0.1s;
+        }
+
+        .subscribe-btn:active {
+            opacity: 0.8;
+            transform: scale(0.96);
+        }
+
+        .subscribe-btn.hidden {
+            display: none;
         }
 
         /* Live va Viewers badgelari */
@@ -164,7 +186,6 @@
         .side-tools {
             position: absolute;
             right: 16px;
-            /* Profil 90px ga tushgani uchun tugmalar ham pastga surildi */
             top: 180px;
             display: flex;
             flex-direction: column;
@@ -186,9 +207,14 @@
             cursor: pointer;
             transition: background 0.2s;
         }
-        
+
         .tool-btn:active {
             background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        /* Mikrofon o'chirilgan holat */
+        .tool-btn.muted {
+            background-color: #ff3b30;
         }
 
         .tool-btn svg {
@@ -234,6 +260,7 @@
             align-items: center;
             color: white;
             cursor: pointer;
+            flex-shrink: 0;
         }
 
         .share-btn svg {
@@ -245,12 +272,61 @@
             stroke-linecap: round;
             stroke-linejoin: round;
         }
+
+        /* Yuborilgan xabarlar ro'yxati */
+        .messages {
+            position: absolute;
+            left: 16px;
+            bottom: 90px;
+            width: calc(100% - 90px);
+            max-height: 40vh;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: none;
+            z-index: 9;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .messages::-webkit-scrollbar {
+            display: none;
+        }
+
+        .message-bubble {
+            align-self: flex-start;
+            max-width: 100%;
+            background-color: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(10px);
+            color: white;
+            font-size: 14px;
+            padding: 8px 14px;
+            border-radius: 16px;
+            line-height: 1.35;
+            word-wrap: break-word;
+            animation: msgIn 0.25s ease-out;
+        }
+
+        .message-bubble .msg-author {
+            color: #6bb6ff;
+            font-weight: 600;
+            margin-right: 6px;
+        }
+
+        @keyframes msgIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
 
     <!-- Kamera ulanishi -->
     <video id="camera-feed" autoplay playsinline muted></video>
+
+    <!-- Yuborilgan xabarlar -->
+    <div class="messages" id="messages"></div>
 
     <!-- UI Overlay -->
     <div class="overlay">
@@ -263,6 +339,8 @@
                         <span class="profile-name" id="liveUserName">Yuklanmoqda...</span>
                     </div>
                 </div>
+                <!-- Obuna bo'lish tugmasi -->
+                <button class="subscribe-btn" id="subscribeBtn">Obuna bo'lish</button>
                 <div class="live-badge">
                     <div class="live-dot"></div>
                     LIVE
@@ -272,30 +350,31 @@
                     1
                 </div>
             </div>
-            
+
             <button class="close-btn" id="closeLiveBtn">
                 <div class="stop-icon"></div>
             </button>
         </div>
 
-        <!-- Yon panel (Mikrofon, Kamera, Effektlar) -->
+        <!-- Yon panel: Mikrofon + Effektlar (kamera olib tashlandi) -->
         <div class="side-tools">
-            <button class="tool-btn">
-                <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+            <!-- Mikrofon tugmasi -->
+            <button class="tool-btn" id="micBtn" aria-label="Mikrofon">
+                <svg id="micIconOn" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+                <svg id="micIconOff" viewBox="0 0 24 24" style="display:none;"><path d="M19 11h-1.7c0 .74-.16 1.43-.43 2.05l1.23 1.23c.56-.98.9-2.09.9-3.28zm-4.02.17c0-.06.02-.11.02-.17V5c0-1.66-1.34-3-3-3S9 3.34 9 5v.18l5.98 5.99zM4.27 3L3 4.27l6.01 6.01V11c0 1.66 1.33 3 2.99 3 .22 0 .44-.03.65-.08l1.66 1.66c-.71.33-1.5.52-2.31.52-2.76 0-5.3-2.1-5.3-5.1H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c.91-.13 1.77-.45 2.54-.9L19.73 21 21 19.73 4.27 3z"/></svg>
             </button>
-            <button class="tool-btn" id="switchCameraBtn">
-                <svg viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4zM10 15l-3-3h2V9h2v3h2l-3 3z"/></svg>
-            </button>
-            <button class="tool-btn">
-                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>
+
+            <!-- Effektlar tugmasi -->
+            <button class="tool-btn" id="effectsBtn">
+                <svg viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 16.8l-6.2 4.5 2.4-7.4L2 9.4h7.6z"/></svg>
             </button>
         </div>
 
         <!-- Pastki qism -->
         <div class="bottom-bar">
-            <input type="text" class="chat-input" placeholder="Xabar yozing...">
-            <button class="share-btn">
-                <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+            <input type="text" class="chat-input" id="chatInput" placeholder="Xabar yozing...">
+            <button class="share-btn" id="sendBtn" aria-label="Yuborish">
+                <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
             </button>
         </div>
     </div>
@@ -305,53 +384,118 @@
         if (tg) {
             tg.ready();
             tg.expand();
-            
-            // Foydalanuvchi ma'lumotlarini yuklash
+
             const user = tg.initDataUnsafe?.user;
             if (user) {
                 const fullName = user.first_name || 'Foydalanuvchi';
                 document.getElementById('liveUserName').textContent = fullName;
-                
+
                 if (user.photo_url) {
                     document.getElementById('liveUserPhoto').src = user.photo_url;
                 }
             }
         }
 
-        // Yopish tugmasi profils.html ga qaytaradi
+        // Yopish tugmasi
         document.getElementById('closeLiveBtn').addEventListener('click', () => {
             tg?.HapticFeedback?.impactOccurred('heavy');
             window.location.href = 'profil.html';
         });
 
-        // Kamera ulanishini sozlash (WebRTC)
+        // ===== 1. Mikrofon yoqish / o'chirish =====
+        let isMicOn = false;
+        const micBtn = document.getElementById('micBtn');
+        const micIconOn = document.getElementById('micIconOn');
+        const micIconOff = document.getElementById('micIconOff');
+
+        micBtn.addEventListener('click', () => {
+            isMicOn = !isMicOn;
+            tg?.HapticFeedback?.impactOccurred('light');
+
+            if (isMicOn) {
+                // Yoqilgan
+                micBtn.classList.remove('muted');
+                micIconOn.style.display = 'block';
+                micIconOff.style.display = 'none';
+            } else {
+                // O'chirilgan
+                micBtn.classList.add('muted');
+                micIconOn.style.display = 'none';
+                micIconOff.style.display = 'block';
+            }
+        });
+
+        // ===== 3 & 4. Obuna bo'lish tugmasi =====
+        const subscribeBtn = document.getElementById('subscribeBtn');
+        subscribeBtn.addEventListener('click', () => {
+            tg?.HapticFeedback?.impactOccurred('medium');
+            subscribeBtn.classList.add('hidden'); // Bosilgach yo'qoladi
+        });
+
+        // ===== 2. Fikr yozib yuborish =====
+        const chatInput = document.getElementById('chatInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const messagesContainer = document.getElementById('messages');
+
+        function sendMessage() {
+            const text = chatInput.value.trim();
+            if (!text) return;
+
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble';
+
+            const author = document.createElement('span');
+            author.className = 'msg-author';
+            author.textContent = tg?.initDataUnsafe?.user?.first_name || 'Siz';
+
+            const textNode = document.createElement('span');
+            textNode.textContent = text;
+
+            bubble.appendChild(author);
+            bubble.appendChild(textNode);
+            messagesContainer.appendChild(bubble);
+
+            // Pastga avtomatik scroll
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            chatInput.value = '';
+            tg?.HapticFeedback?.impactOccurred('light');
+
+            // 8 sekunddan keyin xabarni o'chirish (xohishga ko'ra)
+            setTimeout(() => {
+                if (bubble.parentNode) {
+                    bubble.style.transition = 'opacity 0.4s';
+                    bubble.style.opacity = '0';
+                    setTimeout(() => bubble.remove(), 400);
+                }
+            }, 8000);
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // ===== Kamera (faqat ko'rsatish, almashtirish tugmasi olib tashlandi) =====
         const videoElement = document.getElementById('camera-feed');
-        let currentFacingMode = "user"; // Dastlab old kamera
 
         async function startCamera(facingMode = "user") {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({
                     video: { facingMode: facingMode },
-                    audio: false // Odatda brauzer audio ruxsati uchun alohida e'tibor talab qiladi
+                    audio: false
                 });
                 videoElement.srcObject = stream;
-                
-                // Old kamerada oyna effekti, orqa kamerada normal ko'rsatish
                 videoElement.style.transform = facingMode === "user" ? "scaleX(-1)" : "scaleX(1)";
             } catch (err) {
                 console.error("Kameraga ulanishda xatolik:", err);
-                // Agar kameraga ruxsat berilmasa yoki topilmasa alert chiqarish mumkin
             }
         }
 
-        // Kamera almashtirish tugmasi
-        document.getElementById('switchCameraBtn').addEventListener('click', () => {
-            tg?.HapticFeedback?.impactOccurred('light');
-            currentFacingMode = currentFacingMode === "user" ? "environment" : "user";
-            startCamera(currentFacingMode);
-        });
-
-        // Sahifa yuklanganda kamerani yoqish
         startCamera();
     </script>
 </body>
