@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ro'yxatdan o'tish - Twitter</title>
+  <title>Ro'yxatdan o'tish - L.uz</title>
   <style>
     * {
       margin: 0;
@@ -26,34 +26,12 @@
       border: 1px solid #2f3336;
       min-height: 100vh;
       background-color: #000;
-      position: relative;
     }
 
+    /* Header endi faqat sarlavha uchun, back tugmasi yo'q */
     .header {
       padding: 20px;
-      display: flex;
-      align-items: center;
       border-bottom: 1px solid #2f3336;
-    }
-
-    .back-btn {
-      background: none;
-      border: none;
-      color: #fff;
-      font-size: 20px;
-      cursor: pointer;
-      margin-right: 20px;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background-color 0.2s;
-    }
-
-    .back-btn:hover {
-      background-color: rgba(255, 255, 255, 0.1);
     }
 
     .header h1 {
@@ -63,48 +41,7 @@
 
     .content {
       padding: 20px;
-    }
-
-    .step-indicator {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 40px;
-    }
-
-    .step {
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 10px;
-      font-size: 14px;
-      font-weight: 700;
-      border: 2px solid #536471;
-      color: #536471;
-    }
-
-    .step.active {
-      border-color: #1da1f2;
-      color: #1da1f2;
-    }
-
-    .step.completed {
-      background-color: #1da1f2;
-      border-color: #1da1f2;
-      color: #fff;
-    }
-
-    .step-line {
-      height: 2px;
-      width: 40px;
-      background-color: #536471;
-      margin-top: 14px;
-    }
-
-    .step-line.active {
-      background-color: #1da1f2;
+      padding-top: 40px;
     }
 
     .form-container {
@@ -150,8 +87,23 @@
       border-color: #1da1f2;
     }
 
+    .input-field.valid {
+      border-color: #00ba7c;
+    }
+
+    .input-field.invalid {
+      border-color: #f91880;
+    }
+
     .error-message {
       color: #f91880;
+      font-size: 13px;
+      margin-top: 5px;
+      display: none;
+    }
+
+    .success-hint {
+      color: #00ba7c;
       font-size: 13px;
       margin-top: 5px;
       display: none;
@@ -208,6 +160,7 @@
     .success-icon {
       font-size: 50px;
       margin-bottom: 20px;
+      color: #00ba7c;
     }
 
     .success-title {
@@ -219,22 +172,42 @@
     .success-subtitle {
       color: #8b98a5;
       font-size: 15px;
-      margin-bottom: 30px;
+      margin-bottom: 10px;
     }
 
-    .continue-btn {
-      background-color: #1da1f2;
-      color: #fff;
-      border: none;
+    .user-id-badge {
+      display: inline-block;
+      background-color: #16181c;
+      border: 1px solid #2f3336;
       border-radius: 20px;
-      padding: 12px 24px;
-      font-size: 15px;
+      padding: 8px 16px;
+      color: #1da1f2;
       font-weight: 700;
-      cursor: pointer;
+      font-size: 16px;
+      margin: 20px 0;
     }
 
-    .continue-btn:hover {
-      background-color: #0c84d1;
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid #536471;
+      border-top-color: #1da1f2;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-hint {
+      color: #8b98a5;
+      font-size: 13px;
+      margin-top: 5px;
+      display: none;
     }
   </style>
 </head>
@@ -242,32 +215,23 @@
 
   <div class="container">
     <div class="header">
-      <button class="back-btn" id="backBtn">←</button>
       <h1>Hisob yaratish</h1>
     </div>
 
     <div class="content">
-      <div class="step-indicator">
-        <div class="step active" id="step1">1</div>
-        <div class="step-line" id="line1"></div>
-        <div class="step" id="step2">2</div>
-        <div class="step-line" id="line2"></div>
-        <div class="step" id="step3">3</div>
-      </div>
-
-      <!-- Qadam 1: Telefon raqami yoki email -->
+      <!-- Qadam 1: Telefon raqami -->
       <div class="step-content active" id="step1Content">
         <div class="form-container">
-          <h2 class="form-title">Telefon raqamingizni yoki elektron pochtangizni kiriting</h2>
-          <p class="form-subtitle">Bu Twitterda siz bilan bog'lanish uchun ishlatiladi.</p>
-          
+          <h2 class="form-title">Telefon raqamingizni kiriting</h2>
+          <p class="form-subtitle">Bu L.uz'da siz bilan bog'lanish uchun ishlatiladi.</p>
+
           <div class="input-group">
-            <label class="input-label" for="contact">Telefon raqami yoki elektron pochta</label>
-            <input type="text" class="input-field" id="contact" placeholder="Telefon raqami yoki elektron pochta">
-            <div class="error-message" id="contactError">Iltimos, to'g'ri telefon raqami yoki elektron pochta manzilini kiriting</div>
+            <label class="input-label" for="phone">Telefon raqami</label>
+            <input type="tel" class="input-field" id="phone" placeholder="Your phone number">
+            <div class="error-message" id="phoneError">Iltimos, to'g'ri telefon raqamini kiriting (masalan: +998901234567)</div>
           </div>
-          
-          <button class="next-btn" id="nextStep1">Keyingisi</button>
+
+          <button class="next-btn" id="nextStep1">Continue</button>
         </div>
       </div>
 
@@ -275,15 +239,15 @@
       <div class="step-content" id="step2Content">
         <div class="form-container">
           <h2 class="form-title">Biz sizga kod yubordik</h2>
-          <p class="form-subtitle">Kodni kiriting</p>
-          
+          <p class="form-subtitle" id="codeSubtitle">Kodni kiriting</p>
+
           <div class="input-group">
             <label class="input-label" for="code">Tasdiqlash kodi</label>
-            <input type="text" class="input-field" id="code" placeholder="Kodni kiriting" maxlength="6">
-            <div class="error-message" id="codeError">Noto'g'ri kod. Iltimos, qaytadan urinib ko'ring</div>
+            <input type="text" class="input-field" id="code" placeholder="Kodni kiriting" maxlength="6" inputmode="numeric">
+            <div class="error-message" id="codeError">Noto'g'ri kod. Iltimos, 6 xonali kodni kiriting</div>
           </div>
-          
-          <button class="next-btn" id="nextStep2">Keyingisi</button>
+
+          <button class="next-btn" id="nextStep2">Continue</button>
           <div class="resend-code" id="resendCode">Kodni qayta yuborish</div>
         </div>
       </div>
@@ -293,31 +257,59 @@
         <div class="form-container">
           <h2 class="form-title">Sizning ismingiz nima?</h2>
           <p class="form-subtitle">Bu sizning profil sahifangizda ko'rsatiladi.</p>
-          
+
           <div class="input-group">
             <label class="input-label" for="firstName">Ism</label>
             <input type="text" class="input-field" id="firstName" placeholder="Ism">
             <div class="error-message" id="firstNameError">Iltimos, ismingizni kiriting</div>
           </div>
-          
+
           <div class="input-group">
             <label class="input-label" for="lastName">Familiya</label>
             <input type="text" class="input-field" id="lastName" placeholder="Familiya">
             <div class="error-message" id="lastNameError">Iltimos, familiyangizni kiriting</div>
           </div>
-          
-          <button class="next-btn" id="nextStep3">Keyingisi</button>
+
+          <button class="next-btn" id="nextStep3">Continue</button>
         </div>
       </div>
 
-      <!-- Muvaffaqiyatli yakunlangan qadam -->
+      <!-- Qadam 4: Username tanlash (YANGI) -->
+      <div class="step-content" id="step4Content">
+        <div class="form-container">
+          <h2 class="form-title">Username tanlang</h2>
+          <p class="form-subtitle">Bu sizning noyob L.uz ID'ingiz bo'ladi. Boshqa foydalanuvchi ishlatayotgan username'ni tanlay olmaysiz.</p>
+
+          <div class="input-group">
+            <label class="input-label" for="username">Username</label>
+            <input type="text" class="input-field" id="username" placeholder="username" maxlength="20" autocomplete="off">
+            <div class="error-message" id="usernameError">Bu username allaqachon band. Boshqasini tanlang.</div>
+            <div class="error-message" id="usernameFormatError">Username faqat harflar, raqamlar va pastki chiziqdan iborat bo'lishi va 3-20 belgidan iborat bo'lishi kerak</div>
+            <div class="success-hint" id="usernameAvailable">✓ Bu username bo'sh!</div>
+            <div class="loading-hint" id="usernameChecking"><span class="spinner"></span>Tekshirilmoqda...</div>
+          </div>
+
+          <div style="text-align: center; margin-top: 20px;">
+            <span style="color:#8b98a5; font-size:14px;">Sizning ID'ingiz:</span><br>
+            <span class="user-id-badge" id="idPreview">L.uz@...</span>
+          </div>
+
+          <button class="next-btn" id="nextStep4" disabled>Continue</button>
+        </div>
+      </div>
+
+      <!-- Yakuniy muvaffaqiyat -->
       <div class="step-content" id="successContent">
         <div class="form-container">
           <div class="success-message">
             <div class="success-icon">✓</div>
             <h2 class="success-title">Hisobingiz yaratildi!</h2>
-            <p class="success-subtitle">Endi siz Twitterda o'z fikrlaringizni baham ko'rishingiz mumkin.</p>
-            <button class="continue-btn" id="continueBtn">Profilga o'tish</button>
+            <p class="success-subtitle">Sizning noyob ID'ingiz:</p>
+            <div class="user-id-badge" id="finalUserId">L.uz@...</div>
+            <p class="success-subtitle">Profilga yo'naltirilmoqdasiz...</p>
+            <div class="loading-hint" style="display:block; margin-top:20px;">
+              <span class="spinner"></span> Profil yuklanmoqda...
+            </div>
           </div>
         </div>
       </div>
@@ -325,202 +317,366 @@
   </div>
 
   <script>
-    // DOM elementlari
-    const backBtn = document.getElementById('backBtn');
-    const nextStep1 = document.getElementById('nextStep1');
-    const nextStep2 = document.getElementById('nextStep2');
-    const nextStep3 = document.getElementById('nextStep3');
-    const continueBtn = document.getElementById('continueBtn');
-    const resendCode = document.getElementById('resendCode');
-    
-    // Qadam indikatorlari
-    const step1 = document.getElementById('step1');
-    const step2 = document.getElementById('step2');
-    const step3 = document.getElementById('step3');
-    const line1 = document.getElementById('line1');
-    const line2 = document.getElementById('line2');
-    
-    // Qadam kontentlari
+    /* ============================================================
+       MA'LUMOTLAR BAZASI (localStorage asosida)
+       Real loyihada buni backend API bilan almashtiring.
+       ============================================================ */
+
+    const DB = {
+      USERS_KEY: 'luz_users',
+      SESSION_KEY: 'luz_current_user',
+
+      // Barcha foydalanuvchilarni olish
+      getUsers() {
+        try {
+          return JSON.parse(localStorage.getItem(this.USERS_KEY)) || [];
+        } catch {
+          return [];
+        }
+      },
+
+      // Foydalanuvchilarni saqlash
+      saveUsers(users) {
+        localStorage.setItem(this.USERS_KEY, JSON.stringify(users));
+      },
+
+      // Username band yoki yo'qligini tekshirish (case-insensitive)
+      isUsernameTaken(username) {
+        const users = this.getUsers();
+        const lower = username.toLowerCase();
+        return users.some(u => u.username.toLowerCase() === lower);
+      },
+
+      // Yangi foydalanuvchi qo'shish (atomik tekshiruv bilan)
+      createUser(userData) {
+        const users = this.getUsers();
+        // Nozik holat: ikki marta tekshirish (race condition himoyasi)
+        if (users.some(u => u.username.toLowerCase() === userData.username.toLowerCase())) {
+          return { success: false, error: 'USERNAME_TAKEN' };
+        }
+        // Noyob ID generatsiyasi
+        const userId = `L.uz@${userData.username}`;
+        if (users.some(u => u.userId === userId)) {
+          return { success: false, error: 'ID_TAKEN' };
+        }
+
+        const newUser = {
+          ...userData,
+          userId,
+          createdAt: new Date().toISOString()
+        };
+        users.push(newUser);
+        this.saveUsers(users);
+        return { success: true, user: newUser };
+      },
+
+      // Sessiyani saqlash
+      setSession(userId) {
+        localStorage.setItem(this.SESSION_KEY, userId);
+      },
+
+      // Joriy foydalanuvchini olish
+      getCurrentUser() {
+        const id = localStorage.getItem(this.SESSION_KEY);
+        if (!id) return null;
+        return this.getUsers().find(u => u.userId === id) || null;
+      }
+    };
+
+    /* ============================================================
+       DOM ELEMENTLARI
+       ============================================================ */
     const step1Content = document.getElementById('step1Content');
     const step2Content = document.getElementById('step2Content');
     const step3Content = document.getElementById('step3Content');
+    const step4Content = document.getElementById('step4Content');
     const successContent = document.getElementById('successContent');
-    
-    // Input maydonlari
-    const contactInput = document.getElementById('contact');
+
+    const phoneInput = document.getElementById('phone');
     const codeInput = document.getElementById('code');
     const firstNameInput = document.getElementById('firstName');
     const lastNameInput = document.getElementById('lastName');
-    
-    // Xatolik xabarlari
-    const contactError = document.getElementById('contactError');
+    const usernameInput = document.getElementById('username');
+
+    const phoneError = document.getElementById('phoneError');
     const codeError = document.getElementById('codeError');
     const firstNameError = document.getElementById('firstNameError');
     const lastNameError = document.getElementById('lastNameError');
-    
-    // Joriy qadamni kuzatish
-    let currentStep = 1;
-    
-    // Keyingi qadamga o'tish funksiyasi
-    function goToStep(step) {
-      // Barcha qadam kontentlarini yashirish
-      step1Content.classList.remove('active');
-      step2Content.classList.remove('active');
-      step3Content.classList.remove('active');
-      successContent.classList.remove('active');
-      
-      // Yangi qadamni ko'rsatish
-      if (step === 1) {
-        step1Content.classList.add('active');
-      } else if (step === 2) {
-        step2Content.classList.add('active');
-      } else if (step === 3) {
-        step3Content.classList.add('active');
-      } else if (step === 4) {
-        successContent.classList.add('active');
-      }
-      
-      // Qadam indikatorlarini yangilash
-      updateStepIndicator(step);
-      
-      // Joriy qadamni yangilash
-      currentStep = step;
+    const usernameError = document.getElementById('usernameError');
+    const usernameFormatError = document.getElementById('usernameFormatError');
+    const usernameAvailable = document.getElementById('usernameAvailable');
+    const usernameChecking = document.getElementById('usernameChecking');
+
+    const nextStep1 = document.getElementById('nextStep1');
+    const nextStep2 = document.getElementById('nextStep2');
+    const nextStep3 = document.getElementById('nextStep3');
+    const nextStep4 = document.getElementById('nextStep4');
+
+    const resendCode = document.getElementById('resendCode');
+    const codeSubtitle = document.getElementById('codeSubtitle');
+    const idPreview = document.getElementById('idPreview');
+    const finalUserId = document.getElementById('finalUserId');
+
+    /* ============================================================
+       HOLAT (STATE)
+       ============================================================ */
+    const state = {
+      currentStep: 1,
+      phone: '',
+      code: '',
+      firstName: '',
+      lastName: '',
+      username: '',
+      usernameVerified: false,
+      isCheckingUsername: false
+    };
+
+    // Test uchun: tasdiqlash kodi
+    const VALID_CODE = '123456';
+
+    /* ============================================================
+       YORDAMCHI FUNKSIYALAR
+       ============================================================ */
+    function showStep(step) {
+      [step1Content, step2Content, step3Content, step4Content, successContent]
+        .forEach(el => el.classList.remove('active'));
+
+      const map = { 1: step1Content, 2: step2Content, 3: step3Content, 4: step4Content, 5: successContent };
+      map[step]?.classList.add('active');
+      state.currentStep = step;
     }
-    
-    // Qadam indikatorlarini yangilash
-    function updateStepIndicator(step) {
-      // Barcha qadam va chiziqlarni reset qilish
-      step1.classList.remove('active', 'completed');
-      step2.classList.remove('active', 'completed');
-      step3.classList.remove('active', 'completed');
-      line1.classList.remove('active');
-      line2.classList.remove('active');
-      
-      // Yangi holatni o'rnatish
-      if (step >= 1) {
-        step1.classList.add('completed');
-      }
-      if (step >= 2) {
-        step2.classList.add('completed');
-        line1.classList.add('active');
-      }
-      if (step >= 3) {
-        step3.classList.add('completed');
-        line2.classList.add('active');
-      }
-      
-      // Faol qadamni belgilash
-      if (step === 1) {
-        step1.classList.add('active');
-      } else if (step === 2) {
-        step2.classList.add('active');
-      } else if (step === 3) {
-        step3.classList.add('active');
-      }
+
+    function hideAllErrors() {
+      [phoneError, codeError, firstNameError, lastNameError,
+       usernameError, usernameFormatError].forEach(el => el.style.display = 'none');
+      usernameAvailable.style.display = 'none';
+      usernameChecking.style.display = 'none';
     }
-    
-    // Telefon raqami yoki emailni tekshirish
-    function validateContact(contact) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      const phoneRegex = /^\+?[0-9]{10,15}$/;
-      
-      return emailRegex.test(contact) || phoneRegex.test(contact);
+
+    // Telefon raqam formati: + va 10-15 raqam
+    function isValidPhone(phone) {
+      const cleaned = phone.replace(/[\s\-()]/g, '');
+      return /^\+?[0-9]{10,15}$/.test(cleaned);
     }
-    
-    // Kodni tekshirish (simulyatsiya)
-    function validateCode(code) {
-      // Oddiy tekshirish, haqiqiy ilovada bu server tomonidan tekshiriladi
-      return code.length === 6 && /^\d+$/.test(code);
+
+    // Username formati: 3-20 belgi, harf/raqam/pastki chiziq
+    function isValidUsernameFormat(username) {
+      return /^[a-zA-Z0-9_]{3,20}$/.test(username);
     }
-    
-    // Ism va familiyani tekshirish
-    function validateName(firstName, lastName) {
-      return firstName.trim().length > 0 && lastName.trim().length > 0;
-    }
-    
-    // Xatoliklarni tozalash
-    function clearErrors() {
-      contactError.style.display = 'none';
-      codeError.style.display = 'none';
-      firstNameError.style.display = 'none';
-      lastNameError.style.display = 'none';
-    }
-    
-    // Orqaga qaytish tugmasi
-    backBtn.addEventListener('click', () => {
-      if (currentStep > 1) {
-        goToStep(currentStep - 1);
-      } else {
-        // Birinchi qadamda orqaga bossa, oldingi sahifaga qaytish
-        window.location.href = 'index.html';
-      }
-    });
-    
-    // 1-qadam: Telefon/email kiritish
+
+    /* ============================================================
+       QADAM 1: TELEFON RAQAMI
+       ============================================================ */
     nextStep1.addEventListener('click', () => {
-      clearErrors();
-      
-      if (validateContact(contactInput.value)) {
-        // Kod yuborish simulyatsiyasi
-        alert(`Tasdiqlash kodi yuborildi: ${contactInput.value}`);
-        goToStep(2);
-      } else {
-        contactError.style.display = 'block';
+      hideAllErrors();
+      const phone = phoneInput.value.trim();
+
+      if (!phone) {
+        phoneError.textContent = 'Iltimos, telefon raqamini kiriting';
+        phoneError.style.display = 'block';
+        phoneInput.classList.add('invalid');
+        return;
       }
+
+      if (!isValidPhone(phone)) {
+        phoneError.textContent = 'Iltimos, to\'g\'ri telefon raqamini kiriting (masalan: +998901234567)';
+        phoneError.style.display = 'block';
+        phoneInput.classList.add('invalid');
+        return;
+      }
+
+      state.phone = phone;
+      phoneInput.classList.remove('invalid');
+      phoneInput.classList.add('valid');
+
+      // Kod yuborish simulyatsiyasi
+      codeSubtitle.textContent = `${phone} raqamiga kod yuborildi. Test kodi: ${VALID_CODE}`;
+      showStep(2);
     });
-    
-    // 2-qadam: Kodni kiritish
+
+    // Enter bilan o'tish
+    phoneInput.addEventListener('keypress', e => {
+      if (e.key === 'Enter') nextStep1.click();
+    });
+
+    /* ============================================================
+       QADAM 2: TASDIQLASH KODI
+       ============================================================ */
     nextStep2.addEventListener('click', () => {
-      clearErrors();
-      
-      if (validateCode(codeInput.value)) {
-        goToStep(3);
-      } else {
+      hideAllErrors();
+      const code = codeInput.value.trim();
+
+      if (code !== VALID_CODE) {
+        codeError.textContent = `Noto'g'ri kod. Test kodi: ${VALID_CODE}`;
         codeError.style.display = 'block';
+        codeInput.classList.add('invalid');
+        return;
       }
+
+      state.code = code;
+      codeInput.classList.remove('invalid');
+      codeInput.classList.add('valid');
+      showStep(3);
     });
-    
-    // 3-qadam: Ism va familiya kiritish
-    nextStep3.addEventListener('click', () => {
-      clearErrors();
-      
-      if (validateName(firstNameInput.value, lastNameInput.value)) {
-        // Ma'lumotlarni saqlash simulyatsiyasi
-        localStorage.setItem('userFirstName', firstNameInput.value);
-        localStorage.setItem('userLastName', lastNameInput.value);
-        localStorage.setItem('userContact', contactInput.value);
-        
-        goToStep(4);
-      } else {
-        if (firstNameInput.value.trim().length === 0) {
-          firstNameError.style.display = 'block';
-        }
-        if (lastNameInput.value.trim().length === 0) {
-          lastNameError.style.display = 'block';
-        }
-      }
+
+    codeInput.addEventListener('keypress', e => {
+      if (e.key === 'Enter') nextStep2.click();
     });
-    
-    // Kodni qayta yuborish
+
     resendCode.addEventListener('click', () => {
-      alert(`Yangi tasdiqlash kodi yuborildi: ${contactInput.value}`);
+      alert(`Yangi tasdiqlash kodi yuborildi: ${state.phone}\nTest kodi: ${VALID_CODE}`);
     });
-    
-    // Profilga o'tish
-    continueBtn.addEventListener('click', () => {
-      window.location.href = 'profil.html';
+
+    /* ============================================================
+       QADAM 3: ISM VA FAMILIYA
+       ============================================================ */
+    nextStep3.addEventListener('click', () => {
+      hideAllErrors();
+      const firstName = firstNameInput.value.trim();
+      const lastName = lastNameInput.value.trim();
+      let valid = true;
+
+      if (!firstName) {
+        firstNameError.style.display = 'block';
+        firstNameInput.classList.add('invalid');
+        valid = false;
+      } else {
+        firstNameInput.classList.remove('invalid');
+        firstNameInput.classList.add('valid');
+      }
+
+      if (!lastName) {
+        lastNameError.style.display = 'block';
+        lastNameInput.classList.add('invalid');
+        valid = false;
+      } else {
+        lastNameInput.classList.remove('invalid');
+        lastNameInput.classList.add('valid');
+      }
+
+      if (!valid) return;
+
+      state.firstName = firstName;
+      state.lastName = lastName;
+      showStep(4);
+      usernameInput.focus();
     });
-    
-    // Enter tugmasini qo'llab-quvvatlash
-    document.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        if (currentStep === 1) {
-          nextStep1.click();
-        } else if (currentStep === 2) {
-          nextStep2.click();
-        } else if (currentStep === 3) {
-          nextStep3.click();
+
+    lastNameInput.addEventListener('keypress', e => {
+      if (e.key === 'Enter') nextStep3.click();
+    });
+
+    /* ============================================================
+       QADAM 4: USERNAME TEKSHIRUVI
+       ============================================================ */
+
+    let checkTimeout = null;
+
+    // Username kiritilganda real-time tekshiruv (debounce bilan)
+    usernameInput.addEventListener('input', () => {
+      const value = usernameInput.value.trim();
+
+      // Holatni reset
+      hideAllErrors();
+      nextStep4.disabled = true;
+      state.usernameVerified = false;
+      idPreview.textContent = 'L.uz@' + (value || '...');
+
+      usernameInput.classList.remove('valid', 'invalid');
+
+      // Bo'sh bo'lsa tekshirmaymiz
+      if (!value) return;
+
+      // Format tekshiruvi
+      if (!isValidUsernameFormat(value)) {
+        usernameFormatError.style.display = 'block';
+        usernameInput.classList.add('invalid');
+        return;
+      }
+
+      // Debounce: 500ms kutish
+      clearTimeout(checkTimeout);
+      usernameChecking.style.display = 'block';
+      state.isCheckingUsername = true;
+
+      checkTimeout = setTimeout(() => {
+        // Server/DB so'rovi simulyatsiyasi
+        const taken = DB.isUsernameTaken(value);
+        usernameChecking.style.display = 'none';
+        state.isCheckingUsername = false;
+
+        if (taken) {
+          usernameError.style.display = 'block';
+          usernameInput.classList.add('invalid');
+          usernameInput.classList.remove('valid');
+          nextStep4.disabled = true;
+          state.usernameVerified = false;
+        } else {
+          usernameAvailable.style.display = 'block';
+          usernameInput.classList.add('valid');
+          usernameInput.classList.remove('invalid');
+          nextStep4.disabled = false;
+          state.usernameVerified = true;
+          state.username = value;
         }
+      }, 500);
+    });
+
+    // Enter bilan o'tish
+    usernameInput.addEventListener('keypress', e => {
+      if (e.key === 'Enter' && !nextStep4.disabled) nextStep4.click();
+    });
+
+    /* ============================================================
+       QADAM 4 → YAKUNLASH: HISOB YARATISH
+       ============================================================ */
+    nextStep4.addEventListener('click', () => {
+      if (!state.usernameVerified) return;
+
+      // Yakuniy tekshiruv (race condition himoyasi)
+      if (DB.isUsernameTaken(state.username)) {
+        usernameError.style.display = 'block';
+        nextStep4.disabled = true;
+        return;
+      }
+
+      // Foydalanuvchi yaratish
+      const result = DB.createUser({
+        phone: state.phone,
+        firstName: state.firstName,
+        lastName: state.lastName,
+        username: state.username
+      });
+
+      if (!result.success) {
+        usernameError.style.display = 'block';
+        nextStep4.disabled = true;
+        state.usernameVerified = false;
+        return;
+      }
+
+      // Sessiyani saqlash
+      DB.setSession(result.user.userId);
+
+      // Muvaffaqiyat ekranini ko'rsatish
+      finalUserId.textContent = result.user.userId;
+      showStep(5);
+
+      // AVTOMATIK profilga yo'naltirish (2 soniya keyin)
+      setTimeout(() => {
+        window.location.href = 'profil.html';
+      }, 2000);
+    });
+
+    /* ============================================================
+       SAHIFA YUKLANGANDA
+       ============================================================ */
+    window.addEventListener('DOMContentLoaded', () => {
+      // Agar foydalanuvchi allaqachon ro'yxatdan o'tgan bo'lsa,
+      // to'g'ridan-to'g'ri profilga yo'naltirish
+      const currentUser = DB.getCurrentUser();
+      if (currentUser) {
+        window.location.href = 'profil.html';
       }
     });
   </script>
