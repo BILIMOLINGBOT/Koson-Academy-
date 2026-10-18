@@ -19,30 +19,32 @@
             color: #ffffff;
             display: flex;
             justify-content: center;
-            min-height: 100vh;
+            height: 100vh;
         }
 
         .app-container {
             width: 100%;
             max-width: 400px; 
             background-color: #000000;
-            min-height: 100vh;
+            height: 100%;
             position: relative;
-            display: flex;
-            flex-direction: column;
             overflow-y: auto;
         }
 
+        /* Header qismi vertikal (ustma-ust) joylashtirildi */
         .header {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            padding: 16px 20px;
+            border-bottom: 1px solid #151515;
+        }
+
+        /* Yuqori qator: orqaga qaytish va ulashish tugmalari */
+        .header-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 16px 20px;
-            border-bottom: 1px solid #151515;
-            position: sticky;
-            top: 0;
-            background-color: #000000;
-            z-index: 10;
         }
 
         .back-btn {
@@ -53,10 +55,12 @@
             cursor: pointer;
         }
 
+        /* "Yangi quote" sarlavhasi pastga tushirildi */
         .title {
             font-size: 18px;
             font-weight: 700;
             letter-spacing: 0.3px;
+            padding-bottom: 4px;
         }
 
         .share-btn {
@@ -68,26 +72,13 @@
             cursor: pointer;
         }
 
-        /* Kontentni pastga surish uchun asosiy o'zgarish */
         .content {
             padding: 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end; /* Pastga tekislash */
-            flex-grow: 1; /* Bo'sh joyni to'ldirish */
-            min-height: calc(100vh - 60px); /* Header balandligini hisobga olish */
-        }
-
-        .input-wrapper {
-            margin-top: auto; /* Pastga surish */
-            display: flex;
-            flex-direction: column;
         }
 
         .input-section {
             display: flex;
             margin-bottom: 24px;
-            align-items: flex-start;
         }
 
         .avatar-container {
@@ -95,7 +86,6 @@
             flex-direction: column;
             align-items: center;
             margin-right: 15px;
-            flex-shrink: 0;
         }
 
         .avatar {
@@ -107,6 +97,7 @@
             flex-shrink: 0;
         }
 
+        /* Chiziq endi kontent balandligiga qarab avtomatik cho'ziladi */
         .thread-line {
             width: 2px;
             flex-grow: 1;
@@ -190,56 +181,45 @@
             font-size: 14px;
             backdrop-filter: blur(4px);
         }
-
-        /* Kichik ekranlar uchun moslashtirish */
-        @media (max-height: 600px) {
-            .content {
-                justify-content: flex-start;
-                min-height: auto;
-            }
-            
-            .input-wrapper {
-                margin-top: 0;
-            }
-        }
     </style>
 </head>
 <body>
 
     <div class="app-container">
+        <!-- O'zgartirilgan header: sarlavha pastga tushirildi -->
         <header class="header">
-            <button class="back-btn"><i class="fas fa-chevron-left"></i></button>
+            <div class="header-top">
+                <button class="back-btn"><i class="fas fa-chevron-left"></i></button>
+                <button class="share-btn">Ulashish</button>
+            </div>
             <h1 class="title">Yangi quote</h1>
-            <button class="share-btn">Ulashish</button>
         </header>
 
         <main class="content">
-            <div class="input-wrapper">
-                <div class="input-section">
-                    <div class="avatar-container">
-                        <img src="https://i.pravatar.cc/150?img=11" alt="Avatar" class="avatar">
-                        <div class="thread-line"></div>
-                    </div>
+            <div class="input-section">
+                <div class="avatar-container">
+                    <img src="https://i.pravatar.cc/150?img=11" alt="Avatar" class="avatar">
+                    <div class="thread-line"></div>
+                </div>
+                
+                <div class="input-container">
+                    <textarea placeholder="Nima haqida yozmoqchisiz?"></textarea>
                     
-                    <div class="input-container">
-                        <textarea placeholder="Nima haqida yozmoqchisiz?"></textarea>
-                        
-                        <!-- Tanlangan rasm shu yerda chiqadi -->
-                        <div id="imagePreviewContainer">
-                            <img id="imagePreview" src="" alt="Tanlangan rasm">
-                            <button class="remove-image-btn" id="removeImageBtn"><i class="fas fa-times"></i></button>
-                        </div>
+                    <!-- Tanlangan rasm shu yerda chiqadi -->
+                    <div id="imagePreviewContainer">
+                        <img id="imagePreview" src="" alt="Tanlangan rasm">
+                        <button class="remove-image-btn" id="removeImageBtn"><i class="fas fa-times"></i></button>
                     </div>
                 </div>
-
-                <!-- Brauzer/Telefonning yashirin galereya chaqiruvchisi -->
-                <input type="file" id="imageInput" accept="image/*" style="display: none;">
-
-                <!-- Rasm qo'shish tugmasi -->
-                <button class="add-image-btn" id="addImageBtn">
-                    <i class="far fa-image"></i> Rasm qo'shish
-                </button>
             </div>
+
+            <!-- Brauzer/Telefonning yashirin galereya chaqiruvchisi -->
+            <input type="file" id="imageInput" accept="image/*" style="display: none;">
+
+            <!-- Rasm qo'shish tugmasi -->
+            <button class="add-image-btn" id="addImageBtn">
+                <i class="far fa-image"></i> Rasm qo'shish
+            </button>
         </main>
     </div>
 
@@ -250,7 +230,6 @@
         const imagePreviewContainer = document.getElementById('imagePreviewContainer');
         const imagePreview = document.getElementById('imagePreview');
         const removeImageBtn = document.getElementById('removeImageBtn');
-        const textarea = document.querySelector('textarea');
 
         // 1. "Rasm qo'shish" tugmasi bosilganda yashirin inputni ishga tushirish
         addImageBtn.addEventListener('click', () => {
@@ -277,12 +256,6 @@
             imagePreview.src = '';
             imagePreviewContainer.style.display = 'none';
             addImageBtn.style.display = 'flex';
-        });
-
-        // 4. Textarea avtomatik balandligini oshirish
-        textarea.addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = (this.scrollHeight) + 'px';
         });
     </script>
 </body>
