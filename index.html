@@ -19,9 +19,11 @@
         .post-item:last-child{border-bottom:none}
         @keyframes postIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
         .post-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-        .post-avatar{width:40px;height:40px;border-radius:50%;object-fit:cover;background:#1c1c1e;flex-shrink:0}
+        .post-avatar{width:40px;height:40px;border-radius:50%;object-fit:cover;background:#1c1c1e;flex-shrink:0;cursor:pointer;transition:opacity .15s ease}
+        .post-avatar:active{opacity:.7}
         .post-head-info{display:flex;flex-direction:column;min-width:0;flex:1}
-        .post-user{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .post-user{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+        .post-user:active{opacity:.7}
         .post-time{font-size:12px;color:#8e8e93;margin-top:1px}
         .post-text{font-size:15px;line-height:1.5;color:#f2f2f7;white-space:pre-wrap;word-break:break-word;margin-bottom:12px}
         .post-image{width:100%;border-radius:14px;margin-bottom:12px;display:block;max-height:400px;object-fit:cover}
@@ -44,6 +46,32 @@
         .nav-btn svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
         .nav-btn .nav-label{font-size:10px;font-weight:500}
         .nav-btn .nav-avatar{width:24px;height:24px;border-radius:50%;object-fit:cover;background:#1c1c1e}
+
+        /* ---------- Comment sheet ---------- */
+        .comment-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:90;opacity:0;pointer-events:none;transition:opacity .25s ease}
+        .comment-backdrop.open{opacity:1;pointer-events:auto}
+        .comment-sheet{position:fixed;left:50%;bottom:0;transform:translate(-50%,100%);width:100%;max-width:420px;max-height:85vh;background:#1c1c1e;border-radius:20px 20px 0 0;z-index:100;display:flex;flex-direction:column;transition:transform .3s cubic-bezier(.32,.72,0,1);box-shadow:0 -10px 40px rgba(0,0,0,.6);padding-bottom:env(safe-area-inset-bottom)}
+        .comment-sheet.open{transform:translate(-50%,0)}
+        .comment-sheet-header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 12px;border-bottom:1px solid #2c2c2e;flex-shrink:0}
+        .comment-sheet-title{font-size:16px;font-weight:700}
+        .comment-close{background:none;border:none;color:#8e8e93;font-size:22px;cursor:pointer;padding:0 4px;line-height:1;font-family:inherit}
+        .comment-close:active{opacity:.6}
+        .comment-list{flex:1;overflow-y:auto;padding:14px 18px;display:flex;flex-direction:column;gap:16px;min-height:80px;-webkit-overflow-scrolling:touch}
+        .comment-empty{color:#5a5a5e;text-align:center;padding:30px 0;font-size:14px}
+        .comment-row{display:flex;gap:10px}
+        .comment-avatar{width:34px;height:34px;border-radius:50%;object-fit:cover;background:#2c2c2e;flex-shrink:0}
+        .comment-body{flex:1;min-width:0}
+        .comment-head{display:flex;align-items:baseline;gap:8px;margin-bottom:2px}
+        .comment-user{font-size:13px;font-weight:600;color:#fff}
+        .comment-time{font-size:11px;color:#636366}
+        .comment-text{font-size:14px;line-height:1.4;color:#e5e5ea;word-break:break-word;white-space:pre-wrap}
+        .comment-input-bar{display:flex;gap:8px;padding:10px 14px 14px;border-top:1px solid #2c2c2e;flex-shrink:0;align-items:flex-end}
+        .comment-input{flex:1;background:#2c2c2e;border:none;border-radius:20px;padding:10px 14px;color:#fff;font-size:14px;font-family:inherit;resize:none;max-height:100px;line-height:1.3;outline:none}
+        .comment-input::placeholder{color:#636366}
+        .comment-send{background:#0a84ff;border:none;color:#fff;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:transform .15s ease,opacity .15s ease}
+        .comment-send:active{transform:scale(.88);opacity:.8}
+        .comment-send:disabled{opacity:.4;cursor:default}
+        .comment-send svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
     </style>
 </head>
 <body>
@@ -55,12 +83,28 @@
 
 <nav class="bottom-nav">
     <div class="bottom-nav-inner">
-        <a href="index.html" class="nav-btn nav-active"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span class="nav-label">Uy</span></a>
-        <a href="xabar.html" class="nav-btn nav-inactive"><svg viewBox="0 0 24 24" style="transform:scaleX(-1)"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg><span class="nav-label">Xabar</span></a>
-        <a href="qidiruv.html" class="nav-btn nav-inactive"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span class="nav-label">Qidiruv</span></a>
-        <a href="profil.html" class="nav-btn nav-inactive"><img id="navUserPhoto" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%231c1c1e'/><circle cx='50' cy='40' r='18' fill='%233f3f46'/><ellipse cx='50' cy='90' rx='30' ry='22' fill='%233f3f46'/></svg>" alt="Profile" class="nav-avatar"><span class="nav-label">Profil</span></a>
+        <a href="index.html" class="nav-btn nav-active" data-nav="index"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span class="nav-label">Uy</span></a>
+        <a href="xabar.html" class="nav-btn nav-inactive" data-nav="xabar"><svg viewBox="0 0 24 24" style="transform:scaleX(-1)"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg><span class="nav-label">Xabar</span></a>
+        <a href="qidiruv.html" class="nav-btn nav-inactive" data-nav="qidiruv"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span class="nav-label">Qidiruv</span></a>
+        <a href="profil.html" class="nav-btn nav-inactive" data-nav="profil"><img id="navUserPhoto" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%231c1c1e'/><circle cx='50' cy='40' r='18' fill='%233f3f46'/><ellipse cx='50' cy='90' rx='30' ry='22' fill='%233f3f46'/></svg>" alt="Profile" class="nav-avatar"><span class="nav-label">Profil</span></a>
     </div>
 </nav>
+
+<!-- Comment sheet (inline, no navigation) -->
+<div class="comment-backdrop" id="commentBackdrop"></div>
+<div class="comment-sheet" id="commentSheet" role="dialog" aria-label="Comments">
+    <div class="comment-sheet-header">
+        <span class="comment-sheet-title" id="commentSheetTitle">Izohlar</span>
+        <button class="comment-close" id="commentClose" aria-label="Yopish">×</button>
+    </div>
+    <div class="comment-list" id="commentList"></div>
+    <div class="comment-input-bar">
+        <textarea class="comment-input" id="commentInput" rows="1" placeholder="Izoh yozing..."></textarea>
+        <button class="comment-send" id="commentSend" aria-label="Yuborish" disabled>
+            <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+    </div>
+</div>
 
 <script>
 /* ============================================================
@@ -80,6 +124,7 @@ const PostStore = {
     },
     _save(){ try{localStorage.setItem(POST_STORE_KEY,JSON.stringify(this._cache||[]));}catch(e){} },
     all(){ return this._load().slice(); },
+    get(id){ return this._load().find(p=>p.id===id)||null; },
     update(id,patch){
         const list=this._load();
         const i=list.findIndex(p=>p.id===id);
@@ -90,6 +135,7 @@ const PostStore = {
     }
 };
 
+/* ---------- Telegram ---------- */
 const tg=window.Telegram?.WebApp;
 if(tg){tg.ready();tg.expand();tg.setHeaderColor('#000000');tg.setBackgroundColor('#000000')}
 const u=tg?.initDataUnsafe?.user;
@@ -98,20 +144,204 @@ if(u?.photo_url) document.getElementById('navUserPhoto').src=u.photo_url;
 const viewedByMe=new Set();
 const savedPosts=new Set();
 
+const DEFAULT_AVATAR="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%231c1c1e'/><circle cx='50' cy='40' r='18' fill='%233f3f46'/><ellipse cx='50' cy='90' rx='30' ry='22' fill='%233f3f46'/></svg>";
+const ME = {
+    id: u?.id || 'me',
+    name: u ? ((u.first_name||'') + ' ' + (u.last_name||'')).trim() || u.username || 'Foydalanuvchi' : 'Foydalanuvchi',
+    avatar: u?.photo_url || DEFAULT_AVATAR
+};
+
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 
 function countComments(p){
     let n=p.comments.length;
-    p.comments.forEach(c=>n+=c.replies.length);
+    p.comments.forEach(c=>n+=(c.replies?.length||0));
     return n;
 }
 
+/* Resolve the author id for a post. Posts may store `authorId` directly,
+   or we fall back to a name-based stable key so the profile page can match. */
+function authorIdOf(p){
+    if(p.authorId!==undefined && p.authorId!==null) return p.authorId;
+    // fallback: slug from username (matches how profil.html can look up)
+    return 'name:'+String(p.user||'').trim().toLowerCase();
+}
+
+/* ============================================================
+   SCROLL RESTORE
+   ============================================================ */
+const SCROLL_KEY='tg_feed_scroll_v1';
+function saveScroll(){ try{sessionStorage.setItem(SCROLL_KEY,String(window.scrollY||window.pageYOffset||0));}catch(e){} }
+function restoreScroll(){
+    try{
+        const y=parseInt(sessionStorage.getItem(SCROLL_KEY)||'0',10);
+        if(y>0){ requestAnimationFrame(()=>window.scrollTo(0,y)); }
+    }catch(e){}
+}
+window.addEventListener('pagehide',saveScroll);
+window.addEventListener('beforeunload',saveScroll);
+
+/* ============================================================
+   COMMENT SHEET
+   ============================================================ */
+let currentCommentPostId=null;
+
+const sheet=document.getElementById('commentSheet');
+const backdrop=document.getElementById('commentBackdrop');
+const listEl=document.getElementById('commentList');
+const inputEl=document.getElementById('commentInput');
+const sendEl=document.getElementById('commentSend');
+const titleEl=document.getElementById('commentSheetTitle');
+
+function isCommentOpen(){ return sheet.classList.contains('open'); }
+
+function renderComments(post){
+    listEl.innerHTML='';
+    if(!post || !post.comments || post.comments.length===0){
+        listEl.innerHTML='<div class="comment-empty">Hali izohlar yo\'q. Birinchi bo\'ling!</div>';
+        return;
+    }
+    // Flatten top-level + replies so all are visible
+    const flat=[];
+    post.comments.forEach(c=>{
+        flat.push(c);
+        (c.replies||[]).forEach(r=>flat.push(r));
+    });
+    flat.forEach(c=>{
+        const row=document.createElement('div');
+        row.className='comment-row';
+        row.innerHTML=`
+            <img class="comment-avatar" src="${c.avatar||DEFAULT_AVATAR}" alt="">
+            <div class="comment-body">
+                <div class="comment-head">
+                    <span class="comment-user">${escapeHtml(c.user||'Foydalanuvchi')}</span>
+                    <span class="comment-time">${escapeHtml(c.time||'')}</span>
+                </div>
+                <div class="comment-text">${escapeHtml(c.text||'')}</div>
+            </div>`;
+        listEl.appendChild(row);
+    });
+    // scroll to bottom of comments
+    requestAnimationFrame(()=>{ listEl.scrollTop=listEl.scrollHeight; });
+}
+
+function openComments(postId){
+    const post=PostStore.get(postId);
+    if(!post) return;
+    currentCommentPostId=postId;
+    titleEl.textContent=`Izohlar (${countComments(post)})`;
+    renderComments(post);
+    sheet.classList.add('open');
+    backdrop.classList.add('open');
+    document.body.style.overflow='hidden';
+    // push a history entry so hardware back closes the sheet first
+    try{ history.pushState({sheet:'comments',postId},'',location.href); }catch(e){}
+    tg?.HapticFeedback?.impactOccurred('light');
+    setTimeout(()=>{ try{inputEl.focus();}catch(e){} }, 320);
+}
+
+function closeComments(fromPop){
+    if(!isCommentOpen()) return;
+    sheet.classList.remove('open');
+    backdrop.classList.remove('open');
+    document.body.style.overflow='';
+    currentCommentPostId=null;
+    inputEl.value=''; inputEl.style.height='auto'; sendEl.disabled=true;
+    if(!fromPop){
+        // if user tapped close/backdrop, pop the history entry we pushed
+        try{
+            if(history.state && history.state.sheet==='comments') history.back();
+        }catch(e){}
+    }
+}
+
+document.getElementById('commentClose').addEventListener('click',()=>closeComments(false));
+backdrop.addEventListener('click',()=>closeComments(false));
+
+/* auto-grow textarea + enable send */
+inputEl.addEventListener('input',()=>{
+    inputEl.style.height='auto';
+    inputEl.style.height=Math.min(inputEl.scrollHeight,100)+'px';
+    sendEl.disabled=inputEl.value.trim().length===0;
+});
+
+function formatNow(){
+    const d=new Date();
+    const hh=String(d.getHours()).padStart(2,'0');
+    const mm=String(d.getMinutes()).padStart(2,'0');
+    return `${hh}:${mm}`;
+}
+
+function submitComment(){
+    if(!currentCommentPostId) return;
+    const text=inputEl.value.trim();
+    if(!text) return;
+    const post=PostStore.get(currentCommentPostId);
+    if(!post) return;
+    const comment={
+        user: ME.name,
+        avatar: ME.avatar,
+        text: text,
+        time: formatNow(),
+        replies: []
+    };
+    const comments=(post.comments||[]).slice();
+    comments.push(comment);
+    PostStore.update(post.id,{comments});
+    // refresh list + count in feed
+    renderComments(PostStore.get(post.id));
+    titleEl.textContent=`Izohlar (${countComments(PostStore.get(post.id))})`;
+    // update the feed's comment count button
+    const item=document.querySelector(`.post-item[data-id="${CSS.escape(String(post.id))}"]`);
+    if(item){
+        const cBtn=item.querySelector('.comment-btn');
+        const cnt=cBtn?.querySelector('.act-count');
+        if(cnt) cnt.textContent=countComments(PostStore.get(post.id));
+    }
+    inputEl.value=''; inputEl.style.height='auto'; sendEl.disabled=true;
+    tg?.HapticFeedback?.notificationOccurred?.('success');
+}
+
+sendEl.addEventListener('click',submitComment);
+inputEl.addEventListener('keydown',(e)=>{
+    if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); submitComment(); }
+});
+
+/* ============================================================
+   NAVIGATION HELPERS
+   ============================================================ */
+function goToProfile(authorId){
+    const url='profil.html?id='+encodeURIComponent(String(authorId));
+    saveScroll();
+    location.href=url;
+}
+
+/* ============================================================
+   RENDER FEED
+   ============================================================ */
 function buildPostItem(p){
     const item=document.createElement('div');
     item.className='post-item';
     item.dataset.id=p.id;
 
-    item.innerHTML=`<div class="post-head"><img class="post-avatar" src="${p.avatar}" alt=""><div class="post-head-info"><div class="post-user">${escapeHtml(p.user)}</div><div class="post-time">${escapeHtml(p.time)}</div></div></div>`;
+    const aid=authorIdOf(p);
+
+    item.innerHTML=`
+        <div class="post-head">
+            <img class="post-avatar" src="${p.avatar||DEFAULT_AVATAR}" alt="">
+            <div class="post-head-info">
+                <div class="post-user">${escapeHtml(p.user)}</div>
+                <div class="post-time">${escapeHtml(p.time)}</div>
+            </div>
+        </div>`;
+
+    // --- avatar + name click -> author's profile ---
+    const avatarEl=item.querySelector('.post-avatar');
+    const userEl=item.querySelector('.post-user');
+    const navToProfile=()=>goToProfile(aid);
+    avatarEl.addEventListener('click',navToProfile);
+    avatarEl.addEventListener('keydown',(e)=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();navToProfile();}});
+    userEl.addEventListener('click',navToProfile);
 
     if(p.text){
         const t=document.createElement('div');
@@ -132,6 +362,8 @@ function buildPostItem(p){
     const actions=document.createElement('div');
     actions.className='post-actions';
 
+    
+    // LIKE
     const likeBtn=document.createElement('button');
     likeBtn.className='act-btn'+(p.liked?' liked':'');
     likeBtn.innerHTML=`<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span class="act-count like-count">${p.likes}</span>`;
@@ -144,17 +376,23 @@ function buildPostItem(p){
     });
     actions.appendChild(likeBtn);
 
+    // COMMENT
     const cBtn=document.createElement('button');
-    cBtn.className='act-btn';
+    cBtn.className='act-btn comment-btn';
     cBtn.innerHTML=`<svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg><span class="act-count">${countComments(p)}</span>`;
-    cBtn.addEventListener('click',()=>{location.href='profil.html'+(u?.id?('?id='+u.id):'')+'#comments_'+p.id});
+    cBtn.addEventListener('click',(e)=>{
+        e.stopPropagation();
+        openComments(p.id);
+    });
     actions.appendChild(cBtn);
 
+    // VIEWS (read-only)
     const vBtn=document.createElement('button');
     vBtn.className='act-btn';vBtn.style.cursor='default';
     vBtn.innerHTML=`<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span class="act-count view-count">${p.views}</span>`;
     actions.appendChild(vBtn);
 
+    // SAVE
     const sBtn=document.createElement('button');
     sBtn.className='act-btn'+(savedPosts.has(p.id)?' saved':'');
     sBtn.innerHTML=`<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
@@ -165,6 +403,7 @@ function buildPostItem(p){
     });
     actions.appendChild(sBtn);
 
+    // SHARE
     const shBtn=document.createElement('button');
     shBtn.className='act-btn';
     shBtn.innerHTML=`<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>`;
@@ -203,7 +442,7 @@ function buildPostItem(p){
 
 function renderFeed(){
     const feed=document.getElementById('feed');
-    const posts=PostStore.all(); // all users, newest first (unshift on add)
+    const posts=PostStore.all(); // newest first
     feed.innerHTML='';
     if(posts.length===0){
         feed.innerHTML='<div class="empty">Hali post yo\'q.<br>Profilga o\'tib birinchi postni yarating.</div>';
@@ -212,7 +451,50 @@ function renderFeed(){
     posts.forEach(p=>feed.appendChild(buildPostItem(p)));
 }
 
+/* ============================================================
+   HISTORY / BACK BUTTON
+   ============================================================ */
+// Initial state marker so popstate knows we are on the feed root
+try{
+    if(!history.state || history.state.page!=='feed'){
+        history.replaceState({page:'feed'},'',location.href);
+    }
+}catch(e){}
+
+window.addEventListener('popstate',(e)=>{
+    // If the comment sheet is open, close it first (hardware back).
+    if(isCommentOpen()){
+        closeComments(true);
+        // Re-push a base state so we don't accidentally navigate away on the next back
+        try{
+            if(!history.state || history.state.page!=='feed'){
+                history.pushState({page:'feed'},'',location.href);
+            }
+        }catch(_){}
+        return;
+    }
+    // Otherwise, if there's a prior in-app page, browser handles it.
+    // If we landed with no state, stay safe (no error thrown).
+});
+
+/* Deep-link support: ?post=ID opens that post's comments on load */
+(function handleDeepLink(){
+    const params=new URLSearchParams(location.search);
+    const postId=params.get('post');
+    if(postId){
+        // wait a tick so feed renders
+        setTimeout(()=>openComments(postId),50);
+    }
+})();
+
+/* ============================================================
+   BOOT
+   ============================================================ */
 renderFeed();
+// Restore scroll AFTER content is in DOM
+restoreScroll();
+// Save scroll whenever user leaves
+window.addEventListener('scroll',()=>{ /* no-op; saved on pagehide */ },{passive:true});
 </script>
 </body>
 </html>
