@@ -1,595 +1,529 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#0f0f14" />
-  <title>Ro'yxatdan o'tish</title>
-
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- React 18 -->
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-
-  <!-- Babel (JSX uchun) -->
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ro'yxatdan o'tish - Twitter</title>
   <style>
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    html, body, #root {
-      height: 100%;
+    * {
       margin: 0;
       padding: 0;
-      background-color: #0f0f14;
-      -webkit-tap-highlight-color: transparent;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
 
-    /* Scrollbar yashirish (chiroyliroq) */
-    ::-webkit-scrollbar { width: 0; height: 0; }
+    body {
+      background-color: #000;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
 
-    /* Input autofill fix */
-    input:-webkit-autofill,
-    input:-webkit-autofill:hover,
-    input:-webkit-autofill:focus {
-      -webkit-text-fill-color: #fff;
-      -webkit-box-shadow: 0 0 0px 1000px #0f0f14 inset;
-      transition: background-color 5000s ease-in-out 0s;
+    .container {
+      width: 600px;
+      border: 1px solid #2f3336;
+      min-height: 100vh;
+      background-color: #000;
+      position: relative;
+    }
+
+    .header {
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid #2f3336;
+    }
+
+    .back-btn {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 20px;
+      cursor: pointer;
+      margin-right: 20px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.2s;
+    }
+
+    .back-btn:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .header h1 {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .content {
+      padding: 20px;
+    }
+
+    .step-indicator {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 40px;
+    }
+
+    .step {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 10px;
+      font-size: 14px;
+      font-weight: 700;
+      border: 2px solid #536471;
+      color: #536471;
+    }
+
+    .step.active {
+      border-color: #1da1f2;
+      color: #1da1f2;
+    }
+
+    .step.completed {
+      background-color: #1da1f2;
+      border-color: #1da1f2;
+      color: #fff;
+    }
+
+    .step-line {
+      height: 2px;
+      width: 40px;
+      background-color: #536471;
+      margin-top: 14px;
+    }
+
+    .step-line.active {
+      background-color: #1da1f2;
+    }
+
+    .form-container {
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    .form-title {
+      font-size: 23px;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .form-subtitle {
+      color: #8b98a5;
+      font-size: 14px;
+      margin-bottom: 30px;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+    }
+
+    .input-label {
+      display: block;
+      color: #8b98a5;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 12px;
+      background-color: transparent;
+      border: 1px solid #536471;
+      border-radius: 4px;
+      color: #fff;
+      font-size: 16px;
+    }
+
+    .input-field:focus {
+      outline: none;
+      border-color: #1da1f2;
+    }
+
+    .error-message {
+      color: #f91880;
+      font-size: 13px;
+      margin-top: 5px;
+      display: none;
+    }
+
+    .next-btn {
+      width: 100%;
+      background-color: #fff;
+      color: #000;
+      border: none;
+      border-radius: 20px;
+      padding: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .next-btn:disabled {
+      background-color: #71767b;
+      color: #000;
+      cursor: not-allowed;
+    }
+
+    .next-btn:hover:not(:disabled) {
+      background-color: #d7dbdc;
+    }
+
+    .resend-code {
+      color: #1da1f2;
+      font-size: 14px;
+      text-align: center;
+      margin-top: 20px;
+      cursor: pointer;
+    }
+
+    .resend-code:hover {
+      text-decoration: underline;
+    }
+
+    .step-content {
+      display: none;
+    }
+
+    .step-content.active {
+      display: block;
+    }
+
+    .success-message {
+      text-align: center;
+      padding: 40px 0;
+    }
+
+    .success-icon {
+      font-size: 50px;
+      margin-bottom: 20px;
+    }
+
+    .success-title {
+      font-size: 23px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .success-subtitle {
+      color: #8b98a5;
+      font-size: 15px;
+      margin-bottom: 30px;
+    }
+
+    .continue-btn {
+      background-color: #1da1f2;
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      padding: 12px 24px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .continue-btn:hover {
+      background-color: #0c84d1;
     }
   </style>
-
-  <!-- Telegram WebApp script -->
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-  <div id="root"></div>
 
-  <script type="text/babel" data-presets="react">
-    const { useState, useEffect } = React;
+  <div class="container">
+    <div class="header">
+      <button class="back-btn" id="backBtn">←</button>
+      <h1>Hisob yaratish</h1>
+    </div>
 
-    /* ============================================================
-       Lucide icons (SVG inline)
-       ============================================================ */
-    const IconArrowLeft = ({ className = 'w-5 h-5' }) => (
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-        className={className}>
-        <path d="m12 19-7-7 7-7" />
-        <path d="M19 12H5" />
-      </svg>
-    );
+    <div class="content">
+      <div class="step-indicator">
+        <div class="step active" id="step1">1</div>
+        <div class="step-line" id="line1"></div>
+        <div class="step" id="step2">2</div>
+        <div class="step-line" id="line2"></div>
+        <div class="step" id="step3">3</div>
+      </div>
 
-    const IconCheck = ({ className = 'w-5 h-5', strokeWidth = 2 }) => (
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"
-        className={className}>
-        <path d="M20 6 9 17l-5-5" />
-      </svg>
-    );
+      <!-- Qadam 1: Telefon raqami yoki email -->
+      <div class="step-content active" id="step1Content">
+        <div class="form-container">
+          <h2 class="form-title">Telefon raqamingizni yoki elektron pochtangizni kiriting</h2>
+          <p class="form-subtitle">Bu Twitterda siz bilan bog'lanish uchun ishlatiladi.</p>
+          
+          <div class="input-group">
+            <label class="input-label" for="contact">Telefon raqami yoki elektron pochta</label>
+            <input type="text" class="input-field" id="contact" placeholder="Telefon raqami yoki elektron pochta">
+            <div class="error-message" id="contactError">Iltimos, to'g'ri telefon raqami yoki elektron pochta manzilini kiriting</div>
+          </div>
+          
+          <button class="next-btn" id="nextStep1">Keyingisi</button>
+        </div>
+      </div>
 
-    const IconUser = ({ className = 'w-5 h-5' }) => (
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-        className={className}>
-        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-        <circle cx="12" cy="7" r="4" />
-      </svg>
-    );
+      <!-- Qadam 2: Kodni kiritish -->
+      <div class="step-content" id="step2Content">
+        <div class="form-container">
+          <h2 class="form-title">Biz sizga kod yubordik</h2>
+          <p class="form-subtitle">Kodni kiriting</p>
+          
+          <div class="input-group">
+            <label class="input-label" for="code">Tasdiqlash kodi</label>
+            <input type="text" class="input-field" id="code" placeholder="Kodni kiriting" maxlength="6">
+            <div class="error-message" id="codeError">Noto'g'ri kod. Iltimos, qaytadan urinib ko'ring</div>
+          </div>
+          
+          <button class="next-btn" id="nextStep2">Keyingisi</button>
+          <div class="resend-code" id="resendCode">Kodni qayta yuborish</div>
+        </div>
+      </div>
 
-    const IconPhone = ({ className = 'w-5 h-5' }) => (
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-        className={className}>
-        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-      </svg>
-    );
+      <!-- Qadam 3: Ism va familiya -->
+      <div class="step-content" id="step3Content">
+        <div class="form-container">
+          <h2 class="form-title">Sizning ismingiz nima?</h2>
+          <p class="form-subtitle">Bu sizning profil sahifangizda ko'rsatiladi.</p>
+          
+          <div class="input-group">
+            <label class="input-label" for="firstName">Ism</label>
+            <input type="text" class="input-field" id="firstName" placeholder="Ism">
+            <div class="error-message" id="firstNameError">Iltimos, ismingizni kiriting</div>
+          </div>
+          
+          <div class="input-group">
+            <label class="input-label" for="lastName">Familiya</label>
+            <input type="text" class="input-field" id="lastName" placeholder="Familiya">
+            <div class="error-message" id="lastNameError">Iltimos, familiyangizni kiriting</div>
+          </div>
+          
+          <button class="next-btn" id="nextStep3">Keyingisi</button>
+        </div>
+      </div>
 
-    const IconShield = ({ className = 'w-5 h-5' }) => (
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-        className={className}>
-        <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
-        <path d="m9 12 2 2 4-4" />
-      </svg>
-    );
+      <!-- Muvaffaqiyatli yakunlangan qadam -->
+      <div class="step-content" id="successContent">
+        <div class="form-container">
+          <div class="success-message">
+            <div class="success-icon">✓</div>
+            <h2 class="success-title">Hisobingiz yaratildi!</h2>
+            <p class="success-subtitle">Endi siz Twitterda o'z fikrlaringizni baham ko'rishingiz mumkin.</p>
+            <button class="continue-btn" id="continueBtn">Profilga o'tish</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    const IconAt = ({ className = 'w-5 h-5' }) => (
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-        className={className}>
-        <circle cx="12" cy="12" r="4" />
-        <path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8" />
-      </svg>
-    );
-
-    /* ============================================================
-       Default state
-       ============================================================ */
-    const defaultState = {
-      step: 1,
-      phone: '',
-      code: '',
-      firstName: '',
-      lastName: '',
-      username: '',
-      isComplete: false,
-    };
-
-    /* ============================================================
-       Main App
-       ============================================================ */
-    function App() {
-      const [data, setData] = useState(() => {
-        try {
-          const saved = localStorage.getItem('registration_state');
-          if (saved) return { ...defaultState, ...JSON.parse(saved) };
-        } catch (e) {
-          console.error('Failed to parse local storage', e);
+  <script>
+    // DOM elementlari
+    const backBtn = document.getElementById('backBtn');
+    const nextStep1 = document.getElementById('nextStep1');
+    const nextStep2 = document.getElementById('nextStep2');
+    const nextStep3 = document.getElementById('nextStep3');
+    const continueBtn = document.getElementById('continueBtn');
+    const resendCode = document.getElementById('resendCode');
+    
+    // Qadam indikatorlari
+    const step1 = document.getElementById('step1');
+    const step2 = document.getElementById('step2');
+    const step3 = document.getElementById('step3');
+    const line1 = document.getElementById('line1');
+    const line2 = document.getElementById('line2');
+    
+    // Qadam kontentlari
+    const step1Content = document.getElementById('step1Content');
+    const step2Content = document.getElementById('step2Content');
+    const step3Content = document.getElementById('step3Content');
+    const successContent = document.getElementById('successContent');
+    
+    // Input maydonlari
+    const contactInput = document.getElementById('contact');
+    const codeInput = document.getElementById('code');
+    const firstNameInput = document.getElementById('firstName');
+    const lastNameInput = document.getElementById('lastName');
+    
+    // Xatolik xabarlari
+    const contactError = document.getElementById('contactError');
+    const codeError = document.getElementById('codeError');
+    const firstNameError = document.getElementById('firstNameError');
+    const lastNameError = document.getElementById('lastNameError');
+    
+    // Joriy qadamni kuzatish
+    let currentStep = 1;
+    
+    // Keyingi qadamga o'tish funksiyasi
+    function goToStep(step) {
+      // Barcha qadam kontentlarini yashirish
+      step1Content.classList.remove('active');
+      step2Content.classList.remove('active');
+      step3Content.classList.remove('active');
+      successContent.classList.remove('active');
+      
+      // Yangi qadamni ko'rsatish
+      if (step === 1) {
+        step1Content.classList.add('active');
+      } else if (step === 2) {
+        step2Content.classList.add('active');
+      } else if (step === 3) {
+        step3Content.classList.add('active');
+      } else if (step === 4) {
+        successContent.classList.add('active');
+      }
+      
+      // Qadam indikatorlarini yangilash
+      updateStepIndicator(step);
+      
+      // Joriy qadamni yangilash
+      currentStep = step;
+    }
+    
+    // Qadam indikatorlarini yangilash
+    function updateStepIndicator(step) {
+      // Barcha qadam va chiziqlarni reset qilish
+      step1.classList.remove('active', 'completed');
+      step2.classList.remove('active', 'completed');
+      step3.classList.remove('active', 'completed');
+      line1.classList.remove('active');
+      line2.classList.remove('active');
+      
+      // Yangi holatni o'rnatish
+      if (step >= 1) {
+        step1.classList.add('completed');
+      }
+      if (step >= 2) {
+        step2.classList.add('completed');
+        line1.classList.add('active');
+      }
+      if (step >= 3) {
+        step3.classList.add('completed');
+        line2.classList.add('active');
+      }
+      
+      // Faol qadamni belgilash
+      if (step === 1) {
+        step1.classList.add('active');
+      } else if (step === 2) {
+        step2.classList.add('active');
+      } else if (step === 3) {
+        step3.classList.add('active');
+      }
+    }
+    
+    // Telefon raqami yoki emailni tekshirish
+    function validateContact(contact) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const phoneRegex = /^\+?[0-9]{10,15}$/;
+      
+      return emailRegex.test(contact) || phoneRegex.test(contact);
+    }
+    
+    // Kodni tekshirish (simulyatsiya)
+    function validateCode(code) {
+      // Oddiy tekshirish, haqiqiy ilovada bu server tomonidan tekshiriladi
+      return code.length === 6 && /^\d+$/.test(code);
+    }
+    
+    // Ism va familiyani tekshirish
+    function validateName(firstName, lastName) {
+      return firstName.trim().length > 0 && lastName.trim().length > 0;
+    }
+    
+    // Xatoliklarni tozalash
+    function clearErrors() {
+      contactError.style.display = 'none';
+      codeError.style.display = 'none';
+      firstNameError.style.display = 'none';
+      lastNameError.style.display = 'none';
+    }
+    
+    // Orqaga qaytish tugmasi
+    backBtn.addEventListener('click', () => {
+      if (currentStep > 1) {
+        goToStep(currentStep - 1);
+      } else {
+        // Birinchi qadamda orqaga bossa, oldingi sahifaga qaytish
+        window.location.href = 'index.html';
+      }
+    });
+    
+    // 1-qadam: Telefon/email kiritish
+    nextStep1.addEventListener('click', () => {
+      clearErrors();
+      
+      if (validateContact(contactInput.value)) {
+        // Kod yuborish simulyatsiyasi
+        alert(`Tasdiqlash kodi yuborildi: ${contactInput.value}`);
+        goToStep(2);
+      } else {
+        contactError.style.display = 'block';
+      }
+    });
+    
+    // 2-qadam: Kodni kiritish
+    nextStep2.addEventListener('click', () => {
+      clearErrors();
+      
+      if (validateCode(codeInput.value)) {
+        goToStep(3);
+      } else {
+        codeError.style.display = 'block';
+      }
+    });
+    
+    // 3-qadam: Ism va familiya kiritish
+    nextStep3.addEventListener('click', () => {
+      clearErrors();
+      
+      if (validateName(firstNameInput.value, lastNameInput.value)) {
+        // Ma'lumotlarni saqlash simulyatsiyasi
+        localStorage.setItem('userFirstName', firstNameInput.value);
+        localStorage.setItem('userLastName', lastNameInput.value);
+        localStorage.setItem('userContact', contactInput.value);
+        
+        goToStep(4);
+      } else {
+        if (firstNameInput.value.trim().length === 0) {
+          firstNameError.style.display = 'block';
         }
-        return defaultState;
-      });
-
-      useEffect(() => {
-        localStorage.setItem('registration_state', JSON.stringify(data));
-      }, [data]);
-
-      // Telegram WebApp init (agar mavjud bo'lsa)
-      useEffect(() => {
-        if (window.Telegram && window.Telegram.WebApp) {
-          const tg = window.Telegram.WebApp;
-          try {
-            tg.ready();
-            tg.expand();
-          } catch (e) {
-            console.warn('Telegram WebApp error:', e);
-          }
+        if (lastNameInput.value.trim().length === 0) {
+          lastNameError.style.display = 'block';
         }
-      }, []);
-
-      const updateField = (field, value) =>
-        setData((prev) => ({ ...prev, [field]: value }));
-
-      const nextStep = () =>
-        setData((prev) => ({ ...prev, step: prev.step + 1 }));
-
-      const prevStep = () =>
-        setData((prev) => ({ ...prev, step: prev.step - 1 }));
-
-      const completeRegistration = () =>
-        setData((prev) => ({ ...prev, isComplete: true }));
-
-      const resetRegistration = () => {
-        setData(defaultState);
-        localStorage.removeItem('registration_state');
-      };
-
-      return (
-        <div className="min-h-screen bg-[#0f0f14] text-white font-sans relative overflow-hidden">
-          {/* Ambient gradient blobs */}
-          <div className="pointer-events-none absolute inset-0">
-            <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-blue-600/30 blur-[120px]" />
-            <div className="absolute -bottom-40 -right-40 w-96 h-96 rounded-full bg-purple-600/30 blur-[120px]" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-cyan-500/10 blur-[140px]" />
-          </div>
-
-          <div className="relative z-10 min-h-screen flex flex-col">
-            {!data.isComplete && (
-              <ProgressHeader
-                step={data.step}
-                total={4}
-                onBack={data.step > 1 ? prevStep : null}
-              />
-            )}
-
-            <div className="flex-1 flex items-center justify-center px-6 py-8">
-              <div className="w-full max-w-md">
-                {data.isComplete ? (
-                  <IndexView data={data} onReset={resetRegistration} />
-                ) : (
-                  <>
-                    {data.step === 1 && (
-                      <Step1Phone
-                        data={data}
-                        updateField={updateField}
-                        onNext={nextStep}
-                      />
-                    )}
-                    {data.step === 2 && (
-                      <Step2Code
-                        data={data}
-                        updateField={updateField}
-                        onNext={nextStep}
-                      />
-                    )}
-                    {data.step === 3 && (
-                      <Step3Name
-                        data={data}
-                        updateField={updateField}
-                        onNext={nextStep}
-                      />
-                    )}
-                    {data.step === 4 && (
-                      <Step4Username
-                        data={data}
-                        updateField={updateField}
-                        onComplete={completeRegistration}
-                      />
-                    )}
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    /* ============================================================
-       Progress Header
-       ============================================================ */
-    function ProgressHeader({ step, total, onBack }) {
-      return (
-        <div className="pt-6 px-6 flex items-center gap-4">
-          <button
-            onClick={onBack}
-            disabled={!onBack}
-            aria-label="Orqaga"
-            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
-              onBack
-                ? 'bg-white/10 hover:bg-white/20 text-white'
-                : 'opacity-0 pointer-events-none'
-            }`}
-          >
-            <IconArrowLeft className="w-5 h-5" />
-          </button>
-
-          <div className="flex-1 flex gap-1.5">
-            {Array.from({ length: total }).map((_, i) => (
-              <div
-                key={i}
-                className={`h-1 flex-1 rounded-full transition-all duration-500 ${
-                  i < step
-                    ? 'bg-gradient-to-r from-blue-400 to-cyan-400'
-                    : 'bg-white/10'
-                }`}
-              />
-            ))}
-          </div>
-
-          <span className="text-xs text-white/50 font-medium tabular-nums">
-            {step}/{total}
-          </span>
-        </div>
-      );
-    }
-
-    /* ============================================================
-       Shared UI
-       ============================================================ */
-    function StepHero({ icon: Icon, title, subtitle }) {
-      return (
-        <div className="text-center mb-10">
-          <div className="mx-auto w-16 h-16 mb-5 rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-400/20 border border-white/10 backdrop-blur flex items-center justify-center shadow-lg shadow-blue-500/10">
-            <Icon className="w-7 h-7 text-cyan-300" />
-          </div>
-          <h2 className="text-3xl font-bold tracking-tight text-white">{title}</h2>
-          <p className="text-sm text-white/50 mt-2">{subtitle}</p>
-        </div>
-      );
-    }
-
-    function PrimaryButton({ children, onClick, disabled, loading }) {
-      return (
-        <button
-          onClick={onClick}
-          disabled={disabled || loading}
-          className="w-full relative overflow-hidden bg-gradient-to-r from-blue-500 to-cyan-400 text-slate-900 font-semibold py-4 px-6 rounded-2xl transition-all active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 shadow-lg shadow-blue-500/25 flex justify-center items-center"
-        >
-          {loading ? (
-            <div className="w-5 h-5 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />
-          ) : (
-            children
-          )}
-        </button>
-      );
-    }
-
-    function FieldInput({ error, icon: Icon, className = '', ...props }) {
-      return (
-        <div>
-          <div
-            className={`relative flex items-center rounded-2xl bg-white/[0.04] border transition-all ${
-              error
-                ? 'border-red-500/60'
-                : 'border-white/10 focus-within:border-cyan-400/60 focus-within:bg-white/[0.06]'
-            } ${className}`}
-          >
-            {Icon && <Icon className="w-5 h-5 ml-4 text-white/40 shrink-0" />}
-            <input
-              {...props}
-              className={`flex-1 bg-transparent px-4 py-4 text-white placeholder:text-white/30 focus:outline-none ${
-                Icon ? 'pl-3' : ''
-              }`}
-            />
-          </div>
-          {error && <p className="mt-2 text-sm text-red-400 px-1">{error}</p>}
-        </div>
-      );
-    }
-
-    /* ============================================================
-       Step 1: Phone
-       ============================================================ */
-    function Step1Phone({ data, updateField, onNext }) {
-      const [error, setError] = useState('');
-
-      const handleContinue = () => {
-        const raw = data.phone.replace(/\D/g, '');
-        if (raw.length < 7) {
-          setError('Iltimos, to\'g\'ri telefon raqam kiriting (kamida 7 raqam).');
-          return;
+      }
+    });
+    
+    // Kodni qayta yuborish
+    resendCode.addEventListener('click', () => {
+      alert(`Yangi tasdiqlash kodi yuborildi: ${contactInput.value}`);
+    });
+    
+    // Profilga o'tish
+    continueBtn.addEventListener('click', () => {
+      window.location.href = 'profil.html';
+    });
+    
+    // Enter tugmasini qo'llab-quvvatlash
+    document.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        if (currentStep === 1) {
+          nextStep1.click();
+        } else if (currentStep === 2) {
+          nextStep2.click();
+        } else if (currentStep === 3) {
+          nextStep3.click();
         }
-        setError('');
-        onNext();
-      };
-
-      return (
-        <div className="animate-[fadeIn_0.4s_ease-out]">
-          <StepHero
-            icon={IconPhone}
-            title="Xush kelibsiz"
-            subtitle="Boshlash uchun telefon raqamingizni kiriting."
-          />
-
-          <div className="space-y-4">
-            <FieldInput
-              icon={IconPhone}
-              type="tel"
-              placeholder="+998 90 123 45 67"
-              value={data.phone}
-              error={error}
-              onChange={(e) => {
-                updateField('phone', e.target.value);
-                if (error) setError('');
-              }}
-            />
-            <PrimaryButton onClick={handleContinue}>Davom etish</PrimaryButton>
-          </div>
-        </div>
-      );
-    }
-
-    /* ============================================================
-       Step 2: Verification Code
-       ============================================================ */
-    function Step2Code({ data, updateField, onNext }) {
-      const [error, setError] = useState('');
-
-      const handleContinue = () => {
-        if (!/^\d{4}$/.test(data.code)) {
-          setError('Aniq 4 ta raqam kiriting.');
-          return;
-        }
-        setError('');
-        onNext();
-      };
-
-      return (
-        <div className="animate-[fadeIn_0.4s_ease-out]">
-          <StepHero
-            icon={IconShield}
-            title="Kodni tasdiqlang"
-            subtitle="Telefoningizga 4 xonali kod yuborildi."
-          />
-
-          <div className="space-y-4">
-            <div>
-              <input
-                type="text"
-                inputMode="numeric"
-                maxLength={4}
-                placeholder="• • • •"
-                value={data.code}
-                onChange={(e) => {
-                  updateField('code', e.target.value.replace(/\D/g, ''));
-                  if (error) setError('');
-                }}
-                className={`w-full bg-white/[0.04] border rounded-2xl py-5 text-center text-3xl tracking-[0.6em] font-semibold text-white placeholder:text-white/20 focus:outline-none transition-all ${
-                  error
-                    ? 'border-red-500/60'
-                    : 'border-white/10 focus:border-cyan-400/60 focus:bg-white/[0.06]'
-                }`}
-              />
-              {error && (
-                <p className="mt-2 text-sm text-red-400 text-center">{error}</p>
-              )}
-              <p className="mt-3 text-xs text-white/30 text-center">
-                Backend yo'q — istalgan 4 raqamni kiriting.
-              </p>
-            </div>
-            <PrimaryButton onClick={handleContinue}>Davom etish</PrimaryButton>
-          </div>
-        </div>
-      );
-    }
-
-    /* ============================================================
-       Step 3: Name
-       ============================================================ */
-    function Step3Name({ data, updateField, onNext }) {
-      const [error, setError] = useState('');
-
-      const handleContinue = () => {
-        if (!data.firstName.trim() || !data.lastName.trim()) {
-          setError('Ism va familiya to\'ldirilishi shart.');
-          return;
-        }
-        setError('');
-        onNext();
-      };
-
-      return (
-        <div className="animate-[fadeIn_0.4s_ease-out]">
-          <StepHero
-            icon={IconUser}
-            title="Ismingiz"
-            subtitle="Sizni qanday chaqirishimiz kerak?"
-          />
-
-          <div className="space-y-4">
-            <FieldInput
-              icon={IconUser}
-              type="text"
-              placeholder="Ism"
-              value={data.firstName}
-              onChange={(e) => {
-                updateField('firstName', e.target.value);
-                if (error) setError('');
-              }}
-            />
-            <FieldInput
-              type="text"
-              placeholder="Familiya"
-              value={data.lastName}
-              onChange={(e) => {
-                updateField('lastName', e.target.value);
-                if (error) setError('');
-              }}
-            />
-            {error && <p className="text-sm text-red-400 px-1">{error}</p>}
-            <PrimaryButton onClick={handleContinue}>Davom etish</PrimaryButton>
-          </div>
-        </div>
-      );
-    }
-
-    /* ============================================================
-       Step 4: Username
-       ============================================================ */
-    function Step4Username({ data, updateField, onComplete }) {
-      const [error, setError] = useState('');
-      const [isLoading, setIsLoading] = useState(false);
-
-      const handleContinue = () => {
-        const trimmed = data.username.trim();
-        if (!trimmed) return setError('Username bo\'sh bo\'lishi mumkin emas.');
-        if (!/^[a-zA-Z0-9_]+$/.test(trimmed))
-          return setError('Faqat harflar, raqamlar va pastki chiziq (_).');
-
-        setIsLoading(true);
-        setTimeout(() => {
-          setIsLoading(false);
-          setError('');
-          onComplete();
-        }, 700);
-      };
-
-      return (
-        <div className="animate-[fadeIn_0.4s_ease-out]">
-          <StepHero
-            icon={IconAt}
-            title="Username tanlang"
-            subtitle="Boshqalar sizni shu nom bilan topadi."
-          />
-
-          <div className="space-y-4">
-            <div>
-              <div
-                className={`relative flex items-center rounded-2xl bg-white/[0.04] border transition-all ${
-                  error
-                    ? 'border-red-500/60'
-                    : 'border-white/10 focus-within:border-cyan-400/60 focus-within:bg-white/[0.06]'
-                }`}
-              >
-                <span className="pl-4 text-cyan-300/70 font-semibold text-lg">
-                  @
-                </span>
-                <input
-                  type="text"
-                  placeholder="username"
-                  value={data.username}
-                  onChange={(e) => {
-                    updateField('username', e.target.value);
-                    if (error) setError('');
-                  }}
-                  className="flex-1 bg-transparent pl-2 pr-4 py-4 text-white placeholder:text-white/30 focus:outline-none"
-                />
-              </div>
-              {error && <p className="mt-2 text-sm text-red-400 px-1">{error}</p>}
-              <p className="mt-3 text-xs text-white/30 px-1">
-                Noyoblik tekshiruvi simulyatsiya qilingan.
-              </p>
-            </div>
-            <PrimaryButton onClick={handleContinue} loading={isLoading}>
-              Ro'yxatdan o'tishni yakunlash
-            </PrimaryButton>
-          </div>
-        </div>
-      );
-    }
-
-    /* ============================================================
-       Index / Done
-       ============================================================ */
-    function IndexView({ data, onReset }) {
-      return (
-        <div className="animate-[fadeIn_0.5s_ease-out] text-center">
-          <div className="mx-auto w-20 h-20 mb-6 rounded-3xl bg-gradient-to-br from-emerald-400/30 to-cyan-400/20 border border-white/10 backdrop-blur flex items-center justify-center shadow-2xl shadow-emerald-500/20">
-            <IconCheck className="w-9 h-9 text-emerald-300" strokeWidth={3} />
-          </div>
-
-          <h1 className="text-3xl font-bold tracking-tight">
-            Xush kelibsiz, {data.firstName}! <span className="inline-block">✨</span>
-          </h1>
-          <p className="text-white/50 mt-2 text-sm">
-            Hisobingiz tayyor. Mana profilingiz.
-          </p>
-
-          <div className="mt-10 space-y-2 text-left">
-            <InfoRow label="Username" value={`@${data.username}`} accent />
-            <InfoRow
-              label="To'liq ism"
-              value={`${data.firstName} ${data.lastName}`}
-            />
-            <InfoRow label="Telefon" value={data.phone} />
-          </div>
-
-          <button
-            onClick={onReset}
-            className="mt-10 w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-medium py-4 rounded-2xl transition-all active:scale-[0.98]"
-          >
-            Chiqish / Qayta boshlash
-          </button>
-        </div>
-      );
-    }
-
-    function InfoRow({ label, value, accent }) {
-      return (
-        <div className="flex justify-between items-center px-4 py-4 rounded-2xl bg-white/[0.03] border border-white/5">
-          <span className="text-white/40 text-sm">{label}</span>
-          <span
-            className={`font-semibold ${accent ? 'text-cyan-300' : 'text-white'}`}
-          >
-            {value}
-          </span>
-        </div>
-      );
-    }
-
-    /* ============================================================
-       Render
-       ============================================================ */
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<App />);
+      }
+    });
   </script>
+
 </body>
 </html>
