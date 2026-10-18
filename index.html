@@ -54,6 +54,221 @@
         .loading-bar {
             animation: loadingBar 4s linear forwards;
         }
+
+        /* ===== FEED (Twitter style) ===== */
+        .post-item {
+            padding: 16px;
+            border-bottom: 1px solid #27272a;
+            animation: postIn 0.4s cubic-bezier(.34,1.2,.64,1) both;
+        }
+        .post-item:last-child { border-bottom: none; }
+        @keyframes postIn {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .post-head {
+            display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+        }
+        .post-avatar {
+            width: 40px; height: 40px; border-radius: 50%;
+            object-fit: cover; background: #1c1c1e; flex-shrink: 0;
+        }
+        .post-head-info { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+        .post-user {
+            font-size: 14px; font-weight: 600; white-space: nowrap;
+            overflow: hidden; text-overflow: ellipsis;
+        }
+        .post-time { font-size: 12px; color: #8e8e93; margin-top: 1px; }
+        .post-text {
+            font-size: 15px; line-height: 1.5; color: #f2f2f7;
+            white-space: pre-wrap; word-break: break-word; margin-bottom: 12px;
+        }
+        .post-image, .post-video {
+            width: 100%; border-radius: 14px; margin-bottom: 12px;
+            display: block; max-height: 400px; object-fit: cover;
+        }
+        .post-video { background: #000; }
+
+        .post-actions {
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 4px; padding-top: 4px;
+        }
+        .act-btn {
+            background: none; border: none; display: flex; align-items: center;
+            gap: 5px; color: #8e8e93; font-size: 13px; font-weight: 500;
+            cursor: pointer; font-family: inherit; padding: 6px 4px;
+            transition: transform 0.15s ease, color 0.2s ease;
+            flex: 1; justify-content: center; border-radius: 10px;
+        }
+        .act-btn:active { transform: scale(0.88); background: rgba(255,255,255,0.05); }
+        .act-btn svg {
+            width: 19px; height: 19px; fill: none; stroke: currentColor;
+            stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+            transition: fill 0.2s ease, stroke 0.2s ease, transform 0.2s cubic-bezier(.34,1.56,.64,1);
+            flex-shrink: 0;
+        }
+        .act-count { font-variant-numeric: tabular-nums; font-size: 12px; min-width: 14px; text-align: left; }
+
+        .act-btn.liked { color: #ff2d55; }
+        .act-btn.liked svg { fill: #ff2d55; stroke: #ff2d55; animation: likePop 0.35s cubic-bezier(.34,1.56,.64,1); }
+        @keyframes likePop { 0%{transform:scale(1)} 40%{transform:scale(1.35)} 100%{transform:scale(1)} }
+
+        .act-btn.saved { color: #fff; }
+        .act-btn.saved svg { fill: #fff; stroke: #fff; animation: likePop 0.35s cubic-bezier(.34,1.56,.64,1); }
+
+        .empty-feed {
+            padding: 60px 20px; text-align: center; color: #71717a;
+            font-size: 14px;
+        }
+
+        /* ===== Compose button ===== */
+        .compose-fab {
+            position: fixed; right: 20px; bottom: 110px; z-index: 60;
+            width: 56px; height: 56px; border-radius: 50%;
+            background: #fff; color: #000; border: none; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 8px 24px rgba(255,255,255,0.18), 0 2px 8px rgba(0,0,0,0.5);
+            transition: transform 0.2s cubic-bezier(.34,1.56,.64,1);
+        }
+        .compose-fab:active { transform: scale(0.92); }
+        .compose-fab svg { width: 26px; height: 26px; stroke: #000; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+
+        /* ===== Composer ===== */
+        .composer-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+            z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .composer-overlay.show { opacity: 1; pointer-events: auto; }
+        .composer {
+            position: fixed; left: 50%; bottom: 0; transform: translate(-50%, 100%);
+            width: 100%; max-width: 420px; background: #0a0a0a;
+            border-radius: 24px 24px 0 0; border: 1px solid #27272a; border-bottom: none;
+            z-index: 101; padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
+            transition: transform 0.35s cubic-bezier(.34,1.2,.64,1);
+            box-shadow: 0 -10px 60px rgba(0,0,0,0.9);
+        }
+        .composer.show { transform: translate(-50%, 0); }
+        .composer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .composer-title { font-size: 17px; font-weight: 700; color: #fff; }
+        .composer-close {
+            background: #1c1c1e; border: none; border-radius: 50%; width: 32px; height: 32px;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            color: #8e8e93; transition: transform 0.2s, background 0.2s;
+        }
+        .composer-close:active { transform: scale(0.9); background: #27272a; }
+        .composer-close svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+        .composer-body { display: flex; gap: 12px; margin-bottom: 16px; }
+        .composer-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #1c1c1e; flex-shrink: 0; }
+        .composer-input {
+            flex: 1; background: transparent; border: none; outline: none; color: #fff;
+            font-size: 16px; font-family: inherit; resize: none; min-height: 44px;
+            max-height: 160px; line-height: 1.4; padding-top: 10px;
+        }
+        .composer-input::placeholder { color: #52525b; }
+        .composer-preview {
+            position: relative; width: 100%; border-radius: 16px; overflow: hidden;
+            margin-bottom: 16px; display: none; border: 1px solid #27272a;
+        }
+        .composer-preview.show { display: block; }
+        .composer-preview img, .composer-preview video { width: 100%; max-height: 240px; object-fit: cover; display: block; }
+        .composer-preview .remove-img {
+            position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.7);
+            border: none; border-radius: 50%; width: 28px; height: 28px;
+            display: flex; align-items: center; justify-content: center; color: #fff; cursor: pointer;
+        }
+        .composer-preview .remove-img svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+        .composer-actions { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+        .composer-attach-group { display: flex; gap: 8px; }
+        .composer-attach {
+            background: #1c1c1e; border: none; border-radius: 50%; width: 44px; height: 44px;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            color: #fff; transition: background 0.2s, transform 0.2s;
+        }
+        .composer-attach:active { transform: scale(0.92); background: #27272a; }
+        .composer-attach svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        .composer-submit {
+            background: linear-gradient(135deg, #fff 0%, #e5e5e5 100%); color: #000;
+            border: none; border-radius: 100px; padding: 12px 28px; font-size: 15px;
+            font-weight: 700; cursor: pointer; transition: transform 0.2s, opacity 0.2s;
+        }
+        .composer-submit:active { transform: scale(0.95); }
+        .composer-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        /* ===== Comments ===== */
+        .comments-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+            z-index: 110; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .comments-overlay.show { opacity: 1; pointer-events: auto; }
+        .comments-panel {
+            position: fixed; left: 50%; bottom: 0; transform: translate(-50%, 100%);
+            width: 100%; max-width: 420px; height: 75vh; background: #0a0a0a;
+            border-radius: 24px 24px 0 0; border: 1px solid #27272a; border-bottom: none;
+            z-index: 111; display: flex; flex-direction: column;
+            transition: transform 0.35s cubic-bezier(.34,1.2,.64,1);
+            box-shadow: 0 -10px 60px rgba(0,0,0,0.9);
+        }
+        .comments-panel.show { transform: translate(-50%, 0); }
+        .comments-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 18px 20px; border-bottom: 1px solid #27272a; flex-shrink: 0;
+        }
+        .comments-title { font-size: 16px; font-weight: 700; color: #fff; }
+        .comments-list { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 16px; }
+        .comments-empty { text-align: center; color: #52525b; font-size: 14px; padding: 40px 0; }
+        .comment-item { display: flex; gap: 10px; animation: postIn 0.3s ease both; }
+        .comment-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; background: #1c1c1e; flex-shrink: 0; }
+        .comment-body { flex: 1; min-width: 0; }
+        .comment-top { display: flex; align-items: baseline; gap: 8px; }
+        .comment-user { font-size: 13px; font-weight: 600; color: #fff; }
+        .comment-time { font-size: 11px; color: #52525b; }
+        .comment-text { font-size: 14px; line-height: 1.45; color: #e5e5ea; margin-top: 3px; word-break: break-word; white-space: pre-wrap; }
+        .comment-actions { display: flex; gap: 16px; margin-top: 6px; }
+        .comment-reply-btn { background: none; border: none; color: #8e8e93; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; padding: 0; }
+        .comment-reply-btn:active { opacity: 0.6; }
+        .comment-replies { margin-top: 10px; padding-left: 12px; border-left: 2px solid #27272a; display: flex; flex-direction: column; gap: 12px; }
+        .comment-reply-item { display: flex; gap: 8px; }
+        .comment-reply-item .comment-avatar { width: 26px; height: 26px; }
+        .comment-reply-item .comment-user { font-size: 12px; }
+        .comment-reply-item .comment-text { font-size: 13px; }
+
+        .comments-input-bar {
+            padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+            border-top: 1px solid #27272a; display: flex; gap: 10px;
+            align-items: flex-end; flex-shrink: 0; background: #0a0a0a;
+        }
+        .comments-input {
+            flex: 1; background: #1c1c1e; border: none; border-radius: 20px;
+            padding: 10px 14px; color: #fff; font-size: 14px; font-family: inherit;
+            resize: none; outline: none; max-height: 80px; line-height: 1.4;
+        }
+        .comments-input::placeholder { color: #52525b; }
+        .comments-send {
+            background: linear-gradient(135deg, #fff 0%, #e5e5e5 100%); color: #000;
+            border: none; border-radius: 50%; width: 38px; height: 38px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+        .comments-send:active { transform: scale(0.9); }
+        .comments-send:disabled { opacity: 0.4; cursor: not-allowed; }
+        .comments-send svg { width: 18px; height: 18px; stroke: #000; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+        .reply-indicator {
+            font-size: 12px; color: #0a84ff; padding: 4px 20px 8px;
+            display: none; align-items: center; justify-content: space-between; background: #0a0a0a;
+        }
+        .reply-indicator.show { display: flex; }
+        .reply-indicator button { background: none; border: none; color: #8e8e93; font-size: 12px; cursor: pointer; font-family: inherit; }
+
+        .toast {
+            position: fixed; left: 50%; bottom: 200px; transform: translate(-50%, 20px);
+            background: #1c1c1e; color: #fff; padding: 12px 22px; border-radius: 100px;
+            font-size: 14px; font-weight: 500; z-index: 300; opacity: 0; pointer-events: none;
+            transition: opacity 0.25s ease, transform 0.25s ease; border: 1px solid #27272a;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.6); white-space: nowrap;
+        }
+        .toast.show { opacity: 1; transform: translate(-50%, 0); }
     </style>
 </head>
 <body class="text-white antialiased flex justify-center min-h-screen selection:bg-zinc-800">
@@ -75,96 +290,218 @@
             <div class="text-white font-serif font-black text-[1.65rem] italic tracking-tighter cursor-pointer select-none leading-none">L</div>
         </header>
 
-        <!-- Post 1 -->
-        <article class="flex flex-col border-b border-zinc-900 pb-3">
-            <div class="flex items-center justify-between px-4 py-3">
-                <div class="flex items-center gap-3 group">
-                    <a href="profil.html" class="shrink-0 block">
-                        <img src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=150&auto=format&fit=crop&q=80" alt="zzz" class="w-9 h-9 rounded-full object-cover border border-zinc-800 hover:opacity-80 transition-opacity">
-                    </a>
-                    <div class="flex items-center gap-2 cursor-pointer">
-                        <a href="profil.html" class="font-semibold text-[15px] hover:underline">zzz</a>
-                        <span class="text-zinc-500 text-[14px]">Aug 10</span>
-                    </div>
-                </div>
-                <button class="text-zinc-500 hover:text-zinc-300 transition-colors p-1.5 rounded-full hover:bg-zinc-900 active:scale-95">
-                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="1"></circle>
-                        <circle cx="19" cy="12" r="1"></circle>
-                        <circle cx="5" cy="12" r="1"></circle>
-                    </svg>
-                </button>
-            </div>
-
-            <div class="w-full bg-zinc-950 relative">
-                <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=1000&auto=format&fit=crop&q=80" alt="Phones" class="w-full h-auto max-h-[600px] object-cover">
-            </div>
-
-            <div class="flex justify-between items-center px-4 pt-4 pb-2">
-                <div class="flex items-center gap-5 text-white">
-                    <button class="hover:text-zinc-400 transition-colors group active:scale-90">
-                        <svg viewBox="0 0 24 24" width="26" height="26" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                        </svg>
-                    </button>
-                    <a href="xabar.html" class="hover:text-zinc-400 transition-colors group active:scale-90">
-                        <svg viewBox="0 0 24 24" width="26" height="26" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="-scale-x-100">
-                            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
-                        </svg>
-                    </a>
-                    <button class="hover:text-zinc-400 transition-colors group active:scale-90 pl-0.5">
-                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="22" y1="2" x2="11" y2="13"></line>
-                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                        </svg>
-                    </button>
-                    <button class="hover:text-zinc-400 transition-colors group active:scale-90 pl-0.5">
-                        <svg viewBox="0 0 24 24" width="26" height="26" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="17 1 21 5 17 9"></polyline>
-                            <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
-                            <polyline points="7 23 3 19 7 15"></polyline>
-                            <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
-                        </svg>
-                    </button>
-                </div>
-                <button class="text-white hover:text-zinc-400 transition-colors group active:scale-90">
-                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-                    </svg>
-                </button>
-            </div>
-
-            <div class="px-4 pb-2">
-                <span class="font-semibold text-[15px] cursor-pointer hover:underline">8,932 likes</span>
-            </div>
-        </article>
-
-        <!-- Post 2 -->
-        <article class="flex flex-col border-b border-zinc-900 pb-3">
-            <div class="flex items-center justify-between px-4 py-3">
-                <div class="flex items-center gap-3 group">
-                    <a href="profil.html" class="shrink-0 block">
-                        <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80" alt="Alex" class="w-9 h-9 rounded-full object-cover border border-zinc-800 hover:opacity-80 transition-opacity">
-                    </a>
-                    <div class="flex items-center gap-2 cursor-pointer">
-                        <a href="profil.html" class="font-semibold text-[15px] hover:underline">Alex M</a>
-                        <span class="text-zinc-500 text-[14px]">Sep 02</span>
-                    </div>
-                </div>
-                <button class="text-zinc-500 hover:text-zinc-300 transition-colors p-1.5 rounded-full hover:bg-zinc-900 active:scale-95">
-                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="1"></circle>
-                        <circle cx="19" cy="12" r="1"></circle>
-                        <circle cx="5" cy="12" r="1"></circle>
-                    </svg>
-                </button>
-            </div>
-            <div class="w-full bg-zinc-950 relative">
-                <img src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1000&auto=format&fit=crop&q=80" alt="Forest" class="w-full h-auto max-h-[600px] object-cover">
-            </div>
-        </article>
+        <!-- Postlar bu yerda chiqadi -->
+        <div id="feedContainer" class="w-full">
+            <div class="empty-feed">Hali post yo'q. Birinchi postni yarating!</div>
+        </div>
 
     </div>
+
+    <!-- Compose FAB -->
+    <button class="compose-fab" id="composeFab" aria-label="Post yozish">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </button>
+
+    <!-- Composer -->
+    <div class="composer-overlay" id="composerOverlay"></div>
+    <div class="composer" id="composer">
+        <div class="composer-header">
+            <span class="composer-title">Yangi post</span>
+            <button class="composer-close" id="composerClose" aria-label="Yopish">
+                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div class="composer-body">
+            <img id="composerAvatar" class="composer-avatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='20' fill='%233f3f46'/%3E%3C/svg%3E" alt="Avatar">
+            <textarea class="composer-input" id="composerInput" placeholder="Nima haqida o'ylayapsiz?" rows="1"></textarea>
+        </div>
+        <div class="composer-preview" id="composerPreview">
+            <img id="previewImg" src="" alt="Preview" style="display:none">
+            <video id="previewVid" src="" controls playsinline style="display:none"></video>
+            <button class="remove-img" id="removeImg" aria-label="O'chirish">
+                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div class="composer-actions">
+            <div class="composer-attach-group">
+                <input type="file" id="fileInput" accept="image/*" hidden>
+                <input type="file" id="videoInput" accept="video/*" hidden>
+                <button class="composer-attach" id="attachBtn" aria-label="Rasm yuklash">
+                    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                </button>
+                <button class="composer-attach" id="attachVideoBtn" aria-label="Video yuklash">
+                    <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                </button>
+            </div>
+            <button class="composer-submit" id="composerSubmit" disabled>Yuborish</button>
+        </div>
+    </div>
+
+        /* ===== Comments ===== */
+        .comments-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+            z-index: 110; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .comments-overlay.show { opacity: 1; pointer-events: auto; }
+        .comments-panel {
+            position: fixed; left: 50%; bottom: 0; transform: translate(-50%, 100%);
+            width: 100%; max-width: 420px; height: 75vh; background: #0a0a0a;
+            border-radius: 24px 24px 0 0; border: 1px solid #27272a; border-bottom: none;
+            z-index: 111; display: flex; flex-direction: column;
+            transition: transform 0.35s cubic-bezier(.34,1.2,.64,1);
+            box-shadow: 0 -10px 60px rgba(0,0,0,0.9);
+        }
+        .comments-panel.show { transform: translate(-50%, 0); }
+        .comments-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 18px 20px; border-bottom: 1px solid #27272a; flex-shrink: 0;
+        }
+        .comments-title { font-size: 16px; font-weight: 700; color: #fff; }
+        .comments-list { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 16px; }
+        .comments-empty { text-align: center; color: #52525b; font-size: 14px; padding: 40px 0; }
+        .comment-item { display: flex; gap: 10px; animation: postIn 0.3s ease both; }
+        .comment-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; background: #1c1c1e; flex-shrink: 0; }
+        .comment-body { flex: 1; min-width: 0; }
+        .comment-top { display: flex; align-items: baseline; gap: 8px; }
+        .comment-user { font-size: 13px; font-weight: 600; color: #fff; }
+        .comment-time { font-size: 11px; color: #52525b; }
+        .comment-text { font-size: 14px; line-height: 1.45; color: #e5e5ea; margin-top: 3px; word-break: break-word; white-space: pre-wrap; }
+        .comment-actions { display: flex; gap: 16px; margin-top: 6px; }
+        .comment-reply-btn { background: none; border: none; color: #8e8e93; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; padding: 0; }
+        .comment-reply-btn:active { opacity: 0.6; }
+        .comment-replies { margin-top: 10px; padding-left: 12px; border-left: 2px solid #27272a; display: flex; flex-direction: column; gap: 12px; }
+        .comment-reply-item { display: flex; gap: 8px; }
+        .comment-reply-item .comment-avatar { width: 26px; height: 26px; }
+        .comment-reply-item .comment-user { font-size: 12px; }
+        .comment-reply-item .comment-text { font-size: 13px; }
+
+        .comments-input-bar {
+            padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+            border-top: 1px solid #27272a; display: flex; gap: 10px;
+            align-items: flex-end; flex-shrink: 0; background: #0a0a0a;
+        }
+        .comments-input {
+            flex: 1; background: #1c1c1e; border: none; border-radius: 20px;
+            padding: 10px 14px; color: #fff; font-size: 14px; font-family: inherit;
+            resize: none; outline: none; max-height: 80px; line-height: 1.4;
+        }
+        .comments-input::placeholder { color: #52525b; }
+        .comments-send {
+            background: linear-gradient(135deg, #fff 0%, #e5e5e5 100%); color: #000;
+            border: none; border-radius: 50%; width: 38px; height: 38px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+        .comments-send:active { transform: scale(0.9); }
+        .comments-send:disabled { opacity: 0.4; cursor: not-allowed; }
+        .comments-send svg { width: 18px; height: 18px; stroke: #000; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+        .reply-indicator {
+            font-size: 12px; color: #0a84ff; padding: 4px 20px 8px;
+            display: none; align-items: center; justify-content: space-between; background: #0a0a0a;
+        }
+        .reply-indicator.show { display: flex; }
+        .reply-indicator button { background: none; border: none; color: #8e8e93; font-size: 12px; cursor: pointer; font-family: inherit; }
+
+        .toast {
+            position: fixed; left: 50%; bottom: 200px; transform: translate(-50%, 20px);
+            background: #1c1c1e; color: #fff; padding: 12px 22px; border-radius: 100px;
+            font-size: 14px; font-weight: 500; z-index: 300; opacity: 0; pointer-events: none;
+            transition: opacity 0.25s ease, transform 0.25s ease; border: 1px solid #27272a;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.6); white-space: nowrap;
+        }
+        .toast.show { opacity: 1; transform: translate(-50%, 0); }
+    </style>
+</head>
+<body class="text-white antialiased flex justify-center min-h-screen selection:bg-zinc-800">
+
+    <!-- SPLASH SCREEN -->
+    <div id="splashScreen" class="fixed inset-0 z-[9999] bg-black flex flex-col items-center justify-center">
+        <div class="logo-text text-white font-serif font-black text-[12rem] sm:text-[16rem] italic tracking-tighter select-none leading-none">
+            L
+        </div>
+        <div class="absolute bottom-24 w-40 h-1 bg-zinc-800 rounded-full overflow-hidden">
+            <div class="loading-bar h-full bg-white rounded-full"></div>
+        </div>
+    </div>
+
+    <div class="w-full max-w-lg border-x border-zinc-900 min-h-screen flex flex-col relative bg-black pb-28 no-scrollbar">
+        
+        <!-- HEADER: faqat L logotipi (ism/avatar YO'Q) -->
+        <header class="sticky top-0 z-50 bg-black/80 backdrop-blur-xl border-b border-zinc-900 flex items-end px-4 pb-2 safe-top" style="height: 120px;">
+            <div class="text-white font-serif font-black text-[1.65rem] italic tracking-tighter cursor-pointer select-none leading-none">L</div>
+        </header>
+
+        <!-- Postlar bu yerda chiqadi -->
+        <div id="feedContainer" class="w-full">
+            <div class="empty-feed">Hali post yo'q. Birinchi postni yarating!</div>
+        </div>
+
+    </div>
+
+    <!-- Compose FAB -->
+    <button class="compose-fab" id="composeFab" aria-label="Post yozish">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </button>
+
+    <!-- Composer -->
+    <div class="composer-overlay" id="composerOverlay"></div>
+    <div class="composer" id="composer">
+        <div class="composer-header">
+            <span class="composer-title">Yangi post</span>
+            <button class="composer-close" id="composerClose" aria-label="Yopish">
+                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div class="composer-body">
+            <img id="composerAvatar" class="composer-avatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='20' fill='%233f3f46'/%3E%3C/svg%3E" alt="Avatar">
+            <textarea class="composer-input" id="composerInput" placeholder="Nima haqida o'ylayapsiz?" rows="1"></textarea>
+        </div>
+        <div class="composer-preview" id="composerPreview">
+            <img id="previewImg" src="" alt="Preview" style="display:none">
+            <video id="previewVid" src="" controls playsinline style="display:none"></video>
+            <button class="remove-img" id="removeImg" aria-label="O'chirish">
+                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div class="composer-actions">
+            <div class="composer-attach-group">
+                <input type="file" id="fileInput" accept="image/*" hidden>
+                <input type="file" id="videoInput" accept="video/*" hidden>
+                <button class="composer-attach" id="attachBtn" aria-label="Rasm yuklash">
+                    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                </button>
+                <button class="composer-attach" id="attachVideoBtn" aria-label="Video yuklash">
+                    <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                </button>
+            </div>
+            <button class="composer-submit" id="composerSubmit" disabled>Yuborish</button>
+        </div>
+    </div>
+
+    <!-- Comments -->
+    <div class="comments-overlay" id="commentsOverlay"></div>
+    <div class="comments-panel" id="commentsPanel">
+        <div class="comments-header">
+            <span class="comments-title">Izohlar</span>
+            <button class="composer-close" id="commentsClose" aria-label="Yopish">
+                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div class="comments-list" id="commentsList"></div>
+        <div class="reply-indicator" id="replyIndicator">
+            <span id="replyText"></span>
+            <button id="cancelReply">Bekor qilish</button>
+        </div>
+        <div class="comments-input-bar">
+            <textarea class="comments-input" id="commentsInput" placeholder="Izoh yozish..." rows="1"></textarea>
+            <button class="comments-send" id="commentsSend" disabled>
+                <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
 
     <!-- Bottom Navigation -->
     <nav class="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 w-[92%] max-w-[400px] bg-zinc-900/90 backdrop-blur-xl border border-zinc-700/50 rounded-[2rem] z-50 shadow-[0_10px_40px_rgba(0,0,0,0.8)] pb-safe">
@@ -208,21 +545,60 @@
     </nav>
 
     <script>
+    /* ================= GLOBAL STATE (shared via localStorage) ================= */
+    const STORAGE_KEY = 'L_posts_v1';
+    const SAVED_KEY = 'L_saved_v1';
+    const VIEWED_KEY = 'L_viewed_v1';
+    const REPLIES_KEY = 'L_replies_v1';
+
+    function loadPosts(){
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            return raw ? JSON.parse(raw) : [];
+        } catch(e){ return []; }
+    }
+    function savePosts(posts){
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(posts)); } catch(e){}
+    }
+    function loadSet(key){
+        try {
+            const raw = localStorage.getItem(key);
+            return raw ? new Set(JSON.parse(raw)) : new Set();
+        } catch(e){ return new Set(); }
+    }
+    function saveSet(key, set){
+        try { localStorage.setItem(key, JSON.stringify([...set])); } catch(e){}
+    }
+    function loadArr(key){
+        try {
+            const raw = localStorage.getItem(key);
+            return raw ? JSON.parse(raw) : [];
+        } catch(e){ return []; }
+    }
+    function saveArr(key, arr){
+        try { localStorage.setItem(key, JSON.stringify(arr)); } catch(e){}
+    }
+
+    let posts = loadPosts();
+    let savedPosts = loadSet(SAVED_KEY);
+    let viewedByMe = loadSet(VIEWED_KEY);
+    let myReplies = loadArr(REPLIES_KEY);
+
+    /* ================= TELEGRAM ================= */
+    const tg = window.Telegram?.WebApp;
+    let currentUser = null;
+
     document.addEventListener("DOMContentLoaded", function() {
-        const tg = window.Telegram?.WebApp;
-        
         if (tg) {
             tg.ready();
             tg.expand();
-            if (tg.requestFullscreen) {
-                try { tg.requestFullscreen(); } catch(e) {}
-            }
+            if (tg.requestFullscreen) { try { tg.requestFullscreen(); } catch(e) {} }
             try {
                 tg.setHeaderColor('#000000');
                 tg.setBackgroundColor('#000000');
                 if (tg.disableVerticalSwipes) tg.disableVerticalSwipes();
             } catch(e) {}
-            
+            currentUser = tg.initDataUnsafe?.user || null;
             loadTelegramUser(tg);
         }
 
@@ -233,24 +609,26 @@
                 setTimeout(() => splash.remove(), 1500);
             }, 4000);
         }
+
+        // Render feed
+        renderFeed();
     });
 
     function loadTelegramUser(tg) {
         const user = tg.initDataUnsafe?.user;
         if (!user) return;
-        
         const fullName = [user.first_name, user.last_name]
             .filter(Boolean).join(' ').trim() || user.username || 'Foydalanuvchi';
-        
-        // Faqat bottom nav avatar yangilanadi
         const navAvatarEl = document.getElementById('navUserAvatar');
         if (navAvatarEl) {
             navAvatarEl.src = user.photo_url || generateAvatarPlaceholder(fullName);
-            navAvatarEl.onerror = () => {
-                navAvatarEl.src = generateAvatarPlaceholder(fullName);
-            };
+            navAvatarEl.onerror = () => { navAvatarEl.src = generateAvatarPlaceholder(fullName); };
         }
-        
+        const compAv = document.getElementById('composerAvatar');
+        if (compAv) {
+            compAv.src = user.photo_url || generateAvatarPlaceholder(fullName);
+            compAv.onerror = () => { compAv.src = generateAvatarPlaceholder(fullName); };
+        }
         document.title = fullName + ' - L';
     }
 
@@ -272,6 +650,408 @@
         </svg>`;
         return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
     }
+
+    /* ================= FEED RENDER ================= */
+    function renderFeed(){
+        const container = document.getElementById('feedContainer');
+        if(!container) return;
+        if(posts.length === 0){
+            container.innerHTML = '<div class="empty-feed">Hali post yo\'q. Birinchi postni yarating!</div>';
+            return;
+        }
+        container.innerHTML = '';
+        posts.forEach(p => container.appendChild(buildPostItem(p)));
+    }
+
+    function buildPostItem(p){
+        const item = document.createElement('div');
+        item.className = 'post-item';
+        item.dataset.id = p.id;
+
+        const head = document.createElement('div');
+        head.className = 'post-head';
+        head.innerHTML = `<img class="post-avatar" src="${p.avatar}" alt="Avatar"><div class="post-head-info"><div class="post-user">${escapeHtml(p.user)}</div><div class="post-time">${escapeHtml(p.time)}</div></div>`;
+        item.appendChild(head);
+
+        if(p.text){
+            const text = document.createElement('div');
+            text.className = 'post-text';
+            text.textContent = p.text;
+            item.appendChild(text);
+        }
+
+        if(p.type === 'image' && p.image){
+            const img = document.createElement('img');
+            img.className = 'post-image';
+            img.src = p.image;
+            img.alt = 'Post image';
+            item.appendChild(img);
+        }
+
+        if(p.type === 'video' && p.image){
+            const vid = document.createElement('video');
+            vid.className = 'post-video';
+            vid.src = p.image;
+            vid.controls = true;
+            vid.playsInline = true;
+            vid.preload = 'metadata';
+            item.appendChild(vid);
+        }
+
+        const actions = document.createElement('div');
+        actions.className = 'post-actions';
+
+        
+        // LIKE
+        const likeBtn = document.createElement('button');
+        likeBtn.className = 'act-btn' + (p.liked ? ' liked' : '');
+        likeBtn.setAttribute('aria-label', 'Like');
+        likeBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span class="act-count like-count">${p.likes}</span>`;
+        likeBtn.addEventListener('click', () => {
+            p.liked = !p.liked;
+            p.likes += p.liked ? 1 : -1;
+            likeBtn.classList.toggle('liked', p.liked);
+            likeBtn.querySelector('.like-count').textContent = p.likes;
+            savePosts(posts);
+            tg?.HapticFeedback?.impactOccurred('light');
+        });
+        actions.appendChild(likeBtn);
+
+        // COMMENT (neutral)
+        const commentBtn = document.createElement('button');
+        commentBtn.className = 'act-btn';
+        commentBtn.setAttribute('aria-label', 'Izohlar');
+        commentBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg><span class="act-count comment-count">${countComments(p)}</span>`;
+        commentBtn.addEventListener('click', () => openComments(p));
+        actions.appendChild(commentBtn);
+
+        // VIEWS
+        const viewBtn = document.createElement('button');
+        viewBtn.className = 'act-btn';
+        viewBtn.style.cursor = 'default';
+        viewBtn.setAttribute('aria-label', 'Ko\'rishlar');
+        viewBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span class="act-count view-count">${p.views}</span>`;
+        actions.appendChild(viewBtn);
+
+        // SAVE
+        const saveBtn = document.createElement('button');
+        saveBtn.className = 'act-btn' + (savedPosts.has(p.id) ? ' saved' : '');
+        saveBtn.setAttribute('aria-label', 'Saqlash');
+        saveBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
+        saveBtn.addEventListener('click', () => {
+            if(savedPosts.has(p.id)){
+                savedPosts.delete(p.id);
+                saveBtn.classList.remove('saved');
+                showToast('Saqlanganlardan olib tashlandi');
+            } else {
+                savedPosts.add(p.id);
+                saveBtn.classList.add('saved');
+                showToast('Saqlandi');
+            }
+            saveSet(SAVED_KEY, savedPosts);
+            tg?.HapticFeedback?.impactOccurred('light');
+        });
+        actions.appendChild(saveBtn);
+
+        // SHARE (icon only)
+        const shareBtn = document.createElement('button');
+        shareBtn.className = 'act-btn';
+        shareBtn.setAttribute('aria-label', 'Ulashish');
+        shareBtn.innerHTML = `<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>`;
+        shareBtn.addEventListener('click', () => sharePost(p));
+        actions.appendChild(shareBtn);
+
+        item.appendChild(actions);
+
+        registerView(p, item);
+        return item;
+    }
+
+    function countComments(p){
+        let n = p.comments.length;
+        p.comments.forEach(c => n += c.replies.length);
+        return n;
+    }
+
+    function registerView(p, item){
+        if(viewedByMe.has(p.id)) return;
+        const io = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting && !viewedByMe.has(p.id)){
+                    viewedByMe.add(p.id);
+                    saveSet(VIEWED_KEY, viewedByMe);
+                    p.views += 1;
+                    savePosts(posts);
+                    const vc = item.querySelector('.view-count');
+                    if(vc) vc.textContent = p.views;
+                    io.disconnect();
+                }
+            });
+        }, {threshold: 0.5});
+        io.observe(item);
+    }
+
+    function sharePost(p){
+        tg?.HapticFeedback?.impactOccurred('light');
+        const link = location.origin + location.pathname + '?post=' + encodeURIComponent(p.id);
+        if(navigator.share){
+            navigator.share({title: 'Post', text: p.text || 'Post', url: link}).catch(()=>{});
+        } else {
+            const tgShare = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(p.text||'Post')}`;
+            if(tg && tg.openTelegramLink){ tg.openTelegramLink(tgShare); }
+            else { window.open(tgShare, '_blank'); }
+        }
+        try { navigator.clipboard?.writeText(link); } catch(e){}
+        showToast('Havola nusxalandi');
+    }
+
+    function escapeHtml(s){
+        return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    }
+
+    function showToast(msg){
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.add('show');
+        clearTimeout(window.__toastTimer);
+        window.__toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+    }
+
+    /* ================= COMMENTS ================= */
+    const commentsOverlay = document.getElementById('commentsOverlay');
+    const commentsPanel = document.getElementById('commentsPanel');
+    const commentsList = document.getElementById('commentsList');
+    const commentsInput = document.getElementById('commentsInput');
+    const commentsSend = document.getElementById('commentsSend');
+    const commentsClose = document.getElementById('commentsClose');
+    const replyIndicator = document.getElementById('replyIndicator');
+    const replyText = document.getElementById('replyText');
+    const cancelReply = document.getElementById('cancelReply');
+
+    let activePost = null;
+    let replyTarget = null;
+
+    function openComments(p){
+        activePost = p; replyTarget = null;
+        replyIndicator.classList.remove('show');
+        renderComments();
+        commentsOverlay.classList.add('show');
+        commentsPanel.classList.add('show');
+        tg?.HapticFeedback?.impactOccurred('light');
+    }
+    function closeComments(){
+        commentsOverlay.classList.remove('show');
+        commentsPanel.classList.remove('show');
+        activePost = null; replyTarget = null;
+        commentsInput.value = ''; commentsSend.disabled = true;
+    }
+    commentsOverlay.addEventListener('click', closeComments);
+    commentsClose.addEventListener('click', () => { closeComments(); tg?.HapticFeedback?.impactOccurred('light'); });
+
+    function renderComments(){
+        if(!activePost) return;
+        commentsList.innerHTML = '';
+        if(activePost.comments.length === 0){
+            commentsList.innerHTML = '<div class="comments-empty">Hali izoh yo\'q. Birinchi bo\'ling!</div>';
+            return;
+        }
+        activePost.comments.forEach(c => commentsList.appendChild(buildComment(c)));
+    }
+
+    function buildComment(c){
+        const wrap = document.createElement('div');
+        wrap.className = 'comment-item';
+        wrap.innerHTML = `
+            <img class="comment-avatar" src="${c.avatar}" alt="">
+            <div class="comment-body">
+                <div class="comment-top"><span class="comment-user">${escapeHtml(c.user)}</span><span class="comment-time">${escapeHtml(c.time)}</span></div>
+                <div class="comment-text">${escapeHtml(c.text)}</div>
+                <div class="comment-actions"><button class="comment-reply-btn">Javob berish</button></div>
+            </div>`;
+        wrap.querySelector('.comment-reply-btn').addEventListener('click', () => {
+            replyTarget = {commentId: c.id, user: c.user};
+            replyText.textContent = `@${c.user} ga javob`;
+            replyIndicator.classList.add('show');
+            commentsInput.focus();
+        });
+        if(c.replies.length){
+            const repliesBox = document.createElement('div');
+            repliesBox.className = 'comment-replies';
+            c.replies.forEach(r => {
+                const ri = document.createElement('div');
+                ri.className = 'comment-reply-item';
+                ri.innerHTML = `
+                    <img class="comment-avatar" src="${r.avatar}" alt="">
+                    <div class="comment-body">
+                        <div class="comment-top"><span class="comment-user">${escapeHtml(r.user)}</span><span class="comment-time">${escapeHtml(r.time)}</span></div>
+                        <div class="comment-text">${escapeHtml(r.text)}</div>
+                    </div>`;
+                repliesBox.appendChild(ri);
+            });
+            wrap.querySelector('.comment-body').appendChild(repliesBox);
+        }
+        return wrap;
+    }
+
+    cancelReply.addEventListener('click', () => { replyTarget = null; replyIndicator.classList.remove('show'); });
+
+    commentsInput.addEventListener('input', () => {
+        commentsInput.style.height = 'auto';
+        commentsInput.style.height = Math.min(commentsInput.scrollHeight, 80) + 'px';
+        commentsSend.disabled = commentsInput.value.trim().length === 0;
+    });
+
+    commentsSend.addEventListener('click', () => {
+        const txt = commentsInput.value.trim();
+        if(!txt || !activePost) return;
+        const user = currentUser;
+        const userName = user ? ([user.first_name, user.last_name].filter(Boolean).join(' ') || 'Foydalanuvchi') : 'Foydalanuvchi';
+        const avatar = user?.photo_url || generateAvatarPlaceholder(userName);
+        const newC = {id: 'c_'+Date.now(), user: userName, avatar, text: txt, time: formatTimeShort(), replies: []};
+
+        if(replyTarget){
+            const parent = activePost.comments.find(c => c.id === replyTarget.commentId);
+            if(parent) parent.replies.push(newC);
+        } else {
+            activePost.comments.push(newC);
+        }
+
+        myReplies.unshift({postId: activePost.id, user: userName, avatar, text: txt, time: formatTimeShort(), postText: activePost.text});
+        saveArr(REPLIES_KEY, myReplies);
+
+        savePosts(posts);
+
+        commentsInput.value = '';
+        commentsInput.style.height = 'auto';
+        commentsSend.disabled = true;
+        replyTarget = null;
+        replyIndicator.classList.remove('show');
+        renderComments();
+        tg?.HapticFeedback?.notificationOccurred('success');
+
+        const item = document.querySelector(`.post-item[data-id="${activePost.id}"]`);
+        if(item){
+            const cc = item.querySelector('.comment-count');
+            if(cc) cc.textContent = countComments(activePost);
+        }
+        commentsList.scrollTop = commentsList.scrollHeight;
+    });
+
+    function formatTimeShort(){
+        const d = new Date();
+        return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    }
+
+    /* ================= COMPOSER ================= */
+    const composeFab = document.getElementById('composeFab');
+    const composerOverlay = document.getElementById('composerOverlay');
+    const composer = document.getElementById('composer');
+    const composerInput = document.getElementById('composerInput');
+    const composerSubmit = document.getElementById('composerSubmit');
+    const attachBtn = document.getElementById('attachBtn');
+    const attachVideoBtn = document.getElementById('attachVideoBtn');
+    const fileInput = document.getElementById('fileInput');
+    const videoInput = document.getElementById('videoInput');
+    const composerPreview = document.getElementById('composerPreview');
+    const previewImg = document.getElementById('previewImg');
+    const previewVid = document.getElementById('previewVid');
+    const removeImg = document.getElementById('removeImg');
+    const composerClose = document.getElementById('composerClose');
+
+    let currentMedia = null;
+
+    function openComposer(){
+        composerOverlay.classList.add('show');
+        composer.classList.add('show');
+        setTimeout(() => composerInput.focus(), 300);
+        tg?.HapticFeedback?.impactOccurred('light');
+    }
+    function closeComposer(){
+        composerOverlay.classList.remove('show');
+        composer.classList.remove('show');
+        composerInput.blur();
+    }
+    function refreshSubmit(){
+        composerSubmit.disabled = !(composerInput.value.trim().length > 0 || currentMedia);
+    }
+
+    composeFab?.addEventListener('click', openComposer);
+    composerOverlay.addEventListener('click', closeComposer);
+    composerClose.addEventListener('click', () => { closeComposer(); tg?.HapticFeedback?.impactOccurred('light'); });
+
+    composerInput.addEventListener('input', () => {
+        composerInput.style.height = 'auto';
+        composerInput.style.height = Math.min(composerInput.scrollHeight, 160) + 'px';
+        refreshSubmit();
+    });
+
+    attachBtn.addEventListener('click', () => { fileInput.click(); tg?.HapticFeedback?.impactOccurred('light'); });
+    attachVideoBtn.addEventListener('click', () => { videoInput.click(); tg?.HapticFeedback?.impactOccurred('light'); });
+
+    fileInput.addEventListener('change', e => {
+        const f = e.target.files[0]; if(!f) return;
+        const reader = new FileReader();
+        reader.onload = ev => {
+            currentMedia = {data: ev.target.result, type: 'image'};
+            previewImg.src = currentMedia.data; previewImg.style.display = 'block';
+            previewVid.style.display = 'none'; previewVid.src = '';
+            composerPreview.classList.add('show');
+            refreshSubmit();
+        };
+        reader.readAsDataURL(f); fileInput.value = '';
+    });
+
+    videoInput.addEventListener('change', e => {
+        const f = e.target.files[0]; if(!f) return;
+        const reader = new FileReader();
+        reader.onload = ev => {
+            currentMedia = {data: ev.target.result, type: 'video'};
+            previewVid.src = currentMedia.data; previewVid.style.display = 'block';
+            previewImg.style.display = 'none'; previewImg.src = '';
+            composerPreview.classList.add('show');
+            refreshSubmit();
+        };
+        reader.readAsDataURL(f); videoInput.value = '';
+    });
+
+    removeImg.addEventListener('click', () => {
+        currentMedia = null; composerPreview.classList.remove('show');
+        previewImg.src = ''; previewImg.style.display = 'none';
+        previewVid.src = ''; previewVid.style.display = 'none';
+        refreshSubmit();
+    });
+
+    composerSubmit.addEventListener('click', () => {
+        const text = composerInput.value.trim();
+        if(!text && !currentMedia) return;
+        const user = currentUser;
+        const userName = user ? ([user.first_name, user.last_name].filter(Boolean).join(' ') || 'Foydalanuvchi') : 'Foydalanuvchi';
+        const avatar = user?.photo_url || generateAvatarPlaceholder(userName);
+        const type = currentMedia ? (currentMedia.type === 'video' ? 'video' : 'image') : 'text';
+
+        const newPost = {
+            id: 'p_' + Date.now(),
+            user: userName, avatar,
+            time: formatTimeShort() + ' · hozir',
+            text,
+            image: currentMedia ? currentMedia.data : null,
+            type,
+            likes: 0, liked: false,
+            views: 0,
+            comments: []
+        };
+        posts.unshift(newPost);
+        savePosts(posts);
+
+        composerInput.value = ''; composerInput.style.height = 'auto';
+        currentMedia = null; composerPreview.classList.remove('show');
+        previewImg.src = ''; previewImg.style.display = 'none';
+        previewVid.src = ''; previewVid.style.display = 'none';
+        refreshSubmit();
+        closeComposer();
+        tg?.HapticFeedback?.notificationOccurred('success');
+        renderFeed();
+    });
     </script>
 </body>
 </html>
