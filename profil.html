@@ -9,7 +9,6 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* ... (unchanged CSS from your last version) ... */
         *{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
         html,body{background:#000!important;color:#fff}
         body{display:flex;justify-content:center;min-height:100vh;-webkit-font-smoothing:antialiased}
@@ -17,7 +16,11 @@
         .profile-pic-wrapper{display:flex;justify-content:center;width:100%;margin:60px 0 20px}
         .profile-pic{width:120px;height:120px;border-radius:50%;object-fit:cover;background:#1c1c1e;border:3px solid #1c1c1e}
         .name{font-size:28px;font-weight:600;margin-bottom:8px;text-align:center}
-        .last-seen{color:#8e8e93;font-size:15px;margin-bottom:30px;text-align:center}
+        .last-seen{color:#8e8e93;font-size:15px;margin-bottom:8px;text-align:center}
+        .user-id-badge{display:inline-flex;align-items:center;gap:6px;background:#1c1c1e;color:#fff;font-size:13px;font-weight:600;padding:6px 14px;border-radius:100px;margin-bottom:6px;border:1px solid #2c2c2e;font-variant-numeric:tabular-nums}
+        .user-id-badge svg{width:14px;height:14px;stroke:#8e8e93;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+        .user-phone{color:#8e8e93;font-size:13px;margin-bottom:30px;text-align:center;display:inline-flex;align-items:center;gap:6px}
+        .user-phone svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
         .stats-container{display:flex;width:100%;justify-content:space-between;margin-bottom:30px;padding:0 10px}
         .stat-item{display:flex;flex-direction:column;align-items:center;flex:1;cursor:pointer}
         .stat-item:active{opacity:.7}
@@ -143,7 +146,15 @@
         <img id="userPhoto" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%231c1c1e'/><circle cx='50' cy='40' r='18' fill='%233f3f46'/><ellipse cx='50' cy='90' rx='30' ry='22' fill='%233f3f46'/></svg>" alt="Profil rasmi" class="profile-pic">
     </div>
     <h1 class="name" id="userName">Yuklanmoqda...</h1>
-    <p class="last-seen" id="userStatus">Telegram foydalanuvchisi</p>
+    <div class="user-id-badge" id="userIdBadge">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="7" y1="9" x2="17" y2="9"/><line x1="7" y1="13" x2="13" y2="13"/></svg>
+        <span id="userUniqueId">—</span>
+    </div>
+    <div class="user-phone" id="userPhoneRow">
+        <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        <span id="userPhone">—</span>
+    </div>
+    <p class="last-seen" id="userStatus"></p>
     <div class="stats-container">
         <div class="stat-item"><span class="stat-number" id="subsCount">0</span><span class="stat-label">Obunalar</span></div>
         <div class="stat-divider"></div>
@@ -211,249 +222,355 @@
     </div>
 </nav>
 
+
 <script>
 /* ============================================================
-   SHARED POST STORE  (used by both profil.html and index.html)
-   Key: 'tg_feed_posts_v1'
+   USER STORE — local registration data (no Telegram API)
    ============================================================ */
-const POST_STORE_KEY='tg_feed_posts_v1';
+const USER_STORE_KEY = 'luz_user_v1';
 
-const PostStore = {
+const UserStore = {
     _cache: null,
     _load(){
-        if(this._cache!==null) return this._cache;
-        try{
-            const raw=localStorage.getItem(POST_STORE_KEY);
-            this._cache = raw ? JSON.parse(raw) : [];
-            if(!Array.isArray(this._cache)) this._cache=[];
-        }catch(e){ this._cache=[]; }
+        if(this._cache !== null) return this._cache;
+        try {
+            const raw = localStorage.getItem(USER_STORE_KEY);
+            this._cache = raw ? JSON.parse(raw) : null;
+        } catch(e){ this._cache = null; }
         return this._cache;
     },
     _save(){
-        try{ localStorage.setItem(POST_STORE_KEY, JSON.stringify(this._cache||[])); }catch(e){ console.warn('PostStore save failed',e); }
+        try { localStorage.setItem(USER_STORE_KEY, JSON.stringify(this._cache)); } catch(e){ console.warn('UserStore save failed', e); }
+    },
+    get(){ return this._load(); },
+    isRegistered(){ const u = this._load(); return !!(u && u.username && u.phone); },
+    save(data){
+        const now = Date.now();
+        const uniqueId = data.uniqueId || this._generateUniqueId(data.username);
+        this._cache = Object.assign({}, data, {
+            uniqueId,
+            registeredAt: (this._load()?.registeredAt) || now,
+            updatedAt: now
+        });
+        this._save();
+        return this._cache;
+    },
+    update(patch){
+        const cur = this._load();
+        if(!cur) return null;
+        const merged = Object.assign({}, cur, patch);
+        if(patch.username && !patch.uniqueId){
+            merged.uniqueId = this._generateUniqueId(patch.username);
+        }
+        merged.updatedAt = Date.now();
+        this._cache = merged;
+        this._save();
+        return merged;
+    },
+    clear(){
+        this._cache = null;
+        try { localStorage.removeItem(USER_STORE_KEY); } catch(e){}
+    },
+    _generateUniqueId(username){
+        const clean = String(username || '').replace(/^@+/, '').replace(/[^a-zA-Z0-9_]/g, '');
+        return `L.uz@${clean || 'user'}`;
+    },
+    displayName(){
+        const u = this._load();
+        if(!u) return '';
+        if(u.firstName || u.lastName) return [u.firstName, u.lastName].filter(Boolean).join(' ');
+        if(u.username) return '@' + u.username;
+        return 'Foydalanuvchi';
+    },
+    avatar(){
+        const u = this._load();
+        return (u && u.avatar) ? u.avatar : 'data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><rect width=\'100\' height=\'100\' fill=\'%231c1c1e\'/><circle cx=\'50\' cy=\'40\' r=\'18\' fill=\'%233f3f46\'/><ellipse cx=\'50\' cy=\'90\' rx=\'30\' ry=\'22\' fill=\'%233f3f46\'/></svg>';
+    }
+};
+
+/* ============================================================
+   POST STORE (unchanged)
+   ============================================================ */
+const POST_STORE_KEY = 'tg_feed_posts_v1';
+const PostStore = {
+    _cache: null,
+    _load(){
+        if(this._cache !== null) return this._cache;
+        try {
+            const raw = localStorage.getItem(POST_STORE_KEY);
+            this._cache = raw ? JSON.parse(raw) : [];
+            if(!Array.isArray(this._cache)) this._cache = [];
+        } catch(e){ this._cache = []; }
+        return this._cache;
+    },
+    _save(){
+        try { localStorage.setItem(POST_STORE_KEY, JSON.stringify(this._cache || [])); } catch(e){ console.warn('PostStore save failed', e); }
     },
     all(){ return this._load().slice(); },
     byUser(userIdOrName){
-        const all=this._load();
+        const all = this._load();
         if(!userIdOrName) return all.slice();
-        return all.filter(p=>String(p.userId)===String(userIdOrName) || p.user===userIdOrName);
+        return all.filter(p => String(p.userId) === String(userIdOrName) || p.user === userIdOrName);
     },
     add(post){
-        const list=this._load();
+        const list = this._load();
         list.unshift(post);
-        this._cache=list;
+        this._cache = list;
         this._save();
         return post;
     },
     update(id, patch){
-        const list=this._load();
-        const i=list.findIndex(p=>p.id===id);
-        if(i<0) return null;
-        list[i]=Object.assign({},list[i],patch);
-        this._cache=list;
+        const list = this._load();
+        const i = list.findIndex(p => p.id === id);
+        if(i < 0) return null;
+        list[i] = Object.assign({}, list[i], patch);
+        this._cache = list;
         this._save();
         return list[i];
     },
     remove(id){
-        const list=this._load().filter(p=>p.id!==id);
-        this._cache=list;
+        const list = this._load().filter(p => p.id !== id);
+        this._cache = list;
         this._save();
     }
 };
 
-/* ---------- Existing profil logic ---------- */
-const tg=window.Telegram?.WebApp;
-if(tg){tg.ready();tg.expand();tg.setHeaderColor('#000000');tg.setBackgroundColor('#000000')}
+/* ============================================================
+   Telegram WebApp is used ONLY for haptics/UI, NOT for user data
+   ============================================================ */
+const tg = window.Telegram?.WebApp;
+if(tg){ tg.ready(); tg.expand(); tg.setHeaderColor('#000000'); tg.setBackgroundColor('#000000'); }
 
-const profileUserId=new URLSearchParams(location.search).get('id');
-const myUserId=tg?.initDataUnsafe?.user?.id;
-const isOwn=!profileUserId||String(profileUserId)===String(myUserId);
+/* ============================================================
+   AUTH GUARD — unregistered users are sent back to register
+   ============================================================ */
+const params = new URLSearchParams(location.search);
+const profileUserIdParam = params.get('id');
 
-if(isOwn){
-    document.getElementById('ownProfileActions').style.display='flex';
-    const u=tg?.initDataUnsafe?.user;
-    if(u){
-        document.getElementById('userName').textContent=[u.first_name,u.last_name].filter(Boolean).join(' ')||'Foydalanuvchi';
-        document.getElementById('userStatus').textContent=u.username?'@'+u.username:'Telegram foydalanuvchisi';
-        if(u.photo_url){
-            document.getElementById('userPhoto').src=u.photo_url;
-            document.getElementById('navUserPhoto').src=u.photo_url;
-            document.getElementById('composerAvatar').src=u.photo_url;
-        }
-    }
-}else{
-    document.getElementById('otherProfileActions').style.display='flex';
-    document.getElementById('postBtn').style.display='none';
-    document.getElementById('userName').textContent='Foydalanuvchi';
-    document.getElementById('userStatus').textContent='Profil #'+profileUserId;
+// If opening own profile (no ?id) and not registered → redirect to register page
+if(!profileUserIdParam && !UserStore.isRegistered()){
+    location.replace('royxatdan.html');
+    // stop further execution
+    throw new Error('redirect-to-register');
 }
 
-document.getElementById('editBtn')?.addEventListener('click',()=>{tg?.HapticFeedback?.impactOccurred('light');location.href='tahrirlash.html'});
-document.getElementById('settingsBtn')?.addEventListener('click',()=>{tg?.HapticFeedback?.impactOccurred('light');location.href='setting.html'});
-document.getElementById('subscribeBtn')?.addEventListener('click',()=>{
+const me = UserStore.get();
+const isOwn = !profileUserIdParam || (me && profileUserIdParam === me.uniqueId) || (me && String(profileUserIdParam) === String(me.id));
+
+/* ============================================================
+   Populate profile from UserStore
+   ============================================================ */
+function populateProfileHeader(){
+    if(isOwn){
+        document.getElementById('ownProfileActions').style.display = 'flex';
+        const u = UserStore.get();
+
+        // Name
+        document.getElementById('userName').textContent = UserStore.displayName() || 'Foydalanuvchi';
+
+        // Unique ID badge — "L.uz@username"
+        document.getElementById('userUniqueId').textContent = u?.uniqueId || '—';
+
+        // Phone
+        document.getElementById('userPhone').textContent = u?.phone || '—';
+
+        // Username status line
+        document.getElementById('userStatus').textContent = u?.username ? '@' + u.username : '';
+
+        // Photo
+        const avatar = UserStore.avatar();
+        document.getElementById('userPhoto').src = avatar;
+        document.getElementById('navUserPhoto').src = avatar;
+        document.getElementById('composerAvatar').src = avatar;
+    } else {
+        document.getElementById('otherProfileActions').style.display = 'flex';
+        document.getElementById('postBtn').style.display = 'none';
+        document.getElementById('userIdBadge').style.display = 'none';
+        document.getElementById('userPhoneRow').style.display = 'none';
+        document.getElementById('userName').textContent = 'Foydalanuvchi';
+        document.getElementById('userStatus').textContent = 'Profil: ' + profileUserIdParam;
+    }
+}
+
+populateProfileHeader();
+
+/* ---------------- Buttons ---------------- */
+document.getElementById('editBtn')?.addEventListener('click', () => { tg?.HapticFeedback?.impactOccurred('light'); location.href = 'tahrirlash.html'; });
+document.getElementById('settingsBtn')?.addEventListener('click', () => { tg?.HapticFeedback?.impactOccurred('light'); location.href = 'setting.html'; });
+
+document.getElementById('subscribeBtn')?.addEventListener('click', () => {
     tg?.HapticFeedback?.impactOccurred('medium');
-    const b=document.getElementById('subscribeBtn');
-    b.innerHTML=`<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Obuna bo'lindi`;
-    b.style.opacity='.7';b.disabled=true;
+    const b = document.getElementById('subscribeBtn');
+    b.innerHTML = `<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Obuna bo'lindi`;
+    b.style.opacity = '.7'; b.disabled = true;
 });
-document.getElementById('messageBtn')?.addEventListener('click',()=>{tg?.HapticFeedback?.impactOccurred('light');location.href=`xabar.html?chat=${profileUserId}`});
+document.getElementById('messageBtn')?.addEventListener('click', () => {
+    tg?.HapticFeedback?.impactOccurred('light');
+    location.href = `xabar.html?chat=${encodeURIComponent(profileUserIdParam)}`;
+});
 
 /* ---------- Icons & texts ---------- */
-const icons={
-    home:`<svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
-    posts:`<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`,
-    video:`<svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>`,
-    answers:`<svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>`,
-    saved:`<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`
+const icons = {
+    home: `<svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
+    posts: `<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`,
+    video: `<svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>`,
+    answers: `<svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>`,
+    saved: `<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`
 };
-const texts={home:"Hali post yo'q",posts:"Hali post yo'q",video:"Hali video yo'q",answers:"Hali javob yo'q",saved:"Hali saqlangan post yo'q"};
+const texts = { home: "Hali post yo'q", posts: "Hali post yo'q", video: "Hali video yo'q", answers: "Hali javob yo'q", saved: "Hali saqlangan post yo'q" };
 
 let toastTimer;
 function showToast(msg){
-    const t=document.getElementById('toast');
-    t.textContent=msg;t.classList.add('show');
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
     clearTimeout(toastTimer);
-    toastTimer=setTimeout(()=>t.classList.remove('show'),1800);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
 }
 
-/* ---------- State (now pulled from shared store) ---------- */
-let posts=[];
-let savedPosts=new Set();
-let viewedByMe=new Set();
-let myReplies=[];
+/* ---------- State ---------- */
+let posts = [];
+let savedPosts = new Set();
+let viewedByMe = new Set();
+let myReplies = [];
+
+function currentUserId(){
+    const u = UserStore.get();
+    return u?.uniqueId || u?.id || 'me';
+}
+function currentUserName(){
+    return UserStore.displayName() || 'Foydalanuvchi';
+}
+function currentUserAvatar(){
+    return UserStore.avatar();
+}
 
 function loadMyPosts(){
-    const u=tg?.initDataUnsafe?.user;
-    const uid=profileUserId || u?.id;
-    posts = profileUserId
-        ? PostStore.byUser(profileUserId)
-        : PostStore.byUser(u?.id ?? 'me');
-    // If own profile and no userId stored yet, fall back to name match
-    if(!profileUserId && u && posts.length===0){
-        posts = PostStore.all().filter(p=>p.user===[u.first_name,u.last_name].filter(Boolean).join(' '));
+    const uid = profileUserIdParam || currentUserId();
+    posts = PostStore.byUser(uid);
+    // fallback by name match if IDs haven't been recorded
+    if(posts.length === 0){
+        posts = PostStore.all().filter(p => p.user === currentUserName());
     }
     updatePostsCount();
 }
-
-function updatePostsCount(){document.getElementById('postsCount').textContent=posts.length}
+function updatePostsCount(){ document.getElementById('postsCount').textContent = posts.length; }
 
 function renderEmpty(k){
-    const area=document.getElementById('contentArea');
-    area.innerHTML=`<div class="empty-icon">${icons[k]}</div><p>${texts[k]}</p>`;
+    const area = document.getElementById('contentArea');
+    area.innerHTML = `<div class="empty-icon">${icons[k]}</div><p>${texts[k]}</p>`;
 }
 
-let currentTab='home';
+let currentTab = 'home';
 
 function renderList(list, emptyKey){
-    const area=document.getElementById('contentArea');
-    if(list.length===0){renderEmpty(emptyKey);return;}
-    area.innerHTML='<div class="feed" id="feed"></div>';
-    const feed=document.getElementById('feed');
-    list.forEach(p=>feed.appendChild(buildPostItem(p)));
+    const area = document.getElementById('contentArea');
+    if(list.length === 0){ renderEmpty(emptyKey); return; }
+    area.innerHTML = '<div class="feed" id="feed"></div>';
+    const feed = document.getElementById('feed');
+    list.forEach(p => feed.appendChild(buildPostItem(p)));
 }
-
-function renderHome(){ renderList(posts,'home'); }
-function renderPosts(){ renderList(posts,'posts'); }
-function renderVideos(){ renderList(posts.filter(p=>p.type==='video'),'video'); }
-function renderSaved(){ renderList(posts.filter(p=>savedPosts.has(p.id)),'saved'); }
+function renderHome(){ renderList(posts, 'home'); }
+function renderPosts(){ renderList(posts, 'posts'); }
+function renderVideos(){ renderList(posts.filter(p => p.type === 'video'), 'video'); }
+function renderSaved(){ renderList(posts.filter(p => savedPosts.has(p.id)), 'saved'); }
 
 function renderReplies(){
-    const area=document.getElementById('contentArea');
-    if(myReplies.length===0){renderEmpty('answers');return;}
-    area.innerHTML='<div class="feed" id="feed"></div>';
-    const feed=document.getElementById('feed');
-    myReplies.forEach(r=>{
-        const item=document.createElement('div');
-        item.className='post-item';
-        item.innerHTML=`
+    const area = document.getElementById('contentArea');
+    if(myReplies.length === 0){ renderEmpty('answers'); return; }
+    area.innerHTML = '<div class="feed" id="feed"></div>';
+    const feed = document.getElementById('feed');
+    myReplies.forEach(r => {
+        const item = document.createElement('div');
+        item.className = 'post-item';
+        item.innerHTML = `
             <div class="post-head"><img class="post-avatar" src="${r.avatar}" alt=""><div class="post-head-info"><div class="post-user">${r.user}</div><div class="post-time">${r.time}</div></div></div>
             <div class="post-text">${escapeHtml(r.text)}</div>
-            <div style="font-size:12px;color:#5a5a5e;margin-top:8px">Javob: "${escapeHtml(r.postText||'post')}"</div>`;
+            <div style="font-size:12px;color:#5a5a5e;margin-top:8px">Javob: "${escapeHtml(r.postText || 'post')}"</div>`;
         feed.appendChild(item);
     });
 }
 
 function buildPostItem(p){
-    const item=document.createElement('div');
-    item.className='post-item';
-    item.dataset.id=p.id;
+    const item = document.createElement('div');
+    item.className = 'post-item';
+    item.dataset.id = p.id;
 
-    const head=document.createElement('div');
-    head.className='post-head';
-    head.innerHTML=`<img class="post-avatar" src="${p.avatar}" alt="Avatar"><div class="post-head-info"><div class="post-user">${p.user}</div><div class="post-time">${p.time}</div></div>`;
+    const head = document.createElement('div');
+    head.className = 'post-head';
+    head.innerHTML = `<img class="post-avatar" src="${p.avatar}" alt="Avatar"><div class="post-head-info"><div class="post-user">${p.user}</div><div class="post-time">${p.time}</div></div>`;
     item.appendChild(head);
 
     if(p.text){
-        const text=document.createElement('div');
-        text.className='post-text';text.textContent=p.text;
+        const text = document.createElement('div');
+        text.className = 'post-text'; text.textContent = p.text;
         item.appendChild(text);
     }
-    if(p.type==='image' && p.image){
-        const img=document.createElement('img');
-        img.className='post-image';img.src=p.image;
+    if(p.type === 'image' && p.image){
+        const img = document.createElement('img');
+        img.className = 'post-image'; img.src = p.image;
         item.appendChild(img);
     }
-    if(p.type==='video' && p.image){
-        const vid=document.createElement('video');
-        vid.className='post-video';vid.src=p.image;vid.controls=true;vid.playsInline=true;vid.preload='metadata';
+    if(p.type === 'video' && p.image){
+        const vid = document.createElement('video');
+        vid.className = 'post-video'; vid.src = p.image; vid.controls = true; vid.playsInline = true; vid.preload = 'metadata';
         item.appendChild(vid);
     }
 
-    const actions=document.createElement('div');
-    actions.className='post-actions';
+    const actions = document.createElement('div');
+    actions.className = 'post-actions';
 
-    const likeBtn=document.createElement('button');
-    likeBtn.className='act-btn'+(p.liked?' liked':'');
-    likeBtn.setAttribute('aria-label','Like');
-    likeBtn.innerHTML=`<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span class="act-count like-count">${p.likes}</span>`;
-    likeBtn.addEventListener('click',()=>{
-        p.liked=!p.liked;
-        p.likes+=p.liked?1:-1;
-        PostStore.update(p.id,{liked:p.liked,likes:p.likes});
-        likeBtn.classList.toggle('liked',p.liked);
-        likeBtn.querySelector('.like-count').textContent=p.likes;
+    const likeBtn = document.createElement('button');
+    likeBtn.className = 'act-btn' + (p.liked ? ' liked' : '');
+    likeBtn.setAttribute('aria-label', 'Like');
+    likeBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span class="act-count like-count">${p.likes}</span>`;
+    likeBtn.addEventListener('click', () => {
+        p.liked = !p.liked;
+        p.likes += p.liked ? 1 : -1;
+        PostStore.update(p.id, { liked: p.liked, likes: p.likes });
+        likeBtn.classList.toggle('liked', p.liked);
+        likeBtn.querySelector('.like-count').textContent = p.likes;
         tg?.HapticFeedback?.impactOccurred('light');
     });
     actions.appendChild(likeBtn);
 
-    const commentBtn=document.createElement('button');
-    commentBtn.className='act-btn';
-    commentBtn.setAttribute('aria-label','Izohlar');
-    commentBtn.innerHTML=`<svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg><span class="act-count comment-count">${countComments(p)}</span>`;
-    commentBtn.addEventListener('click',()=>openComments(p));
+    const commentBtn = document.createElement('button');
+    commentBtn.className = 'act-btn';
+    commentBtn.setAttribute('aria-label', 'Izohlar');
+    commentBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg><span class="act-count comment-count">${countComments(p)}</span>`;
+    commentBtn.addEventListener('click', () => openComments(p));
     actions.appendChild(commentBtn);
 
-    const viewBtn=document.createElement('button');
-    viewBtn.className='act-btn';
-    viewBtn.style.cursor='default';
-    viewBtn.setAttribute('aria-label','Ko\'rishlar');
-    viewBtn.innerHTML=`<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span class="act-count view-count">${p.views}</span>`;
+    const viewBtn = document.createElement('button');
+    viewBtn.className = 'act-btn';
+    viewBtn.style.cursor = 'default';
+    viewBtn.setAttribute('aria-label', "Ko'rishlar");
+    viewBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span class="act-count view-count">${p.views}</span>`;
     actions.appendChild(viewBtn);
 
-    const saveBtn=document.createElement('button');
-    saveBtn.className='act-btn'+(savedPosts.has(p.id)?' saved':'');
-    saveBtn.setAttribute('aria-label','Saqlash');
-    saveBtn.innerHTML=`<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
-    saveBtn.addEventListener('click',()=>{
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'act-btn' + (savedPosts.has(p.id) ? ' saved' : '');
+    saveBtn.setAttribute('aria-label', 'Saqlash');
+    saveBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
+    saveBtn.addEventListener('click', () => {
         if(savedPosts.has(p.id)){
             savedPosts.delete(p.id);
             saveBtn.classList.remove('saved');
             showToast('Saqlanganlardan olib tashlandi');
-        }else{
+        } else {
             savedPosts.add(p.id);
             saveBtn.classList.add('saved');
             showToast('Saqlandi');
         }
         tg?.HapticFeedback?.impactOccurred('light');
-        if(currentTab==='saved') renderSaved();
+        if(currentTab === 'saved') renderSaved();
     });
     actions.appendChild(saveBtn);
 
-    const shareBtn=document.createElement('button');
-    shareBtn.className='act-btn';
-    shareBtn.setAttribute('aria-label','Ulashish');
-    shareBtn.innerHTML=`<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>`;
-    shareBtn.addEventListener('click',()=>sharePost(p));
+    const shareBtn = document.createElement('button');
+    shareBtn.className = 'act-btn';
+    shareBtn.setAttribute('aria-label', 'Ulashish');
+    shareBtn.innerHTML = `<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>`;
+    shareBtn.addEventListener('click', () => sharePost(p));
     actions.appendChild(shareBtn);
 
     item.appendChild(actions);
@@ -462,58 +579,58 @@ function buildPostItem(p){
 }
 
 function countComments(p){
-    let n=p.comments.length;
-    p.comments.forEach(c=>n+=c.replies.length);
+    let n = p.comments.length;
+    p.comments.forEach(c => n += c.replies.length);
     return n;
 }
 
 function registerView(p, item){
     if(viewedByMe.has(p.id)) return;
-    const io=new IntersectionObserver(entries=>{
-        entries.forEach(entry=>{
+    const io = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
             if(entry.isIntersecting && !viewedByMe.has(p.id)){
                 viewedByMe.add(p.id);
-                p.views+=1;
-                PostStore.update(p.id,{views:p.views});
-                const vc=item.querySelector('.view-count');
-                if(vc) vc.textContent=p.views;
+                p.views += 1;
+                PostStore.update(p.id, { views: p.views });
+                const vc = item.querySelector('.view-count');
+                if(vc) vc.textContent = p.views;
                 io.disconnect();
             }
         });
-    },{threshold:0.5});
+    }, { threshold: 0.5 });
     io.observe(item);
 }
 
 function sharePost(p){
     tg?.HapticFeedback?.impactOccurred('light');
-    const link=location.origin+location.pathname+'?post='+encodeURIComponent(p.id);
+    const link = location.origin + location.pathname + '?post=' + encodeURIComponent(p.id);
     if(navigator.share){
-        navigator.share({title:'Post',text:p.text||'Post',url:link}).catch(()=>{});
-    }else{
-        const tgShare=`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(p.text||'Post')}`;
+        navigator.share({ title: 'Post', text: p.text || 'Post', url: link }).catch(() => {});
+    } else {
+        const tgShare = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(p.text || 'Post')}`;
         if(tg && tg.openTelegramLink){ tg.openTelegramLink(tgShare); }
-        else{ window.open(tgShare,'_blank'); }
+        else { window.open(tgShare, '_blank'); }
     }
-    try{navigator.clipboard?.writeText(link);}catch(e){}
+    try { navigator.clipboard?.writeText(link); } catch(e){}
     showToast('Havola nusxalandi');
 }
 
 /* ---------- Comments ---------- */
-const commentsOverlay=document.getElementById('commentsOverlay');
-const commentsPanel=document.getElementById('commentsPanel');
-const commentsList=document.getElementById('commentsList');
-const commentsInput=document.getElementById('commentsInput');
-const commentsSend=document.getElementById('commentsSend');
-const commentsClose=document.getElementById('commentsClose');
-const replyIndicator=document.getElementById('replyIndicator');
-const replyText=document.getElementById('replyText');
-const cancelReply=document.getElementById('cancelReply');
+const commentsOverlay = document.getElementById('commentsOverlay');
+const commentsPanel = document.getElementById('commentsPanel');
+const commentsList = document.getElementById('commentsList');
+const commentsInput = document.getElementById('commentsInput');
+const commentsSend = document.getElementById('commentsSend');
+const commentsClose = document.getElementById('commentsClose');
+const replyIndicator = document.getElementById('replyIndicator');
+const replyText = document.getElementById('replyText');
+const cancelReply = document.getElementById('cancelReply');
 
-let activePost=null;
-let replyTarget=null;
+let activePost = null;
+let replyTarget = null;
 
 function openComments(p){
-    activePost=p;replyTarget=null;
+    activePost = p; replyTarget = null;
     replyIndicator.classList.remove('show');
     renderComments();
     commentsOverlay.classList.add('show');
@@ -523,46 +640,46 @@ function openComments(p){
 function closeComments(){
     commentsOverlay.classList.remove('show');
     commentsPanel.classList.remove('show');
-    activePost=null;replyTarget=null;
-    commentsInput.value='';commentsSend.disabled=true;
+    activePost = null; replyTarget = null;
+    commentsInput.value = ''; commentsSend.disabled = true;
 }
-commentsOverlay.addEventListener('click',closeComments);
-commentsClose.addEventListener('click',()=>{closeComments();tg?.HapticFeedback?.impactOccurred('light')});
+commentsOverlay.addEventListener('click', closeComments);
+commentsClose.addEventListener('click', () => { closeComments(); tg?.HapticFeedback?.impactOccurred('light'); });
 
 function renderComments(){
-    if(!activePost)return;
-    const list=commentsList;
-    list.innerHTML='';
-    if(activePost.comments.length===0){
-        list.innerHTML='<div class="comments-empty">Hali izoh yo\'q. Birinchi bo\'ling!</div>';
+    if(!activePost) return;
+    const list = commentsList;
+    list.innerHTML = '';
+    if(activePost.comments.length === 0){
+        list.innerHTML = '<div class="comments-empty">Hali izoh yo\'q. Birinchi bo\'ling!</div>';
         return;
     }
-    activePost.comments.forEach(c=>list.appendChild(buildComment(c)));
+    activePost.comments.forEach(c => list.appendChild(buildComment(c)));
 }
 
 function buildComment(c){
-    const wrap=document.createElement('div');
-    wrap.className='comment-item';
-    wrap.innerHTML=`
+    const wrap = document.createElement('div');
+    wrap.className = 'comment-item';
+    wrap.innerHTML = `
         <img class="comment-avatar" src="${c.avatar}" alt="">
         <div class="comment-body">
             <div class="comment-top"><span class="comment-user">${c.user}</span><span class="comment-time">${c.time}</span></div>
             <div class="comment-text">${escapeHtml(c.text)}</div>
             <div class="comment-actions"><button class="comment-reply-btn">Javob berish</button></div>
         </div>`;
-    wrap.querySelector('.comment-reply-btn').addEventListener('click',()=>{
-        replyTarget={commentId:c.id,user:c.user};
-        replyText.textContent=`@${c.user} ga javob`;
+    wrap.querySelector('.comment-reply-btn').addEventListener('click', () => {
+        replyTarget = { commentId: c.id, user: c.user };
+        replyText.textContent = `@${c.user} ga javob`;
         replyIndicator.classList.add('show');
         commentsInput.focus();
     });
     if(c.replies.length){
-        const repliesBox=document.createElement('div');
-        repliesBox.className='comment-replies';
-        c.replies.forEach(r=>{
-            const ri=document.createElement('div');
-            ri.className='comment-reply-item';
-            ri.innerHTML=`
+        const repliesBox = document.createElement('div');
+        repliesBox.className = 'comment-replies';
+        c.replies.forEach(r => {
+            const ri = document.createElement('div');
+            ri.className = 'comment-reply-item';
+            ri.innerHTML = `
                 <img class="comment-avatar" src="${r.avatar}" alt="">
                 <div class="comment-body">
                     <div class="comment-top"><span class="comment-user">${r.user}</span><span class="comment-time">${r.time}</span></div>
@@ -575,174 +692,175 @@ function buildComment(c){
     return wrap;
 }
 
-function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
-cancelReply.addEventListener('click',()=>{replyTarget=null;replyIndicator.classList.remove('show')});
+cancelReply.addEventListener('click', () => { replyTarget = null; replyIndicator.classList.remove('show'); });
 
-commentsInput.addEventListener('input',()=>{
-    commentsInput.style.height='auto';
-    commentsInput.style.height=Math.min(commentsInput.scrollHeight,80)+'px';
-    commentsSend.disabled=commentsInput.value.trim().length===0;
+commentsInput.addEventListener('input', () => {
+    commentsInput.style.height = 'auto';
+    commentsInput.style.height = Math.min(commentsInput.scrollHeight, 80) + 'px';
+    commentsSend.disabled = commentsInput.value.trim().length === 0;
 });
 
-commentsSend.addEventListener('click',()=>{
-    const txt=commentsInput.value.trim();
-    if(!txt||!activePost)return;
-    const u=tg?.initDataUnsafe?.user;
-    const userName=u?([u.first_name,u.last_name].filter(Boolean).join(' ')||'Foydalanuvchi'):'Foydalanuvchi';
-    const avatar=u?.photo_url||document.getElementById('userPhoto').src;
-    const newC={id:'c_'+Date.now(),user:userName,avatar,text:txt,time:formatTimeShort(),replies:[]};
+commentsSend.addEventListener('click', () => {
+    const txt = commentsInput.value.trim();
+    if(!txt || !activePost) return;
+
+    const userName = currentUserName();
+    const avatar = currentUserAvatar();
+    const newC = { id: 'c_' + Date.now(), user: userName, avatar, text: txt, time: formatTimeShort(), replies: [] };
 
     if(replyTarget){
-        const parent=activePost.comments.find(c=>c.id===replyTarget.commentId);
+        const parent = activePost.comments.find(c => c.id === replyTarget.commentId);
         if(parent) parent.replies.push(newC);
-    }else{
+    } else {
         activePost.comments.push(newC);
     }
 
-    PostStore.update(activePost.id,{comments:activePost.comments});
-    myReplies.unshift({postId:activePost.id,user:userName,avatar,text:txt,time:formatTimeShort(),postText:activePost.text});
+    PostStore.update(activePost.id, { comments: activePost.comments });
+    myReplies.unshift({ postId: activePost.id, user: userName, avatar, text: txt, time: formatTimeShort(), postText: activePost.text });
 
-    commentsInput.value='';commentsInput.style.height='auto';
-    commentsSend.disabled=true;replyTarget=null;
+    commentsInput.value = ''; commentsInput.style.height = 'auto';
+    commentsSend.disabled = true; replyTarget = null;
     replyIndicator.classList.remove('show');
     renderComments();
     tg?.HapticFeedback?.notificationOccurred('success');
 
-    const item=document.querySelector(`.post-item[data-id="${activePost.id}"]`);
+    const item = document.querySelector(`.post-item[data-id="${activePost.id}"]`);
     if(item){
-        const cc=item.querySelector('.comment-count');
-        if(cc) cc.textContent=countComments(activePost);
+        const cc = item.querySelector('.comment-count');
+        if(cc) cc.textContent = countComments(activePost);
     }
-    commentsList.scrollTop=commentsList.scrollHeight;
+    commentsList.scrollTop = commentsList.scrollHeight;
 });
 
 function formatTimeShort(){
-    const d=new Date();
+    const d = new Date();
     return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 }
 
 /* ---------- Tab switching ---------- */
 function switchTab(k){
-    currentTab=k;
-    document.querySelectorAll('.tab-item').forEach(t=>t.classList.toggle('active',t.dataset.tab===k));
-    if(k==='home') renderHome();
-    else if(k==='posts') renderPosts();
-    else if(k==='video') renderVideos();
-    else if(k==='answers') renderReplies();
-    else if(k==='saved') renderSaved();
+    currentTab = k;
+    document.querySelectorAll('.tab-item').forEach(t => t.classList.toggle('active', t.dataset.tab === k));
+    if(k === 'home') renderHome();
+    else if(k === 'posts') renderPosts();
+    else if(k === 'video') renderVideos();
+    else if(k === 'answers') renderReplies();
+    else if(k === 'saved') renderSaved();
 }
-document.getElementById('tabsContainer').addEventListener('click',e=>{
-    const tab=e.target.closest('.tab-item');
-    if(!tab)return;
+document.getElementById('tabsContainer').addEventListener('click', e => {
+    const tab = e.target.closest('.tab-item');
+    if(!tab) return;
     switchTab(tab.dataset.tab);
     tg?.HapticFeedback?.selectionChanged();
 });
 
 /* ---------- Composer ---------- */
-const postBtn=document.getElementById('postBtn');
-const overlay=document.getElementById('composerOverlay');
-const composer=document.getElementById('composer');
-const input=document.getElementById('composerInput');
-const submitBtn=document.getElementById('composerSubmit');
-const attachBtn=document.getElementById('attachBtn');
-const attachVideoBtn=document.getElementById('attachVideoBtn');
-const fileInput=document.getElementById('fileInput');
-const videoInput=document.getElementById('videoInput');
-const preview=document.getElementById('composerPreview');
-const previewImg=document.getElementById('previewImg');
-const previewVid=document.getElementById('previewVid');
-const removeImg=document.getElementById('removeImg');
-const composerClose=document.getElementById('composerClose');
+const postBtn = document.getElementById('postBtn');
+const overlay = document.getElementById('composerOverlay');
+const composer = document.getElementById('composer');
+const input = document.getElementById('composerInput');
+const submitBtn = document.getElementById('composerSubmit');
+const attachBtn = document.getElementById('attachBtn');
+const attachVideoBtn = document.getElementById('attachVideoBtn');
+const fileInput = document.getElementById('fileInput');
+const videoInput = document.getElementById('videoInput');
+const preview = document.getElementById('composerPreview');
+const previewImg = document.getElementById('previewImg');
+const previewVid = document.getElementById('previewVid');
+const removeImg = document.getElementById('removeImg');
+const composerClose = document.getElementById('composerClose');
 
-let currentMedia=null;
+let currentMedia = null;
 
-function openComposer(){overlay.classList.add('show');composer.classList.add('show');setTimeout(()=>input.focus(),300);tg?.HapticFeedback?.impactOccurred('light')}
-function closeComposer(){overlay.classList.remove('show');composer.classList.remove('show');input.blur()}
-function refreshSubmit(){submitBtn.disabled=!(input.value.trim().length>0||currentMedia)}
+function openComposer(){ overlay.classList.add('show'); composer.classList.add('show'); setTimeout(() => input.focus(), 300); tg?.HapticFeedback?.impactOccurred('light'); }
+function closeComposer(){ overlay.classList.remove('show'); composer.classList.remove('show'); input.blur(); }
+function refreshSubmit(){ submitBtn.disabled = !(input.value.trim().length > 0 || currentMedia); }
 
-postBtn?.addEventListener('click',openComposer);
-overlay.addEventListener('click',closeComposer);
-composerClose.addEventListener('click',()=>{closeComposer();tg?.HapticFeedback?.impactOccurred('light')});
+postBtn?.addEventListener('click', openComposer);
+overlay.addEventListener('click', closeComposer);
+composerClose.addEventListener('click', () => { closeComposer(); tg?.HapticFeedback?.impactOccurred('light'); });
 
-input.addEventListener('input',()=>{
-    input.style.height='auto';
-    input.style.height=Math.min(input.scrollHeight,160)+'px';
+input.addEventListener('input', () => {
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 160) + 'px';
     refreshSubmit();
 });
 
-attachBtn.addEventListener('click',()=>{fileInput.click();tg?.HapticFeedback?.impactOccurred('light')});
-attachVideoBtn.addEventListener('click',()=>{videoInput.click();tg?.HapticFeedback?.impactOccurred('light')});
+attachBtn.addEventListener('click', () => { fileInput.click(); tg?.HapticFeedback?.impactOccurred('light'); });
+attachVideoBtn.addEventListener('click', () => { videoInput.click(); tg?.HapticFeedback?.impactOccurred('light'); });
 
-fileInput.addEventListener('change',e=>{
-    const f=e.target.files[0];if(!f)return;
-    const reader=new FileReader();
-    reader.onload=ev=>{
-        currentMedia={data:ev.target.result,type:'image'};
-        previewImg.src=currentMedia.data;previewImg.style.display='block';
-        previewVid.style.display='none';previewVid.src='';
+fileInput.addEventListener('change', e => {
+    const f = e.target.files[0]; if(!f) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+        currentMedia = { data: ev.target.result, type: 'image' };
+        previewImg.src = currentMedia.data; previewImg.style.display = 'block';
+        previewVid.style.display = 'none'; previewVid.src = '';
         preview.classList.add('show');
         refreshSubmit();
     };
-    reader.readAsDataURL(f);fileInput.value='';
+    reader.readAsDataURL(f); fileInput.value = '';
 });
 
-videoInput.addEventListener('change',e=>{
-    const f=e.target.files[0];if(!f)return;
-    const reader=new FileReader();
-    reader.onload=ev=>{
-        currentMedia={data:ev.target.result,type:'video'};
-        previewVid.src=currentMedia.data;previewVid.style.display='block';
-        previewImg.style.display='none';previewImg.src='';
+videoInput.addEventListener('change', e => {
+    const f = e.target.files[0]; if(!f) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+        currentMedia = { data: ev.target.result, type: 'video' };
+        previewVid.src = currentMedia.data; previewVid.style.display = 'block';
+        previewImg.style.display = 'none'; previewImg.src = '';
         preview.classList.add('show');
         refreshSubmit();
     };
-    reader.readAsDataURL(f);videoInput.value='';
+    reader.readAsDataURL(f); videoInput.value = '';
 });
 
-removeImg.addEventListener('click',()=>{
-    currentMedia=null;preview.classList.remove('show');
-    previewImg.src='';previewImg.style.display='none';
-    previewVid.src='';previewVid.style.display='none';
+removeImg.addEventListener('click', () => {
+    currentMedia = null; preview.classList.remove('show');
+    previewImg.src = ''; previewImg.style.display = 'none';
+    previewVid.src = ''; previewVid.style.display = 'none';
     refreshSubmit();
 });
 
-submitBtn.addEventListener('click',()=>{
-    const text=input.value.trim();
+submitBtn.addEventListener('click', () => {
+    const text = input.value.trim();
     if(!text && !currentMedia) return;
-    const u=tg?.initDataUnsafe?.user;
-    const userName=u?([u.first_name,u.last_name].filter(Boolean).join(' ')||'Foydalanuvchi'):'Foydalanuvchi';
-    const avatar=u?.photo_url||document.getElementById('userPhoto').src;
-    const type = currentMedia ? (currentMedia.type==='video'?'video':'image') : 'text';
 
-    const newPost={
-        id:'p_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),
-        userId: u?.id ?? 'me',
-        user:userName,
+    const u = UserStore.get();
+    const userName = currentUserName();
+    const avatar = currentUserAvatar();
+    const type = currentMedia ? (currentMedia.type === 'video' ? 'video' : 'image') : 'text';
+
+    const newPost = {
+        id: 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+        userId: currentUserId(),               // <- L.uz@username
+        userIdRaw: u?.id || null,
+        user: userName,
         avatar,
-        time:formatTimeShort()+' · hozir',
+        time: formatTimeShort() + ' · hozir',
         text,
-        image:currentMedia?currentMedia.data:null,
+        image: currentMedia ? currentMedia.data : null,
         type,
-        likes:0,liked:false,
-        views:0,
-        comments:[]
+        likes: 0, liked: false,
+        views: 0,
+        comments: []
     };
 
     PostStore.add(newPost);
 
-    // refresh local view
-    posts = profileUserId ? PostStore.byUser(profileUserId) : PostStore.byUser(u?.id ?? 'me');
+    posts = PostStore.byUser(currentUserId());
     updatePostsCount();
 
-    input.value='';input.style.height='auto';
-    currentMedia=null;preview.classList.remove('show');
-    previewImg.src='';previewImg.style.display='none';
-    previewVid.src='';previewVid.style.display='none';
+    input.value = ''; input.style.height = 'auto';
+    currentMedia = null; preview.classList.remove('show');
+    previewImg.src = ''; previewImg.style.display = 'none';
+    previewVid.src = ''; previewVid.style.display = 'none';
     refreshSubmit();
     closeComposer();
     tg?.HapticFeedback?.notificationOccurred('success');
-    setTimeout(()=>switchTab('home'),250);
+    setTimeout(() => switchTab('home'), 250);
 });
 
 /* ---------- Init ---------- */
