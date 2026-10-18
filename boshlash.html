@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yangi quote UI</title>
-    <!-- Ikonkalar uchun FontAwesome ulangan -->
+    <title>Yangi quote UI - Yangilangan</title>
+    <!-- Ikonkalar uchun FontAwesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* Umumiy sozlamalar */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -16,29 +15,28 @@
         }
 
         body {
-            background-color: #000000; /* Asosiy qora fon */
+            background-color: #000000;
             color: #ffffff;
             display: flex;
             justify-content: center;
             height: 100vh;
         }
 
-        /* Ilova konteyneri (mobil o'lchamga moslash uchun) */
         .app-container {
             width: 100%;
             max-width: 400px; 
             background-color: #000000;
             height: 100%;
             position: relative;
+            overflow-y: auto;
         }
 
-        /* Yuqori qism (Header) */
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 16px 20px;
-            border-bottom: 1px solid #151515; /* Pastki nozik chiziq */
+            border-bottom: 1px solid #151515;
         }
 
         .back-btn {
@@ -58,24 +56,21 @@
         .share-btn {
             background: none;
             border: none;
-            color: #666666; /* Kulrang matn */
+            color: #666666;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
         }
 
-        /* Asosiy kontent qismi */
         .content {
             padding: 20px;
         }
 
-        /* Profil va matn kiritish joyi */
         .input-section {
             display: flex;
             margin-bottom: 24px;
         }
 
-        /* Rasm va uning ostidagi ip (chiziq) */
         .avatar-container {
             display: flex;
             flex-direction: column;
@@ -89,19 +84,23 @@
             border-radius: 50%;
             object-fit: cover;
             background-color: #333;
+            flex-shrink: 0;
         }
 
+        /* Chiziq endi kontent balandligiga qarab avtomatik cho'ziladi */
         .thread-line {
             width: 2px;
-            height: 35px;
+            flex-grow: 1;
             background-color: #1a1a1a;
             margin-top: 8px;
+            min-height: 30px;
         }
 
-        /* Matn kiritish maydoni */
         .input-container {
             flex-grow: 1;
             padding-top: 10px;
+            display: flex;
+            flex-direction: column;
         }
 
         textarea {
@@ -112,14 +111,13 @@
             font-size: 17px;
             resize: none;
             outline: none;
-            min-height: 50px;
+            min-height: 90px; /* 50px dan 90px ga oshirildi */
         }
 
         textarea::placeholder {
             color: #666666;
         }
 
-        /* Rasm qo'shish tugmasi */
         .add-image-btn {
             width: 100%;
             background-color: #0f0f0f;
@@ -137,46 +135,116 @@
             transition: 0.2s;
         }
 
-        .add-image-btn i {
-            font-size: 18px;
-        }
-
         .add-image-btn:hover {
             background-color: #1a1a1a;
+        }
+
+        /* Rasm prevyusi (yuklanganda chiqadigan qism) dizaynlari */
+        #imagePreviewContainer {
+            margin-top: 10px;
+            display: none; /* Boshida yashiringan */
+            position: relative;
+        }
+
+        #imagePreview {
+            width: 100%;
+            border-radius: 12px;
+            object-fit: cover;
+            max-height: 300px;
+            border: 1px solid #1a1a1a;
+        }
+
+        /* Rasmni o'chirish (X) tugmasi */
+        .remove-image-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 14px;
+            backdrop-filter: blur(4px);
         }
     </style>
 </head>
 <body>
 
     <div class="app-container">
-        <!-- Yuqori panel -->
         <header class="header">
             <button class="back-btn"><i class="fas fa-chevron-left"></i></button>
             <h1 class="title">Yangi quote</h1>
             <button class="share-btn">Ulashish</button>
         </header>
 
-        <!-- Matn va rasm qo'shish qismi -->
         <main class="content">
             <div class="input-section">
-                <!-- Foydalanuvchi rasmi va chiziq (Threads stilida) -->
                 <div class="avatar-container">
                     <img src="https://i.pravatar.cc/150?img=11" alt="Avatar" class="avatar">
                     <div class="thread-line"></div>
                 </div>
                 
-                <!-- Input textarea -->
                 <div class="input-container">
                     <textarea placeholder="Nima haqida yozmoqchisiz?"></textarea>
+                    
+                    <!-- Tanlangan rasm shu yerda chiqadi -->
+                    <div id="imagePreviewContainer">
+                        <img id="imagePreview" src="" alt="Tanlangan rasm">
+                        <button class="remove-image-btn" id="removeImageBtn"><i class="fas fa-times"></i></button>
+                    </div>
                 </div>
             </div>
 
-            <!-- Pastki tugma -->
-            <button class="add-image-btn">
+            <!-- Brauzer/Telefonning yashirin galereya chaqiruvchisi -->
+            <input type="file" id="imageInput" accept="image/*" style="display: none;">
+
+            <!-- Rasm qo'shish tugmasi -->
+            <button class="add-image-btn" id="addImageBtn">
                 <i class="far fa-image"></i> Rasm qo'shish
             </button>
         </main>
     </div>
 
+    <!-- Funksionallik qo'shish uchun JavaScript kodi -->
+    <script>
+        const addImageBtn = document.getElementById('addImageBtn');
+        const imageInput = document.getElementById('imageInput');
+        const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+        const imagePreview = document.getElementById('imagePreview');
+        const removeImageBtn = document.getElementById('removeImageBtn');
+
+        // 1. "Rasm qo'shish" tugmasi bosilganda yashirin inputni ishga tushirish
+        addImageBtn.addEventListener('click', () => {
+            imageInput.click();
+        });
+
+        // 2. Galereyadan rasm tanlanganda ekranda ko'rsatish
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    imagePreview.src = event.target.result;
+                    imagePreviewContainer.style.display = 'block'; // Rasmni ko'rsatish
+                    addImageBtn.style.display = 'none'; // "Rasm qo'shish" tugmasini vaqtinchalik yashirish
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // 3. O'chirish tugmasi bosilganda rasmni olib tashlash
+        removeImageBtn.addEventListener('click', () => {
+            imageInput.value = ''; // Inputni tozalash
+            imagePreview.src = '';
+            imagePreviewContainer.style.display = 'none'; // Rasm maydonini yashirish
+            addImageBtn.style.display = 'flex'; // "Rasm qo'shish" tugmasini qaytarish
+        });
+    </script>
 </body>
 </html>
