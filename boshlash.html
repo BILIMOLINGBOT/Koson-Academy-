@@ -19,15 +19,17 @@
             color: #ffffff;
             display: flex;
             justify-content: center;
-            height: 100vh;
+            min-height: 100vh;
         }
 
         .app-container {
             width: 100%;
             max-width: 400px; 
             background-color: #000000;
-            height: 100%;
+            min-height: 100vh;
             position: relative;
+            display: flex;
+            flex-direction: column;
             overflow-y: auto;
         }
 
@@ -37,6 +39,10 @@
             align-items: center;
             padding: 16px 20px;
             border-bottom: 1px solid #151515;
+            position: sticky;
+            top: 0;
+            background-color: #000000;
+            z-index: 10;
         }
 
         .back-btn {
@@ -62,13 +68,26 @@
             cursor: pointer;
         }
 
+        /* Kontentni pastga surish uchun asosiy o'zgarish */
         .content {
             padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end; /* Pastga tekislash */
+            flex-grow: 1; /* Bo'sh joyni to'ldirish */
+            min-height: calc(100vh - 60px); /* Header balandligini hisobga olish */
+        }
+
+        .input-wrapper {
+            margin-top: auto; /* Pastga surish */
+            display: flex;
+            flex-direction: column;
         }
 
         .input-section {
             display: flex;
             margin-bottom: 24px;
+            align-items: flex-start;
         }
 
         .avatar-container {
@@ -76,6 +95,7 @@
             flex-direction: column;
             align-items: center;
             margin-right: 15px;
+            flex-shrink: 0;
         }
 
         .avatar {
@@ -87,7 +107,6 @@
             flex-shrink: 0;
         }
 
-        /* Chiziq endi kontent balandligiga qarab avtomatik cho'ziladi */
         .thread-line {
             width: 2px;
             flex-grow: 1;
@@ -111,7 +130,7 @@
             font-size: 17px;
             resize: none;
             outline: none;
-            min-height: 90px; /* 50px dan 90px ga oshirildi */
+            min-height: 90px;
         }
 
         textarea::placeholder {
@@ -139,10 +158,10 @@
             background-color: #1a1a1a;
         }
 
-        /* Rasm prevyusi (yuklanganda chiqadigan qism) dizaynlari */
+        /* Rasm prevyusi dizaynlari */
         #imagePreviewContainer {
             margin-top: 10px;
-            display: none; /* Boshida yashiringan */
+            display: none;
             position: relative;
         }
 
@@ -154,7 +173,6 @@
             border: 1px solid #1a1a1a;
         }
 
-        /* Rasmni o'chirish (X) tugmasi */
         .remove-image-btn {
             position: absolute;
             top: 10px;
@@ -172,6 +190,18 @@
             font-size: 14px;
             backdrop-filter: blur(4px);
         }
+
+        /* Kichik ekranlar uchun moslashtirish */
+        @media (max-height: 600px) {
+            .content {
+                justify-content: flex-start;
+                min-height: auto;
+            }
+            
+            .input-wrapper {
+                margin-top: 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -184,30 +214,32 @@
         </header>
 
         <main class="content">
-            <div class="input-section">
-                <div class="avatar-container">
-                    <img src="https://i.pravatar.cc/150?img=11" alt="Avatar" class="avatar">
-                    <div class="thread-line"></div>
-                </div>
-                
-                <div class="input-container">
-                    <textarea placeholder="Nima haqida yozmoqchisiz?"></textarea>
+            <div class="input-wrapper">
+                <div class="input-section">
+                    <div class="avatar-container">
+                        <img src="https://i.pravatar.cc/150?img=11" alt="Avatar" class="avatar">
+                        <div class="thread-line"></div>
+                    </div>
                     
-                    <!-- Tanlangan rasm shu yerda chiqadi -->
-                    <div id="imagePreviewContainer">
-                        <img id="imagePreview" src="" alt="Tanlangan rasm">
-                        <button class="remove-image-btn" id="removeImageBtn"><i class="fas fa-times"></i></button>
+                    <div class="input-container">
+                        <textarea placeholder="Nima haqida yozmoqchisiz?"></textarea>
+                        
+                        <!-- Tanlangan rasm shu yerda chiqadi -->
+                        <div id="imagePreviewContainer">
+                            <img id="imagePreview" src="" alt="Tanlangan rasm">
+                            <button class="remove-image-btn" id="removeImageBtn"><i class="fas fa-times"></i></button>
+                        </div>
                     </div>
                 </div>
+
+                <!-- Brauzer/Telefonning yashirin galereya chaqiruvchisi -->
+                <input type="file" id="imageInput" accept="image/*" style="display: none;">
+
+                <!-- Rasm qo'shish tugmasi -->
+                <button class="add-image-btn" id="addImageBtn">
+                    <i class="far fa-image"></i> Rasm qo'shish
+                </button>
             </div>
-
-            <!-- Brauzer/Telefonning yashirin galereya chaqiruvchisi -->
-            <input type="file" id="imageInput" accept="image/*" style="display: none;">
-
-            <!-- Rasm qo'shish tugmasi -->
-            <button class="add-image-btn" id="addImageBtn">
-                <i class="far fa-image"></i> Rasm qo'shish
-            </button>
         </main>
     </div>
 
@@ -218,6 +250,7 @@
         const imagePreviewContainer = document.getElementById('imagePreviewContainer');
         const imagePreview = document.getElementById('imagePreview');
         const removeImageBtn = document.getElementById('removeImageBtn');
+        const textarea = document.querySelector('textarea');
 
         // 1. "Rasm qo'shish" tugmasi bosilganda yashirin inputni ishga tushirish
         addImageBtn.addEventListener('click', () => {
@@ -231,8 +264,8 @@
                 const reader = new FileReader();
                 reader.onload = function(event) {
                     imagePreview.src = event.target.result;
-                    imagePreviewContainer.style.display = 'block'; // Rasmni ko'rsatish
-                    addImageBtn.style.display = 'none'; // "Rasm qo'shish" tugmasini vaqtinchalik yashirish
+                    imagePreviewContainer.style.display = 'block';
+                    addImageBtn.style.display = 'none';
                 }
                 reader.readAsDataURL(file);
             }
@@ -240,10 +273,16 @@
 
         // 3. O'chirish tugmasi bosilganda rasmni olib tashlash
         removeImageBtn.addEventListener('click', () => {
-            imageInput.value = ''; // Inputni tozalash
+            imageInput.value = '';
             imagePreview.src = '';
-            imagePreviewContainer.style.display = 'none'; // Rasm maydonini yashirish
-            addImageBtn.style.display = 'flex'; // "Rasm qo'shish" tugmasini qaytarish
+            imagePreviewContainer.style.display = 'none';
+            addImageBtn.style.display = 'flex';
+        });
+
+        // 4. Textarea avtomatik balandligini oshirish
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
         });
     </script>
 </body>
