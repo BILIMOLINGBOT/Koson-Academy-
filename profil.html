@@ -313,6 +313,46 @@ const PostStore = {
 };
 
 /* ============================================================
+   VIEW TRACKER — (user_id, post_id) juftligi uchun 1 marta hisoblash
+   localStorage: 'luz_view_log_v1' => { "userId::postId": true }
+   ============================================================ */
+const VIEW_LOG_KEY = 'luz_view_log_v1';
+
+const ViewTracker = {
+    _cache: null,
+    _load() {
+        if (this._cache !== null) return this._cache;
+        try {
+            const raw = localStorage.getItem(VIEW_LOG_KEY);
+            this._cache = raw ? JSON.parse(raw) : {};
+            if (!this._cache || typeof this._cache !== 'object') this._cache = {};
+        } catch (e) { this._cache = {}; }
+        return this._cache;
+    },
+    _save() {
+        try { localStorage.setItem(VIEW_LOG_KEY, JSON.stringify(this._cache || {})); } catch (e) {}
+    },
+    _key(userId, postId) {
+        return String(userId) + '::' + String(postId);
+    },
+    hasViewed(userId, postId) {
+        if (!userId || !postId) return false;
+        return this._load()[this._key(userId, postId)] === true;
+    },
+    // true qaytadi agar yangi ko'rish hisoblansa; false — allaqachon hisoblangan
+    record(userId, postId) {
+        if (!userId || !postId) return false;
+        const log = this._load();
+        const k = this._key(userId, postId);
+        if (log[k] === true) return false;
+        log[k] = true;
+        this._cache = log;
+        this._save();
+        return true;
+    }
+};
+
+/* ============================================================
    SESSION
    ============================================================ */
 const currentUser = DB.getCurrentUser();
@@ -334,24 +374,23 @@ const displayUsername = profileOwner?.username ? '@'+profileOwner.username : '';
 const initialLetter = (displayName || 'F').trim().charAt(0).toUpperCase() || 'F';
 
 /* ============================================================
-   Yordamchi: avatar HTML (rasm yoki harf)
+   Yordamchi: avatar HTML
    ============================================================ */
 function avatarHTML(user, sizeClass, clickable){
     const name = user
         ? ([user.firstName, user.lastName].filter(Boolean).join(' ') || user.user || 'F')
-        : (user === null ? 'F' : 'F');
+        : 'F';
     const initial = (name.trim().charAt(0) || 'F').toUpperCase();
     const photo = user?.photo_url;
     const cursorStyle = clickable ? 'style="cursor:pointer"' : '';
     if (photo) {
         return `<img class="${sizeClass}" src="${photo}" alt="${escapeHtml(initial)}" ${cursorStyle}>`;
     }
-    // harf
     return `<div class="${sizeClass.replace('-avatar','-avatar-initial')}" ${cursorStyle}>${initial}</div>`;
 }
 
 /* ============================================================
-   Profil kartochkasini to'ldirish
+   Profil kartochkasi
    ============================================================ */
 if (isOwn) {
     document.getElementById('ownProfileActions').style.display = 'flex';
@@ -363,7 +402,6 @@ if (isOwn) {
 document.getElementById('userName').textContent = displayName;
 document.getElementById('userStatus').textContent = displayUsername || 'Profil';
 
-// Profil rasmi yoki harf
 const userPhotoEl = document.getElementById('userPhoto');
 const userInitialEl = document.getElementById('userInitial');
 if (profileOwner?.photo_url) {
@@ -376,7 +414,6 @@ if (profileOwner?.photo_url) {
     userInitialEl.style.display = 'flex';
 }
 
-// Avatar/ismga bosilganda profilga o'tish (boshqa userga)
 function goToProfile(userId){
     if (!userId) return;
     if (String(userId) === String(currentUser?.userId)) {
@@ -392,23 +429,21 @@ document.getElementById('userName').addEventListener('click', () => {
     if (!isOwn) goToProfile(profileOwner?.userId);
 });
 
-// Composer avatar slot
 document.getElementById('composerAvatarSlot').innerHTML = avatarHTML(profileOwner, 'composer-avatar', false);
-
-// Bottom nav avatar slot
 document.getElementById('navAvatarSlot').innerHTML = avatarHTML(currentUser, 'nav-avatar', false);
 
 /* ============================================================
-   Orqaga qaytish
+   ORQAGA QAYTISH — siz bergan kod
    ============================================================ */
 document.getElementById('backBtn').addEventListener('click', () => {
-    // Agar oldingi sahifa bo'lsa, orqaga qaytish; aks holda index.html
-    if (document.referrer && document.referrer !== location.href) {
-        history.back();
-    } else {
-        window.location.href = 'index.html';
-    }
+    window.location.href = 'index.html';
 });
+
+// Tarixga yozuv qo'shish va popstate ni tinglash
+window.history.pushState({ page: 1 }, "", "");
+window.onpopstate = function(event) {
+    window.location.href = 'index.html';
+};
 
 /* ============================================================
    Tugmalar
@@ -446,7 +481,7 @@ function showToast(msg){
 }
 
 /* ============================================================
-   ANIQ VAQT FUNKSIYALARI
+   VAQT FUNKSIYALARI
    ============================================================ */
 function formatExactTime(dateInput){
     const d = dateInput instanceof Date ? dateInput : new Date(dateInput);
@@ -458,24 +493,13 @@ function formatExactTime(dateInput){
     const diffHour = Math.floor(diffMin / 60);
     const diffDay = Math.floor(diffHour / 24);
 
-    // Hozir (0-59 sekund)
     if (diffSec < 60) {
         if (diffSec < 5) return 'hozir';
         return `${diffSec} soniya oldin`;
     }
-    // Daqiqa
-    if (diffMin < 60) {
-        return `${diffMin} daqiqa oldin`;
-    }
-    // Soat
-    if (diffHour < 24) {
-        return `${diffHour} soat oldin`;
-    }
-    // Kun
-    if (diffDay < 7) {
-        return `${diffDay} kun oldin`;
-    }
-    // Sana (7 kundan keyin)
+    if (diffMin < 60) return `${diffMin} daqiqa oldin`;
+    if (diffHour < 24) return `${diffHour} soat oldin`;
+    if (diffDay < 7) return `${diffDay} kun oldin`;
     const day = String(d.getDate()).padStart(2,'0');
     const month = String(d.getMonth()+1).padStart(2,'0');
     const year = d.getFullYear();
@@ -492,7 +516,6 @@ function formatTimeShort(){
    ============================================================ */
 let posts = [];
 let savedPosts = new Set();
-let viewedByMe = new Set();
 let myReplies = [];
 
 function loadMyPosts(){
@@ -561,11 +584,9 @@ function buildPostItem(p){
     item.className = 'post-item';
     item.dataset.id = p.id;
 
-    // Post head
     const head = document.createElement('div');
     head.className = 'post-head';
 
-    // Avatar: rasm yoki harf
     const postUserName = p.user || 'Foydalanuvchi';
     const postInitial = (postUserName.trim().charAt(0) || 'F').toUpperCase();
     const avatarEl = document.createElement(p.avatar ? 'img' : 'div');
@@ -623,7 +644,7 @@ function buildPostItem(p){
     const actions = document.createElement('div');
     actions.className = 'post-actions';
 
-    // LIKE — real vaqt
+    // LIKE
     const likeBtn = document.createElement('button');
     likeBtn.className = 'act-btn' + (p.liked ? ' liked' : '');
     likeBtn.setAttribute('aria-label', 'Like');
@@ -694,20 +715,47 @@ function countComments(p){
     return n;
 }
 
+/* ============================================================
+   KO'RISH HISOBI — (user_id, post_id) juftligi bo'yicha 1 marta
+   ============================================================ */
 function registerView(p, item){
-    if (viewedByMe.has(p.id)) return;
+    const uid = currentUser?.userId;
+    if (!uid || !p.id) return;
+
+    // Agar bu foydalanuvchi bu postni allaqachon ko'rgan bo'lsa — hisoblamaymiz
+    if (ViewTracker.hasViewed(uid, p.id)) {
+        const vc = item.querySelector('.view-count');
+        if (vc) vc.textContent = p.views || 0;
+        return;
+    }
+
+    // Faqat birinchi marta hisoblash uchun flag
+    let counted = false;
+
     const io = new IntersectionObserver(entries => {
         entries.forEach(entry => {
-            if (entry.isIntersecting && !viewedByMe.has(p.id)) {
-                viewedByMe.add(p.id);
-                const fresh = PostStore.all().find(x => x.id === p.id) || p;
-                const views = (fresh.views || 0) + 1;
-                PostStore.update(p.id, { views });
-                p.views = views;
+            if (!entry.isIntersecting) return;
+            if (counted) return;
+            counted = true;
+            io.disconnect();
+
+            // Yana bir marta tekshirish (xavfsizlik uchun)
+            if (!ViewTracker.record(uid, p.id)) {
                 const vc = item.querySelector('.view-count');
-                if (vc) vc.textContent = views;
-                io.disconnect();
+                if (vc) vc.textContent = p.views || 0;
+                return;
             }
+
+            // PostStore dan eng yangi versiyani olamiz
+            const fresh = PostStore.all().find(x => x.id === p.id);
+            if (!fresh) return;
+
+            const views = (fresh.views || 0) + 1;
+            PostStore.update(p.id, { views });
+            p.views = views;
+
+            const vc = item.querySelector('.view-count');
+            if (vc) vc.textContent = views;
         });
     }, { threshold: 0.5 });
     io.observe(item);
@@ -723,214 +771,6 @@ function sharePost(p){
     }
 }
 
-/* ============================================================
-   Comments (Like + Javob berish doimiy)
-   ============================================================ */
-const commentsOverlay = document.getElementById('commentsOverlay');
-const commentsPanel = document.getElementById('commentsPanel');
-const commentsList = document.getElementById('commentsList');
-const commentsInput = document.getElementById('commentsInput');
-const commentsSend = document.getElementById('commentsSend');
-const commentsClose = document.getElementById('commentsClose');
-const replyIndicator = document.getElementById('replyIndicator');
-const replyText = document.getElementById('replyText');
-const cancelReply = document.getElementById('cancelReply');
-
-let activePost = null;
-let replyTarget = null;
-
-function openComments(p){
-    activePost = p;
-    replyTarget = null;
-    if (!activePost.comments) activePost.comments = [];
-    replyIndicator.classList.remove('show');
-    renderComments();
-    commentsOverlay.classList.add('show');
-    commentsPanel.classList.show ? null : commentsPanel.classList.add('show');
-    commentsPanel.classList.add('show');
-}
-function closeComments(){
-    commentsOverlay.classList.remove('show');
-    commentsPanel.classList.remove('show');
-    activePost = null;
-    replyTarget = null;
-    commentsInput.value = '';
-    commentsSend.disabled = true;
-}
-commentsOverlay.addEventListener('click', closeComments);
-commentsClose.addEventListener('click', closeComments);
-
-function renderComments(){
-    if (!activePost) return;
-    commentsList.innerHTML = '';
-    if (!activePost.comments || activePost.comments.length === 0) {
-        commentsList.innerHTML = '<div class="comments-empty">Hali izoh yo\'q. Birinchi bo\'ling!</div>';
-        return;
-    }
-    activePost.comments.forEach(c => commentsList.appendChild(buildComment(c, false)));
-}
-
-function buildComment(c, isReply){
-    const wrap = document.createElement('div');
-    wrap.className = isReply ? 'comment-reply-item' : 'comment-item';
-
-    // Avatar
-    const avatarHTMLStr = c.avatar
-        ? `<img class="comment-avatar" src="${c.avatar}" alt="" data-uid="${c.userId||''}">`
-        : `<div class="comment-avatar-initial" data-uid="${c.userId||''}">${(c.user||'F').trim().charAt(0).toUpperCase()}</div>`;
-
-    wrap.innerHTML = `
-        ${avatarHTMLStr}
-        <div class="comment-body">
-            <div class="comment-top">
-                <span class="comment-user" data-uid="${c.userId||''}">${escapeHtml(c.user)}</span>
-                <span class="comment-time">${escapeHtml(formatExactTime(c.createdAt || c.time))}</span>
-            </div>
-            <div class="comment-text">${escapeHtml(c.text)}</div>
-            <div class="comment-actions">
-                <button class="comment-reply-btn" data-cid="${c.id}">Javob berish</button>
-                <button class="comment-like-btn ${c.liked ? 'liked' : ''}" data-cid="${c.id}">
-                    <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                    <span class="comment-like-count">${c.likes || 0}</span>
-                </button>
-            </div>
-        </div>`;
-
-    // Avatar/ism bosilganda profilga
-    wrap.querySelectorAll('[data-uid]').forEach(el => {
-        el.addEventListener('click', () => {
-            const uid = el.getAttribute('data-uid');
-            if (uid) goToProfile(uid);
-        });
-    });
-
-    // Javob berish
-    wrap.querySelector('.comment-reply-btn').addEventListener('click', () => {
-        replyTarget = { commentId: c.id, user: c.user };
-        replyText.textContent = `@${c.user} ga javob`;
-        replyIndicator.classList.add('show');
-        commentsInput.focus();
-    });
-
-    // Like (comment)
-    const likeBtn = wrap.querySelector('.comment-like-btn');
-    likeBtn.addEventListener('click', () => {
-        const fresh = PostStore.all().find(x => x.id === activePost.id);
-        if (!fresh) return;
-        const comments = fresh.comments || [];
-        let target = comments.find(x => x.id === c.id);
-        if (!target) {
-            // reply bo'lishi mumkin
-            for (const cc of comments) {
-                const rr = (cc.replies || []).find(r => r.id === c.id);
-                if (rr) { target = rr; break; }
-            }
-        }
-        if (!target) return;
-        target.liked = !target.liked;
-        target.likes = Math.max(0, (target.likes || 0) + (target.liked ? 1 : -1));
-        PostStore.update(activePost.id, { comments });
-        c.liked = target.liked;
-        c.likes = target.likes;
-        likeBtn.classList.toggle('liked', target.liked);
-        likeBtn.querySelector('.comment-like-count').textContent = target.likes;
-    });
-
-    // Replies
-    if (!isReply && c.replies && c.replies.length) {
-        const repliesBox = document.createElement('div');
-        repliesBox.className = 'comment-replies';
-        c.replies.forEach(r => repliesBox.appendChild(buildComment(r, true)));
-        wrap.querySelector('.comment-body').appendChild(repliesBox);
-    }
-
-    return wrap;
-}
-
-function escapeHtml(s){
-    return String(s == null ? '' : s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-}
-
-cancelReply.addEventListener('click', () => {
-    replyTarget = null;
-    replyIndicator.classList.remove('show');
-});
-
-commentsInput.addEventListener('input', () => {
-    commentsInput.style.height = 'auto';
-    commentsInput.style.height = Math.min(commentsInput.scrollHeight, 80) + 'px';
-    commentsSend.disabled = commentsInput.value.trim().length === 0;
-});
-
-commentsSend.addEventListener('click', () => {
-    const txt = commentsInput.value.trim();
-    if (!txt || !activePost) return;
-
-    const userName = displayName;
-    const avatar = profileOwner?.photo_url || null;
-    const userId = currentUser?.userId || '';
-    const newC = {
-        id: 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
-        userId,
-        user: userName,
-        avatar,
-        text: txt,
-        createdAt: new Date().toISOString(),
-        likes: 0,
-        liked: false,
-        replies: []
-    };
-
-    if (replyTarget) {
-        const parent = activePost.comments.find(c => c.id === replyTarget.commentId);
-        if (parent) (parent.replies = parent.replies || []).push(newC);
-    } else {
-        activePost.comments.push(newC);
-    }
-
-    PostStore.update(activePost.id, { comments: activePost.comments });
-    myReplies.unshift({
-        id: newC.id,
-        postId: activePost.id,
-        userId,
-        user: userName,
-        avatar,
-        text: txt,
-        createdAt: new Date().toISOString(),
-        postText: activePost.text
-    });
-
-    commentsInput.value = '';
-    commentsInput.style.height = 'auto';
-    commentsSend.disabled = true;
-    replyTarget = null;
-    replyIndicator.classList.remove('show');
-    renderComments();
-
-    const item = document.querySelector(`.post-item[data-id="${activePost.id}"]`);
-    if (item) {
-        const cc = item.querySelector('.comment-count');
-        if (cc) cc.textContent = countComments(activePost);
-    }
-    commentsList.scrollTop = commentsList.scrollHeight;
-});
-
-/* ============================================================
-   Tab switching
-   ============================================================ */
-function switchTab(k){
-    currentTab = k;
-    document.querySelectorAll('.tab-item').forEach(t => t.classList.toggle('active', t.dataset.tab === k));
-    if (k === 'posts') renderPosts();
-    else if (k === 'video') renderVideos();
-    else if (k === 'answers') renderReplies();
-    else if (k === 'saved') renderSaved();
-}
-document.getElementById('tabsContainer').addEventListener('click', e => {
-    const tab = e.target.closest('.tab-item');
-    if (!tab) return;
-    switchTab(tab.dataset.tab);
-});
 
 /* ============================================================
    Composer
