@@ -234,19 +234,32 @@ body{display:flex;justify-content:center;min-height:100vh;-webkit-font-smoothing
 const DB = {
     _K: 'luz_users',
     _S: 'luz_current_user',
+    _getUsers(){
+        try { return JSON.parse(localStorage.getItem(this._K)) || []; }
+        catch { return []; }
+    },
+    _saveUsers(users){ localStorage.setItem(this._K, JSON.stringify(users)); },
     getCurrentUser(){
         const id = localStorage.getItem(this._S);
         if (!id) return null;
-        try {
-            const users = JSON.parse(localStorage.getItem(this._K)) || [];
-            return users.find(u => u.userId === id) || null;
-        } catch { return null; }
+        return this._getUsers().find(u => u.userId === id) || null;
     },
     getUserById(id){
-        try {
-            const users = JSON.parse(localStorage.getItem(this._K)) || [];
-            return users.find(u => String(u.userId) === String(id)) || null;
-        } catch { return null; }
+        return this._getUsers().find(u => String(u.userId) === String(id)) || null;
+    },
+    // Yangilangan user ma'lumotlarini saqlash (tahrirlash uchun)
+    updateUser(userId, patch){
+        const users = this._getUsers();
+        const i = users.findIndex(u => u.userId === userId);
+        if (i < 0) return null;
+        users[i] = Object.assign({}, users[i], patch);
+        this._saveUsers(users);
+        return users[i];
+    },
+    isUsernameTaken(username, excludeUserId){
+        const users = this._getUsers();
+        const lower = String(username).toLowerCase();
+        return users.some(u => u.username.toLowerCase() === lower && u.userId !== excludeUserId);
     }
 };
 
@@ -286,6 +299,19 @@ const PostStore = {
         this._cache = list;
         this._save();
         return list[i];
+    },
+    // Foydalanuvchi ma'lumotlari o'zgarganda postlardagi eski nusxalarni yangilash
+    updateUserInfo(userId, { firstName, lastName, photo_url }){
+        const list = this._load();
+        const newName = [firstName, lastName].filter(Boolean).join(' ') || 'Foydalanuvchi';
+        list.forEach(p => {
+            if (String(p.userId) === String(userId)) {
+                p.user = newName;
+                if (photo_url !== undefined) p.avatar = photo_url;
+            }
+        });
+        this._cache = list;
+        this._save();
     }
 };
 
@@ -411,7 +437,10 @@ document.getElementById('backBtn').addEventListener('click', () => { window.loca
 window.history.pushState({ page: 1 }, '', '');
 window.onpopstate = () => { window.location.href = 'index.html'; };
 
-document.getElementById('editBtn')?.addEventListener('click', () => { location.href = 'tahrirlash.html'; });
+// Tahrirlash sahifasiga o'tish (tahrirlash.html ga)
+document.getElementById('editBtn')?.addEventListener('click', () => {
+    location.href = 'tahrirlash.html';
+});
 document.getElementById('settingsBtn')?.addEventListener('click', () => { location.href = 'setting.html'; });
 document.getElementById('subscribeBtn')?.addEventListener('click', () => {
     const b = document.getElementById('subscribeBtn');
@@ -563,7 +592,6 @@ function buildPostItem(p){
     commentBtn.addEventListener('click', () => openComments(p));
     actions.appendChild(commentBtn);
 
-    
     // VIEW
     const viewBtn = document.createElement('button');
     viewBtn.className = 'act-btn';
@@ -571,6 +599,7 @@ function buildPostItem(p){
     viewBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span class="act-count view-count">${p.views || 0}</span>`;
     actions.appendChild(viewBtn);
 
+    
     // SAVE
     const saveBtn = document.createElement('button');
     saveBtn.className = 'act-btn' + (savedPosts.has(p.id) ? ' saved' : '');
