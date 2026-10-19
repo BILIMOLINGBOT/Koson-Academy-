@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ro'yxatdan o'tish - L.uz</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background-color: #000;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      width: 600px;
+      min-height: 100vh;
+      background-color: #000;
+      padding: 40px 20px;
+    }
+
+    /* Header butunlay olib tashlandi */
+
+    .content {
+      padding: 0;
+    }
+
+    .form-container {
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    .form-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 30px;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+    }
+
+    .input-label {
+      display: block;
+      color: #8b98a5;
+      font-size: 14px;
+      margin-bottom: 8px;
+      padding-left: 4px;
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 16px 22px;
+      background-color: #16181c;
+      border: 2px solid transparent;
+      border-radius: 999px;
+      color: #fff;
+      font-size: 16px;
+      transition: border-color 0.2s, background-color 0.2s;
+    }
+
+    .input-field::placeholder {
+      color: #71767b;
+    }
+
+    .input-field:focus {
+      outline: none;
+      border-color: #ffffff;
+      background-color: #0a0a0a;
+    }
+
+    .input-field.valid {
+      border-color: #00ba7c;
+    }
+
+    .input-field.invalid {
+      border-color: #f91880;
+    }
+
+    .error-message {
+      color: #f91880;
+      font-size: 13px;
+      margin-top: 8px;
+      padding-left: 22px;
+      display: none;
+    }
+
+    .success-hint {
+      color: #00ba7c;
+      font-size: 13px;
+      margin-top: 8px;
+      padding-left: 22px;
+      display: none;
+    }
+
+    .next-btn {
+      width: 100%;
+      background-color: #fff;
+      color: #000;
+      border: none;
+      border-radius: 999px;
+      padding: 16px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: background-color 0.2s, transform 0.1s;
+    }
+
+    .next-btn:disabled {
+      background-color: #3a3d40;
+      color: #71767b;
+      cursor: not-allowed;
+    }
+
+    .next-btn:hover:not(:disabled) {
+      background-color: #d7dbdc;
+    }
+
+    .next-btn:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    .resend-code {
+      color: #1da1f2;
+      font-size: 14px;
+      text-align: center;
+      margin-top: 24px;
+      cursor: pointer;
+    }
+
+    .resend-code:hover {
+      text-decoration: underline;
+    }
+
+    .step-content {
+      display: none;
+    }
+
+    .step-content.active {
+      display: block;
+    }
+
+    .success-message {
+      text-align: center;
+      padding: 40px 0;
+    }
+
+    .success-icon {
+      font-size: 60px;
+      margin-bottom: 24px;
+      color: #00ba7c;
+    }
+
+    .success-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .success-subtitle {
+      color: #8b98a5;
+      font-size: 15px;
+      margin-bottom: 8px;
+    }
+
+    .user-id-badge {
+      display: inline-block;
+      background-color: #16181c;
+      border-radius: 999px;
+      padding: 12px 24px;
+      color: #1da1f2;
+      font-weight: 700;
+      font-size: 17px;
+      margin: 20px 0;
+    }
+
+    .id-preview-wrapper {
+      text-align: center;
+      margin-top: 24px;
+    }
+
+    .id-preview-label {
+      color: #8b98a5;
+      font-size: 14px;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid #536471;
+      border-top-color: #1da1f2;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-hint {
+      color: #8b98a5;
+      font-size: 13px;
+      margin-top: 8px;
+      padding-left: 22px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="content">
+      <!-- 1-qadam: Telefon raqami -->
+      <div class="step-content active" id="step1Content">
+        <div class="form-container">
+          <h2 class="form-title">Telefon raqamingizni kiriting</h2>
+
+          <div class="input-group">
+            <label class="input-label" for="phone">Telefon raqami</label>
+            <input type="tel" class="input-field" id="phone" placeholder="Telefon raqamingiz">
+            <div class="error-message" id="phoneError">Iltimos, to'g'ri telefon raqamini kiriting</div>
+          </div>
+
+          <button class="next-btn" id="nextStep1">Davom etish</button>
+        </div>
+      </div>
+
+      <!-- 2-qadam: Kod -->
+      <div class="step-content" id="step2Content">
+        <div class="form-container">
+          <h2 class="form-title">Tasdiqlash kodini kiriting</h2>
+
+          <div class="input-group">
+            <label class="input-label" for="code">Tasdiqlash kodi</label>
+            <input type="text" class="input-field" id="code" placeholder="Kodni kiriting" maxlength="6" inputmode="numeric">
+            <div class="error-message" id="codeError">Noto'g'ri kod. Qaytadan urinib ko'ring</div>
+          </div>
+
+          <button class="next-btn" id="nextStep2">Davom etish</button>
+          <div class="resend-code" id="resendCode">Kodni qayta yuborish</div>
+        </div>
+      </div>
+
+      <!-- 3-qadam: Ism va familiya -->
+      <div class="step-content" id="step3Content">
+        <div class="form-container">
+          <h2 class="form-title">Ismingiz nima?</h2>
+
+          <div class="input-group">
+            <label class="input-label" for="firstName">Ism</label>
+            <input type="text" class="input-field" id="firstName" placeholder="Ism">
+            <div class="error-message" id="firstNameError">Iltimos, ismingizni kiriting</div>
+          </div>
+
+          <div class="input-group">
+            <label class="input-label" for="lastName">Familiya</label>
+            <input type="text" class="input-field" id="lastName" placeholder="Familiya">
+            <div class="error-message" id="lastNameError">Iltimos, familiyangizni kiriting</div>
+          </div>
+
+          <button class="next-btn" id="nextStep3">Davom etish</button>
+        </div>
+      </div>
+
+      <!-- 4-qadam: Foydalanuvchi nomi -->
+      <div class="step-content" id="step4Content">
+        <div class="form-container">
+          <h2 class="form-title">Foydalanuvchi nomi tanlang</h2>
+          <p class="form-subtitle" style="color:#8b98a5; font-size:14px; margin-bottom:20px;">Boshqa foydalanuvchi ishlatayotgan nomini tanlay olmaysiz</p>
+
+          <div class="input-group">
+            <label class="input-label" for="username">Foydalanuvchi nomi</label>
+            <input type="text" class="input-field" id="username" placeholder="Foydalanuvchi nomi" maxlength="20" autocomplete="off">
+            <div class="error-message" id="usernameError">Bu nom allaqachon band. Boshqasini tanlang</div>
+            <div class="error-message" id="usernameFormatError">Nom 3-20 belgidan iborat bo'lishi va faqat harf, raqam va pastki chiziqdan tashkil topishi kerak</div>
+            <div class="success-hint" id="usernameAvailable">✓ Bu nom bo'sh</div>
+            <div class="loading-hint" id="usernameChecking"><span class="spinner"></span>Tekshirilmoqda...</div>
+          </div>
+
+          <div class="id-preview-wrapper">
+            <span class="id-preview-label">Sizning ID'ingiz:</span><br>
+            <span class="user-id-badge" id="idPreview">L.uz@...</span>
+          </div>
+
+          <button class="next-btn" id="nextStep4" disabled>Davom etish</button>
+        </div>
+      </div>
+
+      <!-- Yakuniy -->
+      <div class="step-content" id="successContent">
+        <div class="form-container">
+          <div class="success-message">
+            <div class="success-icon">✓</div>
+            <h2 class="success-title">Hisobingiz yaratildi!</h2>
+            <p class="success-subtitle">Sizning noyob ID'ingiz:</p>
+            <div class="user-id-badge" id="finalUserId">L.uz@...</div>
+            <p class="success-subtitle" style="margin-top:20px;">Profilga yo'naltirilmoqdasiz...</p>
+            <div class="loading-hint" style="display:block; margin-top:16px;">
+              <span class="spinner"></span> Yuklanmoqda...
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const DB = {
+      USERS_KEY: 'luz_users',
+      SESSION_KEY: 'luz_current_user',
+
+      getUsers() {
+        try {
+          return JSON.parse(localStorage.getItem(this.USERS_KEY)) || [];
+        } catch {
+          return [];
+        }
+      },
+
+      saveUsers(users) {
+        localStorage.setItem(this.USERS_KEY, JSON.stringify(users));
+      },
+
+      isUsernameTaken(username) {
+        const users = this.getUsers();
+        const lower = username.toLowerCase();
+        return users.some(u => u.username.toLowerCase() === lower);
+      },
+
+      createUser(userData) {
+        const users = this.getUsers();
+        if (users.some(u => u.username.toLowerCase() === userData.username.toLowerCase())) {
+          return { success: false, error: 'USERNAME_TAKEN' };
+        }
+        const userId = `L.uz@${userData.username}`;
+        if (users.some(u => u.userId === userId)) {
+          return { success: false, error: 'ID_TAKEN' };
+        }
+
+        const newUser = {
+          ...userData,
+          userId,
+          createdAt: new Date().toISOString()
+        };
+        users.push(newUser);
+        this.saveUsers(users);
+        return { success: true, user: newUser };
+      },
+
+      setSession(userId) {
+        localStorage.setItem(this.SESSION_KEY, userId);
+      },
+
+      getCurrentUser() {
+        const id = localStorage.getItem(this.SESSION_KEY);
+        if (!id) return null;
+        return this.getUsers().find(u => u.userId === id) || null;
+      }
+    };
+
+    const step1Content = document.getElementById('step1Content');
+    const step2Content = document.getElementById('step2Content');
+    const step3Content = document.getElementById('step3Content');
+    const step4Content = document.getElementById('step4Content');
+    const successContent = document.getElementById('successContent');
+
+    const phoneInput = document.getElementById('phone');
+    const codeInput = document.getElementById('code');
+    const firstNameInput = document.getElementById('firstName');
+    const lastNameInput = document.getElementById('lastName');
+    const usernameInput = document.getElementById('username');
+
+    const phoneError = document.getElementById('phoneError');
+    const codeError = document.getElementById('codeError');
+    const firstNameError = document.getElementById('firstNameError');
+    const lastNameError = document.getElementById('lastNameError');
+    const usernameError = document.getElementById('usernameError');
+    const usernameFormatError = document.getElementById('usernameFormatError');
+    const usernameAvailable = document.getElementById('usernameAvailable');
+    const usernameChecking = document.getElementById('usernameChecking');
+
+    const nextStep1 = document.getElementById('nextStep1');
+    const nextStep2 = document.getElementById('nextStep2');
+    const nextStep3 = document.getElementById('nextStep3');
+    const nextStep4 = document.getElementById('nextStep4');
+
+    const resendCode = document.getElementById('resendCode');
+    const idPreview = document.getElementById('idPreview');
+    const finalUserId = document.getElementById('finalUserId');
+
+    const state = {
+      currentStep: 1,
+      phone: '',
+      code: '',
+      firstName: '',
+      lastName: '',
+      username: '',
+      usernameVerified: false
+    };
+
+    const VALID_CODE = '123456';
+
+    function showStep(step) {
+      [step1Content, step2Content, step3Content, step4Content, successContent]
+        .forEach(el => el.classList.remove('active'));
+
+      const map = { 1: step1Content, 2: step2Content, 3: step3Content, 4: step4Content, 5: successContent };
+      map[step]?.classList.add('active');
+      state.currentStep = step;
+    }
+
+    function hideAllErrors() {
+      [phoneError, codeError, firstNameError, lastNameError,
+       usernameError, usernameFormatError].forEach(el => el.style.display = 'none');
+      usernameAvailable.style.display = 'none';
+      usernameChecking.style.display = 'none';
+    }
+
+    function isValidPhone(phone) {
+      const cleaned = phone.replace(/[\s\-()]/g, '');
+      return /^\+?[0-9]{10,15}$/.test(cleaned);
+    }
+
+    function isValidUsernameFormat(username) {
+      return /^[a-zA-Z0-9_]{3,20}$/.test(username);
+    }
+
+    nextStep1.addEventListener('click', () => {
+      hideAllErrors();
+      const phone = phoneInput.value.trim();
+
+      if (!phone) {
+        phoneError.textContent = 'Iltimos, telefon raqamini kiriting';
+        phoneError.style.display = 'block';
+        phoneInput.classList.add('invalid');
+        return;
+      }
+
+      if (!isValidPhone(phone)) {
+        phoneError.textContent = 'Iltimos, to\'g\'ri telefon raqamini kiriting';
+        phoneError.style.display = 'block';
+        phoneInput.classList.add('invalid');
+        return;
+      }
+
+      state.phone = phone;
+      phoneInput.classList.remove('invalid');
+      phoneInput.classList.add('valid');
+      showStep(2);
+    });
+
+    phoneInput.addEventListener('keypress', e => {
+      if (e.key === 'Enter') nextStep1.click();
+    });
+
+    nextStep2.addEventListener('click', () => {
+      hideAllErrors();
+      const code = codeInput.value.trim();
+
+      if (code !== VALID_CODE) {
+        codeError.textContent = 'Noto\'g\'ri kod. Qaytadan urinib ko\'ring';
+        codeError.style.display = 'block';
+        codeInput.classList.add('invalid');
+        return;
+      }
+
+      state.code = code;
+      codeInput.classList.remove('invalid');
+      codeInput.classList.add('valid');
+      showStep(3);
+    });
+
+    codeInput.addEventListener('keypress', e => {
+      if (e.key === 'Enter') nextStep2.click();
+    });
+
+    resendCode.addEventListener('click', () => {
+      alert('Yangi tasdiqlash kodi yuborildi');
+    });
+
+    nextStep3.addEventListener('click', () => {
+      hideAllErrors();
+      const firstName = firstNameInput.value.trim();
+      const lastName = lastNameInput.value.trim();
+      let valid = true;
+
+      if (!firstName) {
+        firstNameError.style.display = 'block';
+        firstNameInput.classList.add('invalid');
+        valid = false;
+      } else {
+        firstNameInput.classList.remove('invalid');
+        firstNameInput.classList.add('valid');
+      }
+
+      if (!lastName) {
+        lastNameError.style.display = 'block';
+        lastNameInput.classList.add('invalid');
+        valid = false;
+      } else {
+        lastNameInput.classList.remove('invalid');
+        lastNameInput.classList.add('valid');
+      }
+
+      if (!valid) return;
+
+      state.firstName = firstName;
+      state.lastName = lastName;
+      showStep(4);
+      usernameInput.focus();
+    });
+
+    lastNameInput.addEventListener('keypress', e => {
+      if (e.key === 'Enter') nextStep3.click();
+    });
+
+    let checkTimeout = null;
+
+    usernameInput.addEventListener('input', () => {
+      const value = usernameInput.value.trim();
+
+      hideAllErrors();
+      nextStep4.disabled = true;
+      state.usernameVerified = false;
+      idPreview.textContent = 'L.uz@' + (value || '...');
+
+      usernameInput.classList.remove('valid', 'invalid');
+
+      if (!value) return;
+
+      if (!isValidUsernameFormat(value)) {
+        usernameFormatError.style.display = 'block';
+        usernameInput.classList.add('invalid');
+        return;
+      }
+
+      clearTimeout(checkTimeout);
+      usernameChecking.style.display = 'block';
+
+      checkTimeout = setTimeout(() => {
+        const taken = DB.isUsernameTaken(value);
+        usernameChecking.style.display = 'none';
+
+        if (taken) {
+          usernameError.style.display = 'block';
+          usernameInput.classList.add('invalid');
+          usernameInput.classList.remove('valid');
+          nextStep4.disabled = true;
+          state.usernameVerified = false;
+        } else {
+          usernameAvailable.style.display = 'block';
+          usernameInput.classList.add('valid');
+          usernameInput.classList.remove('invalid');
+          nextStep4.disabled = false;
+          state.usernameVerified = true;
+          state.username = value;
+        }
+      }, 500);
+    });
+
+    usernameInput.addEventListener('keypress', e => {
+      if (e.key === 'Enter' && !nextStep4.disabled) nextStep4.click();
+    });
+
+    nextStep4.addEventListener('click', () => {
+      if (!state.usernameVerified) return;
+
+      if (DB.isUsernameTaken(state.username)) {
+        usernameError.style.display = 'block';
+        nextStep4.disabled = true;
+        return;
+      }
+
+      const result = DB.createUser({
+        phone: state.phone,
+        firstName: state.firstName,
+        lastName: state.lastName,
+        username: state.username
+      });
+
+      if (!result.success) {
+        usernameError.style.display = 'block';
+        nextStep4.disabled = true;
+        state.usernameVerified = false;
+        return;
+      }
+
+      DB.setSession(result.user.userId);
+
+      finalUserId.textContent = result.user.userId;
+      showStep(5);
+
+      setTimeout(() => {
+        window.location.href = 'profil.html';
+      }, 2000);
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const currentUser = DB.getCurrentUser();
+      if (currentUser) {
+        window.location.href = 'profil.html';
+      }
+    });
+  </script>
+
+</body>
+</html>
