@@ -35,9 +35,10 @@ body{display:flex;justify-content:center;min-height:100vh;-webkit-font-smoothing
 .btn-settings:active{transform:scale(.95) rotate(45deg);background:#2c2c2e}
 .btn-settings svg{width:22px;height:22px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .tabs{display:flex;background:#1c1c1e;width:100%;border-radius:20px;padding:4px;margin-bottom:30px}
-.tab-item{color:#8e8e93;font-size:13px;padding:12px 4px;border-radius:16px;cursor:pointer;text-align:center;flex:1;transition:all .25s ease;user-select:none;font-weight:500;white-space:nowrap}
+.tab-item{color:#8e8e93;padding:12px 4px;border-radius:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex:1;transition:all .25s ease;user-select:none}
+.tab-item svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:stroke .2s}
 .tab-item:active{transform:scale(.97)}
-.tab-item.active{background:#48484a;color:#fff;font-weight:600}
+.tab-item.active{background:#48484a;color:#fff}
 .content-area{color:#8e8e93;font-size:16px;text-align:center;width:100%;padding:40px 0}
 .empty-icon{width:60px;height:60px;margin:0 auto 16px;border:2px solid #3f3f46;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#3f3f46}
 .empty-icon svg{width:28px;height:28px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -184,10 +185,18 @@ body{display:flex;justify-content:center;min-height:100vh;-webkit-font-smoothing
         </div>
     </div>
     <div class="tabs" id="tabsContainer">
-        <div class="tab-item active" data-tab="posts">Postlar</div>
-        <div class="tab-item" data-tab="video">Video</div>
-        <div class="tab-item" data-tab="answers">Javoblar</div>
-        <div class="tab-item" data-tab="saved">Saqlangan</div>
+        <div class="tab-item active" data-tab="posts" aria-label="Postlar" title="Postlar">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        </div>
+        <div class="tab-item" data-tab="video" aria-label="Video" title="Video">
+            <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+        </div>
+        <div class="tab-item" data-tab="answers" aria-label="Javoblar" title="Javoblar">
+            <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+        </div>
+        <div class="tab-item" data-tab="saved" aria-label="Saqlangan" title="Saqlangan">
+            <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        </div>
     </div>
     <div class="content-area" id="contentArea"></div>
 </div>
@@ -247,7 +256,6 @@ const DB = {
     getUserById(id){
         return this._getUsers().find(u => String(u.userId) === String(id)) || null;
     },
-    // Yangilangan user ma'lumotlarini saqlash (tahrirlash uchun)
     updateUser(userId, patch){
         const users = this._getUsers();
         const i = users.findIndex(u => u.userId === userId);
@@ -300,7 +308,6 @@ const PostStore = {
         this._save();
         return list[i];
     },
-    // Foydalanuvchi ma'lumotlari o'zgarganda postlardagi eski nusxalarni yangilash
     updateUserInfo(userId, { firstName, lastName, photo_url }){
         const list = this._load();
         const newName = [firstName, lastName].filter(Boolean).join(' ') || 'Foydalanuvchi';
@@ -437,7 +444,6 @@ document.getElementById('backBtn').addEventListener('click', () => { window.loca
 window.history.pushState({ page: 1 }, '', '');
 window.onpopstate = () => { window.location.href = 'index.html'; };
 
-// Tahrirlash sahifasiga o'tish (tahrirlash.html ga)
 document.getElementById('editBtn')?.addEventListener('click', () => {
     location.href = 'tahrirlash.html';
 });
@@ -568,6 +574,7 @@ function buildPostItem(p){
     const actions = document.createElement('div');
     actions.className = 'post-actions';
 
+    
     // LIKE
     const likeBtn = document.createElement('button');
     likeBtn.className = 'act-btn' + (p.liked ? ' liked' : '');
@@ -599,7 +606,6 @@ function buildPostItem(p){
     viewBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span class="act-count view-count">${p.views || 0}</span>`;
     actions.appendChild(viewBtn);
 
-    
     // SAVE
     const saveBtn = document.createElement('button');
     saveBtn.className = 'act-btn' + (savedPosts.has(p.id) ? ' saved' : '');
