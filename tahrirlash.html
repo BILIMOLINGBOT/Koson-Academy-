@@ -3,24 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ro'yxatdan o'tish</title>
+    <title>Tahrirlash - L.uz</title>
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+
         body {
-            font-family: Arial, sans-serif;
             background-color: #000;
             color: #fff;
             display: flex;
             justify-content: center;
-            align-items: center;
             min-height: 100vh;
-            margin: 0;
         }
 
         .container {
             width: 100%;
-            max-width: 400px;
+            max-width: 420px;
             padding: 20px;
-            box-sizing: border-box;
+        }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .back-btn {
+            background: #1c1c1e;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #fff;
+            transition: transform .15s, background .2s;
+        }
+
+        .back-btn:active { transform: scale(.9); background: #2c2c2e; }
+
+        .back-btn svg {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .top-title {
+            font-size: 17px;
+            font-weight: 700;
+        }
+
+        .save-btn {
+            background: #fff;
+            color: #000;
+            border: none;
+            border-radius: 100px;
+            padding: 10px 22px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform .15s, opacity .2s;
+        }
+
+        .save-btn:active { transform: scale(.95); opacity: .8; }
+        .save-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+        .avatar-wrapper {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
         }
 
         .avatar {
@@ -28,42 +85,65 @@
             height: 120px;
             background-color: #FFC069;
             border-radius: 50%;
-            margin: 0 auto 40px;
-            cursor: pointer; 
-            background-size: cover; 
-            background-position: center; 
-            transition: opacity 0.2s;
-            /* Ikonkani markazga joylashtirish uchun: */
+            cursor: pointer;
+            background-size: cover;
+            background-position: center;
+            transition: opacity .2s;
             display: flex;
             justify-content: center;
             align-items: center;
+            border: 3px solid #1c1c1e;
+            position: relative;
+            overflow: hidden;
         }
 
-        .avatar:hover {
-            opacity: 0.8; 
+        .avatar:hover { opacity: .8; }
+
+        /* Rasm yuklanmagan bo'lsa — ismning birinchi harfi */
+        .avatar-initial {
+            font-size: 52px;
+            font-weight: 700;
+            color: #fff;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, #3a3a3c 0%, #1c1c1e 100%);
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        /* Kamera ikonkasi dizayni */
         .camera-icon {
             width: 40px;
             height: 40px;
-            fill: rgba(0, 0, 0, 0.4); /* Ikonka rangi (biroz shaffof qora) */
+            fill: rgba(0, 0, 0, 0.4);
             transition: fill 0.2s;
+            position: absolute;
+            z-index: 2;
         }
 
-        .avatar:hover .camera-icon {
-            fill: rgba(0, 0, 0, 0.7);
+        .avatar:hover .camera-icon { fill: rgba(0, 0, 0, 0.7); }
+
+        .avatar-label {
+            text-align: center;
+            color: #1da1f2;
+            font-size: 14px;
+            margin-top: -20px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            font-weight: 500;
         }
+
+        .avatar-label:hover { text-decoration: underline; }
 
         h2 {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: bold;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
+            margin-top: 30px;
         }
 
-        .form-group {
-            margin-bottom: 20px;
-        }
+        .form-group { margin-bottom: 20px; }
 
         label {
             display: block;
@@ -82,20 +162,31 @@
             font-size: 16px;
             box-sizing: border-box;
             outline: none;
-        }
-        
-        input[type="text"]:focus {
-            border-color: #fff;
+            transition: border-color .2s;
         }
 
-        input[type="text"]::placeholder {
-            color: #666;
+        input[type="text"]:focus { border-color: #fff; }
+        input[type="text"]::placeholder { color: #666; }
+
+        .input-error {
+            color: #f91880;
+            font-size: 13px;
+            margin-top: 6px;
+            padding-left: 15px;
+            display: none;
         }
-        
-        .filled-input {
-             background-color: #1A1A1A !important;
-             border: none !important;
+
+        .input-error.show { display: block; }
+
+        .input-success {
+            color: #00ba7c;
+            font-size: 13px;
+            margin-top: 6px;
+            padding-left: 15px;
+            display: none;
         }
+
+        .input-success.show { display: block; }
 
         .subtitle {
             font-size: 14px;
@@ -104,85 +195,348 @@
             line-height: 1.4;
         }
 
-        .submit-btn {
-            width: 100%;
-            padding: 15px;
-            border-radius: 25px;
-            border: none;
-            background-color: #fff;
-            color: #000;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 30px;
+        .info-box {
+            background: #1c1c1e;
+            border-radius: 14px;
+            padding: 14px 16px;
+            font-size: 13px;
+            color: #8e8e93;
+            margin-bottom: 20px;
+            line-height: 1.5;
         }
+
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: 40px;
+            transform: translate(-50%, 20px);
+            background: #1c1c1e;
+            color: #fff;
+            padding: 12px 22px;
+            border-radius: 100px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 300;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .25s, transform .25s;
+            border: 1px solid #2c2c2e;
+            box-shadow: 0 8px 30px rgba(0,0,0,.6);
+            white-space: nowrap;
+        }
+
+        .toast.show { opacity: 1; transform: translate(-50%, 0); }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <!-- Rasm tanlash uchun yashirin input -->
-        <input type="file" id="avatar-input" accept="image/*" style="display: none;">
-        
-        <!-- Avatar qismi va Ikonka -->
+<div class="container">
+    <div class="top-bar">
+        <button class="back-btn" id="backBtn" aria-label="Orqaga">
+            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <span class="top-title">Profilni tahrirlash</span>
+        <button class="save-btn" id="saveBtn">Saqlash</button>
+    </div>
+
+    <input type="file" id="avatar-input" accept="image/*" style="display: none;">
+
+    <div class="avatar-wrapper">
         <div class="avatar" id="avatar-preview">
+            <div class="avatar-initial" id="avatar-initial"></div>
             <svg class="camera-icon" id="camera-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                 <circle cx="12" cy="12" r="3.2"></circle>
                 <path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"></path>
             </svg>
         </div>
+    </div>
+    <div class="avatar-label" id="avatarLabel">Rasm yuklash</div>
 
-        <h2>Ismingiz nima?</h2>
-
-        <div class="form-group">
-            <label for="ism">Ism</label>
-            <input type="text" id="ism" placeholder="Ism">
-        </div>
-
-        <div class="form-group">
-            <label for="familiya">Familiya</label>
-            <input type="text" id="familiya" class="filled-input" placeholder="Familiya">
-        </div>
-
-        <h2 style="margin-top: 40px;">Foydalanuvchi nomi tanlang</h2>
-        <p class="subtitle">Boshqa foydalanuvchi ishlatayotgan nomini tanlay olmaysiz</p>
-
-        <div class="form-group">
-            <label for="username">Foydalanuvchi nomi</label>
-            <input type="text" id="username" placeholder="Foydalanuvchi nomi">
-        </div>
-
-        <button class="submit-btn">Davom etish</button>
+    <div class="info-box">
+        Bu sahifada ismingiz, familiyangiz, foydalanuvchi nomingiz va rasmingizni o'zgartirishingiz mumkin.
+        O'zgarishlar saqlangandan so'ng profilingizda darhol ko'rinadi.
     </div>
 
-    <!-- JavaScript qismi -->
-    <script>
-        const avatarPreview = document.getElementById('avatar-preview');
-        const avatarInput = document.getElementById('avatar-input');
-        const cameraIcon = document.getElementById('camera-icon');
+    <h2>Shaxsiy ma'lumotlar</h2>
 
-        // Avatarga bosganda fayl tanlash darchasini ochish
-        avatarPreview.addEventListener('click', () => {
-            avatarInput.click();
-        });
+    <div class="form-group">
+        <label for="ism">Ism</label>
+        <input type="text" id="ism" placeholder="Ism">
+        <div class="input-error" id="ismError">Iltimos, ismingizni kiriting</div>
+    </div>
 
-        // Fayl tanlanganda uni avatarga rasm qilib qo'yish
-        avatarInput.addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            
-            if (file) {
-                const reader = new FileReader();
-                
-                reader.onload = function(e) {
-                    // Tanlangan rasmni fon qilib o'rnatish
-                    avatarPreview.style.backgroundImage = `url('${e.target.result}')`;
-                    // Rasm qo'yilgandan keyin kamera ikonkasini yashirish
-                    cameraIcon.style.display = 'none';
-                }
-                
-                reader.readAsDataURL(file);
+    <div class="form-group">
+        <label for="familiya">Familiya</label>
+        <input type="text" id="familiya" placeholder="Familiya">
+        <div class="input-error" id="familiyaError">Iltimos, familiyangizni kiriting</div>
+    </div>
+
+    <h2>Foydalanuvchi nomi</h2>
+    <p class="subtitle">Boshqa foydalanuvchi ishlatayotgan nomini tanlay olmaysiz</p>
+
+    <div class="form-group">
+        <label for="username">Foydalanuvchi nomi</label>
+        <input type="text" id="username" placeholder="Foydalanuvchi nomi">
+        <div class="input-error" id="usernameError">Bu nom allaqachon band</div>
+        <div class="input-error" id="usernameFormatError">Nom 3-20 belgidan iborat bo'lishi va faqat harf, raqam va pastki chiziqdan tashkil topishi kerak</div>
+        <div class="input-success" id="usernameAvailable">✓ Bu nom bo'sh</div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= DB (shared) ================= */
+const DB = {
+    _K: 'luz_users',
+    _S: 'luz_current_user',
+    _getUsers(){
+        try { return JSON.parse(localStorage.getItem(this._K)) || []; }
+        catch { return []; }
+    },
+    _saveUsers(users){ localStorage.setItem(this._K, JSON.stringify(users)); },
+    getCurrentUser(){
+        const id = localStorage.getItem(this._S);
+        if (!id) return null;
+        return this._getUsers().find(u => u.userId === id) || null;
+    },
+    isUsernameTaken(username, excludeUserId){
+        const users = this._getUsers();
+        const lower = String(username).toLowerCase();
+        return users.some(u => u.username.toLowerCase() === lower && u.userId !== excludeUserId);
+    },
+    updateUser(userId, patch){
+        const users = this._getUsers();
+        const i = users.findIndex(u => u.userId === userId);
+        if (i < 0) return null;
+        users[i] = Object.assign({}, users[i], patch);
+        this._saveUsers(users);
+        return users[i];
+    }
+};
+
+/* ================= POST STORE (postlardagi ism/avatarni sinxron yangilash) ================= */
+const POST_STORE_KEY = 'tg_feed_posts_v1';
+const PostStore = {
+    _cache: null,
+    _load(){
+        if (this._cache !== null) return this._cache;
+        try {
+            const raw = localStorage.getItem(POST_STORE_KEY);
+            this._cache = raw ? JSON.parse(raw) : [];
+            if (!Array.isArray(this._cache)) this._cache = [];
+        } catch { this._cache = []; }
+        return this._cache;
+    },
+    _save(){
+        try { localStorage.setItem(POST_STORE_KEY, JSON.stringify(this._cache || [])); } catch {}
+    },
+    updateUserInfo(userId, { firstName, lastName, photo_url }){
+        const list = this._load();
+        const newName = [firstName, lastName].filter(Boolean).join(' ') || 'Foydalanuvchi';
+        list.forEach(p => {
+            if (String(p.userId) === String(userId)) {
+                p.user = newName;
+                if (photo_url !== undefined) p.avatar = photo_url;
             }
+            // Izohlarda ham yangilash
+            const updateComment = (c) => {
+                if (String(c.userId) === String(userId)) {
+                    c.user = newName;
+                    if (photo_url !== undefined) c.avatar = photo_url;
+                }
+                (c.replies || []).forEach(updateComment);
+            };
+            (p.comments || []).forEach(updateComment);
         });
-    </script>
+        this._cache = list;
+        this._save();
+    }
+};
+
+/* ================= SESSION ================= */
+const currentUser = DB.getCurrentUser();
+if (!currentUser) {
+    window.location.href = 'authorization.html';
+}
+
+/* ================= ELEMENTLAR ================= */
+const avatarPreview = document.getElementById('avatar-preview');
+const avatarInput = document.getElementById('avatar-input');
+const cameraIcon = document.getElementById('camera-icon');
+const avatarInitial = document.getElementById('avatar-initial');
+const avatarLabel = document.getElementById('avatarLabel');
+const ismInput = document.getElementById('ism');
+const familiyaInput = document.getElementById('familiya');
+const usernameInput = document.getElementById('username');
+const ismError = document.getElementById('ismError');
+const familiyaError = document.getElementById('familiyaError');
+const usernameError = document.getElementById('usernameError');
+const usernameFormatError = document.getElementById('usernameFormatError');
+const usernameAvailable = document.getElementById('usernameAvailable');
+const saveBtn = document.getElementById('saveBtn');
+const backBtn = document.getElementById('backBtn');
+
+/* ================= MAVJUD MA'LUMOTLARNI TO'LDIRISH ================= */
+let newPhoto = currentUser.photo_url || null; // yangi rasm (dataURL) yoki mavjud URL
+
+ismInput.value = currentUser.firstName || '';
+familiyaInput.value = currentUser.lastName || '';
+usernameInput.value = currentUser.username || '';
+
+function renderAvatar(){
+    if (newPhoto) {
+        avatarPreview.style.backgroundImage = `url('${newPhoto}')`;
+        avatarInitial.style.display = 'none';
+        cameraIcon.style.display = 'none';
+        avatarLabel.textContent = 'Rasmni o\'zgartirish';
+    } else {
+        avatarPreview.style.backgroundImage = '';
+        const name = ismInput.value.trim() || currentUser.firstName || 'F';
+        avatarInitial.textContent = name.charAt(0).toUpperCase() || 'F';
+        avatarInitial.style.display = 'flex';
+        cameraIcon.style.display = 'block';
+        avatarLabel.textContent = 'Rasm yuklash';
+    }
+}
+renderAvatar();
+
+/* ================= AVATAR RASM YUKLASH ================= */
+avatarPreview.addEventListener('click', () => avatarInput.click());
+avatarLabel.addEventListener('click', () => avatarInput.click());
+
+avatarInput.addEventListener('change', function(e){
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev){
+        newPhoto = ev.target.result;
+        renderAvatar();
+        showToast('Rasm tanlandi. Saqlashni bosing.');
+    };
+    reader.readAsDataURL(file);
+});
+
+/* ================= USERNAME TEKSHIRISH ================= */
+let checkTimeout = null;
+let usernameValid = false;
+
+function isValidUsernameFormat(u){ return /^[a-zA-Z0-9_]{3,20}$/.test(u); }
+
+usernameInput.addEventListener('input', () => {
+    const value = usernameInput.value.trim();
+    hideErrors();
+    saveBtn.disabled = true;
+    usernameValid = false;
+
+    if (!value) {
+        saveBtn.disabled = false;
+        return;
+    }
+
+    if (!isValidUsernameFormat(value)) {
+        usernameFormatError.classList.add('show');
+        return;
+    }
+
+    // O'zi bilan bir xil bo'lsa — band emas
+    if (value.toLowerCase() === (currentUser.username || '').toLowerCase()) {
+        usernameAvailable.classList.add('show');
+        saveBtn.disabled = false;
+        usernameValid = true;
+        return;
+    }
+
+    clearTimeout(checkTimeout);
+    checkTimeout = setTimeout(() => {
+        if (DB.isUsernameTaken(value, currentUser.userId)) {
+            usernameError.classList.add('show');
+            saveBtn.disabled = true;
+            usernameValid = false;
+        } else {
+            usernameAvailable.classList.add('show');
+            saveBtn.disabled = false;
+            usernameValid = true;
+        }
+    }, 400);
+});
+
+function hideErrors(){
+    ismError.classList.remove('show');
+    familiyaError.classList.remove('show');
+    usernameError.classList.remove('show');
+    usernameFormatError.classList.remove('show');
+    usernameAvailable.classList.remove('show');
+}
+
+/* ================= SAQLASH ================= */
+saveBtn.addEventListener('click', () => {
+    hideErrors();
+    const firstName = ismInput.value.trim();
+    const lastName = familiyaInput.value.trim();
+    const username = usernameInput.value.trim();
+    let ok = true;
+
+    if (!firstName) { ismError.classList.add('show'); ok = false; }
+    if (!lastName) { familiyaError.classList.add('show'); ok = false; }
+
+    if (!username) {
+        usernameFormatError.classList.add('show');
+        ok = false;
+    } else if (!isValidUsernameFormat(username)) {
+        usernameFormatError.classList.add('show');
+        ok = false;
+    } else if (username.toLowerCase() !== (currentUser.username || '').toLowerCase()
+               && DB.isUsernameTaken(username, currentUser.userId)) {
+        usernameError.classList.add('show');
+        ok = false;
+    }
+
+    if (!ok) return;
+
+    // Yangi userId — username o'zgargan bo'lsa, L.uz@username
+    const newUserId = username.toLowerCase() === (currentUser.username || '').toLowerCase()
+        ? currentUser.userId
+        : `L.uz@${username}`;
+
+    // DB yangilash
+    const patch = {
+        firstName,
+        lastName,
+        username,
+        userId: newUserId,
+        photo_url: newPhoto
+    };
+    DB.updateUser(currentUser.userId, patch);
+
+    // Agar userId o'zgargan bo'lsa, sessionni yangilash
+    if (newUserId !== currentUser.userId) {
+        localStorage.setItem(DB._S, newUserId);
+    }
+
+    // Postlardagi ism/avatarni yangilash
+    PostStore.updateUserInfo(currentUser.userId, { firstName, lastName, photo_url: newPhoto });
+
+    showToast('Saqlandi! Profilga qaytilmoqda...');
+    setTimeout(() => {
+        window.location.href = 'profil.html';
+    }, 700);
+});
+
+/* ================= ORQAGA ================= */
+backBtn.addEventListener('click', () => {
+    window.location.href = 'profil.html';
+});
+
+/* ================= TOAST ================= */
+let toastTimer;
+function showToast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+}
+</script>
 </body>
 </html>
