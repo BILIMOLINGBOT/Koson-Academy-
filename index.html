@@ -8,19 +8,74 @@
     <title>Uy</title>
     <!-- Telegram Web App API -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         *{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
         html,body{background:#000!important;color:#fff}
         body{display:flex;justify-content:center;min-height:100vh;-webkit-font-smoothing:antialiased}
         
-        /* O'ZGARTIRILGAN JOYI: padding-top 20px dan 60px ga o'zgartirildi (+40px) */
-        .mobile-container{width:100%;max-width:420px;padding:60px 20px 200px;display:flex;flex-direction:column}
+        /* Asosiy konteyner o'zgartirildi (Padding tepadan olib tashlandi) */
+        .mobile-container{width:100%;max-width:420px;padding:0 0 200px 0;display:flex;flex-direction:column}
         
-        /* O'ZGARTIRILGAN JOYI: margin-top 30px dan 70px ga o'zgartirildi (+40px) */
-        .page-title{font-size:24px;font-weight:700;margin:70px 0 20px}
+        /* ZAMONAVIY HEADER QISMI */
+        .modern-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            /* Header 30px pastga tushirildi va yonlardan joy tashlandi */
+            padding: 30px 20px 15px 20px; 
+            background: rgba(10, 10, 12, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            margin-bottom: 10px;
+        }
         
-        .feed{width:100%;display:flex;flex-direction:column}
+        .brand-title {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #ffffff 0%, #a1a1aa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0;
+        }
+        
+        .icon-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .icon-btn:active {
+            transform: scale(0.9);
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .icon-btn svg {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        /* Lenta qismi uchun yon paddinglar qo'shildi */
+        .feed{width:100%;display:flex;flex-direction:column;padding:0 20px;}
+        
         .post-item{width:100%;padding:16px 0;text-align:left;border-bottom:1px solid #2c2c2e;animation:postIn .4s cubic-bezier(.34,1.2,.64,1) both}
         .post-item:last-child{border-bottom:none}
         @keyframes postIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
@@ -55,7 +110,17 @@
 <body>
 
 <div class="mobile-container">
-    <h1 class="page-title">Lenta</h1>
+    <!-- Yangilangan Zamonaviy Header -->
+    <header class="modern-header">
+        <h1 class="brand-title">Lenta</h1>
+        <button class="icon-btn">
+            <svg viewBox="0 0 24 24">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+        </button>
+    </header>
+
     <div class="feed" id="feed"></div>
 </div>
 
@@ -102,34 +167,20 @@ const PostStore = {
 const tg = window.Telegram?.WebApp;
 if (tg) {
     tg.ready();
-    
-    // Ilovani maksimal yoyish
     tg.expand();
-    
-    // To'liq ekran (Haqiqiy Fullscreen) ni yoqish (agar Telegram versiyasi qo'llab-quvvatlasa)
     if (tg.requestFullscreen) {
-        try {
-            tg.requestFullscreen();
-        } catch (e) {
-            console.warn("Fullscreen request failed", e);
-        }
+        try { tg.requestFullscreen(); } catch (e) { console.warn("Fullscreen request failed", e); }
     }
-    
-    // Header va Background fonni qora qilish
     tg.setHeaderColor('#000000');
     tg.setBackgroundColor('#000000');
-
-    // 1. Telegram Mini App dagi tepa "Orqaga" (Back) tugmasi uchun
     tg.BackButton.show();
     tg.BackButton.onClick(function() {
         window.location.href = 'index.html';
     });
 }
 
-// 2. Telefonning o'zidagi (Android back button yoki iOS ishora) orqaga qaytish tugmasi uchun
 window.history.pushState({page: 'uy'}, "Uy", "");
 window.addEventListener('popstate', function(event) {
-    // Orqaga qaytish hodisasi yuz berganda index.html ga yo'naltirish
     window.location.href = 'index.html';
 });
 
