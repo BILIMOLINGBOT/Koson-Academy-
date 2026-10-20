@@ -71,6 +71,7 @@
         .post-item{width:100%;padding:16px 0;text-align:left;border-bottom:1px solid #2c2c2e;animation:postIn .4s cubic-bezier(.34,1.2,.64,1) both}
         .post-item:last-child{border-bottom:none}
         @keyframes postIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes likePop{0%{transform:scale(1)}40%{transform:scale(1.35)}100%{transform:scale(1)}}
         .post-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
         .post-avatar{width:40px;height:40px;border-radius:50%;object-fit:cover;background:#1c1c1e;flex-shrink:0;cursor:pointer}
         .post-avatar-initial{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#3a3a3c 0%,#1c1c1e 100%);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;color:#fff;flex-shrink:0;text-transform:uppercase;cursor:pointer}
@@ -100,6 +101,50 @@
         .nav-btn .nav-label{font-size:10px;font-weight:500}
         .nav-btn .nav-avatar{width:24px;height:24px;border-radius:50%;object-fit:cover;background:#1c1c1e}
         .nav-btn .nav-avatar-initial{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#3a3a3c 0%,#1c1c1e 100%);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;text-transform:uppercase}
+
+        /* ============ COMMENTS PANEL (index.html ichida) ============ */
+        .comments-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:110;opacity:0;pointer-events:none;transition:opacity .3s ease}
+        .comments-overlay.show{opacity:1;pointer-events:auto}
+        .comments-panel{position:fixed;left:50%;bottom:0;transform:translate(-50%,100%);width:100%;max-width:420px;height:75vh;background:#0a0a0a;border-radius:24px 24px 0 0;border:1px solid #2c2c2e;border-bottom:none;z-index:111;display:flex;flex-direction:column;transition:transform .35s cubic-bezier(.34,1.2,.64,1);box-shadow:0 -10px 60px rgba(0,0,0,.9)}
+        .comments-panel.show{transform:translate(-50%,0)}
+        .comments-header{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid #1f1f22;flex-shrink:0}
+        .comments-title{font-size:16px;font-weight:700}
+        .composer-close{background:#1c1c1e;border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#8e8e93;transition:transform .2s,background .2s}
+        .composer-close:active{transform:scale(.9);background:#2c2c2e}
+        .composer-close svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+        .comments-list{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:16px}
+        .comments-empty{text-align:center;color:#5a5a5e;font-size:14px;padding:40px 0}
+        .comment-item{display:flex;gap:10px;animation:postIn .3s ease both}
+        .comment-avatar,.comment-avatar-initial{width:32px;height:32px;border-radius:50%;flex-shrink:0;cursor:pointer}
+        .comment-avatar{object-fit:cover;background:#1c1c1e}
+        .comment-avatar-initial{background:linear-gradient(135deg,#3a3a3c 0%,#1c1c1e 100%);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;text-transform:uppercase}
+        .comment-body{flex:1;min-width:0}
+        .comment-top{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+        .comment-user{font-size:13px;font-weight:600;cursor:pointer}
+        .comment-user:active{opacity:.7}
+        .comment-time{font-size:11px;color:#5a5a5e}
+        .comment-text{font-size:14px;line-height:1.45;color:#e5e5ea;margin-top:3px;word-break:break-word;white-space:pre-wrap}
+        .comment-actions{display:flex;gap:18px;margin-top:6px;align-items:center}
+        .comment-reply-btn,.comment-like-btn{background:none;border:none;color:#8e8e93;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;padding:0;display:flex;align-items:center;gap:5px;transition:color .2s,transform .15s}
+        .comment-reply-btn:active,.comment-like-btn:active{opacity:.6;transform:scale(.94)}
+        .comment-like-btn svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:fill .2s,stroke .2s}
+        .comment-like-btn.liked{color:#ff2d55}
+        .comment-like-btn.liked svg{fill:#ff2d55;stroke:#ff2d55;animation:likePop .35s cubic-bezier(.34,1.56,.64,1)}
+        .comment-replies{margin-top:10px;padding-left:12px;border-left:2px solid #1f1f22;display:flex;flex-direction:column;gap:12px}
+        .comment-reply-item{display:flex;gap:8px}
+        .comment-reply-item .comment-avatar,.comment-reply-item .comment-avatar-initial{width:26px;height:26px;font-size:12px}
+        .comment-reply-item .comment-user{font-size:12px}
+        .comment-reply-item .comment-text{font-size:13px}
+        .comments-input-bar{padding:12px 16px calc(12px + env(safe-area-inset-bottom));border-top:1px solid #1f1f22;display:flex;gap:10px;align-items:flex-end;flex-shrink:0;background:#0a0a0a}
+        .comments-input{flex:1;background:#1c1c1e;border:none;border-radius:20px;padding:10px 14px;color:#fff;font-size:14px;font-family:inherit;resize:none;outline:none;max-height:80px;line-height:1.4}
+        .comments-input::placeholder{color:#5a5a5e}
+        .comments-send{background:linear-gradient(135deg,#fff 0%,#e5e5e5 100%);color:#000;border:none;border-radius:50%;width:38px;height:38px;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .2s,opacity .2s}
+        .comments-send:active{transform:scale(.9)}
+        .comments-send:disabled{opacity:.4;cursor:not-allowed}
+        .comments-send svg{width:18px;height:18px;stroke:#000;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+        .reply-indicator{font-size:12px;color:#0a84ff;padding:4px 20px 8px;display:none;align-items:center;justify-content:space-between;background:#0a0a0a}
+        .reply-indicator.show{display:flex}
+        .reply-indicator button{background:none;border:none;color:#8e8e93;font-size:12px;cursor:pointer;font-family:inherit}
     </style>
 </head>
 <body>
@@ -127,6 +172,15 @@
     </div>
 </nav>
 
+<!-- COMMENTS PANEL -->
+<div class="comments-overlay" id="commentsOverlay"></div>
+<div class="comments-panel" id="commentsPanel">
+    <div class="comments-header"><span class="comments-title">Izohlar</span><button class="composer-close" id="commentsClose" aria-label="Yopish"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="comments-list" id="commentsList"></div>
+    <div class="reply-indicator" id="replyIndicator"><span id="replyText"></span><button id="cancelReply">Bekor qilish</button></div>
+    <div class="comments-input-bar"><textarea class="comments-input" id="commentsInput" placeholder="Izoh yozish..." rows="1"></textarea><button class="comments-send" id="commentsSend" disabled><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button></div>
+</div>
+
 <script>
 /* ================= DB ================= */
 const DB = {
@@ -138,12 +192,6 @@ const DB = {
         try {
             const users = JSON.parse(localStorage.getItem(this._K)) || [];
             return users.find(u => u.userId === id) || null;
-        } catch { return null; }
-    },
-    getUserById(id){
-        try {
-            const users = JSON.parse(localStorage.getItem(this._K)) || [];
-            return users.find(u => String(u.userId) === String(id)) || null;
         } catch { return null; }
     }
 };
@@ -250,6 +298,8 @@ function goToProfile(uid){
     if (String(uid) === String(currentUser?.userId)) window.location.href = 'profil.html';
     else window.location.href = `profil.html?id=${encodeURIComponent(uid)}`;
 }
+
+
 
 /* ================= POST RENDER ================= */
 const savedPosts = new Set();
@@ -361,16 +411,11 @@ function buildPostItem(p){
     });
     actions.appendChild(likeBtn);
 
-    // COMMENT
+    // COMMENT — index.html da ochiladi
     const commentBtn = document.createElement('button');
     commentBtn.className = 'act-btn';
     commentBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg><span class="act-count comment-count">${countComments(p)}</span>`;
-    commentBtn.addEventListener('click', () => {
-        const ownerId = p.userId || currentUser.userId;
-        const isMine = String(ownerId) === String(currentUser.userId);
-        const url = isMine ? 'profil.html' : `profil.html?id=${encodeURIComponent(ownerId)}`;
-        window.location.href = url + '#comments_' + p.id;
-    });
+    commentBtn.addEventListener('click', () => openComments(p));
     actions.appendChild(commentBtn);
 
     // VIEW
@@ -417,6 +462,166 @@ function renderFeed(){
     posts.forEach(p => feed.appendChild(buildPostItem(p)));
 }
 
+/* ================= COMMENTS (index.html ichida) ================= */
+const commentsOverlay = document.getElementById('commentsOverlay');
+const commentsPanel = document.getElementById('commentsPanel');
+const commentsList = document.getElementById('commentsList');
+const commentsInput = document.getElementById('commentsInput');
+const commentsSend = document.getElementById('commentsSend');
+const commentsClose = document.getElementById('commentsClose');
+const replyIndicator = document.getElementById('replyIndicator');
+const replyText = document.getElementById('replyText');
+const cancelReply = document.getElementById('cancelReply');
+
+let activePost = null;
+let replyTarget = null;
+
+function openComments(p){
+    activePost = p;
+    replyTarget = null;
+    if (!activePost.comments) activePost.comments = [];
+    replyIndicator.classList.remove('show');
+    renderComments();
+    commentsOverlay.classList.add('show');
+    commentsPanel.classList.add('show');
+}
+function closeComments(){
+    commentsOverlay.classList.remove('show');
+    commentsPanel.classList.remove('show');
+    activePost = null;
+    replyTarget = null;
+    commentsInput.value = '';
+    commentsSend.disabled = true;
+}
+commentsOverlay.addEventListener('click', closeComments);
+commentsClose.addEventListener('click', closeComments);
+cancelReply.addEventListener('click', () => {
+    replyTarget = null;
+    replyIndicator.classList.remove('show');
+});
+
+function renderComments(){
+    if (!activePost) return;
+    commentsList.innerHTML = '';
+    if (!activePost.comments.length) {
+        commentsList.innerHTML = '<div class="comments-empty">Hali izoh yo\'q. Birinchi bo\'ling!</div>';
+        return;
+    }
+    activePost.comments.forEach(c => commentsList.appendChild(buildComment(c, false)));
+}
+
+function buildComment(c, isReply){
+    const wrap = document.createElement('div');
+    wrap.className = isReply ? 'comment-reply-item' : 'comment-item';
+    const init = (c.user || 'F').trim().charAt(0).toUpperCase();
+    const av = c.avatar
+        ? `<img class="comment-avatar" src="${c.avatar}" alt="" data-uid="${c.userId||''}">`
+        : `<div class="comment-avatar-initial" data-uid="${c.userId||''}">${init}</div>`;
+
+    wrap.innerHTML = `
+        ${av}
+        <div class="comment-body">
+            <div class="comment-top">
+                <span class="comment-user" data-uid="${c.userId||''}">${escapeHtml(c.user)}</span>
+                <span class="comment-time">${escapeHtml(formatExactTime(c.createdAt || c.time))}</span>
+            </div>
+            <div class="comment-text">${escapeHtml(c.text)}</div>
+            <div class="comment-actions">
+                <button class="comment-reply-btn" data-cid="${c.id}">Javob berish</button>
+                <button class="comment-like-btn ${c.liked ? 'liked' : ''}" data-cid="${c.id}">
+                    <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                    <span class="comment-like-count">${c.likes || 0}</span>
+                </button>
+            </div>
+        </div>`;
+
+    wrap.querySelectorAll('[data-uid]').forEach(el => {
+        el.addEventListener('click', () => goToProfile(el.getAttribute('data-uid')));
+    });
+    wrap.querySelector('.comment-reply-btn').addEventListener('click', () => {
+        replyTarget = { commentId: c.id, user: c.user };
+        replyText.textContent = `@${c.user} ga javob`;
+        replyIndicator.classList.add('show');
+        commentsInput.focus();
+    });
+    const likeBtn = wrap.querySelector('.comment-like-btn');
+    likeBtn.addEventListener('click', () => {
+        const fresh = PostStore.all().find(x => x.id === activePost.id);
+        if (!fresh) return;
+        const comments = fresh.comments || [];
+        let target = comments.find(x => x.id === c.id);
+        if (!target) {
+            for (const cc of comments) {
+                const rr = (cc.replies || []).find(r => r.id === c.id);
+                if (rr) { target = rr; break; }
+            }
+        }
+        if (!target) return;
+        target.liked = !target.liked;
+        target.likes = Math.max(0, (target.likes || 0) + (target.liked ? 1 : -1));
+        PostStore.update(activePost.id, { comments });
+        c.liked = target.liked; c.likes = target.likes;
+        likeBtn.classList.toggle('liked', target.liked);
+        likeBtn.querySelector('.comment-like-count').textContent = target.likes;
+    });
+
+    if (!isReply && c.replies && c.replies.length) {
+        const box = document.createElement('div');
+        box.className = 'comment-replies';
+        c.replies.forEach(r => box.appendChild(buildComment(r, true)));
+        wrap.querySelector('.comment-body').appendChild(box);
+    }
+    return wrap;
+}
+
+commentsInput.addEventListener('input', () => {
+    commentsInput.style.height = 'auto';
+    commentsInput.style.height = Math.min(commentsInput.scrollHeight, 80) + 'px';
+    commentsSend.disabled = commentsInput.value.trim().length === 0;
+});
+
+commentsSend.addEventListener('click', () => {
+    const txt = commentsInput.value.trim();
+    if (!txt || !activePost) return;
+    const userId = currentUser?.userId || '';
+    const name = [currentUser.firstName, currentUser.lastName].filter(Boolean).join(' ') || 'Foydalanuvchi';
+    const newC = {
+        id: 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+        userId,
+        user: name,
+        avatar: currentUser.photo_url || null,
+        text: txt,
+        createdAt: new Date().toISOString(),
+        likes: 0,
+        liked: false,
+        replies: []
+    };
+
+    if (replyTarget) {
+        const parent = activePost.comments.find(c => c.id === replyTarget.commentId);
+        if (parent) (parent.replies = parent.replies || []).push(newC);
+    } else {
+        activePost.comments.push(newC);
+    }
+
+    PostStore.update(activePost.id, { comments: activePost.comments });
+
+    commentsInput.value = '';
+    commentsInput.style.height = 'auto';
+    commentsSend.disabled = true;
+    replyTarget = null;
+    replyIndicator.classList.remove('show');
+    renderComments();
+
+    const item = document.querySelector(`.post-item[data-id="${activePost.id}"]`);
+    if (item) {
+        const cc = item.querySelector('.comment-count');
+        if (cc) cc.textContent = countComments(activePost);
+    }
+    commentsList.scrollTop = commentsList.scrollHeight;
+});
+
+/* ================= INIT ================= */
 renderFeed();
 </script>
 </body>
