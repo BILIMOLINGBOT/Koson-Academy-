@@ -221,21 +221,15 @@
 
   <div class="container">
     <div class="content">
-      <!-- 1-qadam: Telefon raqami va Telegram ID -->
+      <!-- 1-qadam: Telefon raqami -->
       <div class="step-content active" id="step1Content">
         <div class="form-container">
-          <h2 class="form-title">Telefon va Telegram ID</h2>
+          <h2 class="form-title">Telefon raqamingizni kiriting</h2>
 
           <div class="input-group">
             <label class="input-label" for="phone">Telefon raqami</label>
             <input type="tel" class="input-field" id="phone" placeholder="Telefon raqamingiz">
             <div class="error-message" id="phoneError">Iltimos, to'g'ri telefon raqamini kiriting</div>
-          </div>
-
-          <div class="input-group">
-            <label class="input-label" for="chatId">Telegram Chat ID</label>
-            <input type="number" class="input-field" id="chatId" placeholder="Telegram ID raqamingiz">
-            <div class="error-message" id="chatIdError">Iltimos, Telegram ID kiriting</div>
           </div>
 
           <button class="next-btn" id="nextStep1">Davom etish</button>
@@ -382,14 +376,12 @@
     const successContent = document.getElementById('successContent');
 
     const phoneInput = document.getElementById('phone');
-    const chatIdInput = document.getElementById('chatId');
     const codeInput = document.getElementById('code');
     const firstNameInput = document.getElementById('firstName');
     const lastNameInput = document.getElementById('lastName');
     const usernameInput = document.getElementById('username');
 
     const phoneError = document.getElementById('phoneError');
-    const chatIdError = document.getElementById('chatIdError');
     const codeError = document.getElementById('codeError');
     const firstNameError = document.getElementById('firstNameError');
     const lastNameError = document.getElementById('lastNameError');
@@ -427,12 +419,11 @@
     }
 
     function hideAllErrors() {
-      [phoneError, chatIdError, codeError, firstNameError, lastNameError,
+      [phoneError, codeError, firstNameError, lastNameError,
        usernameError, usernameFormatError].forEach(el => el.style.display = 'none');
       usernameAvailable.style.display = 'none';
       usernameChecking.style.display = 'none';
       phoneInput.classList.remove('invalid');
-      if (chatIdInput) chatIdInput.classList.remove('invalid');
       codeInput.classList.remove('invalid');
     }
 
@@ -445,37 +436,27 @@
       return /^[a-zA-Z0-9_]{3,20}$/.test(username);
     }
 
-    // 1-QADAM: API ORQALI TELEGRAMGA KOD YUBORISH
+    // 1-QADAM: API ORQALI TELEGRAMGA KOD YUBORISH (Faqat telefon raqami yuboriladi)
     nextStep1.addEventListener('click', async () => {
       hideAllErrors();
       const phone = phoneInput.value.trim();
-      const chatId = chatIdInput.value.trim();
-
-      let hasError = false;
 
       if (!isValidPhone(phone)) {
         phoneError.textContent = 'Iltimos, to\'g\'ri telefon raqamini kiriting';
         phoneError.style.display = 'block';
         phoneInput.classList.add('invalid');
-        hasError = true;
+        return;
       }
-      
-      if (!chatId) {
-        chatIdError.style.display = 'block';
-        chatIdInput.classList.add('invalid');
-        hasError = true;
-      }
-
-      if (hasError) return;
 
       nextStep1.disabled = true;
       nextStep1.textContent = 'Yuborilmoqda...';
 
       try {
+        // Backendga endi faqat telefon raqami yuboriladi
         const response = await fetch('/api/send-otp', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phone_number: phone, telegram_chat_id: chatId })
+          body: JSON.stringify({ phone_number: phone })
         });
         
         const data = await response.json();
@@ -483,7 +464,6 @@
         if (response.ok) {
           state.phone = phone;
           phoneInput.classList.add('valid');
-          chatIdInput.classList.add('valid');
           showStep(2);
         } else {
           phoneError.textContent = data.error || 'Xatolik yuz berdi';
@@ -499,10 +479,6 @@
     });
 
     phoneInput.addEventListener('keypress', e => {
-      if (e.key === 'Enter') nextStep1.click();
-    });
-
-    chatIdInput.addEventListener('keypress', e => {
       if (e.key === 'Enter') nextStep1.click();
     });
 
@@ -553,11 +529,10 @@
     });
 
     resendCode.addEventListener('click', () => {
-      // Kodni qayta yuborish tugmasi yana 1-qadam funksiyasini chaqirishi mumkin
       nextStep1.click();
     });
 
-    // 3 VA 4-QADAMLAR (MAHALLIY BAZA UCHUN)
+    // 3 VA 4-QADAMLAR
     nextStep3.addEventListener('click', () => {
       hideAllErrors();
       const firstName = firstNameInput.value.trim();
