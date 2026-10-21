@@ -28,8 +28,6 @@
       padding: 40px 20px;
     }
 
-    /* Header butunlay olib tashlandi */
-
     .content {
       padding: 0;
     }
@@ -223,15 +221,21 @@
 
   <div class="container">
     <div class="content">
-      <!-- 1-qadam: Telefon raqami -->
+      <!-- 1-qadam: Telefon raqami va Telegram ID -->
       <div class="step-content active" id="step1Content">
         <div class="form-container">
-          <h2 class="form-title">Telefon raqamingizni kiriting</h2>
+          <h2 class="form-title">Telefon va Telegram ID ni kiriting</h2>
 
           <div class="input-group">
             <label class="input-label" for="phone">Telefon raqami</label>
             <input type="tel" class="input-field" id="phone" placeholder="Telefon raqamingiz">
             <div class="error-message" id="phoneError">Iltimos, to'g'ri telefon raqamini kiriting</div>
+          </div>
+
+          <div class="input-group">
+            <label class="input-label" for="chatId">Telegram Chat ID</label>
+            <input type="number" class="input-field" id="chatId" placeholder="Telegram ID raqamingiz">
+            <div class="error-message" id="chatIdError">Iltimos, Telegram ID kiriting</div>
           </div>
 
           <button class="next-btn" id="nextStep1">Davom etish</button>
@@ -411,8 +415,6 @@
       usernameVerified: false
     };
 
-    const VALID_CODE = '123456';
-
     function showStep(step) {
       [step1Content, step2Content, step3Content, step4Content, successContent]
         .forEach(el => el.classList.remove('active'));
@@ -427,6 +429,9 @@
        usernameError, usernameFormatError].forEach(el => el.style.display = 'none');
       usernameAvailable.style.display = 'none';
       usernameChecking.style.display = 'none';
+      
+      const chatIdError = document.getElementById('chatIdError');
+      if (chatIdError) chatIdError.style.display = 'none';
     }
 
     function isValidPhone(phone) {
@@ -438,16 +443,12 @@
       return /^[a-zA-Z0-9_]{3,20}$/.test(username);
     }
 
-    nextStep1.addEventListener('click', () => {
+    // 1-QADAM: TUGMANI BOSGANDA KOD YUBORISH
+    nextStep1.addEventListener('click', async () => {
       hideAllErrors();
       const phone = phoneInput.value.trim();
-
-      if (!phone) {
-        phoneError.textContent = 'Iltimos, telefon raqamini kiriting';
-        phoneError.style.display = 'block';
-        phoneInput.classList.add('invalid');
-        return;
-      }
+      const chatIdInput = document.getElementById('chatId');
+      const chatId = chatIdInput ? chatIdInput.value.trim() : '';
 
       if (!isValidPhone(phone)) {
         phoneError.textContent = 'Iltimos, to\'g\'ri telefon raqamini kiriting';
@@ -455,32 +456,90 @@
         phoneInput.classList.add('invalid');
         return;
       }
+      
+      if (!chatId) {
+        document.getElementById('chatIdError').style.display = 'block';
+        chatIdInput.classList.add('invalid');
+        return;
+      }
 
-      state.phone = phone;
-      phoneInput.classList.remove('invalid');
-      phoneInput.classList.add('valid');
-      showStep(2);
+      // Tugmani yuklanish holatiga o'tkazish
+      nextStep1.disabled = true;
+      nextStep1.textContent = 'Yuborilmoqda...';
+
+      try {
+        const response = await fetch('/api/send-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone_number: phone, telegram_chat_id: chatId })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          state.phone = phone;
+          phoneInput.classList.remove('invalid');
+          phoneInput.classList.add('valid');
+          showStep(2);
+        } else {
+          phoneError.textContent = data.error || 'Xatolik yuz berdi';
+          phoneError.style.display = 'block';
+        }
+      } catch (err) {
+        phoneError.textContent = 'Server bilan bog\'lanib bo\'lmadi';
+        phoneError.style.display = 'block';
+      } finally {
+        nextStep1.disabled = false;
+        nextStep1.textContent = 'Davom etish';
+      }
     });
 
     phoneInput.addEventListener('keypress', e => {
       if (e.key === 'Enter') nextStep1.click();
     });
 
-    nextStep2.addEventListener('click', () => {
+    
+    // 2-QADAM: KODNI TEKSHIRISH
+    nextStep2.addEventListener('click', async () => {
       hideAllErrors();
       const code = codeInput.value.trim();
 
-      if (code !== VALID_CODE) {
-        codeError.textContent = 'Noto\'g\'ri kod. Qaytadan urinib ko\'ring';
+      if (code.length !== 6) {
+        codeError.textContent = 'Kod 6 xonali bo\'lishi kerak';
         codeError.style.display = 'block';
         codeInput.classList.add('invalid');
         return;
       }
 
-      state.code = code;
-      codeInput.classList.remove('invalid');
-      codeInput.classList.add('valid');
-      showStep(3);
+      nextStep2.disabled = true;
+      nextStep2.textContent = 'Tekshirilmoqda...';
+
+      try {
+        const response = await fetch('/api/verify-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone_number: state.phone, code: code })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          state.code = code;
+          codeInput.classList.remove('invalid');
+          codeInput.classList.add('valid');
+          showStep(3);
+        } else {
+          codeError.textContent = data.error || 'Noto\'g\'ri kod';
+          codeError.style.display = 'block';
+          codeInput.classList.add('invalid');
+        }
+      } catch (err) {
+        codeError.textContent = 'Server bilan bog\'lanib bo\'lmadi';
+        codeError.style.display = 'block';
+      } finally {
+        nextStep2.disabled = false;
+        nextStep2.textContent = 'Davom etish';
+      }
     });
 
     codeInput.addEventListener('keypress', e => {
@@ -489,6 +548,7 @@
 
     resendCode.addEventListener('click', () => {
       alert('Yangi tasdiqlash kodi yuborildi');
+      // Bu yerda qo'shimcha mantiq yozish mumkin
     });
 
     nextStep3.addEventListener('click', () => {
