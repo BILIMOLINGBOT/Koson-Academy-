@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Post Detail UI</title>
+<title>Twitter Interactive UI</title>
 <style>
   body {
     background-color: #000000;
@@ -13,6 +13,7 @@
     justify-content: center;
     margin: 0;
     padding: 0;
+    overflow-x: hidden;
   }
   
   .app-container {
@@ -20,13 +21,112 @@
     width: 100%;
     background-color: #000000;
     min-height: 100vh;
-    position: relative;
-    padding-bottom: 60px; /* Pastki menyu uchun joy */
     border-left: 1px solid #2f3336;
     border-right: 1px solid #2f3336;
+    position: relative;
+    overflow: hidden;
   }
 
-  /* Yuqori panel (Top bar) */
+  /* Ikkala ekran (sahifa) uchun umumiy stil */
+  .screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    min-height: 100%;
+    background-color: #000000;
+    transition: transform 0.3s ease;
+  }
+
+  /* 1-sahifa: Feed qismi (Ro'yxat) */
+  #feed-screen {
+    transform: translateX(0);
+    z-index: 1;
+  }
+
+  /* 2-sahifa: Detail qismi (To'liq) */
+  #detail-screen {
+    transform: translateX(100%); /* Boshida ekrandan o'ngda yashiringan */
+    z-index: 2;
+    padding-bottom: 60px; /* Input bar uchun */
+  }
+
+  /* Aktiv va yashiringan holatlar uchun classlar */
+  .screen-hidden-left {
+    transform: translateX(-30%); /* Feed chapga biroz suriladi */
+  }
+  
+  .screen-active {
+    transform: translateX(0) !important;
+  }
+
+  /* --- 1-SAHIFA (FEED) STILLARI --- */
+  .tweet-feed {
+    padding: 12px 16px;
+    border-bottom: 1px solid #2f3336;
+    cursor: pointer;
+    display: flex;
+    transition: background-color 0.2s;
+  }
+  
+  .tweet-feed:hover {
+    background-color: rgba(255, 255, 255, 0.03);
+  }
+
+  .avatar-container { margin-right: 12px; }
+  .avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    background-color: #333;
+  }
+  
+  .content-container { flex: 1; min-width: 0; }
+  .header-feed {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 4px;
+  }
+  
+  .user-info { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
+  .display-name { font-weight: 700; font-size: 15px; color: #e7e9ea; }
+  .verified-badge { width: 1.25em; height: 1.25em; fill: #1d9bf0; display: inline-block; }
+  .username, .timestamp { color: #71767b; font-size: 15px; }
+  
+  .header-actions { display: flex; align-items: center; color: #71767b; gap: 16px; }
+  .header-icon { width: 18.75px; height: 18.75px; fill: currentColor; }
+  
+  .tweet-text-feed {
+    font-size: 15px;
+    line-height: 20px;
+    margin: 0 0 12px 0;
+    word-wrap: break-word;
+  }
+  
+  .actions-feed {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #71767b;
+    margin-top: 12px;
+  }
+  
+  .action-group-feed { display: flex; flex: 1; justify-content: space-between; max-width: 425px; }
+  .action-item {
+    display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; transition: color 0.2s;
+  }
+  .action-item svg { width: 18.75px; height: 18.75px; fill: currentColor; }
+  
+  .action-item:hover { color: #1d9bf0; }
+  .action-item.retweet:hover { color: #00ba7c; }
+  .action-item.like:hover { color: #f91880; }
+  
+  .right-actions { display: flex; gap: 16px; }
+
+
+  /* --- 2-SAHIFA (DETAIL) STILLARI --- */
   .top-bar {
     position: sticky;
     top: 0;
@@ -40,457 +140,208 @@
     z-index: 10;
   }
 
-  .top-bar-left {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-  }
-
-  .top-bar-title {
-    font-size: 20px;
-    font-weight: 700;
-  }
-
+  .top-bar-left { display: flex; align-items: center; gap: 20px; }
+  .top-bar-title { font-size: 20px; font-weight: 700; }
   .icon-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background-color 0.2s;
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: background-color 0.2s;
   }
+  .icon-btn:hover { background-color: rgba(231, 233, 234, 0.1); }
+  .icon { width: 20px; height: 20px; fill: #e7e9ea; }
 
-  .icon-btn:hover {
-    background-color: rgba(231, 233, 234, 0.1);
-  }
-
-  .icon {
-    width: 20px;
-    height: 20px;
-    fill: #e7e9ea;
-  }
-
-  /* Asosiy Post */
-  .main-post {
-    padding: 12px 16px 0;
-  }
-
-  .main-user-info {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-  }
-
-  .user-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    object-fit: cover;
-    background-color: #333;
-  }
-
-  .name-block {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .display-name-row {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-
-  .display-name {
-    font-weight: 700;
-    font-size: 15px;
-    color: #e7e9ea;
-  }
-
-  .verified-badge {
-    width: 18px;
-    height: 18px;
-    fill: #1d9bf0;
-  }
-
-  .username, .muted-text {
-    color: #71767b;
-    font-size: 15px;
-  }
-
-  .user-right {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
+  .main-post { padding: 12px 16px 0; }
+  .main-user-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .user-left { display: flex; align-items: center; gap: 12px; }
+  .detail-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background-color: #333; }
+  .name-block { display: flex; flex-direction: column; }
+  .display-name-row { display: flex; align-items: center; gap: 4px; }
+  
+  .user-right { display: flex; align-items: center; gap: 8px; }
   .follow-btn {
-    background-color: #eff3f4;
-    color: #0f1419;
-    border: none;
-    border-radius: 9999px;
-    font-weight: 700;
-    font-size: 14px;
-    padding: 0 16px;
-    height: 32px;
-    cursor: pointer;
-  }
-
-  .muted-icon {
-    fill: #71767b;
-  }
-
-  .main-tweet-text {
-    font-size: 17px;
-    line-height: 24px;
-    margin-bottom: 16px;
-    word-wrap: break-word;
-  }
-
-  .post-stats {
-    color: #71767b;
-    font-size: 15px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid #2f3336;
-  }
-
-  .post-stats strong {
-    color: #e7e9ea;
-  }
-
-  .main-actions {
-    display: flex;
-    justify-content: space-between;
-    padding: 12px 4px;
-    border-bottom: 1px solid #2f3336;
-  }
-
-  .main-action-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    color: #71767b;
-    font-size: 14px;
-    cursor: pointer;
-  }
-
-  .main-action-item svg {
-    width: 22px;
-    height: 22px;
-    fill: currentColor;
-  }
-
-  /* Ajratuvchi va tartiblash qismi */
-  .sort-row {
-    display: flex;
-    justify-content: space-between;
-    padding: 12px 16px;
-    border-bottom: 1px solid #2f3336;
-    font-size: 15px;
-    color: #71767b;
-    font-weight: 700;
-  }
-
-  /* Izohlar (Replies) */
-  .reply-tweet {
-    display: flex;
-    padding: 12px 16px;
-    border-bottom: 1px solid #2f3336;
-  }
-
-  .reply-avatar {
-    margin-right: 12px;
-  }
-
-  .reply-content {
-    flex: 1;
-  }
-
-  .reply-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-  }
-
-  .reply-user-info {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 4px;
-  }
-
-  .reply-text {
-    font-size: 15px;
-    line-height: 20px;
-    margin: 4px 0 12px;
-  }
-
-  .reply-actions {
-    display: flex;
-    justify-content: space-between;
-    max-width: 425px;
-    color: #71767b;
-  }
-
-  .reply-actions svg {
-    width: 18px;
-    height: 18px;
-    fill: currentColor;
+    background-color: #eff3f4; color: #0f1419; border: none; border-radius: 9999px;
+    font-weight: 700; font-size: 14px; padding: 0 16px; height: 32px; cursor: pointer;
   }
   
-  .action-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
+  .main-tweet-text { font-size: 17px; line-height: 24px; margin-bottom: 16px; word-wrap: break-word; }
+  
+  .post-stats { color: #71767b; font-size: 15px; padding-bottom: 16px; border-bottom: 1px solid #2f3336; }
+  .post-stats strong { color: #e7e9ea; }
+  
+  .main-actions { display: flex; justify-content: space-between; padding: 12px 4px; border-bottom: 1px solid #2f3336; }
+  .main-action-item { display: flex; align-items: center; gap: 6px; color: #71767b; font-size: 14px; cursor: pointer; }
+  .main-action-item svg { width: 22px; height: 22px; fill: currentColor; }
+  
+  .sort-row {
+    display: flex; justify-content: space-between; padding: 12px 16px;
+    border-bottom: 1px solid #2f3336; font-size: 15px; color: #71767b; font-weight: 700;
   }
-
-  .reply-right-actions {
-    display: flex;
-    gap: 16px;
-  }
-
+  
   /* Pastki izoh yozish qismi */
   .bottom-bar {
-    position: fixed;
-    bottom: 0;
-    max-width: 600px;
-    width: 100%;
-    background-color: #000000;
-    border-top: 1px solid #2f3336;
-    display: flex;
-    align-items: center;
-    padding: 8px 16px;
-    box-sizing: border-box;
-    z-index: 10;
+    position: fixed; bottom: 0; max-width: 600px; width: 100%;
+    background-color: #000000; border-top: 1px solid #2f3336;
+    display: flex; align-items: center; padding: 8px 16px; box-sizing: border-box; z-index: 10;
   }
-
   .bottom-avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background-color: #1d9bf0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    color: white;
-    font-size: 18px;
-    margin-right: 12px;
+    width: 32px; height: 32px; border-radius: 50%; background-color: #1d9bf0;
+    display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; margin-right: 12px;
   }
+  .input-wrapper { flex: 1; display: flex; align-items: center; padding: 8px 0; }
+  .reply-input { background: none; border: none; color: #e7e9ea; font-size: 15px; flex: 1; outline: none; }
+  .input-actions { display: flex; align-items: center; gap: 16px; color: #1d9bf0; }
+  .input-actions svg { width: 20px; height: 20px; fill: currentColor; cursor: pointer; }
 
-  .input-wrapper {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    background-color: transparent;
-    padding: 8px 0;
-  }
-
-  .reply-input {
-    background: none;
-    border: none;
-    color: #e7e9ea;
-    font-size: 15px;
-    flex: 1;
-    outline: none;
-  }
-
-  .input-actions {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    color: #1d9bf0;
-  }
-
-  .input-actions svg {
-    width: 20px;
-    height: 20px;
-    fill: currentColor;
-  }
 </style>
 </head>
 <body>
 
 <div class="app-container">
-  
-  <!-- Yuqori Panel -->
-  <div class="top-bar">
-    <div class="top-bar-left">
-      <div class="icon-btn">
-        <svg class="icon" viewBox="0 0 24 24"><path d="M7.414 13l5.043 5.04-1.414 1.42L3.586 12l7.457-7.46 1.414 1.42L7.414 11H21v2H7.414z"></path></svg>
-      </div>
-      <div class="top-bar-title">Post</div>
-    </div>
-    <div class="icon-btn">
-      <!-- Yashirilgan izohlar ikonasi -->
-      <svg class="icon" viewBox="0 0 24 24"><path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm4.12 12.707l-1.414 1.414L12 13.414l-2.707 2.707-1.414-1.414L10.586 12 7.879 9.293l1.414-1.414L12 10.586l2.707-2.707 1.414 1.414L13.414 12l2.706 2.707z"></path></svg>
-    </div>
-  </div>
 
-  <!-- Asosiy Post -->
-  <div class="main-post">
-    <div class="main-user-info">
-      <div class="user-left">
-        <img src="https://via.placeholder.com/40" alt="Avatar" class="avatar">
-        <div class="name-block">
-          <div class="display-name-row">
+  <!-- ================= 1-SAHIFA: FEED EKRANI ================= -->
+  <div id="feed-screen" class="screen">
+    <!-- Header (Ixtiyoriy) -->
+    <div style="padding: 16px; font-weight: bold; font-size: 20px; border-bottom: 1px solid #2f3336; position: sticky; top:0; background: rgba(0,0,0,0.85); z-index: 5;">
+      Home
+    </div>
+
+    <!-- Post Feed (Bosish mumkin) -->
+    <div class="tweet-feed" onclick="openPost()">
+      <div class="avatar-container">
+        <img src="https://via.placeholder.com/48" alt="Avatar" class="avatar">
+      </div>
+      <div class="content-container">
+        <div class="header-feed">
+          <div class="user-info">
             <span class="display-name">Madinabonu</span>
             <svg class="verified-badge" viewBox="0 0 24 24"><path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.918-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.337 2.25c-.416-.165-.866-.25-1.336-.25-2.21 0-3.918 1.79-3.918 4 0 .495.084.965.238 1.4-1.273.65-2.148 2.02-2.148 3.6 0 1.46.726 2.76 1.848 3.515-.102.378-.157.777-.157 1.185 0 2.21 1.71 3.998 3.918 3.998.47 0 .92-.084 1.336-.25C8.49 21.08 9.798 22 11.25 22h1.5c1.45 0 2.76-.918 3.336-2.25.416.165.866.25 1.336.25 2.21 0 3.918-1.79 3.918-4 0-.408-.054-.807-.157-1.185 1.12-.755 1.848-2.055 1.848-3.515zm-11.45 4.67l-3.34-3.34 1.414-1.41 1.926 1.92 5.097-5.09 1.414 1.41-6.51 6.51z"></path></svg>
+            <span class="username">@Madina...</span>
+            <span class="timestamp">· 19h</span>
           </div>
-          <span class="username">@MadinaShavkat</span>
-        </div>
-      </div>
-      <div class="user-right">
-        <button class="follow-btn">Follow</button>
-        <svg class="icon muted-icon" viewBox="0 0 24 24"><path d="M3 12c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2zm9 2c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm7 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"></path></svg>
-      </div>
-    </div>
-    
-    <div class="main-tweet-text">
-      Jin ursin bunaqa havoni!!! O'pishishli havo ham jonga tegdi, endi baxtli yashayotganingda yolg'izligingni eslatadigan
-    </div>
-    
-    <div class="post-stats">
-      21:50 · 21 okt 26 · <strong>1,9K</strong> Views
-    </div>
-    
-    <div class="main-actions">
-      <div class="main-action-item"><svg viewBox="0 0 24 24"><path d="M1.751 10c0-4.42 3.584-8 8.005-8h4.366c4.49 0 8.129 3.64 8.129 8.13 0 2.96-1.607 5.68-4.196 7.11l-8.054 4.46v-3.69h-.067c-4.49.1-8.183-3.51-8.183-8.01zm8.005-6c-3.317 0-6.005 2.69-6.005 6 0 3.37 2.77 6.08 6.138 6.01l.351-.01h1.761v2.3l5.087-2.81c1.951-1.08 3.163-3.13 3.163-5.36 0-3.39-2.744-6.13-6.129-6.13H9.756z"></path></svg> 5</div>
-      <div class="main-action-item"><svg viewBox="0 0 24 24"><path d="M4.5 3.88l4.432 4.14-1.364 1.46L5.5 7.55V16c0 1.1.896 2 2 2H13v2H7.5c-2.209 0-4-1.79-4-4V7.55L1.432 9.48.068 8.02 4.5 3.88zM16.5 6H11V4h5.5c2.209 0 4 1.79 4 4v8.45l2.068-1.93 1.364 1.46-4.432 4.14-4.432-4.14 1.364-1.46 2.068 1.93V8c0-1.1-.896-2-2-2z"></path></svg> 2</div>
-      <div class="main-action-item"><svg viewBox="0 0 24 24"><path d="M16.697 5.5c-1.222-.06-2.679.51-3.89 2.16l-.805 1.09-.806-1.09C9.984 6.01 8.526 5.44 7.304 5.5c-1.243.07-2.349.78-2.91 1.91-.552 1.12-.633 2.78.479 4.82 1.074 1.97 3.257 4.27 7.129 6.61 3.87-2.34 6.052-4.64 7.126-6.61 1.111-2.04 1.03-3.7.477-4.82-.561-1.13-1.666-1.84-2.908-1.91zm4.187 7.69c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z"></path></svg> 25</div>
-      <div class="main-action-item"><svg viewBox="0 0 24 24"><path d="M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5zM6.5 4c-.276 0-.5.22-.5.5v14.56l6-4.29 6 4.29V4.5c0-.28-.224-.5-.5-.5h-11z"></path></svg> 1</div>
-      <div class="main-action-item"><svg viewBox="0 0 24 24"><path d="M12 2.59l5.7 5.7-1.41 1.42L13 6.41V16h-2V6.41l-3.3 3.3-1.41-1.42L12 2.59zM21 15l-.02 3.51c0 1.38-1.12 2.49-2.5 2.49H5.5C4.11 21 3 19.88 3 18.5V15h2v3.5c0 .28.22.5.5.5h12.98c.28 0 .5-.22.5-.5L19 15h2z"></path></svg></div>
-    </div>
-  </div>
-
-  <!-- Sort Row -->
-  <div class="sort-row">
-    <span>Relevant ˅</span>
-    <span>View quotes ˃</span>
-  </div>
-
-  <!-- Comments (Izohlar) -->
-  <div class="replies">
-    
-    <!-- Comment 1 -->
-    <div class="reply-tweet">
-      <div class="reply-avatar">
-        <img src="https://via.placeholder.com/40" alt="Avatar" class="avatar">
-      </div>
-      <div class="reply-content">
-        <div class="reply-header">
-          <div class="reply-user-info">
-            <span class="display-name">Madinabonu</span>
-            <svg class="verified-badge" style="width:16px;height:16px;" viewBox="0 0 24 24"><path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.918-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.337 2.25c-.416-.165-.866-.25-1.336-.25-2.21 0-3.918 1.79-3.918 4 0 .495.084.965.238 1.4-1.273.65-2.148 2.02-2.148 3.6 0 1.46.726 2.76 1.848 3.515-.102.378-.157.777-.157 1.185 0 2.21 1.71 3.998 3.918 3.998.47 0 .92-.084 1.336-.25C8.49 21.08 9.798 22 11.25 22h1.5c1.45 0 2.76-.918 3.336-2.25.416.165.866.25 1.336.25 2.21 0 3.918-1.79 3.918-4 0-.408-.054-.807-.157-1.185 1.12-.755 1.848-2.055 1.848-3.515zm-11.45 4.67l-3.34-3.34 1.414-1.41 1.926 1.92 5.097-5.09 1.414 1.41-6.51 6.51z"></path></svg>
-            <span class="muted-text">@Madina... · 19h</span>
-          </div>
-          <div style="display:flex;gap:12px;">
-            <svg class="muted-icon" style="width:18px;height:18px;" viewBox="0 0 24 24"><path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm4.12 12.707l-1.414 1.414L12 13.414l-2.707 2.707-1.414-1.414L10.586 12 7.879 9.293l1.414-1.414L12 10.586l2.707-2.707 1.414 1.414L13.414 12l2.706 2.707z"></path></svg>
-            <svg class="muted-icon" style="width:18px;height:18px;" viewBox="0 0 24 24"><path d="M3 12c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2zm9 2c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm7 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"></path></svg>
+          <div class="header-actions">
+            <svg class="header-icon" viewBox="0 0 24 24"><path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm4.12 12.707l-1.414 1.414L12 13.414l-2.707 2.707-1.414-1.414L10.586 12 7.879 9.293l1.414-1.414L12 10.586l2.707-2.707 1.414 1.414L13.414 12l2.706 2.707z"></path></svg>
+            <svg class="header-icon" viewBox="0 0 24 24"><path d="M3 12c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2zm9 2c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm7 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"></path></svg>
           </div>
         </div>
-        <div class="reply-text">Bizni uyda yana svet o'chib qorong'uda zerikib yozilgan twit</div>
-        <div class="reply-actions">
-          <div class="action-item"><svg viewBox="0 0 24 24"><path d="M1.751 10c0-4.42 3.584-8 8.005-8h4.366c4.49 0 8.129 3.64 8.129 8.13 0 2.96-1.607 5.68-4.196 7.11l-8.054 4.46v-3.69h-.067c-4.49.1-8.183-3.51-8.183-8.01zm8.005-6c-3.317 0-6.005 2.69-6.005 6 0 3.37 2.77 6.08 6.138 6.01l.351-.01h1.761v2.3l5.087-2.81c1.951-1.08 3.163-3.13 3.163-5.36 0-3.39-2.744-6.13-6.129-6.13H9.756z"></path></svg></div>
-          <div class="action-item"><svg viewBox="0 0 24 24"><path d="M4.5 3.88l4.432 4.14-1.364 1.46L5.5 7.55V16c0 1.1.896 2 2 2H13v2H7.5c-2.209 0-4-1.79-4-4V7.55L1.432 9.48.068 8.02 4.5 3.88zM16.5 6H11V4h5.5c2.209 0 4 1.79 4 4v8.45l2.068-1.93 1.364 1.46-4.432 4.14-4.432-4.14 1.364-1.46 2.068 1.93V8c0-1.1-.896-2-2-2z"></path></svg></div>
-          <div class="action-item"><svg viewBox="0 0 24 24"><path d="M16.697 5.5c-1.222-.06-2.679.51-3.89 2.16l-.805 1.09-.806-1.09C9.984 6.01 8.526 5.44 7.304 5.5c-1.243.07-2.349.78-2.91 1.91-.552 1.12-.633 2.78.479 4.82 1.074 1.97 3.257 4.27 7.129 6.61 3.87-2.34 6.052-4.64 7.126-6.61 1.111-2.04 1.03-3.7.477-4.82-.561-1.13-1.666-1.84-2.908-1.91zm4.187 7.69c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z"></path></svg> 3</div>
-          <div class="action-item"><svg viewBox="0 0 24 24"><path d="M8.75 21V3h2v18h-2zM18 21V8.5h2V21h-2zM4 21l.004-10h2L6 21H4zm9.248 0v-7h2v7h-2z"></path></svg> 272</div>
-          <div class="reply-right-actions">
-            <svg style="width:18px;height:18px" viewBox="0 0 24 24"><path d="M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5zM6.5 4c-.276 0-.5.22-.5.5v14.56l6-4.29 6 4.29V4.5c0-.28-.224-.5-.5-.5h-11z"></path></svg>
-            <svg style="width:18px;height:18px" viewBox="0 0 24 24"><path d="M12 2.59l5.7 5.7-1.41 1.42L13 6.41V16h-2V6.41l-3.3 3.3-1.41-1.42L12 2.59zM21 15l-.02 3.51c0 1.38-1.12 2.49-2.5 2.49H5.5C4.11 21 3 19.88 3 18.5V15h2v3.5c0 .28.22.5.5.5h12.98c.28 0 .5-.22.5-.5L19 15h2z"></path></svg>
+        
+        <p class="tweet-text-feed">
+          Jin ursin bunaqa havoni!!! O'pishishli havo ham jonga tegdi, endi baxtli yashayotganingda yolg'izligingni eslatadigan
+        </p>
+        
+        <div class="actions-feed" onclick="event.stopPropagation();"> <!-- Reaksiyalarni bosganda sahifa ochilmasligi uchun -->
+          <div class="action-group-feed">
+            <div class="action-item"><svg viewBox="0 0 24 24"><path d="M1.751 10c0-4.42 3.584-8 8.005-8h4.366c4.49 0 8.129 3.64 8.129 8.13 0 2.96-1.607 5.68-4.196 7.11l-8.054 4.46v-3.69h-.067c-4.49.1-8.183-3.51-8.183-8.01zm8.005-6c-3.317 0-6.005 2.69-6.005 6 0 3.37 2.77 6.08 6.138 6.01l.351-.01h1.761v2.3l5.087-2.81c1.951-1.08 3.163-3.13 3.163-5.36 0-3.39-2.744-6.13-6.129-6.13H9.756z"></path></svg> 5</div>
+            <div class="action-item retweet"><svg viewBox="0 0 24 24"><path d="M4.5 3.88l4.432 4.14-1.364 1.46L5.5 7.55V16c0 1.1.896 2 2 2H13v2H7.5c-2.209 0-4-1.79-4-4V7.55L1.432 9.48.068 8.02 4.5 3.88zM16.5 6H11V4h5.5c2.209 0 4 1.79 4 4v8.45l2.068-1.93 1.364 1.46-4.432 4.14-4.432-4.14 1.364-1.46 2.068 1.93V8c0-1.1-.896-2-2-2z"></path></svg> 2</div>
+            <div class="action-item like"><svg viewBox="0 0 24 24"><path d="M16.697 5.5c-1.222-.06-2.679.51-3.89 2.16l-.805 1.09-.806-1.09C9.984 6.01 8.526 5.44 7.304 5.5c-1.243.07-2.349.78-2.91 1.91-.552 1.12-.633 2.78.479 4.82 1.074 1.97 3.257 4.27 7.129 6.61 3.87-2.34 6.052-4.64 7.126-6.61 1.111-2.04 1.03-3.7.477-4.82-.561-1.13-1.666-1.84-2.908-1.91zm4.187 7.69c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z"></path></svg> 25</div>
+            <div class="action-item"><svg viewBox="0 0 24 24"><path d="M8.75 21V3h2v18h-2zM18 21V8.5h2V21h-2zM4 21l.004-10h2L6 21H4zm9.248 0v-7h2v7h-2z"></path></svg> 1,9K</div>
           </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Comment 2 -->
-    <div class="reply-tweet">
-      <div class="reply-avatar">
-        <img src="https://via.placeholder.com/40" alt="Avatar" class="avatar">
-      </div>
-      <div class="reply-content">
-        <div class="reply-header">
-          <div class="reply-user-info">
-            <span class="display-name">Mirzabek</span>
-            <span class="muted-text">@MirzabeX · 7h</span>
-          </div>
-          <div style="display:flex;gap:12px;">
-            <svg class="muted-icon" style="width:18px;height:18px;" viewBox="0 0 24 24"><path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm4.12 12.707l-1.414 1.414L12 13.414l-2.707 2.707-1.414-1.414L10.586 12 7.879 9.293l1.414-1.414L12 10.586l2.707-2.707 1.414 1.414L13.414 12l2.706 2.707z"></path></svg>
-            <svg class="muted-icon" style="width:18px;height:18px;" viewBox="0 0 24 24"><path d="M3 12c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2zm9 2c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm7 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"></path></svg>
-          </div>
-        </div>
-        <div class="reply-text">Xavoni tasiri shunaqa muximi</div>
-        <div class="reply-actions">
-          <div class="action-item"><svg viewBox="0 0 24 24"><path d="M1.751 10c0-4.42 3.584-8 8.005-8h4.366c4.49 0 8.129 3.64 8.129 8.13 0 2.96-1.607 5.68-4.196 7.11l-8.054 4.46v-3.69h-.067c-4.49.1-8.183-3.51-8.183-8.01zm8.005-6c-3.317 0-6.005 2.69-6.005 6 0 3.37 2.77 6.08 6.138 6.01l.351-.01h1.761v2.3l5.087-2.81c1.951-1.08 3.163-3.13 3.163-5.36 0-3.39-2.744-6.13-6.129-6.13H9.756z"></path></svg></div>
-          <div class="action-item"><svg viewBox="0 0 24 24"><path d="M4.5 3.88l4.432 4.14-1.364 1.46L5.5 7.55V16c0 1.1.896 2 2 2H13v2H7.5c-2.209 0-4-1.79-4-4V7.55L1.432 9.48.068 8.02 4.5 3.88zM16.5 6H11V4h5.5c2.209 0 4 1.79 4 4v8.45l2.068-1.93 1.364 1.46-4.432 4.14-4.432-4.14 1.364-1.46 2.068 1.93V8c0-1.1-.896-2-2-2z"></path></svg></div>
-          <div class="action-item"><svg viewBox="0 0 24 24"><path d="M16.697 5.5c-1.222-.06-2.679.51-3.89 2.16l-.805 1.09-.806-1.09C9.984 6.01 8.526 5.44 7.304 5.5c-1.243.07-2.349.78-2.91 1.91-.552 1.12-.633 2.78.479 4.82 1.074 1.97 3.257 4.27 7.129 6.61 3.87-2.34 6.052-4.64 7.126-6.61 1.111-2.04 1.03-3.7.477-4.82-.561-1.13-1.666-1.84-2.908-1.91zm4.187 7.69c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z"></path></svg></div>
-          <div class="action-item"><svg viewBox="0 0 24 24"><path d="M8.75 21V3h2v18h-2zM18 21V8.5h2V21h-2zM4 21l.004-10h2L6 21H4zm9.248 0v-7h2v7h-2z"></path></svg> 50</div>
-          <div class="reply-right-actions">
-            <svg style="width:18px;height:18px" viewBox="0 0 24 24"><path d="M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5zM6.5 4c-.276 0-.5.22-.5.5v14.56l6-4.29 6 4.29V4.5c0-.28-.224-.5-.5-.5h-11z"></path></svg>
-            <svg style="width:18px;height:18px" viewBox="0 0 24 24"><path d="M12 2.59l5.7 5.7-1.41 1.42L13 6.41V16h-2V6.41l-3.3 3.3-1.41-1.42L12 2.59zM21 15l-.02 3.51c0 1.38-1.12 2.49-2.5 2.49H5.5C4.11 21 3 19.88 3 18.5V15h2v3.5c0 .28.22.5.5.5h12.98c.28 0 .5-.22.5-.5L19 15h2z"></path></svg>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    
-    <!-- Comment 3 -->
-    <div class="reply-tweet">
-      <div class="reply-avatar">
-        <img src="https://via.placeholder.com/40" alt="Avatar" class="avatar">
-      </div>
-      <div class="reply-content">
-        <div class="reply-header">
-          <div class="reply-user-info">
-            <span class="display-name">Hanysa Anvarovna</span>
-            <span class="muted-text">@kha... · 17h</span>
-          </div>
-          <div style="display:flex;gap:12px;">
-            <svg class="muted-icon" style="width:18px;height:18px;" viewBox="0 0 24 24"><path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm4.12 12.707l-1.414 1.414L12 13.414l-2.707 2.707-1.414-1.414L10.586 12 7.879 9.293l1.414-1.414L12 10.586l2.707-2.707 1.414 1.414L13.414 12l2.706 2.707z"></path></svg>
-            <svg class="muted-icon" style="width:18px;height:18px;" viewBox="0 0 24 24"><path d="M3 12c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2zm9 2c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm7 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"></path></svg>
-          </div>
-        </div>
-        <div class="reply-text">хаво: мени нима айбим бор эди 😅 сизда хавони айбламаслик ун хар доим вариантлариз бор, шуни унутманг 🌚</div>
-        <div class="reply-actions">
-          <div class="action-item"><svg viewBox="0 0 24 24"><path d="M1.751 10c0-4.42 3.584-8 8.005-8h4.366c4.49 0 8.129 3.64 8.129 8.13 0 2.96-1.607 5.68-4.196 7.11l-8.054 4.46v-3.69h-.067c-4.49.1-8.183-3.51-8.183-8.01zm8.005-6c-3.317 0-6.005 2.69-6.005 6 0 3.37 2.77 6.08 6.138 6.01l.351-.01h1.761v2.3l5.087-2.81c1.951-1.08 3.163-3.13 3.163-5.36 0-3.39-2.744-6.13-6.129-6.13H9.756z"></path></svg> 1</div>
-          <div class="action-item"><svg viewBox="0 0 24 24"><path d="M4.5 3.88l4.432 4.14-1.364 1.46L5.5 7.55V16c0 1.1.896 2 2 2H13v2H7.5c-2.209 0-4-1.79-4-4V7.55L1.432 9.48.068 8.02 4.5 3.88zM16.5 6H11V4h5.5c2.209 0 4 1.79 4 4v8.45l2.068-1.93 1.364 1.46-4.432 4.14-4.432-4.14 1.364-1.46 2.068 1.93V8c0-1.1-.896-2-2-2z"></path></svg></div>
-          <div class="action-item"><svg viewBox="0 0 24 24"><path d="M16.697 5.5c-1.222-.06-2.679.51-3.89 2.16l-.805 1.09-.806-1.09C9.984 6.01 8.526 5.44 7.304 5.5c-1.243.07-2.349.78-2.91 1.91-.552 1.12-.633 2.78.479 4.82 1.074 1.97 3.257 4.27 7.129 6.61 3.87-2.34 6.052-4.64 7.126-6.61 1.111-2.04 1.03-3.7.477-4.82-.561-1.13-1.666-1.84-2.908-1.91zm4.187 7.69c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z"></path></svg> 6</div>
-          <div class="action-item"><svg viewBox="0 0 24 24"><path d="M8.75 21V3h2v18h-2zM18 21V8.5h2V21h-2zM4 21l.004-10h2L6 21H4zm9.248 0v-7h2v7h-2z"></path></svg> 189</div>
-          <div class="reply-right-actions">
-            <svg style="width:18px;height:18px" viewBox="0 0 24 24"><path d="M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5zM6.5 4c-.276 0-.5.22-.5.5v14.56l6-4.29 6 4.29V4.5c0-.28-.224-.5-.5-.5h-11z"></path></svg>
-            <svg style="width:18px;height:18px" viewBox="0 0 24 24"><path d="M12 2.59l5.7 5.7-1.41 1.42L13 6.41V16h-2V6.41l-3.3 3.3-1.41-1.42L12 2.59zM21 15l-.02 3.51c0 1.38-1.12 2.49-2.5 2.49H5.5C4.11 21 3 19.88 3 18.5V15h2v3.5c0 .28.22.5.5.5h12.98c.28 0 .5-.22.5-.5L19 15h2z"></path></svg>
+          <div class="right-actions">
+            <div class="action-item"><svg viewBox="0 0 24 24"><path d="M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5zM6.5 4c-.276 0-.5.22-.5.5v14.56l6-4.29 6 4.29V4.5c0-.28-.224-.5-.5-.5h-11z"></path></svg></div>
+            <div class="action-item"><svg viewBox="0 0 24 24"><path d="M12 2.59l5.7 5.7-1.41 1.42L13 6.41V16h-2V6.41l-3.3 3.3-1.41-1.42L12 2.59zM21 15l-.02 3.51c0 1.38-1.12 2.49-2.5 2.49H5.5C4.11 21 3 19.88 3 18.5V15h2v3.5c0 .28.22.5.5.5h12.98c.28 0 .5-.22.5-.5L19 15h2z"></path></svg></div>
           </div>
         </div>
       </div>
     </div>
   </div>
-  
-  <!-- Pastki izoh yozish paneli -->
-  <div class="bottom-bar">
-    <div class="bottom-avatar">j</div>
-    <div class="input-wrapper">
-      <input type="text" class="reply-input" placeholder="Post your reply">
+
+
+  <!-- ================= 2-SAHIFA: TO'LIQ POST EKRANI ================= -->
+  <div id="detail-screen" class="screen">
+    
+    <!-- Yuqori Panel -->
+    <div class="top-bar">
+      <div class="top-bar-left">
+        <!-- Orqaga qaytish tugmasi -->
+        <div class="icon-btn" onclick="closePost()">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M7.414 13l5.043 5.04-1.414 1.42L3.586 12l7.457-7.46 1.414 1.42L7.414 11H21v2H7.414z"></path></svg>
+        </div>
+        <div class="top-bar-title">Post</div>
+      </div>
+      <div class="icon-btn">
+        <svg class="icon" style="fill:#71767b" viewBox="0 0 24 24"><path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm4.12 12.707l-1.414 1.414L12 13.414l-2.707 2.707-1.414-1.414L10.586 12 7.879 9.293l1.414-1.414L12 10.586l2.707-2.707 1.414 1.414L13.414 12l2.706 2.707z"></path></svg>
+      </div>
     </div>
-    <div class="input-actions">
-      <!-- Media ikonasi -->
-      <svg viewBox="0 0 24 24"><path d="M3 5.5C3 4.119 4.119 3 5.5 3h13C19.881 3 21 4.119 21 5.5v13c0 1.381-1.119 2.5-2.5 2.5h-13C4.119 21 3 19.881 3 18.5v-13zM5.5 5c-.276 0-.5.224-.5.5v9.086l3-3 3 3 5-5 3 3V5.5c0-.276-.224-.5-.5-.5h-13zM19 15.414l-3-3-5 5-3-3-3 3V18.5c0 .276.224.5.5.5h13c.276 0 .5-.224.5-.5v-3.086zM9.75 7C8.784 7 8 7.784 8 8.75s.784 1.75 1.75 1.75 1.75-.784 1.75-1.75S10.716 7 9.75 7z"></path></svg>
-      <!-- GIF ikonasi -->
-      <svg viewBox="0 0 24 24"><path d="M7.747 16h3.42v-2h-1.523v-2.025h1.523v-1.954h-3.42V16zm3.896-5.979h2.247v5.979h-2.247V10.02zm5.727 0h-3.23v5.979h3.23v-1.954h-1.332v-2.025h1.332v-2.001zM12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zM3.5 12c0-4.687 3.813-8.5 8.5-8.5s8.5 3.813 8.5 8.5-3.813 8.5-8.5 8.5-8.5-3.813-8.5-8.5z"></path></svg>
-      <!-- Expand ikonasi -->
-      <svg viewBox="0 0 24 24"><path d="M21 3.5v5.52l-2-2V4.5h-2.52l-2-2H21zm-13.48-2l-2 2H3V9l-2 2V3.5h5.52zm8.48 21l2-2H21v-2.52l2-2V20.5h-5.52zM3 20.5v-5.52l2 2v2.52h2.52l2 2H3z"></path></svg>
+
+    <!-- Asosiy Post (Kattalashtirilgan) -->
+    <div class="main-post">
+      <div class="main-user-info">
+        <div class="user-left">
+          <img src="https://via.placeholder.com/40" alt="Avatar" class="detail-avatar">
+          <div class="name-block">
+            <div class="display-name-row">
+              <span class="display-name">Madinabonu</span>
+              <svg class="verified-badge" viewBox="0 0 24 24"><path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.918-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.337 2.25c-.416-.165-.866-.25-1.336-.25-2.21 0-3.918 1.79-3.918 4 0 .495.084.965.238 1.4-1.273.65-2.148 2.02-2.148 3.6 0 1.46.726 2.76 1.848 3.515-.102.378-.157.777-.157 1.185 0 2.21 1.71 3.998 3.918 3.998.47 0 .92-.084 1.336-.25C8.49 21.08 9.798 22 11.25 22h1.5c1.45 0 2.76-.918 3.336-2.25.416.165.866.25 1.336.25 2.21 0 3.918-1.79 3.918-4 0-.408-.054-.807-.157-1.185 1.12-.755 1.848-2.055 1.848-3.515zm-11.45 4.67l-3.34-3.34 1.414-1.41 1.926 1.92 5.097-5.09 1.414 1.41-6.51 6.51z"></path></svg>
+            </div>
+            <span class="username">@MadinaShavkat</span>
+          </div>
+        </div>
+        <div class="user-right">
+          <button class="follow-btn">Follow</button>
+          <svg style="width:20px;height:20px;fill:#71767b" viewBox="0 0 24 24"><path d="M3 12c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2zm9 2c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm7 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"></path></svg>
+        </div>
+      </div>
+      
+      <div class="main-tweet-text">
+        Jin ursin bunaqa havoni!!! O'pishishli havo ham jonga tegdi, endi baxtli yashayotganingda yolg'izligingni eslatadigan
+      </div>
+      
+      <div class="post-stats">
+        21:50 · 21 okt 26 · <strong>1,9K</strong> Views
+      </div>
+      
+      <div class="main-actions">
+        <div class="main-action-item"><svg viewBox="0 0 24 24"><path d="M1.751 10c0-4.42 3.584-8 8.005-8h4.366c4.49 0 8.129 3.64 8.129 8.13 0 2.96-1.607 5.68-4.196 7.11l-8.054 4.46v-3.69h-.067c-4.49.1-8.183-3.51-8.183-8.01zm8.005-6c-3.317 0-6.005 2.69-6.005 6 0 3.37 2.77 6.08 6.138 6.01l.351-.01h1.761v2.3l5.087-2.81c1.951-1.08 3.163-3.13 3.163-5.36 0-3.39-2.744-6.13-6.129-6.13H9.756z"></path></svg> 5</div>
+        <div class="main-action-item"><svg viewBox="0 0 24 24"><path d="M4.5 3.88l4.432 4.14-1.364 1.46L5.5 7.55V16c0 1.1.896 2 2 2H13v2H7.5c-2.209 0-4-1.79-4-4V7.55L1.432 9.48.068 8.02 4.5 3.88zM16.5 6H11V4h5.5c2.209 0 4 1.79 4 4v8.45l2.068-1.93 1.364 1.46-4.432 4.14-4.432-4.14 1.364-1.46 2.068 1.93V8c0-1.1-.896-2-2-2z"></path></svg> 2</div>
+        <div class="main-action-item"><svg viewBox="0 0 24 24"><path d="M16.697 5.5c-1.222-.06-2.679.51-3.89 2.16l-.805 1.09-.806-1.09C9.984 6.01 8.526 5.44 7.304 5.5c-1.243.07-2.349.78-2.91 1.91-.552 1.12-.633 2.78.479 4.82 1.074 1.97 3.257 4.27 7.129 6.61 3.87-2.34 6.052-4.64 7.126-6.61 1.111-2.04 1.03-3.7.477-4.82-.561-1.13-1.666-1.84-2.908-1.91zm4.187 7.69c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z"></path></svg> 25</div>
+        <div class="main-action-item"><svg viewBox="0 0 24 24"><path d="M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5zM6.5 4c-.276 0-.5.22-.5.5v14.56l6-4.29 6 4.29V4.5c0-.28-.224-.5-.5-.5h-11z"></path></svg> 1</div>
+        <div class="main-action-item"><svg viewBox="0 0 24 24"><path d="M12 2.59l5.7 5.7-1.41 1.42L13 6.41V16h-2V6.41l-3.3 3.3-1.41-1.42L12 2.59zM21 15l-.02 3.51c0 1.38-1.12 2.49-2.5 2.49H5.5C4.11 21 3 19.88 3 18.5V15h2v3.5c0 .28.22.5.5.5h12.98c.28 0 .5-.22.5-.5L19 15h2z"></path></svg></div>
+      </div>
+    </div>
+
+    <!-- Sort Row -->
+    <div class="sort-row">
+      <span>Relevant ˅</span>
+      <span>View quotes ˃</span>
+    </div>
+    
+    <!-- Bo'sh joy izohlar yo'qligini bildirish uchun (namunalar olib tashlandi) -->
+    <div style="padding: 30px; text-align: center; color: #71767b; font-size: 15px;">
+      Bu yerda izohlar chiqadi...
+    </div>
+
+    <!-- Pastki izoh yozish paneli -->
+    <div class="bottom-bar">
+      <div class="bottom-avatar">j</div>
+      <div class="input-wrapper">
+        <input type="text" class="reply-input" placeholder="Post your reply">
+      </div>
+      <div class="input-actions">
+        <svg viewBox="0 0 24 24"><path d="M3 5.5C3 4.119 4.119 3 5.5 3h13C19.881 3 21 4.119 21 5.5v13c0 1.381-1.119 2.5-2.5 2.5h-13C4.119 21 3 19.881 3 18.5v-13zM5.5 5c-.276 0-.5.224-.5.5v9.086l3-3 3 3 5-5 3 3V5.5c0-.276-.224-.5-.5-.5h-13zM19 15.414l-3-3-5 5-3-3-3 3V18.5c0 .276.224.5.5.5h13c.276 0 .5-.224.5-.5v-3.086zM9.75 7C8.784 7 8 7.784 8 8.75s.784 1.75 1.75 1.75 1.75-.784 1.75-1.75S10.716 7 9.75 7z"></path></svg>
+        <svg viewBox="0 0 24 24"><path d="M7.747 16h3.42v-2h-1.523v-2.025h1.523v-1.954h-3.42V16zm3.896-5.979h2.247v5.979h-2.247V10.02zm5.727 0h-3.23v5.979h3.23v-1.954h-1.332v-2.025h1.332v-2.001zM12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zM3.5 12c0-4.687 3.813-8.5 8.5-8.5s8.5 3.813 8.5 8.5-3.813 8.5-8.5 8.5-8.5-3.813-8.5-8.5z"></path></svg>
+        <svg viewBox="0 0 24 24"><path d="M21 3.5v5.52l-2-2V4.5h-2.52l-2-2H21zm-13.48-2l-2 2H3V9l-2 2V3.5h5.52zm8.48 21l2-2H21v-2.52l2-2V20.5h-5.52zM3 20.5v-5.52l2 2v2.52h2.52l2 2H3z"></path></svg>
+      </div>
     </div>
   </div>
 
 </div>
+
+<!-- JavaScript Animatsiya va O'tishlar uchun -->
+<script>
+  const feedScreen = document.getElementById('feed-screen');
+  const detailScreen = document.getElementById('detail-screen');
+
+  // Postni bosganda to'liq ekranni ochish
+  function openPost() {
+    feedScreen.classList.add('screen-hidden-left'); // Birinchi sahifa chapga suriladi
+    detailScreen.classList.add('screen-active');    // Ikkinchi sahifa o'ngdan keladi
+  }
+
+  // Orqaga (strelka) bosganda oldingi ekranga qaytish
+  function closePost() {
+    feedScreen.classList.remove('screen-hidden-left'); // Birinchi sahifa joyiga qaytadi
+    detailScreen.classList.remove('screen-active');    // Ikkinchi sahifa o'ngga yashirinadi
+  }
+</script>
 
 </body>
 </html>
