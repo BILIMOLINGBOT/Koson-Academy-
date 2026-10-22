@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Profil - L.uz</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
@@ -252,6 +253,19 @@ const REPLIES_PREVIEW = 2;
 const MAX_VIDEO_SIZE = 2 * 1024 * 1024;
 const REPLIES_KEY = 'luz_my_replies_v1';
 
+/* ================= TELEGRAM WEB APP ================= */
+const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
+const isTelegram = !!tg;
+if (tg) {
+    try {
+        tg.ready();
+        tg.expand();
+        // Telegram mavzusiga moslash (ixtiyoriy)
+        if (tg.setHeaderColor) tg.setHeaderColor('#000000');
+        if (tg.setBackgroundColor) tg.setBackgroundColor('#000000');
+    } catch {}
+}
+
 /* ================= DB ================= */
 const DB = {
     _K: 'luz_users',
@@ -481,10 +495,39 @@ document.getElementById('userName').addEventListener('click', () => {
 document.getElementById('composerAvatarSlot').innerHTML = avatarMarkup(profileOwner, 'composer-avatar');
 document.getElementById('navAvatarSlot').innerHTML = avatarMarkup(currentUser, 'nav-avatar');
 
-/* ================= ORQAGA QAYTISH ================= */
-document.getElementById('backBtn').addEventListener('click', () => { window.location.href = 'index.html'; });
-window.history.pushState({ page: 1 }, '', '');
-window.onpopstate = () => { window.location.href = 'index.html'; };
+/* ================= ORQAGA QAYTISH (Telegram + Brauzer) ================= */
+function goBack(){
+    window.location.href = 'index.html';
+}
+
+// Telegram BackButton ni sozlash
+if (isTelegram) {
+    try {
+        tg.BackButton.show();
+        tg.BackButton.onClick(goBack);
+    } catch {}
+}
+
+// Ichki back tugma (brauzer yoki Telegramda ham ishlaydi)
+document.getElementById('backBtn').addEventListener('click', goBack);
+
+// Brauzer tarixi (Telegram bo'lmasa yoki bo'lsa ham ishonchli)
+window.history.pushState({ page: 'profil' }, 'Profil', '');
+window.addEventListener('popstate', goBack);
+
+// Sahifadan chiqib ketayotganda Telegram back tugmasini yashirish
+window.addEventListener('beforeunload', () => {
+    if (isTelegram) {
+        try { tg.BackButton.hide(); } catch {}
+    }
+});
+
+// Telegram BackButton ni tozalash (sahifa yopilganda)
+window.addEventListener('pagehide', () => {
+    if (isTelegram) {
+        try { tg.BackButton.offClick(goBack); } catch {}
+    }
+});
 
 /* ================= TUGMALAR ================= */
 document.getElementById('editBtn')?.addEventListener('click', () => { location.href = 'tahrirlash.html'; });
@@ -499,6 +542,7 @@ document.getElementById('messageBtn')?.addEventListener('click', () => {
     location.href = `xabar.html?chat=${encodeURIComponent(profileUserId)}`;
 });
 
+
 /* ================= ICONS/TEXTS ================= */
 const icons = {
     posts: `<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`,
@@ -507,7 +551,6 @@ const icons = {
     saved: `<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`
 };
 const texts = { posts: "Hali post yo'q", video: "Hali video yo'q", answers: "Hali javob yo'q", saved: "Hali saqlangan post yo'q" };
-
 
 /* ================= POSTS ================= */
 let posts = [];
@@ -750,6 +793,9 @@ function openComments(p){
     renderComments();
     commentsOverlay.classList.add('show');
     commentsPanel.classList.add('show');
+    if (isTelegram) {
+        try { tg.BackButton.onClick(closeComments); } catch {}
+    }
 }
 function closeComments(){
     commentsOverlay.classList.remove('show');
@@ -760,6 +806,9 @@ function closeComments(){
     commentsSend.disabled = true;
     commentsPanel.style.height = '75vh';
     commentsPanel.style.bottom = '0';
+    if (isTelegram) {
+        try { tg.BackButton.onClick(goBack); } catch {}
+    }
 }
 commentsOverlay.addEventListener('click', closeComments);
 commentsClose.addEventListener('click', closeComments);
@@ -975,7 +1024,6 @@ commentsSend.addEventListener('click', () => {
     }, 60);
 });
 
-
 /* ================= TABS ================= */
 let currentTab = 'posts';
 function switchTab(k){
@@ -1010,12 +1058,22 @@ const composerClose = document.getElementById('composerClose');
 let currentMedia = null;
 
 function refreshSubmit(){ submitBtn.disabled = !(input.value.trim().length > 0 || currentMedia); }
-function openComposer(){ overlay.classList.add('show'); composer.classList.add('show'); setTimeout(() => input.focus(), 300); }
+function openComposer(){
+    overlay.classList.add('show');
+    composer.classList.add('show');
+    if (isTelegram) {
+        try { tg.BackButton.onClick(closeComposer); } catch {}
+    }
+    setTimeout(() => input.focus(), 300);
+}
 function closeComposer(){
     overlay.classList.remove('show');
     composer.classList.remove('show');
     composer.style.bottom = '0';
     input.blur();
+    if (isTelegram) {
+        try { tg.BackButton.onClick(goBack); } catch {}
+    }
 }
 
 postBtn?.addEventListener('click', openComposer);
