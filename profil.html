@@ -104,9 +104,9 @@ body{display:flex;justify-content:center;min-height:100vh;-webkit-font-smoothing
 .comments-panel.show{transform:translate(-50%,0)}
 .comments-header{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid #1f1f22;flex-shrink:0}
 .comments-title{font-size:16px;font-weight:700}
-.comments-list{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:16px}
+.comments-list{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:16px;-webkit-overflow-scrolling:touch}
 .comments-empty{text-align:center;color:#5a5a5e;font-size:14px;padding:40px 0}
-.comment-item{display:flex;gap:10px;animation:postIn .3s ease both}
+.comment-item{display:flex;gap:10px;animation:postIn .3s ease both;border-radius:10px;padding:4px}
 .comment-avatar,.comment-avatar-initial{width:32px;height:32px;border-radius:50%;flex-shrink:0;cursor:pointer}
 .comment-avatar{object-fit:cover;background:#1c1c1e}
 .comment-avatar-initial{background:linear-gradient(135deg,#3a3a3c 0%,#1c1c1e 100%);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;text-transform:uppercase}
@@ -123,10 +123,14 @@ body{display:flex;justify-content:center;min-height:100vh;-webkit-font-smoothing
 .comment-like-btn.liked{color:#ff2d55}
 .comment-like-btn.liked svg{fill:#ff2d55;stroke:#ff2d55;animation:likePop .35s cubic-bezier(.34,1.56,.64,1)}
 .comment-replies{margin-top:10px;padding-left:12px;border-left:2px solid #1f1f22;display:flex;flex-direction:column;gap:12px}
-.comment-reply-item{display:flex;gap:8px}
+.comment-reply-item{display:flex;gap:8px;border-radius:10px;padding:4px}
 .comment-reply-item .comment-avatar,.comment-reply-item .comment-avatar-initial{width:26px;height:26px;font-size:12px}
 .comment-reply-item .comment-user{font-size:12px}
 .comment-reply-item .comment-text{font-size:13px}
+.comment-more-btn{background:none;border:none;color:#0a84ff;font-size:12px;font-weight:600;cursor:pointer;padding:2px 0;margin-top:2px;font-family:inherit;text-align:left}
+.comment-more-btn:active{opacity:.7}
+.comments-more-btn{background:#1c1c1e;border:none;color:#0a84ff;padding:10px 16px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;margin:8px auto;font-family:inherit;display:block}
+.comments-more-btn:active{transform:scale(.97)}
 .comments-input-bar{padding:12px 16px calc(12px + env(safe-area-inset-bottom));border-top:1px solid #1f1f22;display:flex;gap:10px;align-items:flex-end;flex-shrink:0;background:#0a0a0a}
 .comments-input{flex:1;background:#1c1c1e;border:none;border-radius:20px;padding:10px 14px;color:#fff;font-size:14px;font-family:inherit;resize:none;outline:none;max-height:80px;line-height:1.4}
 .comments-input::placeholder{color:#5a5a5e}
@@ -150,6 +154,8 @@ body{display:flex;justify-content:center;min-height:100vh;-webkit-font-smoothing
 #otherProfileActions .btn-message svg{stroke:#fff}
 .toast{position:fixed;left:50%;bottom:200px;transform:translate(-50%,20px);background:#1c1c1e;color:#fff;padding:12px 22px;border-radius:100px;font-size:14px;font-weight:500;z-index:300;opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease;border:1px solid #2c2c2e;box-shadow:0 8px 30px rgba(0,0,0,.6);white-space:nowrap}
 .toast.show{opacity:1;transform:translate(-50%,0)}
+.comment-highlight{animation:highlightPulse 1.2s ease}
+@keyframes highlightPulse{0%{background:rgba(10,132,255,.18)}100%{background:transparent}}
 </style>
 </head>
 <body>
@@ -239,6 +245,13 @@ body{display:flex;justify-content:center;min-height:100vh;-webkit-font-smoothing
 </nav>
 
 <script>
+/* ================= KONSTANTALAR ================= */
+const MAX_COMMENT_LEN = 500;
+const COMMENTS_PAGE = 10;
+const REPLIES_PREVIEW = 2;
+const MAX_VIDEO_SIZE = 2 * 1024 * 1024;
+const REPLIES_KEY = 'luz_my_replies_v1';
+
 /* ================= DB ================= */
 const DB = {
     _K: 'luz_users',
@@ -285,7 +298,17 @@ const PostStore = {
         return this._cache;
     },
     _save(){
-        try { localStorage.setItem(POST_STORE_KEY, JSON.stringify(this._cache || [])); } catch {}
+        try {
+            localStorage.setItem(POST_STORE_KEY, JSON.stringify(this._cache || []));
+            return true;
+        } catch (e) {
+            if (e && (e.name === 'QuotaExceededError' || e.code === 22)) {
+                showToast('Xotira to\'ldi. Eski postlarni o\'chiring');
+            } else {
+                showToast('Saqlashda xatolik');
+            }
+            return false;
+        }
     },
     all(){ return this._load().slice(); },
     byUser(uid){
@@ -296,8 +319,7 @@ const PostStore = {
         const list = this._load();
         list.unshift(post);
         this._cache = list;
-        this._save();
-        return post;
+        return this._save() ? post : null;
     },
     update(id, patch){
         const list = this._load();
@@ -305,8 +327,7 @@ const PostStore = {
         if (i < 0) return null;
         list[i] = Object.assign({}, list[i], patch);
         this._cache = list;
-        this._save();
-        return list[i];
+        return this._save() ? list[i] : null;
     },
     updateUserInfo(userId, { firstName, lastName, photo_url }){
         const list = this._load();
@@ -409,6 +430,26 @@ function showToast(msg){
     toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
 }
 
+/* Rasm kichraytirish */
+function compressImage(file, maxW = 1080, quality = 0.75){
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => {
+            URL.revokeObjectURL(url);
+            let { width, height } = img;
+            if (width > maxW) { height = Math.round(height * maxW / width); width = maxW; }
+            const canvas = document.createElement('canvas');
+            canvas.width = width; canvas.height = height;
+            canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+            try { resolve(canvas.toDataURL('image/jpeg', quality)); }
+            catch (e) { reject(e); }
+        };
+        img.onerror = reject;
+        img.src = url;
+    });
+}
+
 /* ================= PROFIL UI ================= */
 if (isOwn) document.getElementById('ownProfileActions').style.display = 'flex';
 else {
@@ -467,10 +508,22 @@ const icons = {
 };
 const texts = { posts: "Hali post yo'q", video: "Hali video yo'q", answers: "Hali javob yo'q", saved: "Hali saqlangan post yo'q" };
 
+
 /* ================= POSTS ================= */
 let posts = [];
 const savedPosts = new Set();
 let myReplies = [];
+
+function loadMyReplies(){
+    try {
+        const raw = localStorage.getItem(REPLIES_KEY);
+        myReplies = raw ? JSON.parse(raw) : [];
+        if (!Array.isArray(myReplies)) myReplies = [];
+    } catch { myReplies = []; }
+}
+function saveMyReplies(){
+    try { localStorage.setItem(REPLIES_KEY, JSON.stringify(myReplies)); } catch {}
+}
 
 function loadMyPosts(){
     if (profileUserId) posts = PostStore.byUser(profileUserId);
@@ -589,7 +642,6 @@ function buildPostItem(p){
     });
     actions.appendChild(likeBtn);
 
-    
     // COMMENT
     const commentBtn = document.createElement('button');
     commentBtn.className = 'act-btn';
@@ -670,10 +722,29 @@ const cancelReply = document.getElementById('cancelReply');
 
 let activePost = null;
 let replyTarget = null;
+let commentsShown = COMMENTS_PAGE;
+
+function findCommentTree(id, comments){
+    for (const c of comments || []) {
+        if (c.id === id) return { comment: c, root: c };
+        const inReplies = _searchInReplies(c, id);
+        if (inReplies) return { comment: inReplies, root: c };
+    }
+    return null;
+}
+function _searchInReplies(parentComment, targetId){
+    for (const r of parentComment.replies || []) {
+        if (r.id === targetId) return r;
+        const deeper = _searchInReplies(r, targetId);
+        if (deeper) return deeper;
+    }
+    return null;
+}
 
 function openComments(p){
     activePost = p;
     replyTarget = null;
+    commentsShown = COMMENTS_PAGE;
     if (!activePost.comments) activePost.comments = [];
     replyIndicator.classList.remove('show');
     renderComments();
@@ -687,6 +758,8 @@ function closeComments(){
     replyTarget = null;
     commentsInput.value = '';
     commentsSend.disabled = true;
+    commentsPanel.style.height = '75vh';
+    commentsPanel.style.bottom = '0';
 }
 commentsOverlay.addEventListener('click', closeComments);
 commentsClose.addEventListener('click', closeComments);
@@ -702,16 +775,33 @@ function renderComments(){
         commentsList.innerHTML = '<div class="comments-empty">Hali izoh yo\'q. Birinchi bo\'ling!</div>';
         return;
     }
-    activePost.comments.forEach(c => commentsList.appendChild(buildComment(c, false)));
+    const slice = activePost.comments.slice(0, commentsShown);
+    slice.forEach(c => commentsList.appendChild(buildComment(c, false)));
+
+    if (activePost.comments.length > commentsShown) {
+        const btn = document.createElement('button');
+        btn.className = 'comments-more-btn';
+        btn.textContent = `Yana ${activePost.comments.length - commentsShown} ta izohni ko'rsatish`;
+        btn.addEventListener('click', () => {
+            commentsShown += COMMENTS_PAGE;
+            renderComments();
+        });
+        commentsList.appendChild(btn);
+    }
 }
 
 function buildComment(c, isReply){
     const wrap = document.createElement('div');
     wrap.className = isReply ? 'comment-reply-item' : 'comment-item';
+    wrap.dataset.cid = c.id;
     const init = (c.user || 'F').trim().charAt(0).toUpperCase();
     const av = c.avatar
         ? `<img class="comment-avatar" src="${c.avatar}" alt="" data-uid="${c.userId||''}">`
         : `<div class="comment-avatar-initial" data-uid="${c.userId||''}">${init}</div>`;
+
+    const isLong = (c.text || '').length > 220;
+    const shortText = isLong ? escapeHtml((c.text || '').slice(0, 220)) + '…' : escapeHtml(c.text || '');
+    const fullText = escapeHtml(c.text || '');
 
     wrap.innerHTML = `
         ${av}
@@ -720,10 +810,11 @@ function buildComment(c, isReply){
                 <span class="comment-user" data-uid="${c.userId||''}">${escapeHtml(c.user)}</span>
                 <span class="comment-time">${escapeHtml(formatExactTime(c.createdAt || c.time))}</span>
             </div>
-            <div class="comment-text">${escapeHtml(c.text)}</div>
+            <div class="comment-text" data-full="${fullText}" data-short="${shortText}">${shortText}</div>
+            ${isLong ? '<button class="comment-more-btn" type="button">Ko\'proq ko\'rsatish</button>' : ''}
             <div class="comment-actions">
-                <button class="comment-reply-btn" data-cid="${c.id}">Javob berish</button>
-                <button class="comment-like-btn ${c.liked ? 'liked' : ''}" data-cid="${c.id}">
+                <button class="comment-reply-btn" data-cid="${c.id}" type="button">Javob berish</button>
+                <button class="comment-like-btn ${c.liked ? 'liked' : ''}" data-cid="${c.id}" type="button">
                     <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
                     <span class="comment-like-count">${c.likes || 0}</span>
                 </button>
@@ -733,23 +824,43 @@ function buildComment(c, isReply){
     wrap.querySelectorAll('[data-uid]').forEach(el => {
         el.addEventListener('click', () => goToProfile(el.getAttribute('data-uid')));
     });
+
+    if (isLong) {
+        const moreBtn = wrap.querySelector('.comment-more-btn');
+        const textEl = wrap.querySelector('.comment-text');
+        let expanded = false;
+        moreBtn.addEventListener('click', () => {
+            expanded = !expanded;
+            textEl.textContent = expanded ? textEl.dataset.full : textEl.dataset.short;
+            moreBtn.textContent = expanded ? 'Qisqartirish' : 'Ko\'proq ko\'rsatish';
+        });
+    }
+
     wrap.querySelector('.comment-reply-btn').addEventListener('click', () => {
-        replyTarget = { commentId: c.id, user: c.user };
+        const tree = findCommentTree(c.id, activePost.comments);
+        if (!tree) return;
+        replyTarget = {
+            commentId: c.id,
+            rootId: tree.root.id,
+            user: c.user
+        };
         replyText.textContent = `@${c.user} ga javob`;
         replyIndicator.classList.add('show');
         commentsInput.focus();
     });
+
     const likeBtn = wrap.querySelector('.comment-like-btn');
     likeBtn.addEventListener('click', () => {
         const fresh = PostStore.all().find(x => x.id === activePost.id);
         if (!fresh) return;
         const comments = fresh.comments || [];
-        let target = comments.find(x => x.id === c.id);
-        if (!target) {
-            for (const cc of comments) {
-                const rr = (cc.replies || []).find(r => r.id === c.id);
-                if (rr) { target = rr; break; }
+        let target = null;
+        for (const cc of comments) {
+            if (cc.id === c.id) { target = cc; break; }
+            for (const rr of (cc.replies || [])) {
+                if (rr.id === c.id) { target = rr; break; }
             }
+            if (target) break;
         }
         if (!target) return;
         target.liked = !target.liked;
@@ -763,13 +874,39 @@ function buildComment(c, isReply){
     if (!isReply && c.replies && c.replies.length) {
         const box = document.createElement('div');
         box.className = 'comment-replies';
-        c.replies.forEach(r => box.appendChild(buildComment(r, true)));
+        const shown = c.replies.slice(0, REPLIES_PREVIEW);
+        shown.forEach(r => box.appendChild(buildComment(r, true)));
+
+        if (c.replies.length > REPLIES_PREVIEW) {
+            const more = document.createElement('button');
+            more.className = 'comment-more-btn';
+            more.type = 'button';
+            more.textContent = `${c.replies.length - REPLIES_PREVIEW} ta javobni ko'rish`;
+            let expanded = false;
+            more.addEventListener('click', () => {
+                if (!expanded) {
+                    c.replies.slice(REPLIES_PREVIEW).forEach(r => box.insertBefore(buildComment(r, true), more));
+                    more.textContent = 'Qisqartirish';
+                } else {
+                    while (box.children.length > REPLIES_PREVIEW + 1) {
+                        box.removeChild(box.children[REPLIES_PREVIEW]);
+                    }
+                    more.textContent = `${c.replies.length - REPLIES_PREVIEW} ta javobni ko'rish`;
+                }
+                expanded = !expanded;
+            });
+            box.appendChild(more);
+        }
         wrap.querySelector('.comment-body').appendChild(box);
     }
     return wrap;
 }
 
 commentsInput.addEventListener('input', () => {
+    if (commentsInput.value.length > MAX_COMMENT_LEN) {
+        commentsInput.value = commentsInput.value.slice(0, MAX_COMMENT_LEN);
+        showToast(`${MAX_COMMENT_LEN} belgidan oshmasin`);
+    }
     commentsInput.style.height = 'auto';
     commentsInput.style.height = Math.min(commentsInput.scrollHeight, 80) + 'px';
     commentsSend.disabled = commentsInput.value.trim().length === 0;
@@ -792,18 +929,28 @@ commentsSend.addEventListener('click', () => {
     };
 
     if (replyTarget) {
-        const parent = activePost.comments.find(c => c.id === replyTarget.commentId);
-        if (parent) (parent.replies = parent.replies || []).push(newC);
+        const root = activePost.comments.find(c => c.id === replyTarget.rootId);
+        if (root) {
+            root.replies = root.replies || [];
+            if (replyTarget.commentId !== replyTarget.rootId) {
+                newC.text = `@${replyTarget.user} ${newC.text}`;
+            }
+            root.replies.push(newC);
+        } else {
+            activePost.comments.push(newC);
+        }
     } else {
         activePost.comments.push(newC);
     }
 
     PostStore.update(activePost.id, { comments: activePost.comments });
+
     myReplies.unshift({
         id: newC.id, postId: activePost.id, userId,
-        user: displayName, avatar: newC.avatar, text: txt,
+        user: displayName, avatar: newC.avatar, text: newC.text,
         createdAt: newC.createdAt, postText: activePost.text
     });
+    saveMyReplies();
 
     commentsInput.value = '';
     commentsInput.style.height = 'auto';
@@ -817,8 +964,17 @@ commentsSend.addEventListener('click', () => {
         const cc = item.querySelector('.comment-count');
         if (cc) cc.textContent = countComments(activePost);
     }
-    commentsList.scrollTop = commentsList.scrollHeight;
+
+    setTimeout(() => {
+        const newEl = commentsList.querySelector(`[data-cid="${newC.id}"]`);
+        if (newEl) {
+            newEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            newEl.classList.add('comment-highlight');
+            setTimeout(() => newEl.classList.remove('comment-highlight'), 1300);
+        }
+    }, 60);
 });
+
 
 /* ================= TABS ================= */
 let currentTab = 'posts';
@@ -855,7 +1011,12 @@ let currentMedia = null;
 
 function refreshSubmit(){ submitBtn.disabled = !(input.value.trim().length > 0 || currentMedia); }
 function openComposer(){ overlay.classList.add('show'); composer.classList.add('show'); setTimeout(() => input.focus(), 300); }
-function closeComposer(){ overlay.classList.remove('show'); composer.classList.remove('show'); input.blur(); }
+function closeComposer(){
+    overlay.classList.remove('show');
+    composer.classList.remove('show');
+    composer.style.bottom = '0';
+    input.blur();
+}
 
 postBtn?.addEventListener('click', openComposer);
 overlay.addEventListener('click', closeComposer);
@@ -888,8 +1049,30 @@ function handleMedia(file, type){
     reader.readAsDataURL(file);
 }
 
-fileInput.addEventListener('change', e => { handleMedia(e.target.files[0], 'image'); fileInput.value = ''; });
-videoInput.addEventListener('change', e => { handleMedia(e.target.files[0], 'video'); videoInput.value = ''; });
+fileInput.addEventListener('change', async e => {
+    const file = e.target.files[0];
+    fileInput.value = '';
+    if (!file) return;
+    try {
+        const data = await compressImage(file);
+        currentMedia = { data, type: 'image' };
+        previewImg.src = data; previewImg.style.display = 'block';
+        previewVid.style.display = 'none'; previewVid.src = '';
+        preview.classList.add('show');
+        refreshSubmit();
+    } catch { showToast('Rasm yuklanmadi'); }
+});
+
+videoInput.addEventListener('change', e => {
+    const file = e.target.files[0];
+    videoInput.value = '';
+    if (!file) return;
+    if (file.size > MAX_VIDEO_SIZE) {
+        showToast('Video 2 MB dan kichik bo\'lishi kerak');
+        return;
+    }
+    handleMedia(file, 'video');
+});
 
 removeImg.addEventListener('click', () => {
     currentMedia = null;
@@ -914,7 +1097,9 @@ submitBtn.addEventListener('click', () => {
         type,
         likes: 0, liked: false, views: 0, comments: []
     };
-    PostStore.add(newPost);
+    const saved = PostStore.add(newPost);
+    if (!saved) return;
+
     posts = profileUserId ? PostStore.byUser(profileUserId) : PostStore.byUser(currentUser?.userId || 'me');
     document.getElementById('postsCount').textContent = posts.length;
 
@@ -929,7 +1114,25 @@ submitBtn.addEventListener('click', () => {
     setTimeout(() => switchTab('posts'), 250);
 });
 
+/* ================= KLAVIATURA ================= */
+if (window.visualViewport) {
+    const vv = window.visualViewport;
+    const adjust = () => {
+        const delta = window.innerHeight - vv.height - vv.offsetTop;
+        if (commentsPanel.classList.contains('show')) {
+            commentsPanel.style.height = Math.min(vv.height * 0.75, vv.height - 60) + 'px';
+            commentsPanel.style.bottom = delta + 'px';
+        }
+        if (composer.classList.contains('show')) {
+            composer.style.bottom = delta + 'px';
+        }
+    };
+    vv.addEventListener('resize', adjust);
+    vv.addEventListener('scroll', adjust);
+}
+
 /* ================= INIT ================= */
+loadMyReplies();
 loadMyPosts();
 switchTab('posts');
 
