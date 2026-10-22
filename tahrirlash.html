@@ -18,14 +18,15 @@
         .container {
             width: 100%;
             max-width: 420px;
-            padding: 50px;
+            padding: 20px; /* Mobil ekranlar uchun optimallashtirildi */
         }
 
         .top-bar {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 50px;
+            margin-top: 10px;
+            margin-bottom: 40px;
         }
 
         .back-btn {
@@ -71,13 +72,13 @@
             transition: transform .15s, opacity .2s;
         }
 
-        .save-btn:active { transform: scale(.95); opacity: .8; }
+        .save-btn:active:not(:disabled) { transform: scale(.95); opacity: .8; }
         .save-btn:disabled { opacity: .4; cursor: not-allowed; }
 
         .avatar-wrapper {
             display: flex;
             justify-content: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
         .avatar {
@@ -99,7 +100,6 @@
 
         .avatar:hover { opacity: .8; }
 
-        /* Rasm yuklanmagan bo'lsa — ismning birinchi harfi */
         .avatar-initial {
             font-size: 52px;
             font-weight: 700;
@@ -116,28 +116,45 @@
         .camera-icon {
             width: 40px;
             height: 40px;
-            fill: rgba(0, 0, 0, 0.4);
+            fill: rgba(255, 255, 255, 0.7); /* Qoramtir fonda ko'rinishi uchun oqartirildi */
             transition: fill 0.2s;
             position: absolute;
             z-index: 2;
         }
 
-        .avatar:hover .camera-icon { fill: rgba(0, 0, 0, 0.7); }
+        .avatar:hover .camera-icon { fill: rgba(255, 255, 255, 1); }
+
+        .avatar-actions {
+            text-align: center;
+            margin-top: -10px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
 
         .avatar-label {
-            text-align: center;
             color: #1da1f2;
             font-size: 14px;
-            margin-top: -20px;
-            margin-bottom: 20px;
             cursor: pointer;
             font-weight: 500;
         }
-
+        
         .avatar-label:hover { text-decoration: underline; }
 
+        .remove-photo-btn {
+            color: #f91880;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: 500;
+            display: none;
+        }
+
+        .remove-photo-btn:hover { text-decoration: underline; }
+        .remove-photo-btn.show { display: inline; }
+
         h2 {
-            font-size: 22px;
+            font-size: 20px;
             font-weight: bold;
             margin-bottom: 16px;
             margin-top: 30px;
@@ -175,7 +192,6 @@
             padding-left: 15px;
             display: none;
         }
-
         .input-error.show { display: block; }
 
         .input-success {
@@ -185,11 +201,10 @@
             padding-left: 15px;
             display: none;
         }
-
         .input-success.show { display: block; }
 
         .subtitle {
-            font-size: 14px;
+            font-size: 13px;
             color: #999;
             margin-bottom: 20px;
             line-height: 1.4;
@@ -224,7 +239,6 @@
             box-shadow: 0 8px 30px rgba(0,0,0,.6);
             white-space: nowrap;
         }
-
         .toast.show { opacity: 1; transform: translate(-50%, 0); }
     </style>
 </head>
@@ -236,10 +250,10 @@
             <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <span class="top-title">Profilni tahrirlash</span>
-        <button class="save-btn" id="saveBtn">Saqlash</button>
+        <button class="save-btn" id="saveBtn" disabled>Saqlash</button>
     </div>
 
-    <input type="file" id="avatar-input" accept="image/*" style="display: none;">
+    <input type="file" id="avatar-input" accept="image/jpeg, image/png, image/webp" style="display: none;">
 
     <div class="avatar-wrapper">
         <div class="avatar" id="avatar-preview">
@@ -250,24 +264,27 @@
             </svg>
         </div>
     </div>
-    <div class="avatar-label" id="avatarLabel">Rasm yuklash</div>
+    
+    <div class="avatar-actions">
+        <span class="avatar-label" id="avatarLabel">Rasm yuklash</span>
+        <span class="remove-photo-btn" id="removePhotoBtn">Rasmni o'chirish</span>
+    </div>
 
     <div class="info-box">
-        Bu sahifada ismingiz, familiyangiz, foydalanuvchi nomingiz va rasmingizni o'zgartirishingiz mumkin.
-        O'zgarishlar saqlangandan so'ng profilingizda darhol ko'rinadi.
+        Bu sahifada ismingiz, familiyangiz, nomingiz va rasmingizni o'zgartirishingiz mumkin.
     </div>
 
     <h2>Shaxsiy ma'lumotlar</h2>
 
     <div class="form-group">
         <label for="ism">Ism</label>
-        <input type="text" id="ism" placeholder="Ism">
+        <input type="text" id="ism" placeholder="Ism" maxlength="30">
         <div class="input-error" id="ismError">Iltimos, ismingizni kiriting</div>
     </div>
 
     <div class="form-group">
         <label for="familiya">Familiya</label>
-        <input type="text" id="familiya" placeholder="Familiya">
+        <input type="text" id="familiya" placeholder="Familiya" maxlength="30">
         <div class="input-error" id="familiyaError">Iltimos, familiyangizni kiriting</div>
     </div>
 
@@ -276,9 +293,9 @@
 
     <div class="form-group">
         <label for="username">Foydalanuvchi nomi</label>
-        <input type="text" id="username" placeholder="Foydalanuvchi nomi">
+        <input type="text" id="username" placeholder="Foydalanuvchi nomi" maxlength="20">
         <div class="input-error" id="usernameError">Bu nom allaqachon band</div>
-        <div class="input-error" id="usernameFormatError">Nom 3-20 belgidan iborat bo'lishi va faqat harf, raqam va pastki chiziqdan tashkil topishi kerak</div>
+        <div class="input-error" id="usernameFormatError">3-20 belgi, faqat harf, raqam va (_) bo'lishi kerak</div>
         <div class="input-success" id="usernameAvailable">✓ Bu nom bo'sh</div>
     </div>
 </div>
@@ -294,7 +311,10 @@ const DB = {
         try { return JSON.parse(localStorage.getItem(this._K)) || []; }
         catch { return []; }
     },
-    _saveUsers(users){ localStorage.setItem(this._K, JSON.stringify(users)); },
+    _saveUsers(users){ 
+        // Xotira to'lish ehtimoliga qarshi try-catch
+        localStorage.setItem(this._K, JSON.stringify(users)); 
+    },
     getCurrentUser(){
         const id = localStorage.getItem(this._S);
         if (!id) return null;
@@ -315,7 +335,7 @@ const DB = {
     }
 };
 
-/* ================= POST STORE (postlardagi ism/avatarni sinxron yangilash) ================= */
+/* ================= POST STORE ================= */
 const POST_STORE_KEY = 'tg_feed_posts_v1';
 const PostStore = {
     _cache: null,
@@ -329,17 +349,17 @@ const PostStore = {
         return this._cache;
     },
     _save(){
-        try { localStorage.setItem(POST_STORE_KEY, JSON.stringify(this._cache || [])); } catch {}
+        localStorage.setItem(POST_STORE_KEY, JSON.stringify(this._cache || [])); 
     },
     updateUserInfo(userId, { firstName, lastName, photo_url }){
         const list = this._load();
         const newName = [firstName, lastName].filter(Boolean).join(' ') || 'Foydalanuvchi';
+        
         list.forEach(p => {
             if (String(p.userId) === String(userId)) {
                 p.user = newName;
                 if (photo_url !== undefined) p.avatar = photo_url;
             }
-            // Izohlarda ham yangilash
             const updateComment = (c) => {
                 if (String(c.userId) === String(userId)) {
                     c.user = newName;
@@ -354,11 +374,23 @@ const PostStore = {
     }
 };
 
-/* ================= SESSION ================= */
+/* ================= SESSION CHECK ================= */
 const currentUser = DB.getCurrentUser();
 if (!currentUser) {
-    window.location.href = 'authorization.html';
+    window.location.replace('authorization.html');
+    throw new Error("Foydalanuvchi tizimga kirmagan."); // Skriptni to'xtatadi
 }
+
+/* ================= INITIAL STATE (O'zgarishlarni bilish uchun) ================= */
+const initialState = {
+    firstName: currentUser.firstName || '',
+    lastName: currentUser.lastName || '',
+    username: currentUser.username || '',
+    photo: currentUser.photo_url || null
+};
+let currentPhoto = initialState.photo;
+let isDirty = false;
+let usernameValid = true; 
 
 /* ================= ELEMENTLAR ================= */
 const avatarPreview = document.getElementById('avatar-preview');
@@ -366,98 +398,166 @@ const avatarInput = document.getElementById('avatar-input');
 const cameraIcon = document.getElementById('camera-icon');
 const avatarInitial = document.getElementById('avatar-initial');
 const avatarLabel = document.getElementById('avatarLabel');
+const removePhotoBtn = document.getElementById('removePhotoBtn');
+
 const ismInput = document.getElementById('ism');
 const familiyaInput = document.getElementById('familiya');
 const usernameInput = document.getElementById('username');
+
 const ismError = document.getElementById('ismError');
 const familiyaError = document.getElementById('familiyaError');
 const usernameError = document.getElementById('usernameError');
 const usernameFormatError = document.getElementById('usernameFormatError');
 const usernameAvailable = document.getElementById('usernameAvailable');
+
 const saveBtn = document.getElementById('saveBtn');
 const backBtn = document.getElementById('backBtn');
 
-/* ================= MAVJUD MA'LUMOTLARNI TO'LDIRISH ================= */
-let newPhoto = currentUser.photo_url || null; // yangi rasm (dataURL) yoki mavjud URL
-
-ismInput.value = currentUser.firstName || '';
-familiyaInput.value = currentUser.lastName || '';
-usernameInput.value = currentUser.username || '';
+/* ================= INPUTLARNI TO'LDIRISH ================= */
+ismInput.value = initialState.firstName;
+familiyaInput.value = initialState.lastName;
+usernameInput.value = initialState.username;
 
 function renderAvatar(){
-    if (newPhoto) {
-        avatarPreview.style.backgroundImage = `url('${newPhoto}')`;
+    if (currentPhoto) {
+        avatarPreview.style.backgroundImage = `url('${currentPhoto}')`;
         avatarInitial.style.display = 'none';
         cameraIcon.style.display = 'none';
-        avatarLabel.textContent = 'Rasmni o\'zgartirish';
+        avatarLabel.textContent = 'Rasmni almashtirish';
+        removePhotoBtn.classList.add('show');
     } else {
         avatarPreview.style.backgroundImage = '';
-        const name = ismInput.value.trim() || currentUser.firstName || 'F';
-        avatarInitial.textContent = name.charAt(0).toUpperCase() || 'F';
+        const name = ismInput.value.trim() || 'F';
+        avatarInitial.textContent = name.charAt(0).toUpperCase();
         avatarInitial.style.display = 'flex';
         cameraIcon.style.display = 'block';
         avatarLabel.textContent = 'Rasm yuklash';
+        removePhotoBtn.classList.remove('show');
     }
 }
 renderAvatar();
 
-/* ================= AVATAR RASM YUKLASH ================= */
+/* ================= O'ZGARISHLARNI TEKSHIRISH (Disable/Enable saqlash) ================= */
+function checkChanges() {
+    const ism = ismInput.value.trim();
+    const fam = familiyaInput.value.trim();
+    const usr = usernameInput.value.trim();
+    
+    isDirty = (ism !== initialState.firstName) || 
+              (fam !== initialState.lastName) || 
+              (usr !== initialState.username) || 
+              (currentPhoto !== initialState.photo);
+              
+    // Hamma ma'lumotlar to'g'ri bo'lsa va o'zgarish bo'lsagina saqlash yonadi
+    if (isDirty && usernameValid && ism && fam && usr) {
+        saveBtn.disabled = false;
+    } else {
+        saveBtn.disabled = true;
+    }
+}
+
+/* Ism o'zgarsa bosh harfni jonli almashtirish */
+ismInput.addEventListener('input', () => {
+    if (!currentPhoto) {
+        const name = ismInput.value.trim() || 'F';
+        avatarInitial.textContent = name.charAt(0).toUpperCase();
+    }
+    checkChanges();
+});
+familiyaInput.addEventListener('input', checkChanges);
+
+/* ================= AVATAR YUKLASH (Siqish bilan) ================= */
 avatarPreview.addEventListener('click', () => avatarInput.click());
 avatarLabel.addEventListener('click', () => avatarInput.click());
+
+removePhotoBtn.addEventListener('click', () => {
+    currentPhoto = null;
+    avatarInput.value = '';
+    renderAvatar();
+    checkChanges();
+});
 
 avatarInput.addEventListener('change', function(e){
     const file = e.target.files[0];
     if (!file) return;
+    
+    if (!file.type.startsWith('image/')) {
+        showToast("Iltimos, faqat rasm yuklang!");
+        e.target.value = '';
+        return;
+    }
+
     const reader = new FileReader();
     reader.onload = function(ev){
-        newPhoto = ev.target.result;
-        renderAvatar();
-        showToast('Rasm tanlandi. Saqlashni bosing.');
+        const img = new Image();
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            const MAX_SIZE = 256;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height && width > MAX_SIZE) {
+                height *= MAX_SIZE / width;
+                width = MAX_SIZE;
+            } else if (height > MAX_SIZE) {
+                width *= MAX_SIZE / height;
+                height = MAX_SIZE;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // Kichraytirilgan rasmni olish
+            currentPhoto = canvas.toDataURL('image/jpeg', 0.8);
+            renderAvatar();
+            checkChanges();
+            e.target.value = ''; // Bir xil faylni qayta tanlash imkonini beradi
+        };
+        img.src = ev.target.result;
     };
     reader.readAsDataURL(file);
 });
 
-/* ================= USERNAME TEKSHIRISH ================= */
+/* ================= USERNAME TEKSHIRISH (To'g'rilangan) ================= */
 let checkTimeout = null;
-let usernameValid = false;
 
 function isValidUsernameFormat(u){ return /^[a-zA-Z0-9_]{3,20}$/.test(u); }
 
 usernameInput.addEventListener('input', () => {
     const value = usernameInput.value.trim();
     hideErrors();
-    saveBtn.disabled = true;
     usernameValid = false;
+    clearTimeout(checkTimeout); // Har bir harf yozilganda taymerni bekor qilamiz
 
     if (!value) {
-        saveBtn.disabled = false;
+        checkChanges();
         return;
     }
 
     if (!isValidUsernameFormat(value)) {
         usernameFormatError.classList.add('show');
+        checkChanges();
         return;
     }
 
-    // O'zi bilan bir xil bo'lsa — band emas
-    if (value.toLowerCase() === (currentUser.username || '').toLowerCase()) {
-        usernameAvailable.classList.add('show');
-        saveBtn.disabled = false;
+    if (value.toLowerCase() === initialState.username.toLowerCase()) {
         usernameValid = true;
-        return;
+        checkChanges();
+        return; // O'zining eski nomini tekshirish shart emas
     }
 
-    clearTimeout(checkTimeout);
+    // Server/DB bilan tekshirish simulyatsiyasi
     checkTimeout = setTimeout(() => {
         if (DB.isUsernameTaken(value, currentUser.userId)) {
             usernameError.classList.add('show');
-            saveBtn.disabled = true;
             usernameValid = false;
         } else {
             usernameAvailable.classList.add('show');
-            saveBtn.disabled = false;
             usernameValid = true;
         }
+        checkChanges(); // Natijaga qarab tugmani yoqish/o'chirish
     }, 400);
 });
 
@@ -471,60 +571,48 @@ function hideErrors(){
 
 /* ================= SAQLASH ================= */
 saveBtn.addEventListener('click', () => {
-    hideErrors();
+    saveBtn.disabled = true; // Ikki marta bosib yuborishdan himoya
+    
     const firstName = ismInput.value.trim();
     const lastName = familiyaInput.value.trim();
     const username = usernameInput.value.trim();
-    let ok = true;
 
-    if (!firstName) { ismError.classList.add('show'); ok = false; }
-    if (!lastName) { familiyaError.classList.add('show'); ok = false; }
+    try {
+        const patch = {
+            firstName,
+            lastName,
+            username,
+            photo_url: currentPhoto
+            // userId o'zgarmaydi! Bu eng muhim tuzatishlardan biri.
+        };
+        
+        DB.updateUser(currentUser.userId, patch);
+        PostStore.updateUserInfo(currentUser.userId, { firstName, lastName, photo_url: currentPhoto });
 
-    if (!username) {
-        usernameFormatError.classList.add('show');
-        ok = false;
-    } else if (!isValidUsernameFormat(username)) {
-        usernameFormatError.classList.add('show');
-        ok = false;
-    } else if (username.toLowerCase() !== (currentUser.username || '').toLowerCase()
-               && DB.isUsernameTaken(username, currentUser.userId)) {
-        usernameError.classList.add('show');
-        ok = false;
+        isDirty = false; // Saqlandi, demak toza
+        showToast('Saqlandi! Profilga qaytilmoqda...');
+        setTimeout(() => {
+            window.location.href = 'profil.html';
+        }, 700);
+
+    } catch (err) {
+        console.error(err);
+        saveBtn.disabled = false;
+        if (err.name === 'QuotaExceededError' || err.message.includes('quota')) {
+            showToast('Xotira to\'ldi! Kichikroq rasm tanlang yoki eski postlarni o\'chiring.');
+        } else {
+            showToast('Xatolik yuz berdi. Qaytadan urinib ko\'ring.');
+        }
     }
-
-    if (!ok) return;
-
-    // Yangi userId — username o'zgargan bo'lsa, L.uz@username
-    const newUserId = username.toLowerCase() === (currentUser.username || '').toLowerCase()
-        ? currentUser.userId
-        : `L.uz@${username}`;
-
-    // DB yangilash
-    const patch = {
-        firstName,
-        lastName,
-        username,
-        userId: newUserId,
-        photo_url: newPhoto
-    };
-    DB.updateUser(currentUser.userId, patch);
-
-    // Agar userId o'zgargan bo'lsa, sessionni yangilash
-    if (newUserId !== currentUser.userId) {
-        localStorage.setItem(DB._S, newUserId);
-    }
-
-    // Postlardagi ism/avatarni yangilash
-    PostStore.updateUserInfo(currentUser.userId, { firstName, lastName, photo_url: newPhoto });
-
-    showToast('Saqlandi! Profilga qaytilmoqda...');
-    setTimeout(() => {
-        window.location.href = 'profil.html';
-    }, 700);
 });
+
 
 /* ================= ORQAGA ================= */
 backBtn.addEventListener('click', () => {
+    if (isDirty) {
+        const confirmed = confirm("O'zgarishlar saqlanmadi. Chiqishni xohlaysizmi?");
+        if (!confirmed) return;
+    }
     window.location.href = 'profil.html';
 });
 
@@ -535,7 +623,7 @@ function showToast(msg){
     t.textContent = msg;
     t.classList.add('show');
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
 }
 </script>
 </body>
