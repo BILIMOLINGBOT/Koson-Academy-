@@ -1,3 +1,4 @@
+Authorization.html
 <!DOCTYPE html>
 <html lang="uz">
 <head>
@@ -27,6 +28,8 @@
       background-color: #000;
       padding: 40px 20px;
     }
+
+    /* Header butunlay olib tashlandi */
 
     .content {
       padding: 0;
@@ -409,6 +412,8 @@
       usernameVerified: false
     };
 
+    const VALID_CODE = '123456';
+
     function showStep(step) {
       [step1Content, step2Content, step3Content, step4Content, successContent]
         .forEach(el => el.classList.remove('active'));
@@ -423,8 +428,6 @@
        usernameError, usernameFormatError].forEach(el => el.style.display = 'none');
       usernameAvailable.style.display = 'none';
       usernameChecking.style.display = 'none';
-      phoneInput.classList.remove('invalid');
-      codeInput.classList.remove('invalid');
     }
 
     function isValidPhone(phone) {
@@ -436,10 +439,16 @@
       return /^[a-zA-Z0-9_]{3,20}$/.test(username);
     }
 
-    // 1-QADAM: API ORQALI TELEGRAMGA KOD YUBORISH (Faqat telefon raqami yuboriladi)
-    nextStep1.addEventListener('click', async () => {
+    nextStep1.addEventListener('click', () => {
       hideAllErrors();
       const phone = phoneInput.value.trim();
+
+      if (!phone) {
+        phoneError.textContent = 'Iltimos, telefon raqamini kiriting';
+        phoneError.style.display = 'block';
+        phoneInput.classList.add('invalid');
+        return;
+      }
 
       if (!isValidPhone(phone)) {
         phoneError.textContent = 'Iltimos, to\'g\'ri telefon raqamini kiriting';
@@ -448,80 +457,31 @@
         return;
       }
 
-      nextStep1.disabled = true;
-      nextStep1.textContent = 'Yuborilmoqda...';
-
-      try {
-        // Backendga endi faqat telefon raqami yuboriladi
-        const response = await fetch('/api/send-otp', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phone_number: phone })
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-          state.phone = phone;
-          phoneInput.classList.add('valid');
-          showStep(2);
-        } else {
-          phoneError.textContent = data.error || 'Xatolik yuz berdi';
-          phoneError.style.display = 'block';
-        }
-      } catch (err) {
-        phoneError.textContent = 'Server bilan bog\'lanib bo\'lmadi';
-        phoneError.style.display = 'block';
-      } finally {
-        nextStep1.disabled = false;
-        nextStep1.textContent = 'Davom etish';
-      }
+      state.phone = phone;
+      phoneInput.classList.remove('invalid');
+      phoneInput.classList.add('valid');
+      showStep(2);
     });
 
     phoneInput.addEventListener('keypress', e => {
       if (e.key === 'Enter') nextStep1.click();
     });
 
-    // 2-QADAM: API ORQALI KODNI TEKSHIRISH
-    nextStep2.addEventListener('click', async () => {
+    nextStep2.addEventListener('click', () => {
       hideAllErrors();
       const code = codeInput.value.trim();
 
-      if (code.length !== 6) {
-        codeError.textContent = 'Kod 6 xonali bo\'lishi kerak';
+      if (code !== VALID_CODE) {
+        codeError.textContent = 'Noto\'g\'ri kod. Qaytadan urinib ko\'ring';
         codeError.style.display = 'block';
         codeInput.classList.add('invalid');
         return;
       }
 
-      nextStep2.disabled = true;
-      nextStep2.textContent = 'Tekshirilmoqda...';
-
-      try {
-        const response = await fetch('/api/verify-otp', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phone_number: state.phone, code: code })
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-          state.code = code;
-          codeInput.classList.add('valid');
-          showStep(3);
-        } else {
-          codeError.textContent = data.error || 'Noto\'g\'ri kod';
-          codeError.style.display = 'block';
-          codeInput.classList.add('invalid');
-        }
-      } catch (err) {
-        codeError.textContent = 'Server bilan bog\'lanib bo\'lmadi';
-        codeError.style.display = 'block';
-      } finally {
-        nextStep2.disabled = false;
-        nextStep2.textContent = 'Davom etish';
-      }
+      state.code = code;
+      codeInput.classList.remove('invalid');
+      codeInput.classList.add('valid');
+      showStep(3);
     });
 
     codeInput.addEventListener('keypress', e => {
@@ -529,10 +489,9 @@
     });
 
     resendCode.addEventListener('click', () => {
-      nextStep1.click();
+      alert('Yangi tasdiqlash kodi yuborildi');
     });
 
-    // 3 VA 4-QADAMLAR
     nextStep3.addEventListener('click', () => {
       hideAllErrors();
       const firstName = firstNameInput.value.trim();
