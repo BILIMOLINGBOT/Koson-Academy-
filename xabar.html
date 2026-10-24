@@ -2,175 +2,182 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mobil UI Dizayn (Qizil va Qora)</title>
-    <!-- Tailwind CSS ulash -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Xabar - Chat</title>
+    
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome ikonkalari ulash -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
-        body { 
-            background-color: #000000; /* Asosiy fon */
-            display: flex; 
-            justify-content: center; 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--tg-theme-bg-color, #000000);
+            -webkit-font-smoothing: antialiased;
+            -webkit-tap-highlight-color: transparent;
         }
-        /* Avatar uchun gradient (binafsharang o'zgarishsiz qoldirildi, rasmga asosan) */
-        .bg-gradient-avatar { 
-            background: linear-gradient(to bottom right, #b429f9, #541793); 
-        }
-        /* Faol tab ostidagi chiziq */
-        .tab-active { 
-            border-bottom: 2px solid white; 
-            color: white !important;
-        }
-        /* Skrollbarni yashirish */
-        ::-webkit-scrollbar {
-            display: none;
-        }
+        ::-webkit-scrollbar { width: 4px; background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
+        .safe-top { padding-top: env(safe-area-inset-top); }
+        .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+        .nav-btn { transition: transform 0.15s ease, opacity 0.15s ease; }
+        .nav-btn:active { transform: scale(0.85); opacity: 0.7; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Aktiv nav tugmasi */
+        .nav-active { color: #ffffff; }
+        .nav-inactive { color: #a1a1aa; }
+        .nav-inactive:hover { color: #ffffff; }
     </style>
 </head>
-<body class="h-screen w-full">
+<body class="text-white antialiased flex justify-center min-h-screen selection:bg-zinc-800 bg-black">
 
-    <!-- Mobil Ekran Konteyneri -->
-    <div class="w-full max-w-[400px] h-full bg-black relative overflow-hidden flex flex-col shadow-2xl">
+    <div class="w-full max-w-lg border-x border-zinc-900 min-h-screen flex flex-col relative bg-black pb-28 no-scrollbar">
         
-        <!-- Skroll qilinadigan asosiy qism -->
-        <div class="flex-1 overflow-y-auto pb-20 relative">
+        <!-- Header - L chap burchakda va pastda (Index.html bilan bir xil) -->
+        <header class="sticky top-0 z-50 bg-black/80 backdrop-blur-xl border-b border-zinc-900 flex items-end px-4 pb-2 safe-top" style="height: 120px;">
+            <div class="text-white font-serif font-black text-[1.65rem] italic tracking-tighter cursor-pointer select-none leading-none">L</div>
+        </header>
+
+        <!-- Qidiruv qismi (Headerdan pastga tushirildi) -->
+        <div class="px-4 pt-4 pb-2">
+            <div class="relative">
+                <svg class="absolute left-3 top-2.5 w-5 h-5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                <input type="text" placeholder="Qidiruv..." class="w-full bg-zinc-900 text-white text-sm rounded-full pl-10 pr-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-zinc-700 transition-shadow">
+            </div>
+        </div>
+
+        <!-- Chatlar bo'limi nomi -->
+        <div class="px-5 py-2 text-zinc-400 font-semibold text-sm">
+            Xabar
+        </div>
+
+        <!-- Chat ro'yxati -->
+        <div class="flex-1 overflow-y-auto no-scrollbar" id="chat-list">
             
-            <!-- Yuqori qizil va qora gradient fon -->
-            <div class="bg-gradient-to-br from-red-700 via-red-900 to-black h-48 w-full absolute top-0 left-0"></div>
-
-            <!-- Yuqori Navigatsiya -->
-            <div class="relative z-10 flex justify-between items-center p-4 pt-6">
-                <div class="w-10 h-10 rounded-full bg-black/40 flex items-center justify-center backdrop-blur-md cursor-pointer text-white">
-                    <i class="fa-solid fa-arrow-left"></i>
+            <!-- Chat 1 -->
+            <div class="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-zinc-900 transition-colors bg-zinc-900/50">
+                <img src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=100&auto=format&fit=crop&q=80" alt="Ali" class="w-14 h-14 rounded-full object-cover border border-zinc-800">
+                <div class="flex-1 min-w-0">
+                    <div class="flex justify-between items-center mb-0.5">
+                        <h3 class="font-semibold text-[16px] truncate text-white">Ali Valiyev</h3>
+                        <span class="text-xs text-zinc-500">10:42</span>
+                    </div>
+                    <p class="text-[14px] text-zinc-400 truncate">Qachon ko'rishamiz?</p>
                 </div>
-                <div class="flex gap-3 text-white">
-                    <div class="w-10 h-10 rounded-full bg-black/40 flex items-center justify-center backdrop-blur-md cursor-pointer">
-                        <i class="fa-regular fa-bell text-lg"></i>
+                <!-- O'qilmagan xabar nishoni -->
+                <div class="w-2.5 h-2.5 bg-blue-500 rounded-full"></div>
+            </div>
+
+            <!-- Chat 2 -->
+            <div class="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-zinc-900 transition-colors">
+                <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&auto=format&fit=crop&q=80" alt="Malika" class="w-14 h-14 rounded-full object-cover border border-zinc-800">
+                <div class="flex-1 min-w-0">
+                    <div class="flex justify-between items-center mb-0.5">
+                        <h3 class="font-semibold text-[16px] truncate text-white">Malika</h3>
+                        <span class="text-xs text-zinc-500">Kecha</span>
                     </div>
-                    <div class="w-10 h-10 rounded-full bg-black/40 flex items-center justify-center backdrop-blur-md cursor-pointer">
-                        <i class="fa-solid fa-ellipsis-vertical text-lg"></i>
-                    </div>
+                    <p class="text-[14px] text-zinc-400 truncate">Yangi dizaynni yubordim</p>
                 </div>
             </div>
 
-            <!-- Profil Ma'lumotlari bo'limi (Yarim aylana burchak bilan) -->
-            <!-- rounded-t-[40px] klassi orqali burchaklar yarim aylana shakliga keltirildi -->
-            <div class="relative z-10 bg-[#1c1c1e] rounded-t-[45px] mt-10 px-4 pb-4">
-                
-                <!-- Katta Dumaloq Avatar -->
-                <div class="absolute -top-10 left-4 w-[84px] h-[84px] rounded-full bg-gradient-avatar border-[4px] border-[#1c1c1e] flex items-center justify-center text-3xl font-bold text-white shadow-sm">
-                    WB
-                </div>
-
-                <div class="pt-14 text-white">
-                    <h1 class="text-[22px] font-semibold tracking-wide mb-1">Девочки и Wildberries</h1>
-                    <p class="text-gray-400 text-[15px] mb-3"><span class="text-white font-medium">7,5K</span> obuna</p>
-                    
-                    <div class="flex items-center gap-2 text-gray-400 text-sm mb-5">
-                        <i class="fa-regular fa-circle-info text-lg"></i> 
-                        <span>Jamiyat haqida</span>
+            <!-- Chat 3 -->
+            <div class="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-zinc-900 transition-colors">
+                <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80" alt="Sardor" class="w-14 h-14 rounded-full object-cover border border-zinc-800">
+                <div class="flex-1 min-w-0">
+                    <div class="flex justify-between items-center mb-0.5">
+                        <h3 class="font-semibold text-[16px] truncate text-white">Sardor Aka</h3>
+                        <span class="text-xs text-zinc-500">Du</span>
                     </div>
-
-                    <!-- Tugmalar (Obuna bo'lish, Xabar) -->
-                    <div class="flex gap-3">
-                        <button class="flex-1 bg-white text-black font-semibold py-2.5 rounded-xl hover:bg-gray-200 transition text-[15px]">
-                            Obuna bo'lish
-                        </button>
-                        <button class="flex-1 bg-[#2c2c2e] text-white font-semibold py-2.5 rounded-xl hover:bg-[#3c3c3e] transition text-[15px]">
-                            Xabar
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Tablar (Rasm, Video, Chat, Bookmark) -->
-            <div class="flex bg-black px-2">
-                <div class="flex-1 py-4 flex justify-center tab-active cursor-pointer">
-                    <i class="fa-regular fa-image text-xl"></i>
-                </div>
-                <div class="flex-1 py-4 flex justify-center text-gray-500 cursor-pointer">
-                    <i class="fa-solid fa-video text-xl"></i>
-                </div>
-                <div class="flex-1 py-4 flex justify-center text-gray-500 cursor-pointer">
-                    <i class="fa-regular fa-comment text-xl"></i>
-                </div>
-                <div class="flex-1 py-4 flex justify-center text-gray-500 cursor-pointer">
-                    <i class="fa-regular fa-bookmark text-xl"></i>
-                </div>
-            </div>
-
-            <!-- Xabarlar / Postlar lentalari -->
-            <div class="p-4 bg-black space-y-7 text-white">
-                
-                <!-- 1-chi Post -->
-                <div>
-                    <div class="flex items-center gap-3 mb-2.5">
-                        <img src="https://via.placeholder.com/40x40/333/fff?text=JR" class="w-[38px] h-[38px] rounded-full object-cover" alt="User avatar">
-                        <div>
-                            <p class="font-medium text-[15px] leading-tight">Javlon Rashidov</p>
-                            <p class="text-gray-500 text-[13px]">hozir</p>
-                        </div>
-                    </div>
-                    <p class="text-[15px] mb-3 font-light">Yana pastga tushir tugmasini bosing</p>
-                    <div class="flex justify-between text-gray-500 text-[15px] px-1">
-                        <div class="flex items-center gap-1.5 cursor-pointer"><i class="fa-regular fa-heart"></i> 0</div>
-                        <div class="flex items-center gap-1.5 cursor-pointer"><i class="fa-regular fa-comment"></i> 0</div>
-                        <div class="flex items-center gap-1.5 cursor-pointer"><i class="fa-regular fa-eye"></i> 1</div>
-                        <div class="flex items-center gap-1.5 cursor-pointer"><i class="fa-regular fa-bookmark"></i></div>
-                        <div class="flex items-center gap-1.5 cursor-pointer"><i class="fa-solid fa-share-nodes"></i></div>
-                    </div>
-                </div>
-
-                <!-- 2-chi Post -->
-                <div>
-                    <div class="flex items-center gap-3 mb-2.5">
-                        <img src="https://via.placeholder.com/40x40/333/fff?text=JR" class="w-[38px] h-[38px] rounded-full object-cover" alt="User avatar">
-                        <div>
-                            <p class="font-medium text-[15px] leading-tight">Javlon Rashidov</p>
-                            <p class="text-gray-500 text-[13px]">10 soniya oldin</p>
-                        </div>
-                    </div>
-                    <p class="text-[15px] mb-3 font-light">Yana bir bor sinab</p>
-                    <div class="flex justify-between text-gray-500 text-[15px] px-1">
-                        <div class="flex items-center gap-1.5 cursor-pointer"><i class="fa-regular fa-heart"></i> 0</div>
-                        <div class="flex items-center gap-1.5 cursor-pointer"><i class="fa-regular fa-comment"></i> 0</div>
-                        <div class="flex items-center gap-1.5 cursor-pointer"><i class="fa-regular fa-eye"></i> 1</div>
-                        <div class="flex items-center gap-1.5 cursor-pointer"><i class="fa-regular fa-bookmark"></i></div>
-                        <div class="flex items-center gap-1.5 cursor-pointer"><i class="fa-solid fa-share-nodes"></i></div>
-                    </div>
+                    <p class="text-[14px] text-zinc-400 truncate">Loyiha zo'r chiqibdi, rahmat!</p>
                 </div>
             </div>
         </div>
-
-        <!-- + Post Qo'shish Tugmasi -->
-        <button class="absolute bottom-[80px] right-4 bg-white text-black font-semibold py-3 px-5 rounded-full flex items-center gap-2 shadow-[0_4px_15px_rgba(0,0,0,0.5)] z-20 hover:scale-105 transition-transform">
-            <i class="fa-solid fa-plus"></i> Post
-        </button>
-
-        <!-- Pastki Navigatsiya -->
-        <div class="absolute bottom-0 w-full bg-[#0a0a0a] border-t border-gray-900 flex justify-around items-center pt-3 pb-6 px-2 z-30">
-            <div class="flex flex-col items-center text-gray-500 gap-1 cursor-pointer hover:text-white transition">
-                <i class="fa-solid fa-house text-xl"></i>
-                <span class="text-[11px] font-medium">Uy</span>
-            </div>
-            <div class="flex flex-col items-center text-gray-500 gap-1 cursor-pointer hover:text-white transition">
-                <i class="fa-regular fa-message text-xl"></i>
-                <span class="text-[11px] font-medium">Xabar</span>
-            </div>
-            <div class="flex flex-col items-center text-gray-500 gap-1 cursor-pointer hover:text-white transition">
-                <i class="fa-solid fa-magnifying-glass text-xl"></i>
-                <span class="text-[11px] font-medium">Qidiruv</span>
-            </div>
-            <div class="flex flex-col items-center text-white gap-1 cursor-pointer">
-                <img src="https://via.placeholder.com/24x24/333/fff?text=JR" class="w-6 h-6 rounded-full border border-gray-600" alt="Profil">
-                <span class="text-[11px] font-medium">Profil</span>
-            </div>
-        </div>
-
     </div>
 
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 w-[92%] max-w-[400px] bg-zinc-900/90 backdrop-blur-xl border border-zinc-700/50 rounded-[2rem] z-50 shadow-[0_10px_40px_rgba(0,0,0,0.8)] pb-safe">
+        <div class="flex justify-around items-center px-2 py-3">
+            
+            <!-- Uy - INACTIVE -->
+            <a href="index.html" class="nav-btn flex flex-col items-center gap-1 nav-inactive px-3 sm:px-4">
+                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+                <span class="text-[10px] font-medium tracking-wide">Uy</span>
+            </a>
+
+            <!-- Reels -->
+            <a href="reels.html" class="nav-btn flex flex-col items-center gap-1 nav-inactive px-3 sm:px-4">
+                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                    <line x1="2" y1="8" x2="22" y2="8"></line>
+                    <line x1="2" y1="16" x2="22" y2="16"></line>
+                    <line x1="8" y1="2" x2="8" y2="8"></line>
+                    <line x1="16" y1="2" x2="16" y2="8"></line>
+                    <polygon points="10 12 15 14.5 10 17 10 12" fill="currentColor"></polygon>
+                </svg>
+                <span class="text-[10px] font-medium tracking-wide">Reels</span>
+            </a>
+
+            <!-- Xabar - AKTIV -->
+            <a href="xabar.html" class="nav-btn flex flex-col items-center gap-1 nav-active px-3 sm:px-4 relative">
+                <div class="relative">
+                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="-scale-x-100">
+                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                    </svg>
+                    <span class="absolute -top-1.5 -right-2 w-4 h-4 bg-red-500 text-white rounded-full text-[9px] flex items-center justify-center font-bold ring-2 ring-zinc-900">3</span>
+                </div>
+                <span class="text-[10px] font-semibold tracking-wide">Xabar</span>
+            </a>
+
+            <!-- Qidiruv -->
+            <a href="qidiruv.html" class="nav-btn flex flex-col items-center gap-1 nav-inactive px-3 sm:px-4">
+                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <span class="text-[10px] font-medium tracking-wide">Qidiruv</span>
+            </a>
+
+            <!-- Profil -->
+            <a href="profil.html" class="nav-btn flex flex-col items-center gap-1 nav-inactive px-3 sm:px-4">
+                <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80" alt="Profile" class="w-6 h-6 rounded-full object-cover ring-2 ring-transparent">
+                <span class="text-[10px] font-medium tracking-wide">Profil</span>
+            </a>
+            
+        </div>
+    </nav>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Telegram Web App integratsiyasi
+            if (window.Telegram && window.Telegram.WebApp) {
+                const tg = window.Telegram.WebApp;
+                tg.ready();
+                tg.expand();
+                tg.setHeaderColor('#000000');
+                tg.setBackgroundColor('#000000');
+                
+                // Telegramning yuqori chap burchagidagi "Orqaga" (Back) tugmasini ko'rsatish
+                tg.BackButton.show();
+                tg.BackButton.onClick(function() {
+                    window.location.href = 'index.html';
+                });
+            }
+
+            // Brauzer va Android apparat orqaga qaytish tugmasini nazorat qilish
+            window.history.pushState({ page: 1 }, "", "");
+            window.onpopstate = function(event) {
+                window.location.href = 'index.html';
+            };
+        });
+    </script>
 </body>
 </html>
