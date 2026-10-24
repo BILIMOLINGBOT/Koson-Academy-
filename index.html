@@ -261,6 +261,838 @@
 </div>
 
 
+<!-- COMMENT DETAIL VIEW -->
+<div class="comment-detail-overlay" id="commentDetailOverlay">
+    <div class="comment-detail-header">
+        <button class="detail-back" id="commentDetailBack" aria-label="Orqaga">
+            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <span class="comment-detail-title">Izoh</span>
+    </div>
+    <div class="comment-detail-scroll" id="commentDetailScroll">
+        <div class="comment-detail-main" id="commentDetailMain"></div>
+        <div class="detail-comments-title">Javoblar</div>
+        <div class="comment-detail-replies" id="commentDetailReplies"></div>
+    </div>
+    <div class="reply-mode-bar" id="cdReplyModeBar" style="display:none">
+        <span id="cdReplyModeText"></span>
+        <button id="cdReplyModeCancel">Bekor qilish</button>
+    </div>
+    <div class="detail-input-bar">
+        <div class="detail-island" id="commentDetailIsland">
+            <textarea class="detail-input" id="commentDetailInput" placeholder="Javob yozish..." rows="1"></textarea>
+            <button class="detail-send" id="commentDetailSend" disabled>
+                <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= KONSTANTALAR ================= */
+const MAX_VISIBLE_DEPTH = 2;
+const REPLIES_KEY = 'luz_my_replies_v1';
+
+const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
+if (tg) {
+    try {
+        tg.ready();
+        tg.expand();
+        if (tg.setHeaderColor) tg.setHeaderColor('#000000');
+        if (tg.setBackgroundColor) tg.setBackgroundColor('#000000');
+        if (tg.BackButton) tg.BackButton.show();
+    } catch {}
+}
+
+/* ================= DB ================= */
+const DB = {
+    _K: 'luz_users',
+    _S: 'luz_current_user',
+    getCurrentUser(){
+        const id = localStorage.getItem(this._S);
+        if (!id) return null;
+        try {
+            const users = JSON.parse(localStorage.getItem(this._K)) || [];
+            return users.find(u => u.userId === id) || null;
+        } catch { return null; }
+    }
+};
+
+/* ================= POST STORE ================= */
+const POST_STORE_KEY = 'tg_feed_posts_v1';
+const PostStore = {
+    _cache: null,
+    _load(){
+        if (this._cache !== null) return this._cache;
+        try {
+            const raw = localStorage.getItem(POST_STORE_KEY);
+            this._cache = raw ? JSON.parse(raw) : [];
+            if (!Array.isArray(this._cache)) this._cache = [];
+        } catch { this._cache = []; }
+        return this._cache;
+    },
+    _save(){
+        try { localStorage.setItem(POST_STORE_KEY, JSON.stringify(this._cache || [])); return true; }
+        catch { showToast('Saqlashda xatolik'); return false; }
+    },
+    all(){ return this._load().slice(); },
+    get(id){ return this._load().find(p => p.id === id) || null; },
+    update(id, patch){
+        const list = this._load();
+        const i = list.findIndex(p => p.id === id);
+        if (i < 0) return null;
+        list[i] = Object.assign({}, list[i], patch);
+        this._cache = list;
+        this._save();
+        return list[i];
+    }
+};
+
+/* ================= VIEW TRACKER ================= */
+const VIEW_LOG_KEY = 'luz_view_log_v1';
+const ViewTracker = {
+    _cache: null,
+    _load(){
+        if (this._cache !== null) return this._cache;
+        try {
+            const raw = localStorage.getItem(VIEW_LOG_KEY);
+            this._cache = raw ? JSON.parse(raw) : {};
+            if (!this._cache || typeof this._cache !== 'object') this._cache = {};
+        } catch { this._cache = {}; }
+        return this._cache;
+    },
+    _key(uid, pid){ return String(uid) + '::' + String(pid); },
+    hasViewed(uid, pid){
+        if (!uid || !pid) return false;
+        return this._load()[this._key(uid, pid)] === true;
+    },
+    record(uid, pid){
+        if (!uid || !pid) return false;
+        const log = this._load();
+        const k = this._key(uid, pid);
+        if (log[k] === true) return false;
+        log[k] = true;
+        this._cache = log;
+        try { localStorage.setItem(VIEW_LOG_KEY, JSON.stringify(log)); } catch {}
+        return true;
+    }
+};
+
+/* ================= SESSION ================= */
+const currentUser = DB.getCurrentUser();
+if (!currentUser) window.location.href = 'authorization.html';
+
+/* ================= NAV AVATAR ================= */
+const navAvatarSlot = document.getElementById('navAvatarSlot');
+const cuName = [currentUser.firstName, currentUser.lastName].filter(Boolean).join(' ') || 'Foydalanuvchi';
+const cuInit = cuName.trim().charAt(0).toUpperCase() || 'F';
+if (currentUser.photo_url) {
+    navAvatarSlot.innerHTML = `<img class="nav-avatar" src="${currentUser.photo_url}" alt="${cuInit}">`;
+} else {
+    navAvatarSlot.innerHTML = `<div class="nav-avatar-initial">${cuInit}</div>`;
+}
+
+/* ================= HELPERS ================= */
+function escapeHtml(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function formatExactTime(dateInput){
+    const d = dateInput instanceof Date ? dateInput : new Date(dateInput);
+    if (isNaN(d.getTime())) return '';
+    const now = new Date();
+    const diffSec = Math.floor((now - d) / 1000);
+    if (diffSec < 5) return 'hozir';
+    if (diffSec < 60) return diffSec + ' soniya oldin';
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return diffMin + ' daqiqa oldin';
+    const diffHour = Math.floor(diffMin / 60);
+    if (diffHour < 24) return diffHour + ' soat oldin';
+    const diffDay = Math.floor(diffHour / 24);
+    if (diffDay < 7) return diffDay + ' kun oldin';
+    const dd = String(d.getDate()).padStart(2,'0');
+    const mm = String(d.getMonth()+1).padStart(2,'0');
+    return dd + '.' + mm + '.' + d.getFullYear();
+}
+function goToProfile(uid){
+    if (!uid) return;
+    if (String(uid) === String(currentUser?.userId)) window.location.href = 'profil.html';
+    else window.location.href = `profil.html?id=${encodeURIComponent(uid)}`;
+}
+let toastTimer;
+function showToast(msg){
+    const t = document.getElementById('toast');
+    if (!t) return;
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+/* ================= MY REPLIES (tab uchun) ================= */
+let myReplies = [];
+function loadMyReplies(){
+    try {
+        const raw = localStorage.getItem(REPLIES_KEY);
+        myReplies = raw ? JSON.parse(raw) : [];
+        if (!Array.isArray(myReplies)) myReplies = [];
+    } catch { myReplies = []; }
+}
+function saveMyReplies(){
+    try { localStorage.setItem(REPLIES_KEY, JSON.stringify(myReplies)); } catch {}
+}
+function pushMyReply(entry){
+    myReplies.unshift(entry);
+    saveMyReplies();
+}
+
+/* ================= IZOH HELPERS (NESTED) ================= */
+function findComment(comments, id){
+    for (const c of (comments || [])) {
+        if (c.id === id) return { comment: c, parent: null, isReply: false, root: c };
+        const found = findInReplies(c, id, c);
+        if (found) return found;
+    }
+    return null;
+}
+function findInReplies(parent, id, root){
+    for (const r of (parent.replies || [])) {
+        if (r.id === id) return { comment: r, parent, isReply: true, root };
+        const found = findInReplies(r, id, root);
+        if (found) return found;
+    }
+    return null;
+}
+function makeCommentObj(text, parentId){
+    return {
+        id: 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+        userId: currentUser?.userId || '',
+        user: [currentUser.firstName, currentUser.lastName].filter(Boolean).join(' ') || 'Foydalanuvchi',
+        avatar: currentUser.photo_url || null,
+        text,
+        createdAt: new Date().toISOString(),
+        likes: 0, liked: false, replies: [],
+        parentId: parentId || null
+    };
+}
+function addCommentToPost(postId, newComment, replyToId){
+    const post = PostStore.get(postId);
+    if (!post) return null;
+    if (!post.comments) post.comments = [];
+
+    if (!replyToId) {
+        newComment.parentId = null;
+        post.comments.push(newComment);
+        PostStore.update(postId, { comments: post.comments });
+        return { post, comment: newComment, parent: null };
+    }
+
+    const found = findComment(post.comments, replyToId);
+    if (!found) return null;
+
+    newComment.parentId = replyToId;
+    if (!found.comment.replies) found.comment.replies = [];
+    found.comment.replies.push(newComment);
+
+    PostStore.update(postId, { comments: post.comments });
+    return { post, comment: newComment, parent: found.comment };
+}
+function countRepliesDeep(c){
+    let n = (c.replies || []).length;
+    (c.replies || []).forEach(r => { n += countRepliesDeep(r); });
+    return n;
+}
+
+/* ================= SVG ICONS ================= */
+const ICONS = {
+    like: `<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`,
+    comment: `<svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>`,
+    view: `<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`,
+    bookmark: `<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`,
+    share: `<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>`
+};
+
+/* ================= POST RENDER ================= */
+const savedPosts = new Set();
+
+function countComments(p){
+    let n = 0;
+    const walk = (arr) => arr.forEach(c => { n++; if (c.replies) walk(c.replies); });
+    walk(p.comments || []);
+    return n;
+}
+
+function registerView(p, item){
+    const uid = currentUser?.userId;
+    if (!uid || !p.id) return;
+    if (ViewTracker.hasViewed(uid, p.id)) return;
+    const io = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (!entry.isIntersecting) return;
+            io.disconnect();
+            if (!ViewTracker.record(uid, p.id)) return;
+            const fresh = PostStore.get(p.id);
+            if (!fresh) return;
+            const views = (fresh.views || 0) + 1;
+            PostStore.update(p.id, { views });
+            p.views = views;
+            const vc = item.querySelector('.view-count');
+            if (vc) vc.textContent = views;
+        });
+    }, { threshold: 0.5 });
+    io.observe(item);
+}
+
+function handleShare(entity){
+    const link = location.origin + location.pathname + '?post=' + encodeURIComponent(entity.id);
+    if (navigator.share) navigator.share({ title: 'Post', text: entity.text || 'Post', url: link }).catch(() => {});
+    else { try { navigator.clipboard?.writeText(link); } catch {} showToast('Havola nusxalandi'); }
+}
+
+function buildPostItem(p){
+    const item = document.createElement('div');
+    item.className = 'post-item';
+    item.dataset.id = p.id;
+
+    const postName = p.user || 'Foydalanuvchi';
+    const postInit = (postName.trim().charAt(0) || 'F').toUpperCase();
+
+    const head = document.createElement('div');
+    head.className = 'post-head';
+    const avatarEl = document.createElement(p.avatar ? 'img' : 'div');
+    if (p.avatar) {
+        avatarEl.className = 'post-avatar';
+        avatarEl.src = p.avatar;
+        avatarEl.alt = postInit;
+    } else {
+        avatarEl.className = 'post-avatar-initial';
+        avatarEl.textContent = postInit;
+    }
+    avatarEl.addEventListener('click', (e) => { e.stopPropagation(); goToProfile(p.userId); });
+    head.appendChild(avatarEl);
+
+    const info = document.createElement('div');
+    info.className = 'post-head-info';
+    const userEl = document.createElement('div');
+    userEl.className = 'post-user';
+    userEl.textContent = postName;
+    userEl.addEventListener('click', (e) => { e.stopPropagation(); goToProfile(p.userId); });
+    const timeEl = document.createElement('div');
+    timeEl.className = 'post-time';
+    timeEl.textContent = formatExactTime(p.createdAt || p.time);
+    info.appendChild(userEl);
+    info.appendChild(timeEl);
+    head.appendChild(info);
+    item.appendChild(head);
+
+    if (p.text) {
+        const text = document.createElement('div');
+        text.className = 'post-text';
+        text.textContent = p.text;
+        item.appendChild(text);
+    }
+    if (p.type === 'image' && p.image) {
+        const img = document.createElement('img');
+        img.className = 'post-image';
+        img.src = p.image;
+        img.loading = 'lazy';
+        item.appendChild(img);
+    }
+    if (p.type === 'video' && p.image) {
+        const vid = document.createElement('video');
+        vid.className = 'post-video';
+        vid.src = p.image;
+        vid.controls = true;
+        vid.playsInline = true;
+        vid.preload = 'metadata';
+        vid.addEventListener('click', (e) => e.stopPropagation());
+        item.appendChild(vid);
+    }
+
+    item.appendChild(buildPostActions(p));
+
+    item.addEventListener('click', (e) => {
+        if (e.target.closest('.act-btn')) return;
+        if (e.target.closest('[data-uid]')) return;
+        if (e.target.tagName === 'VIDEO') return;
+        openPostDetail(p);
+    });
+
+    registerView(p, item);
+    return item;
+}
+
+function buildPostActions(p){
+    const actions = document.createElement('div');
+    actions.className = 'post-actions';
+
+    // LIKE
+    const likeBtn = document.createElement('button');
+    likeBtn.className = 'act-btn' + (p.liked ? ' liked' : '');
+    likeBtn.innerHTML = `${ICONS.like}<span class="act-count like-count">${p.likes || 0}</span>`;
+    likeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const fresh = PostStore.get(p.id) || p;
+        const liked = !fresh.liked;
+        const likes = Math.max(0, (fresh.likes || 0) + (liked ? 1 : -1));
+        PostStore.update(p.id, { liked, likes });
+        p.liked = liked; p.likes = likes;
+        likeBtn.classList.toggle('liked', liked);
+        likeBtn.querySelector('.like-count').textContent = likes;
+    });
+    actions.appendChild(likeBtn);
+
+    // COMMENT
+    const commentBtn = document.createElement('button');
+    commentBtn.className = 'act-btn';
+    commentBtn.innerHTML = `${ICONS.comment}<span class="act-count comment-count">${countComments(p)}</span>`;
+    commentBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openPostDetail(p);
+    });
+    actions.appendChild(commentBtn);
+
+    // VIEW
+    const viewBtn = document.createElement('button');
+    viewBtn.className = 'act-btn';
+    viewBtn.style.cursor = 'default';
+    viewBtn.innerHTML = `${ICONS.view}<span class="act-count view-count">${p.views || 0}</span>`;
+    viewBtn.addEventListener('click', (e) => e.stopPropagation());
+    actions.appendChild(viewBtn);
+
+    // SAVE
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'act-btn' + (savedPosts.has(p.id) ? ' saved' : '');
+    saveBtn.innerHTML = ICONS.bookmark;
+    saveBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (savedPosts.has(p.id)) { savedPosts.delete(p.id); saveBtn.classList.remove('saved'); showToast('Saqlanganlardan olib tashlandi'); }
+        else { savedPosts.add(p.id); saveBtn.classList.add('saved'); showToast('Saqlandi'); }
+    });
+    actions.appendChild(saveBtn);
+
+    // SHARE
+    const shareBtn = document.createElement('button');
+    shareBtn.className = 'act-btn';
+    shareBtn.innerHTML = ICONS.share;
+    shareBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        handleShare(p);
+    });
+    actions.appendChild(shareBtn);
+
+    return actions;
+}
+
+function renderFeed(){
+    const feed = document.getElementById('feed');
+    const posts = PostStore.all();
+    feed.innerHTML = '';
+    if (posts.length === 0) {
+        feed.innerHTML = '<div class="empty">Hali post yo\'q.<br>Profilga o\'tib birinchi postni yarating.</div>';
+        return;
+    }
+    posts.forEach(p => feed.appendChild(buildPostItem(p)));
+}
+
+/* ================= POST DETAIL VIEW ================= */
+const detailOverlay = document.getElementById('detailOverlay');
+const detailBack = document.getElementById('detailBack');
+const detailPostBox = document.getElementById('detailPostBox');
+const detailCommentsList = document.getElementById('detailCommentsList');
+const detailCommTitle = document.getElementById('detailCommTitle');
+const detailInput = document.getElementById('detailInput');
+const detailSend = document.getElementById('detailSend');
+const detailIsland = document.getElementById('detailIsland');
+const replyModeBar = document.getElementById('replyModeBar');
+const replyModeText = document.getElementById('replyModeText');
+const replyModeCancel = document.getElementById('replyModeCancel');
+
+let detailPost = null;
+let replyTargetId = null;
+
+function updateDetailReplyModeUI(){
+    if (!replyTargetId || !detailPost) {
+        replyModeBar.style.display = 'none';
+        detailIsland.classList.remove('reply-mode');
+        return;
+    }
+    const found = findComment(detailPost.comments || [], replyTargetId);
+    if (found) {
+        replyModeText.textContent = `↩ ${found.comment.user} ga javob`;
+        replyModeBar.style.display = 'flex';
+        detailIsland.classList.add('reply-mode');
+    } else {
+        replyModeBar.style.display = 'none';
+        detailIsland.classList.remove('reply-mode');
+    }
+}
+replyModeCancel.addEventListener('click', () => {
+    replyTargetId = null;
+    detailInput.value = '';
+    detailInput.dispatchEvent(new Event('input'));
+    updateDetailReplyModeUI();
+});
+
+function buildCommentActions(c){
+    const actions = document.createElement('div');
+    actions.className = 'comment-actions';
+
+    // LIKE
+    const likeBtn = document.createElement('button');
+    likeBtn.className = 'comment-act' + (c.liked ? ' liked' : '');
+    likeBtn.innerHTML = `${ICONS.like}<span class="comment-act-count like-count">${c.likes || 0}</span>`;
+    likeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!detailPost) return;
+        const fresh = PostStore.get(detailPost.id);
+        if (!fresh) return;
+        const found = findComment(fresh.comments || [], c.id);
+        if (!found) return;
+        const target = found.comment;
+        target.liked = !target.liked;
+        target.likes = Math.max(0, (target.likes || 0) + (target.liked ? 1 : -1));
+        PostStore.update(detailPost.id, { comments: fresh.comments });
+        c.liked = target.liked; c.likes = target.likes;
+        likeBtn.classList.toggle('liked', target.liked);
+        likeBtn.querySelector('.like-count').textContent = target.likes;
+        refreshDetailFromStore();
+    });
+    actions.appendChild(likeBtn);
+
+    // REPLY
+    const commBtn = document.createElement('button');
+    commBtn.className = 'comment-act';
+    commBtn.innerHTML = `${ICONS.comment}<span class="comment-act-count">${countRepliesDeep(c)}</span>`;
+    commBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        replyTargetId = c.id;
+        detailInput.value = `@${c.user} `;
+        detailInput.focus();
+        detailInput.dispatchEvent(new Event('input'));
+        updateDetailReplyModeUI();
+    });
+    actions.appendChild(commBtn);
+
+    
+    // VIEW (statik)
+    const viewBtn = document.createElement('button');
+    viewBtn.className = 'comment-act';
+    viewBtn.style.cursor = 'default';
+    viewBtn.innerHTML = `${ICONS.view}<span class="comment-act-count">0</span>`;
+    viewBtn.addEventListener('click', (e) => e.stopPropagation());
+    actions.appendChild(viewBtn);
+
+    // SAVE
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'comment-act';
+    saveBtn.innerHTML = ICONS.bookmark;
+    saveBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        saveBtn.classList.toggle('saved');
+        if (saveBtn.classList.contains('saved')) showToast('Saqlandi');
+        else showToast('Saqlanganlardan olib tashlandi');
+    });
+    actions.appendChild(saveBtn);
+
+    // SHARE
+    const shareBtn = document.createElement('button');
+    shareBtn.className = 'comment-act';
+    shareBtn.innerHTML = ICONS.share;
+    shareBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        handleShare(c);
+    });
+    actions.appendChild(shareBtn);
+
+    return actions;
+}
+
+function buildDetailComment(c, depth){
+    depth = depth || 0;
+    const thread = document.createElement('div');
+    thread.className = 'comment-thread' + (depth > 0 ? ' thread-nested' : '');
+    thread.dataset.cid = c.id;
+
+    const init = (c.user || 'F').trim().charAt(0).toUpperCase();
+    const av = c.avatar
+        ? `<img class="comment-avatar" src="${c.avatar}" alt="" data-uid="${c.userId||''}">`
+        : `<div class="comment-avatar-initial" data-uid="${c.userId||''}">${init}</div>`;
+
+    const hasReplies = c.replies && c.replies.length > 0;
+
+    const row = document.createElement('div');
+    row.className = 'comment-row';
+    row.innerHTML = `
+        <div class="comment-avatar-col">
+            ${av}
+            ${hasReplies ? '<div class="thread-line-down"></div>' : ''}
+        </div>
+        <div class="comment-content">
+            <div class="comment-head">
+                <span class="comment-user" data-uid="${c.userId||''}">${escapeHtml(c.user)}</span>
+                <span class="comment-time">${escapeHtml(formatExactTime(c.createdAt || c.time))}</span>
+            </div>
+            <div class="comment-text">${escapeHtml(c.text || '')}</div>
+        </div>
+    `;
+
+    row.querySelectorAll('[data-uid]').forEach(el => {
+        el.addEventListener('click', (e) => {
+            e.stopPropagation();
+            goToProfile(el.getAttribute('data-uid'));
+        });
+    });
+
+    row.querySelector('.comment-content').appendChild(buildCommentActions(c));
+
+    row.addEventListener('click', (e) => {
+        if (e.target.closest('.comment-act')) return;
+        if (e.target.closest('[data-uid]')) return;
+        openCommentDetail(c.id);
+    });
+
+    thread.appendChild(row);
+
+    if (hasReplies) {
+        const repliesBox = document.createElement('div');
+        repliesBox.className = 'comment-replies';
+
+        const visible = depth < MAX_VISIBLE_DEPTH ? c.replies : c.replies.slice(0, 1);
+        const hidden = c.replies.length - visible.length;
+
+        visible.forEach(r => repliesBox.appendChild(buildDetailComment(r, depth + 1)));
+
+        if (hidden > 0) {
+            const moreBtn = document.createElement('button');
+            moreBtn.className = 'comment-more-btn';
+            moreBtn.textContent = `${hidden} ta javobni ko'rish`;
+            moreBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                c.replies.forEach(r => {
+                    if (!repliesBox.querySelector(`[data-cid="${r.id}"]`)) {
+                        repliesBox.appendChild(buildDetailComment(r, depth + 1));
+                    }
+                });
+                moreBtn.remove();
+            });
+            repliesBox.appendChild(moreBtn);
+        }
+
+        thread.appendChild(repliesBox);
+    }
+
+    return thread;
+}
+
+function refreshDetailFromStore(){
+    if (!detailPost) return;
+    const fresh = PostStore.get(detailPost.id);
+    if (fresh) detailPost = fresh;
+    renderDetailPost();
+    renderDetailComments();
+    updateDetailReplyModeUI();
+    const feedItem = document.querySelector(`.post-item[data-id="${detailPost.id}"]`);
+    if (feedItem) {
+        const cc = feedItem.querySelector('.comment-count');
+        if (cc) cc.textContent = countComments(detailPost);
+    }
+}
+
+function renderDetailComments(){
+    if (!detailPost) return;
+    detailCommentsList.innerHTML = '';
+    const comments = detailPost.comments || [];
+    detailCommTitle.textContent = comments.length ? `Izohlar (${countComments(detailPost)})` : 'Izohlar';
+
+    if (comments.length === 0) {
+        detailCommentsList.innerHTML = '<div class="detail-empty">Hali izoh yo\'q. Birinchi bo\'ling!</div>';
+        return;
+    }
+    comments.forEach(c => detailCommentsList.appendChild(buildDetailComment(c, 0)));
+}
+
+function renderDetailPost(){
+    if (!detailPost) return;
+    const p = detailPost;
+    const postName = p.user || 'Foydalanuvchi';
+    const postInit = (postName.trim().charAt(0) || 'F').toUpperCase();
+
+    const avatarHtml = p.avatar
+        ? `<img class="detail-avatar" src="${p.avatar}" alt="${escapeHtml(postInit)}" data-uid="${p.userId||''}">`
+        : `<div class="detail-avatar-initial" data-uid="${p.userId||''}">${postInit}</div>`;
+
+    let mediaHtml = '';
+    if (p.type === 'image' && p.image) {
+        mediaHtml = `<img class="detail-image" src="${p.image}" alt="">`;
+    } else if (p.type === 'video' && p.image) {
+        mediaHtml = `<video class="detail-video" src="${p.image}" controls playsinline></video>`;
+    }
+
+    detailPostBox.innerHTML = `
+        <div class="detail-post">
+            <div class="detail-post-head">
+                ${avatarHtml}
+                <div class="detail-info">
+                    <div class="detail-user" data-uid="${p.userId||''}">${escapeHtml(postName)}</div>
+                    <div class="detail-time">${escapeHtml(formatExactTime(p.createdAt || p.time))}</div>
+                </div>
+            </div>
+            ${p.text ? `<div class="detail-text">${escapeHtml(p.text)}</div>` : ''}
+            ${mediaHtml}
+            <div class="detail-actions" id="detailActionsBar"></div>
+        </div>
+    `;
+
+    detailPostBox.querySelectorAll('[data-uid]').forEach(el => {
+        el.style.cursor = 'pointer';
+        el.addEventListener('click', (e) => {
+            e.stopPropagation();
+            goToProfile(el.getAttribute('data-uid'));
+        });
+    });
+
+    const actionsBar = document.getElementById('detailActionsBar');
+
+    const likeBtn = document.createElement('button');
+    likeBtn.className = 'act-btn' + (p.liked ? ' liked' : '');
+    likeBtn.innerHTML = `${ICONS.like}<span class="act-count like-count">${p.likes || 0}</span>`;
+    likeBtn.addEventListener('click', () => {
+        const fresh = PostStore.get(p.id);
+        if (!fresh) return;
+        const liked = !fresh.liked;
+        const likes = Math.max(0, (fresh.likes || 0) + (liked ? 1 : -1));
+        PostStore.update(p.id, { liked, likes });
+        p.liked = liked; p.likes = likes;
+        likeBtn.classList.toggle('liked', liked);
+        likeBtn.querySelector('.like-count').textContent = likes;
+
+        const feedItem = document.querySelector(`.post-item[data-id="${p.id}"]`);
+        if (feedItem) {
+            const feedLikeBtn = feedItem.querySelector('.act-btn');
+            if (feedLikeBtn) {
+                feedLikeBtn.classList.toggle('liked', liked);
+                const cnt = feedLikeBtn.querySelector('.like-count');
+                if (cnt) cnt.textContent = likes;
+            }
+        }
+    });
+    actionsBar.appendChild(likeBtn);
+
+    const commBtn = document.createElement('button');
+    commBtn.className = 'act-btn';
+    commBtn.innerHTML = `${ICONS.comment}<span class="act-count comment-count">${countComments(p)}</span>`;
+    commBtn.addEventListener('click', () => { detailInput.focus(); });
+    actionsBar.appendChild(commBtn);
+
+    const viewBtn = document.createElement('button');
+    viewBtn.className = 'act-btn';
+    viewBtn.style.cursor = 'default';
+    viewBtn.innerHTML = `${ICONS.view}<span class="act-count view-count">${p.views || 0}</span>`;
+    actionsBar.appendChild(viewBtn);
+
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'act-btn' + (savedPosts.has(p.id) ? ' saved' : '');
+    saveBtn.innerHTML = ICONS.bookmark;
+    saveBtn.addEventListener('click', () => {
+        if (savedPosts.has(p.id)) { savedPosts.delete(p.id); saveBtn.classList.remove('saved'); showToast('Saqlanganlardan olib tashlandi'); }
+        else { savedPosts.add(p.id); saveBtn.classList.add('saved'); showToast('Saqlandi'); }
+    });
+    actionsBar.appendChild(saveBtn);
+
+    const shareBtn = document.createElement('button');
+    shareBtn.className = 'act-btn';
+    shareBtn.innerHTML = ICONS.share;
+    shareBtn.addEventListener('click', () => handleShare(p));
+    actionsBar.appendChild(shareBtn);
+}
+
+function openPostDetail(p){
+    if (!p) return;
+    detailPost = PostStore.get(p.id) || p;
+    if (!detailPost.comments) detailPost.comments = [];
+
+    replyTargetId = null;
+
+    renderDetailPost();
+    renderDetailComments();
+    updateDetailReplyModeUI();
+
+    detailInput.value = '';
+    detailInput.style.height = 'auto';
+    detailSend.disabled = true;
+
+    detailOverlay.classList.add('show');
+    document.getElementById('detailScroll').scrollTop = 0;
+
+    if (tg?.BackButton) {
+        try { tg.BackButton.onClick(closePostDetail); } catch {}
+    }
+}
+
+function closePostDetail(){
+    detailOverlay.classList.remove('show');
+    detailPost = null;
+    replyTargetId = null;
+    detailInput.value = '';
+    detailInput.style.height = 'auto';
+    detailSend.disabled = true;
+
+    renderFeed();
+
+    if (tg?.BackButton) {
+        try { tg.BackButton.onClick(goHome); } catch {}
+    }
+}
+
+function goHome(){ window.location.href = 'index.html'; }
+
+detailBack.addEventListener('click', closePostDetail);
+
+detailInput.addEventListener('input', () => {
+    detailInput.style.height = 'auto';
+    detailInput.style.height = Math.min(detailInput.scrollHeight, 90) + 'px';
+    detailSend.disabled = detailInput.value.trim().length === 0;
+});
+
+detailSend.addEventListener('click', () => {
+    const raw = detailInput.value.trim();
+    if (!raw || !detailPost) return;
+
+    let cleanText = raw;
+    if (replyTargetId) {
+        cleanText = raw.replace(/^@\S+\s*/, '').trim();
+        if (!cleanText) { showToast('Javob matni bo\'sh'); return; }
+    }
+
+    const newC = makeCommentObj(cleanText, replyTargetId);
+    const result = addCommentToPost(detailPost.id, newC, replyTargetId);
+    if (!result) { showToast('Xatolik yuz berdi'); return; }
+
+    pushMyReply({
+        id: newC.id, postId: detailPost.id, userId: newC.userId,
+        user: newC.user, avatar: newC.avatar, text: newC.text,
+        createdAt: newC.createdAt, postText: detailPost.text
+    });
+
+    replyTargetId = null;
+    detailInput.value = '';
+    detailInput.style.height = 'auto';
+    detailSend.disabled = true;
+
+    refreshDetailFromStore();
+
+    setTimeout(() => {
+        const newEl = detailCommentsList.querySelector(`[data-cid="${newC.id}"]`);
+        if (newEl) {
+            newEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            newEl.classList.add('comment-highlight');
+            setTimeout(() => newEl.classList.remove('comment-highlight'), 1300);
+        }
+    }, 60);
+});
+
 /* ================= COMMENT DETAIL VIEW ================= */
 const commentDetailOverlay = document.getElementById('commentDetailOverlay');
 const commentDetailBack = document.getElementById('commentDetailBack');
