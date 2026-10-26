@@ -25,7 +25,6 @@ function hashCode(phone, code) {
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(200).send('OK');
 
-  // Webhook secret tekshiruvi
   if (req.headers['x-telegram-bot-api-secret-token'] !== process.env.WEBHOOK_SECRET) {
     return res.status(401).send('Unauthorized');
   }
@@ -37,7 +36,7 @@ module.exports = async (req, res) => {
     const chatId = msg.chat.id;
     const fromId = msg.from.id;
 
-    // 1) /start
+    // /start
     if (msg.text && msg.text.startsWith('/start')) {
       await tg('sendMessage', {
         chat_id: chatId,
@@ -51,9 +50,8 @@ module.exports = async (req, res) => {
       return res.status(200).send('OK');
     }
 
-    // 2) Kontakt keldi
+    // Kontakt keldi
     if (msg.contact) {
-      // Faqat o'z raqami
       if (msg.contact.user_id !== fromId) {
         await tg('sendMessage', {
           chat_id: chatId,
@@ -109,7 +107,10 @@ module.exports = async (req, res) => {
 
       if (error) {
         console.error(error);
-        await tg('sendMessage', { chat_id: chatId, text: "⚠️ Xatolik yuz berdi. Keyinroq urinib ko'ring." });
+        await tg('sendMessage', {
+          chat_id: chatId,
+          text: "⚠️ Xatolik yuz berdi. Keyinroq urinib ko'ring.",
+        });
         return res.status(200).send('OK');
       }
 
