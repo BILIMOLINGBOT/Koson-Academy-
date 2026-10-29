@@ -2,10 +2,10 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Tahrirlash - L.uz</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent;}
 
         body {
             background-color: #000;
@@ -81,7 +81,7 @@
             color: #000;
             border: none;
             border-radius: 100px;
-            padding: 15px 32px; /* Kattaroq va bosishga qulay */
+            padding: 15px 32px; 
             font-size: 16px;
             font-weight: 700;
             cursor: pointer;
@@ -245,7 +245,7 @@
         .toast {
             position: fixed;
             left: 50%;
-            bottom: 100px; /* Saqlash tugmasiga xalaqit bermasligi uchun ko'tarildi */
+            bottom: 100px; 
             transform: translate(-50%, 20px);
             background: #1c1c1e;
             color: #fff;
@@ -272,7 +272,7 @@
             <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <span class="top-title">Profilni tahrirlash</span>
-        <div style="width: 40px;"></div> <!-- Sarlavhani markazlashtirib turish uchun -->
+        <div style="width: 40px;"></div> 
     </div>
 
     <input type="file" id="avatar-input" accept="image/jpeg, image/png, image/webp" style="display: none;">
@@ -293,7 +293,7 @@
     </div>
 
     <div class="info-box">
-        Bu sahifada ismingiz, familiyangiz, nomingiz va rasmingizni o'zgartirishingiz mumkin.
+        Bu sahifada ismingiz, familiyangiz, foydalanuvchi nomingiz va rasmingizni o'zgartirishingiz mumkin.
     </div>
 
     <h2>Shaxsiy ma'lumotlar</h2>
@@ -322,7 +322,6 @@
     </div>
 </div>
 
-<!-- Pastki burchakdagi saqlash tugmasi -->
 <div class="save-btn-container">
     <button class="save-btn" id="saveBtn" disabled>Saqlash</button>
 </div>
@@ -403,16 +402,16 @@ const PostStore = {
 /* ================= SESSION CHECK ================= */
 const currentUser = DB.getCurrentUser();
 if (!currentUser) {
-    window.location.replace('authorization.html');
-    throw new Error("Foydalanuvchi tizimga kirmagan."); 
+    showToast("Tizimga kirilmagan. Avtorizatsiyaga o'tilmoqda...");
+    setTimeout(() => { window.location.replace('authorization.html'); }, 1500);
 }
 
 /* ================= INITIAL STATE ================= */
 const initialState = {
-    firstName: currentUser.firstName || '',
-    lastName: currentUser.lastName || '',
-    username: currentUser.username || '',
-    photo: currentUser.photo_url || null
+    firstName: currentUser?.firstName || '',
+    lastName: currentUser?.lastName || '',
+    username: currentUser?.username || '',
+    photo: currentUser?.photo_url || null
 };
 let currentPhoto = initialState.photo;
 let isDirty = false;
@@ -469,6 +468,9 @@ function checkChanges() {
     const fam = familiyaInput.value.trim();
     const usr = usernameInput.value.trim();
     
+    ismError.classList.toggle('show', !ism && isDirty);
+    familiyaError.classList.toggle('show', !fam && isDirty);
+
     isDirty = (ism !== initialState.firstName) || 
               (fam !== initialState.lastName) || 
               (usr !== initialState.username) || 
@@ -628,13 +630,17 @@ saveBtn.addEventListener('click', () => {
 });
 
 
+
+
 /* ================= ORQAGA ================= */
 backBtn.addEventListener('click', () => {
     if (isDirty) {
-        const confirmed = confirm("O'zgarishlar saqlanmadi. Chiqishni xohlaysizmi?");
-        if (!confirmed) return;
+        if(confirm("O'zgarishlar saqlanmadi. Chiqishni xohlaysizmi?")) {
+            window.location.href = 'profil.html';
+        }
+    } else {
+        window.location.href = 'profil.html';
     }
-    window.location.href = 'profil.html';
 });
 
 /* ================= TOAST ================= */
