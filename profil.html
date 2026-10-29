@@ -203,6 +203,7 @@ body{display:flex;justify-content:center;min-height:100vh;-webkit-font-smoothing
 <body>
 
 
+
 <div class="mobile-container">
     <div class="profile-pic-wrapper" id="profilePicWrapper">
         <img id="userPhoto" class="profile-pic" style="display:none" alt="Profil rasmi">
@@ -371,7 +372,7 @@ if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
     localStorage.setItem(DB._K, JSON.stringify(users));
     localStorage.setItem(DB._S, currentUser.userId);
 } else {
-    // Agar dastur Telegram ichidan emas, oddiy browserdan ochilsa fallback (Avtorizatsiyaga yo'naltirish olib tashlangan)
+    // Agar dastur Telegram ichidan emas, oddiy browserdan ochilsa fallback
     currentUser = DB.getCurrentUser();
     if (!currentUser) {
         currentUser = { userId: 'mehmon_' + Date.now(), firstName: 'Mehmon', lastName: '', username: 'mehmon' };
@@ -740,82 +741,35 @@ function buildDetailComment(c, depth = 0){
     const shareBtn = document.createElement('button'); shareBtn.className = 'comment-act'; shareBtn.innerHTML = `${ICONS.share}`;
     shareBtn.addEventListener('click', (e) => { e.stopPropagation(); handleShare(c); });
 
-    actions.append(likeBtn, commBtn, viewBtn, saveBtn, shareBtn);
-    row.querySelector('.comment-content').appendChild(actions);
-
-    row.addEventListener('click', (e) => { if (!e.target.closest('.comment-act')) openCommentDetail(c.id); });
-    thread.appendChild(row);
-
-    if (hasReplies) {
-        const repBox = document.createElement('div'); repBox.className = 'comment-replies';
-        c.replies.forEach(r => repBox.appendChild(buildDetailComment(r, depth + 1)));
-        thread.appendChild(repBox);
-    }
-    return thread;
-}
-
-function refreshDetailFromStore(){
-    if (!detailPost) return;
-    const fresh = PostStore.get(detailPost.id); if (fresh) detailPost = fresh; renderDetailPost();
-    const clist = document.getElementById('detailCommentsList'); clist.innerHTML = '';
-    document.getElementById('detailCommTitle').textContent = (detailPost.comments||[]).length ? `Izohlar (${countComments(detailPost)})` : 'Izohlar';
-    (detailPost.comments||[]).forEach(c => clist.appendChild(buildDetailComment(c, 0)));
-}
-
-function renderDetailPost(){
-    if (!detailPost) return; const p = detailPost, postInit = (p.user||'F').trim().charAt(0).toUpperCase();
-    const av = p.avatar ? `<img class="detail-avatar" src="${p.avatar}">` : `<div class="detail-avatar-initial">${postInit}</div>`;
-    let media = '';
-    if (p.type === 'image' && p.image) media = `<img class="detail-image" src="${p.image}">`;
-    else if (p.type === 'video' && p.image) media = `<video class="detail-video" src="${p.image}" controls playsinline></video>`;
-
-    document.getElementById('detailPostBox').innerHTML = `
-        <div class="detail-post" style="display: flex; gap: 10px; align-items: flex-start;">
-            <div style="flex-shrink: 0;">
-                ${av}
-            </div>
-            <div style="flex: 1; min-width: 0;">
-                <div class="detail-info" style="display: flex; flex-direction: row; align-items: baseline; gap: 6px; margin-bottom: 6px;">
-                    <div class="detail-user">${escapeHtml(p.user)}</div>
-                    <div class="detail-time">${escapeHtml(formatExactTime(p.createdAt))}</div>
-                </div>
-                ${p.text ? `<div class="detail-text">${escapeHtml(p.text)}</div>` : ''}
-                ${media}
-                <div class="detail-actions" id="detailActionsBar"></div>
-            </div>
-        </div>
-    `;
-    document.getElementById('detailActionsBar').appendChild(buildPostActions(p, document.createElement('div')).cloneNode(true));
-}
-
-function openPostDetail(p){
-    detailPost = PostStore.get(p.id) || p; if (!detailPost.comments) detailPost.comments = [];
-    replyTargetId = null; refreshDetailFromStore(); updateDetailReplyModeUI();
-    detailOverlay.classList.add('show'); document.getElementById('detailScroll').scrollTop = 0;
-    if (isTelegram) { try { tg.BackButton.onClick(closePostDetail); tg.BackButton.show(); } catch {} }
-}
-function closePostDetail(){
-    detailOverlay.classList.remove('show'); detailPost = null; replyTargetId = null;
-    loadMyPosts(); switchTab(currentTab);
-    if (isTelegram) { try { tg.BackButton.onClick(goBack); } catch {} }
-}
-
-detailInput.addEventListener('input', () => {
-    detailInput.style.height = 'auto'; detailInput.style.height = Math.min(detailInput.scrollHeight, 90) + 'px';
-    detailSend.disabled = detailInput.value.trim().length === 0;
-});
-detailSend.addEventListener('click', () => {
-    const raw = detailInput.value.trim(); if (!raw || !detailPost) return;
-    const newC = makeCommentObj(raw, replyTargetId);
-    if (addCommentToPost(detailPost.id, newC, replyTargetId)) {
-        pushMyReply({ id: newC.id, postId: detailPost.id, user: newC.user, avatar: newC.avatar, text: newC.text, createdAt: newC.createdAt, postText: detailPost.text });
-        replyTargetId = null; detailInput.value = ''; detailSend.disabled = true; refreshDetailFromStore();
-    }
-});
-
-/* ================= COMMENT DETAIL ================= */
+  
+/* ================= COMMENT DETAIL (Yangi qo'shilgan/to'g'rilangan qism) ================= */
 const commentDetailOverlay = document.getElementById('commentDetailOverlay');
+const commentDetailInput = document.getElementById('commentDetailInput');
+const commentDetailSend = document.getElementById('commentDetailSend');
 let activeCommentId = null;
+
+// Comment detalida input o'zgarishi
+commentDetailInput.addEventListener('input', () => {
+    commentDetailInput.style.height = 'auto'; 
+    commentDetailInput.style.height = Math.min(commentDetailInput.scrollHeight, 90) + 'px';
+    commentDetailSend.disabled = commentDetailInput.value.trim().length === 0;
+});
+
+// Comment detalida javob yuborish
+commentDetailSend.addEventListener('click', () => {
+    const raw = commentDetailInput.value.trim(); 
+    if (!raw || !detailPost || !activeCommentId) return;
+    
+    const newC = makeCommentObj(raw, activeCommentId);
+    if (addCommentToPost(detailPost.id, newC, activeCommentId)) {
+        pushMyReply({ id: newC.id, postId: detailPost.id, user: newC.user, avatar: newC.avatar, text: newC.text, createdAt: newC.createdAt, postText: raw });
+        commentDetailInput.value = ''; 
+        commentDetailSend.disabled = true; 
+        refreshDetailFromStore();
+        openCommentDetail(activeCommentId); // oynani yangilash
+    }
+});
+
 function openCommentDetail(cid){
     if (!detailPost) return; const fresh = PostStore.get(detailPost.id); if (!fresh) return; detailPost = fresh;
     const found = findComment(detailPost.comments || [], cid); if (!found) return;
@@ -826,14 +780,33 @@ function openCommentDetail(cid){
     (found.comment.replies || []).forEach(r => reps.appendChild(buildDetailComment(r, 0).querySelector('.comment-row').cloneNode(true)));
     
     commentDetailOverlay.classList.add('show');
-    if (isTelegram) { try { tg.BackButton.onClick(closeCommentDetail); } catch {} }
-}
-function closeCommentDetail(){
-    commentDetailOverlay.classList.remove('show'); activeCommentId = null;
-    if (isTelegram) { try { if (detailOverlay.classList.contains('show')) tg.BackButton.onClick(closePostDetail); else tg.BackButton.onClick(goBack); } catch {} }
+    
+    // Telegram BackButton FIX
+    if (isTelegram) { 
+        try { 
+            tg.BackButton.offClick(closePostDetail);
+            tg.BackButton.onClick(closeCommentDetail); 
+        } catch {} 
+    }
 }
 
-/* ================= COMPOSER ================= */
+function closeCommentDetail(){
+    commentDetailOverlay.classList.remove('show'); activeCommentId = null;
+    
+    // Telegram BackButton FIX
+    if (isTelegram) { 
+        try { 
+            tg.BackButton.offClick(closeCommentDetail);
+            if (detailOverlay.classList.contains('show')) {
+                tg.BackButton.onClick(closePostDetail); 
+            } else {
+                tg.BackButton.onClick(goBack);
+            }
+        } catch {} 
+    }
+}
+
+/* ================= COMPOSER (Media tugmalar ulandi) ================= */
 const composer = document.getElementById('composer'), compOverlay = document.getElementById('composerOverlay'), compInput = document.getElementById('composerInput'), compSubmit = document.getElementById('composerSubmit');
 let currentMedia = null;
 
@@ -846,6 +819,14 @@ compOverlay.addEventListener('click', closeComposer);
 compInput.addEventListener('input', () => {
     compInput.style.height = 'auto'; compInput.style.height = Math.min(compInput.scrollHeight, 160) + 'px';
     compSubmit.disabled = !(compInput.value.trim().length > 0 || currentMedia);
+});
+
+// YASHIRIN INPUTLARGA ULANISH
+document.getElementById('attachBtn').addEventListener('click', () => {
+    document.getElementById('fileInput').click();
+});
+document.getElementById('attachVideoBtn').addEventListener('click', () => {
+    document.getElementById('videoInput').click();
 });
 
 document.getElementById('fileInput').addEventListener('change', async e => {
