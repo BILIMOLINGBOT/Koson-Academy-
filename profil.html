@@ -103,7 +103,6 @@ body{display:flex;justify-content:center;min-height:100vh;-webkit-font-smoothing
 }
 
 .post-actions{display:flex;align-items:center;justify-content:space-between;gap:4px;padding-top:4px}
-/* BOSISH UCHUN QULAYLASHTIRILGAN IKKONKALAR */
 .act-btn{background:none;border:none;display:flex;align-items:center;gap:6px;color:#8e8e93;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;padding:12px 6px;transition:transform .15s ease,color .2s ease;flex:1;justify-content:center;border-radius:12px}
 .act-btn:active{transform:scale(.88);background:rgba(255,255,255,.05)}
 .act-btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:fill .2s ease,stroke .2s ease,transform .2s cubic-bezier(.34,1.56,.64,1);flex-shrink:0}
@@ -114,7 +113,7 @@ body{display:flex;justify-content:center;min-height:100vh;-webkit-font-smoothing
 .act-btn.saved{color:#fff}
 .act-btn.saved svg{fill:#fff;stroke:#fff;animation:likePop .35s cubic-bezier(.34,1.56,.64,1)}
 
-/* COMMENTS THREAD: UZLUKSIZ CHIZIQ */
+/* COMMENTS THREAD */
 .comment-thread{display:flex;flex-direction:column;animation:postIn .3s ease both;position:relative}
 .comment-row{display:flex;gap:10px;cursor:pointer;padding:4px 0;transition:opacity .15s ease;align-items:stretch}
 .comment-row:active{opacity:.85}
@@ -131,7 +130,6 @@ body{display:flex;justify-content:center;min-height:100vh;-webkit-font-smoothing
 .comment-time{font-size:12px;color:#8e8e93}
 .comment-text{font-size:14px;line-height:1.45;color:#e5e5ea;word-break:break-word;white-space:pre-wrap;margin-bottom:6px}
 .comment-actions{display:flex;gap:2px;align-items:center;justify-content:space-between;padding-top:2px;max-width:100%;width:100%}
-/* BOSISH UCHUN QULAYLASHTIRILGAN IKKONKALAR (Izohlar uchun) */
 .comment-act{background:none;border:none;color:#8e8e93;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;padding:12px 6px;display:flex;align-items:center;gap:5px;flex:1;justify-content:center;border-radius:10px;transition:transform .15s,color .2s,background .15s}
 .comment-act:active{transform:scale(.9);background:rgba(255,255,255,.06)}
 .comment-act svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
@@ -143,10 +141,8 @@ body{display:flex;justify-content:center;min-height:100vh;-webkit-font-smoothing
 
 .comment-replies{display:flex;flex-direction:column;position:relative;margin-left:0;padding-left:0;padding-bottom:4px}
 .thread-nested{position:relative}
-.comment-more-btn{background:none;border:none;color:#fff;font-size:12px;font-weight:600;cursor:pointer;padding:4px 0 8px 52px;margin-top:0;font-family:inherit;text-align:left}
-.comment-more-btn:active{opacity:.7}
 
-/* REPLY MODE BAR (Neytral rang) */
+/* REPLY MODE BAR */
 .reply-mode-bar{display:flex;align-items:center;gap:8px;padding:10px 16px;background:rgba(255,255,255,.06);border-top:1px solid rgba(255,255,255,.08);font-size:13px;color:#fff;font-weight:600;max-width:420px;width:100%;margin:0 auto}
 .reply-mode-bar span{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .reply-mode-bar button{background:none;border:none;color:#fff;font-size:13px;font-weight:600;cursor:pointer;padding:6px 12px;border-radius:14px;background:rgba(255,255,255,.1);font-family:inherit}
@@ -353,6 +349,44 @@ const DB = {
     getUserById(id){ return this._getUsers().find(u => String(u.userId) === String(id)) || null; }
 };
 
+/* ================= SESSION & TELEGRAM AUTO-LOGIN ================= */
+let currentUser = null;
+if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+    const tU = tg.initDataUnsafe.user;
+    currentUser = {
+        userId: String(tU.id),
+        firstName: tU.first_name || '',
+        lastName: tU.last_name || '',
+        username: tU.username || '',
+        photo_url: tU.photo_url || null
+    };
+    // Foydalanuvchini lokal bazaga avtomatik kiritish va sessiyani yangilash
+    let users = DB._getUsers();
+    let idx = users.findIndex(u => String(u.userId) === String(currentUser.userId));
+    if(idx >= 0) {
+        users[idx] = { ...users[idx], ...currentUser };
+    } else {
+        users.push(currentUser);
+    }
+    localStorage.setItem(DB._K, JSON.stringify(users));
+    localStorage.setItem(DB._S, currentUser.userId);
+} else {
+    // Agar dastur Telegram ichidan emas, oddiy browserdan ochilsa fallback (Avtorizatsiyaga yo'naltirish olib tashlangan)
+    currentUser = DB.getCurrentUser();
+    if (!currentUser) {
+        currentUser = { userId: 'mehmon_' + Date.now(), firstName: 'Mehmon', lastName: '', username: 'mehmon' };
+        localStorage.setItem(DB._S, currentUser.userId);
+        localStorage.setItem(DB._K, JSON.stringify([currentUser]));
+    }
+}
+
+const profileUserId = new URLSearchParams(location.search).get('id');
+const isOwn = !profileUserId || String(profileUserId) === String(currentUser?.userId);
+const profileOwner = isOwn ? currentUser : (DB.getUserById(profileUserId) || null);
+const displayName = profileOwner ? ([profileOwner.firstName, profileOwner.lastName].filter(Boolean).join(' ') || 'Foydalanuvchi') : 'Foydalanuvchi';
+const displayUsername = profileOwner?.username ? '@' + profileOwner.username : '';
+const initialLetter = (displayName || 'F').trim().charAt(0).toUpperCase() || 'F';
+
 /* ================= POST STORE ================= */
 const POST_STORE_KEY = 'tg_feed_posts_v1';
 const PostStore = {
@@ -398,16 +432,6 @@ const ViewTracker = {
         try { localStorage.setItem(VIEW_LOG_KEY, JSON.stringify(log)); } catch {} return true;
     }
 };
-
-/* ================= SESSION ================= */
-const currentUser = DB.getCurrentUser();
-if (!currentUser) window.location.href = 'authorization.html';
-const profileUserId = new URLSearchParams(location.search).get('id');
-const isOwn = !profileUserId || String(profileUserId) === String(currentUser?.userId);
-const profileOwner = isOwn ? currentUser : (DB.getUserById(profileUserId) || null);
-const displayName = profileOwner ? ([profileOwner.firstName, profileOwner.lastName].filter(Boolean).join(' ') || 'Foydalanuvchi') : 'Foydalanuvchi';
-const displayUsername = profileOwner?.username ? '@' + profileOwner.username : '';
-const initialLetter = (displayName || 'F').trim().charAt(0).toUpperCase() || 'F';
 
 /* ================= HELPERS ================= */
 function escapeHtml(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
@@ -699,7 +723,6 @@ function buildDetailComment(c, depth = 0){
         </div>
     `;
     
-    // YAXSHILANGAN IZOH HARAKATLARI (5 ta Ikonka)
     const actions = document.createElement('div'); actions.className = 'comment-actions';
     
     const likeBtn = document.createElement('button'); likeBtn.className = 'comment-act' + (c.liked?' liked':''); likeBtn.innerHTML = `${ICONS.like}<span class="comment-act-count">${c.likes||0}</span>`;
@@ -730,6 +753,7 @@ function buildDetailComment(c, depth = 0){
     }
     return thread;
 }
+
 function refreshDetailFromStore(){
     if (!detailPost) return;
     const fresh = PostStore.get(detailPost.id); if (fresh) detailPost = fresh; renderDetailPost();
@@ -763,6 +787,7 @@ function renderDetailPost(){
     `;
     document.getElementById('detailActionsBar').appendChild(buildPostActions(p, document.createElement('div')).cloneNode(true));
 }
+
 function openPostDetail(p){
     detailPost = PostStore.get(p.id) || p; if (!detailPost.comments) detailPost.comments = [];
     replyTargetId = null; refreshDetailFromStore(); updateDetailReplyModeUI();
