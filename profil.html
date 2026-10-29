@@ -206,6 +206,7 @@ body{display:flex;justify-content:center;min-height:100vh;-webkit-font-smoothing
 </head>
 <body>
 
+
 <div class="mobile-container">
     <div class="profile-pic-wrapper" id="profilePicWrapper">
         <img id="userPhoto" class="profile-pic" style="display:none" alt="Profil rasmi">
@@ -575,8 +576,13 @@ function buildPostActions(p, item){
 
     actions.append(likeBtn, commBtn, viewBtn, saveBtn, shareBtn); return actions;
 }
+
 function buildPostItem(p){
     const item = document.createElement('div'); item.className = 'post-item'; item.dataset.id = p.id;
+    item.style.display = 'flex';
+    item.style.gap = '10px';
+    item.style.alignItems = 'flex-start';
+
     const postInit = (p.user || 'F').trim().charAt(0).toUpperCase();
     const av = p.avatar ? `<img class="post-avatar" src="${p.avatar}" alt="">` : `<div class="post-avatar-initial">${postInit}</div>`;
     
@@ -585,11 +591,21 @@ function buildPostItem(p){
     else if (p.type === 'video' && p.image) media = `<video class="post-video" src="${p.image}" controls playsinline></video>`;
 
     item.innerHTML = `
-        <div class="post-head">${av}<div class="post-head-info"><div class="post-user">${escapeHtml(p.user)}</div><div class="post-time">${escapeHtml(formatExactTime(p.createdAt || p.time))}</div></div></div>
-        ${p.text ? `<div class="post-text">${escapeHtml(p.text)}</div>` : ''}
-        ${media}
+        <div style="flex-shrink: 0;">
+            ${av}
+        </div>
+        <div style="flex: 1; min-width: 0;">
+            <div class="post-head-info" style="display: flex; flex-direction: row; align-items: baseline; gap: 6px; margin-bottom: 2px;">
+                <div class="post-user">${escapeHtml(p.user)}</div>
+                <div class="post-time">${escapeHtml(formatExactTime(p.createdAt || p.time))}</div>
+            </div>
+            ${p.text ? `<div class="post-text">${escapeHtml(p.text)}</div>` : ''}
+            ${media}
+            <div class="post-actions-slot"></div>
+        </div>
     `;
-    item.appendChild(buildPostActions(p, item));
+    item.querySelector('.post-actions-slot').appendChild(buildPostActions(p, item));
+    
     item.addEventListener('click', (e) => { if (e.target.closest('.act-btn') || e.target.tagName === 'VIDEO') return; openPostDetail(p); });
 
     const io = new IntersectionObserver(entries => {
@@ -609,6 +625,7 @@ function buildPostItem(p){
 
     return item;
 }
+
 function renderList(list, key){
     const area = document.getElementById('contentArea');
     if (list.length === 0) { area.innerHTML = `<div class="empty-icon">${icons[key]}</div><p>${texts[key]}</p>`; return; }
@@ -623,14 +640,24 @@ function renderReplies(){
     area.innerHTML = '<div class="feed" id="feed"></div>';
     myReplies.forEach(r => {
         const item = document.createElement('div'); item.className = 'post-item';
+        item.style.display = 'flex';
+        item.style.gap = '10px';
+        item.style.alignItems = 'flex-start';
+
         const init = (r.user || 'F').trim().charAt(0).toUpperCase();
+        const av = r.avatar ? `<img class="post-avatar" src="${r.avatar}">` : `<div class="post-avatar-initial">${init}</div>`;
         item.innerHTML = `
-            <div class="post-head">
-                ${r.avatar ? `<img class="post-avatar" src="${r.avatar}">` : `<div class="post-avatar-initial">${init}</div>`}
-                <div class="post-head-info"><div class="post-user">${escapeHtml(r.user)}</div><div class="post-time">${escapeHtml(formatExactTime(r.createdAt))}</div></div>
+            <div style="flex-shrink: 0;">
+                ${av}
             </div>
-            <div class="post-text">${escapeHtml(r.text)}</div>
-            <div style="font-size:12px;color:#8e8e93;margin-top:8px;padding:8px;background:rgba(255,255,255,0.05);border-radius:8px">Javob berildi: "${escapeHtml(r.postText || 'post')}"</div>`;
+            <div style="flex: 1; min-width: 0;">
+                <div class="post-head-info" style="display: flex; flex-direction: row; align-items: baseline; gap: 6px; margin-bottom: 2px;">
+                    <div class="post-user">${escapeHtml(r.user)}</div>
+                    <div class="post-time">${escapeHtml(formatExactTime(r.createdAt))}</div>
+                </div>
+                <div class="post-text">${escapeHtml(r.text)}</div>
+                <div style="font-size:12px;color:#8e8e93;margin-top:8px;padding:8px;background:rgba(255,255,255,0.05);border-radius:8px">Javob berildi: "${escapeHtml(r.postText || 'post')}"</div>
+            </div>`;
         document.getElementById('feed').appendChild(item);
     });
 }
@@ -710,6 +737,7 @@ function refreshDetailFromStore(){
     document.getElementById('detailCommTitle').textContent = (detailPost.comments||[]).length ? `Izohlar (${countComments(detailPost)})` : 'Izohlar';
     (detailPost.comments||[]).forEach(c => clist.appendChild(buildDetailComment(c, 0)));
 }
+
 function renderDetailPost(){
     if (!detailPost) return; const p = detailPost, postInit = (p.user||'F').trim().charAt(0).toUpperCase();
     const av = p.avatar ? `<img class="detail-avatar" src="${p.avatar}">` : `<div class="detail-avatar-initial">${postInit}</div>`;
@@ -718,11 +746,19 @@ function renderDetailPost(){
     else if (p.type === 'video' && p.image) media = `<video class="detail-video" src="${p.image}" controls playsinline></video>`;
 
     document.getElementById('detailPostBox').innerHTML = `
-        <div class="detail-post">
-            <div class="detail-post-head">${av}<div class="detail-info"><div class="detail-user">${escapeHtml(p.user)}</div><div class="detail-time">${escapeHtml(formatExactTime(p.createdAt))}</div></div></div>
-            ${p.text ? `<div class="detail-text">${escapeHtml(p.text)}</div>` : ''}
-            ${media}
-            <div class="detail-actions" id="detailActionsBar"></div>
+        <div class="detail-post" style="display: flex; gap: 10px; align-items: flex-start;">
+            <div style="flex-shrink: 0;">
+                ${av}
+            </div>
+            <div style="flex: 1; min-width: 0;">
+                <div class="detail-info" style="display: flex; flex-direction: row; align-items: baseline; gap: 6px; margin-bottom: 6px;">
+                    <div class="detail-user">${escapeHtml(p.user)}</div>
+                    <div class="detail-time">${escapeHtml(formatExactTime(p.createdAt))}</div>
+                </div>
+                ${p.text ? `<div class="detail-text">${escapeHtml(p.text)}</div>` : ''}
+                ${media}
+                <div class="detail-actions" id="detailActionsBar"></div>
+            </div>
         </div>
     `;
     document.getElementById('detailActionsBar').appendChild(buildPostActions(p, document.createElement('div')).cloneNode(true));
