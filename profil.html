@@ -202,7 +202,6 @@ body{display:flex;justify-content:center;min-height:100vh;-webkit-font-smoothing
 </head>
 <body>
 
-
 <div class="mobile-container">
     <div class="profile-pic-wrapper" id="profilePicWrapper">
         <img id="userPhoto" class="profile-pic" style="display:none" alt="Profil rasmi">
@@ -212,9 +211,9 @@ body{display:flex;justify-content:center;min-height:100vh;-webkit-font-smoothing
     <p class="last-seen" id="userStatus">Profil</p>
     
     <div class="stats-container">
-        <div class="stat-item" data-stat="subs"><span class="stat-number" id="subsCount">0</span><span class="stat-label">Obunalar</span></div>
-        <div class="stat-item" data-stat="followers"><span class="stat-number" id="followersCount">0</span><span class="stat-label">Obunachilar</span></div>
-        <div class="stat-item" id="postsStat" data-stat="posts"><span class="stat-number" id="postsCount">0</span><span class="stat-label">Postlar</span></div>
+        <div class="stat-item"><span class="stat-number" id="subsCount">0</span><span class="stat-label">Obunalar</span></div>
+        <div class="stat-item"><span class="stat-number" id="followersCount">0</span><span class="stat-label">Obunachilar</span></div>
+        <div class="stat-item" id="postsStat"><span class="stat-number" id="postsCount">0</span><span class="stat-label">Postlar</span></div>
     </div>
     
     <div class="action-buttons">
@@ -264,7 +263,9 @@ body{display:flex;justify-content:center;min-height:100vh;-webkit-font-smoothing
 
 <!-- POST DETAIL VIEW -->
 <div class="detail-overlay" id="detailOverlay">
-    <div class="detail-header"><span class="detail-title">Post</span></div>
+    <div class="detail-header">
+        <span class="detail-title">Post</span>
+    </div>
     <div class="detail-scroll" id="detailScroll">
         <div id="detailPostBox"></div>
         <div class="detail-comments-title" id="detailCommTitle">Izohlar</div>
@@ -286,7 +287,9 @@ body{display:flex;justify-content:center;min-height:100vh;-webkit-font-smoothing
 
 <!-- COMMENT DETAIL VIEW -->
 <div class="comment-detail-overlay" id="commentDetailOverlay">
-    <div class="comment-detail-header"><span class="comment-detail-title">Izoh</span></div>
+    <div class="comment-detail-header">
+        <span class="comment-detail-title">Izoh</span>
+    </div>
     <div class="comment-detail-scroll" id="commentDetailScroll">
         <div class="comment-detail-main" id="commentDetailMain"></div>
         <div class="detail-comments-title">Javoblar</div>
@@ -320,9 +323,8 @@ body{display:flex;justify-content:center;min-height:100vh;-webkit-font-smoothing
 
 <script>
 /* ================= KONSTANTALAR ================= */
-const MAX_VIDEO_SIZE = 2 * 1024 * 1024; // 2MB (localStorage limiti uchun)
+const MAX_VIDEO_SIZE = 5 * 1024 * 1024;
 const REPLIES_KEY = 'luz_my_replies_v1';
-const SAVED_KEY = 'luz_saved_posts_v1';
 const MAX_VISIBLE_DEPTH = 2;
 
 const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
@@ -346,34 +348,75 @@ const DB = {
     getUserById(id){ return this._getUsers().find(u => String(u.userId) === String(id)) || null; }
 };
 
+/* ================= MIGRATION SCRIPT ================= */
+(function migrateIsEditedFlag(){
+    const MIGRATION_KEY = 'luz_isedited_migration_v1';
+    if (localStorage.getItem(MIGRATION_KEY)) return;
+    
+    const users = DB._getUsers();
+    let changed = false;
+    users.forEach(u => {
+        // Agar foydalanuvchida isEdited flagi bo'lmasa, false deb belgilash
+        if (u.isEdited === undefined) {
+            u.isEdited = false;
+            changed = true;
+        }
+    });
+    if (changed) {
+        localStorage.setItem(DB._K, JSON.stringify(users));
+    }
+    localStorage.setItem(MIGRATION_KEY, '1');
+})();
+
 /* ================= SESSION & TELEGRAM AUTO-LOGIN ================= */
 let currentUser = null;
 if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
     const tU = tg.initDataUnsafe.user;
-    currentUser = {
+    const tgUser = {
         userId: String(tU.id),
         firstName: tU.first_name || '',
         lastName: tU.last_name || '',
         username: tU.username || '',
         photo_url: tU.photo_url || null
     };
+    
     let users = DB._getUsers();
-    let idx = users.findIndex(u => String(u.userId) === String(currentUser.userId));
-    if(idx >= 0) users[idx] = { ...users[idx], ...currentUser };
-    else users.push(currentUser);
+    let idx = users.findIndex(u => String(u.userId) === String(tgUser.userId));
+
+    if (idx >= 0) {
+        const stored = users[idx];
+        if (stored.isEdited) {
+            // Foydalanuvchi tahrirlagan — STORED ma'lumotlar ustunlik qiladi
+            currentUser = {
+                ...stored,
+                userId: tgUser.userId  // userId har doim Telegram'dan
+            };
+            // Faqat bo'sh bo'lsa Telegram'dan to'ldirish
+            if (!currentUser.firstName) currentUser.firstName = tgUser.firstName;
+            if (!currentUser.lastName) currentUser.lastName = tgUser.lastName;
+            if (!currentUser.username) currentUser.username = tgUser.username;
+            if (!currentUser.photo_url) currentUser.photo_url = tgUser.photo_url;
+        } else {
+            // Birinchi marta yoki tahrirlanmagan — Telegram ma'lumotlari ishlatiladi
+            currentUser = { ...tgUser, isEdited: false };
+        }
+        users[idx] = currentUser;
+    } else {
+        currentUser = { ...tgUser, isEdited: false };
+        users.push(currentUser);
+    }
     localStorage.setItem(DB._K, JSON.stringify(users));
     localStorage.setItem(DB._S, currentUser.userId);
 } else {
     currentUser = DB.getCurrentUser();
     if (!currentUser) {
-        currentUser = { userId: 'mehmon_' + Date.now(), firstName: 'Mehmon', lastName: '', username: 'mehmon' };
+        currentUser = { userId: 'mehmon_' + Date.now(), firstName: 'Mehmon', lastName: '', username: 'mehmon', isEdited: false };
         localStorage.setItem(DB._S, currentUser.userId);
         localStorage.setItem(DB._K, JSON.stringify([currentUser]));
     }
 }
 
 const profileUserId = new URLSearchParams(location.search).get('id');
-const initialPostId = new URLSearchParams(location.search).get('post');
 const isOwn = !profileUserId || String(profileUserId) === String(currentUser?.userId);
 const profileOwner = isOwn ? currentUser : (DB.getUserById(profileUserId) || null);
 const displayName = profileOwner ? ([profileOwner.firstName, profileOwner.lastName].filter(Boolean).join(' ') || 'Foydalanuvchi') : 'Foydalanuvchi';
@@ -393,25 +436,11 @@ const PostStore = {
         } catch { this._cache = []; }
         return this._cache;
     },
-    _save(){ 
-        try { 
-            localStorage.setItem(POST_STORE_KEY, JSON.stringify(this._cache || [])); 
-            return true; 
-        } catch(e) { 
-            console.error('PostStore save error:', e);
-            showToast('Xotira to\'ldi. Eski postlarni o\'chiring.');
-            return false; 
-        } 
-    },
+    _save(){ try { localStorage.setItem(POST_STORE_KEY, JSON.stringify(this._cache || [])); return true; } catch { showToast('Saqlashda xatolik'); return false; } },
     all(){ return this._load().slice(); },
-    byUser(uid){ if (!uid) return this.all(); return this._load().filter(p => String(p.userId) === String(uid)); },
+    byUser(uid){ if (!uid) return this.all(); return this._load().filter(p => String(p.userId) === String(uid) || p.user === uid); },
     get(id){ return this._load().find(p => p.id === id) || null; },
-    add(post){ 
-        const list = this._load(); list.unshift(post); this._cache = list; 
-        if(this._save()) return post;
-        this._cache = this._load().filter(p => p.id !== post.id);
-        return null;
-    },
+    add(post){ const list = this._load(); list.unshift(post); this._cache = list; return this._save() ? post : null; },
     update(id, patch){
         const list = this._load(); const i = list.findIndex(p => p.id === id); if (i < 0) return null;
         list[i] = Object.assign({}, list[i], patch); this._cache = list; return this._save() ? list[i] : null;
@@ -467,7 +496,7 @@ let toastTimer;
 function showToast(msg){
     const t = document.getElementById('toast'); if (!t) return;
     t.textContent = msg; t.classList.add('show');
-    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
 }
 function compressImage(file, maxW = 1080, quality = 0.85){
     return new Promise((resolve, reject) => {
@@ -525,7 +554,6 @@ const ICONS = {
     share: `<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>`
 };
 
-
 /* ================= PROFIL UI ================= */
 if (isOwn) document.getElementById('ownProfileActions').style.display = 'flex';
 else { document.getElementById('otherProfileActions').style.display = 'flex'; document.getElementById('postBtn').style.display = 'none'; }
@@ -538,16 +566,6 @@ document.getElementById('profilePicWrapper').addEventListener('click', () => { i
 document.getElementById('userName').addEventListener('click', () => { if (!isOwn) goToProfile(profileOwner?.userId); });
 document.getElementById('composerAvatarSlot').innerHTML = avatarMarkup(profileOwner, 'composer-avatar');
 document.getElementById('navAvatarSlot').innerHTML = avatarMarkup(currentUser, 'nav-avatar');
-
-/* ================= STATS CLICK ================= */
-document.querySelectorAll('.stat-item').forEach(el => {
-    el.addEventListener('click', () => {
-        const stat = el.dataset.stat;
-        if (stat === 'posts') { switchTab('posts'); document.getElementById('contentArea').scrollIntoView({behavior:'smooth', block:'start'}); }
-        else if (stat === 'subs') showToast('Obunalar ro\'yxati');
-        else if (stat === 'followers') showToast('Obunachilar ro\'yxati');
-    });
-});
 
 /* ================= NAVIGATION ================= */
 function goBack(){ window.location.href = 'index.html'; }
@@ -567,6 +585,7 @@ document.getElementById('subscribeBtn')?.addEventListener('click', () => {
 });
 document.getElementById('messageBtn')?.addEventListener('click', () => { location.href = `xabar.html?chat=${encodeURIComponent(profileUserId)}`; });
 
+
 /* ================= POST VA TABS ================= */
 const icons = {
     posts: `<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`,
@@ -575,35 +594,17 @@ const icons = {
     saved: `<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`
 };
 const texts = { posts: "Hali post yo'q", video: "Hali video yo'q", answers: "Hali javob yo'q", saved: "Hali saqlangan post yo'q" };
-let posts = [], myReplies = [];
-
-/* Saqlangan postlar localStorage */
-function loadSaved(){
-    try { const raw = localStorage.getItem(SAVED_KEY); const arr = raw ? JSON.parse(raw) : []; return new Set(Array.isArray(arr) ? arr : []); }
-    catch { return new Set(); }
-}
-function persistSaved(){
-    try { localStorage.setItem(SAVED_KEY, JSON.stringify([...savedPosts])); } catch {}
-}
-let savedPosts = loadSaved();
+let posts = [], savedPosts = new Set(), myReplies = [];
 
 function loadMyReplies(){ try { const raw = localStorage.getItem(REPLIES_KEY); myReplies = raw ? JSON.parse(raw) : []; } catch { myReplies = []; } }
 function saveMyReplies(){ try { localStorage.setItem(REPLIES_KEY, JSON.stringify(myReplies)); } catch {} }
 function loadMyPosts(){
     if (profileUserId) posts = PostStore.byUser(profileUserId);
-    else {
-        posts = PostStore.byUser(currentUser.userId);
-        // Fallback: username bo'yicha (userId saqlanmagan eski postlar uchun)
-        if (posts.length === 0 && profileOwner?.username) {
-            posts = PostStore.all().filter(p => p.user === displayName || p.userId === currentUser.userId);
-        }
-    }
+    else { posts = PostStore.byUser(currentUser.userId); if (posts.length === 0) posts = PostStore.all().filter(p => p.user === displayName); }
     document.getElementById('postsCount').textContent = posts.length;
 }
 function countComments(p){
-    let n = (p.comments || []).length; 
-    const walk = (arr) => arr.forEach(c => { n += (c.replies || []).length; if (c.replies) walk(c.replies); }); 
-    walk(p.comments || []); return n;
+    let n = (p.comments || []).length; const walk = (arr) => arr.forEach(c => { n += (c.replies || []).length; if (c.replies) walk(c.replies); }); walk(p.comments || []); return n;
 }
 function handleShare(entity){
     const link = location.origin + location.pathname + '?post=' + encodeURIComponent(entity.id);
@@ -611,7 +612,7 @@ function handleShare(entity){
     else { try { navigator.clipboard?.writeText(link); } catch {} showToast('Havola nusxalandi'); }
 }
 
-function buildPostActions(p){
+function buildPostActions(p, item){
     const actions = document.createElement('div'); actions.className = 'post-actions';
     const createBtn = (icon, count, cls, clk) => {
         const b = document.createElement('button'); b.className = 'act-btn ' + cls;
@@ -630,7 +631,6 @@ function buildPostActions(p){
         e.stopPropagation();
         if (savedPosts.has(p.id)) { savedPosts.delete(p.id); saveBtn.classList.remove('saved'); showToast("Olib tashlandi"); }
         else { savedPosts.add(p.id); saveBtn.classList.add('saved'); showToast("Saqlandi"); }
-        persistSaved();
         if (currentTab === 'saved') renderSaved();
     });
     const shareBtn = createBtn(ICONS.share, null, '', (e)=>{ e.stopPropagation(); handleShare(p); });
@@ -665,39 +665,27 @@ function buildPostItem(p){
             <div class="post-actions-slot"></div>
         </div>
     `;
-    item.querySelector('.post-actions-slot').appendChild(buildPostActions(p));
+    item.querySelector('.post-actions-slot').appendChild(buildPostActions(p, item));
     
     item.addEventListener('click', (e) => { if (e.target.closest('.act-btn') || e.target.tagName === 'VIDEO') return; openPostDetail(p); });
 
-    // Global observer orqali ko'rishlar
-    globalViewObserver.observe(item);
-    item._postRef = p;
-
-    return item;
-}
-
-/* Global IntersectionObserver */
-const globalViewObserver = new IntersectionObserver(entries => {
-    entries.forEach(en => {
-        if (en.isIntersecting) {
-            const item = en.target;
-            const p = item._postRef;
-            if (!p) return;
-            if (!ViewTracker.hasViewed(currentUser?.userId, p.id)) {
+    const io = new IntersectionObserver(entries => {
+        entries.forEach(en => {
+            if (en.isIntersecting && !ViewTracker.hasViewed(currentUser?.userId, p.id)) {
+                io.disconnect();
                 if (ViewTracker.record(currentUser?.userId, p.id)) {
                     const fresh = PostStore.get(p.id);
                     if (fresh) {
-                        p.views = (fresh.views || 0) + 1; 
-                        PostStore.update(p.id, { views: p.views });
-                        const viewCount = item.querySelectorAll('.act-btn')[2]?.querySelector('.act-count');
-                        if (viewCount) viewCount.textContent = p.views;
+                        p.views = (fresh.views || 0) + 1; PostStore.update(p.id, { views: p.views });
+                        item.querySelectorAll('.act-btn')[2].querySelector('.act-count').textContent = p.views;
                     }
                 }
             }
-            globalViewObserver.unobserve(item);
-        }
-    });
-}, { threshold: 0.5 });
+        });
+    }, { threshold: 0.5 }); io.observe(item);
+
+    return item;
+}
 
 function renderList(list, key){
     const area = document.getElementById('contentArea');
@@ -705,8 +693,7 @@ function renderList(list, key){
     area.innerHTML = '<div class="feed" id="feed"></div>';
     list.forEach(p => document.getElementById('feed').appendChild(buildPostItem(p)));
 }
-function renderPosts(){ renderList(posts, 'posts'); } 
-function renderVideos(){ renderList(posts.filter(p => p.type === 'video'), 'video'); }
+function renderPosts(){ renderList(posts, 'posts'); } function renderVideos(){ renderList(posts.filter(p => p.type === 'video'), 'video'); }
 function renderSaved(){ renderList(posts.filter(p => savedPosts.has(p.id)), 'saved'); }
 function renderReplies(){
     const area = document.getElementById('contentArea');
@@ -732,23 +719,16 @@ function renderReplies(){
                 <div class="post-text">${escapeHtml(r.text)}</div>
                 <div style="font-size:12px;color:#8e8e93;margin-top:8px;padding:8px;background:rgba(255,255,255,0.05);border-radius:8px">Javob berildi: "${escapeHtml(r.postText || 'post')}"</div>
             </div>`;
-        // Post detali ochish uchun click
-        item.addEventListener('click', () => {
-            const post = PostStore.get(r.postId);
-            if (post) openPostDetail(post);
-        });
         document.getElementById('feed').appendChild(item);
     });
 }
 let currentTab = 'posts';
 function switchTab(k){
     currentTab = k; document.querySelectorAll('.tab-item').forEach(t => t.classList.toggle('active', t.dataset.tab === k));
-    if (k === 'posts') renderPosts(); 
-    else if (k === 'video') renderVideos(); 
-    else if (k === 'answers') renderReplies(); 
-    else if (k === 'saved') renderSaved();
+    if (k === 'posts') renderPosts(); else if (k === 'video') renderVideos(); else if (k === 'answers') renderReplies(); else if (k === 'saved') renderSaved();
 }
 document.getElementById('tabsContainer').addEventListener('click', e => { const tab = e.target.closest('.tab-item'); if (tab) switchTab(tab.dataset.tab); });
+
 
 
 /* ================= COMMENTS & POST DETAIL ================= */
@@ -762,12 +742,9 @@ function updateDetailReplyModeUI(){
     if (found) { document.getElementById('replyModeText').textContent = `↩ ${found.comment.user} ga javob`; bar.style.display = 'flex'; island.classList.add('reply-mode'); }
     else { bar.style.display = 'none'; island.classList.remove('reply-mode'); }
 }
-document.getElementById('replyModeCancel').addEventListener('click', () => { 
-    replyTargetId = null; detailInput.value = ''; detailInput.style.height='auto'; 
-    detailSend.disabled = true; updateDetailReplyModeUI(); 
-});
+document.getElementById('replyModeCancel').addEventListener('click', () => { replyTargetId = null; detailInput.value = ''; updateDetailReplyModeUI(); });
 
-function buildDetailComment(c, depth = 0, opts = {}){
+function buildDetailComment(c, depth = 0){
     const thread = document.createElement('div'); thread.className = 'comment-thread' + (depth > 0 ? ' thread-nested' : ''); thread.dataset.cid = c.id;
     const init = (c.user || 'F').trim().charAt(0).toUpperCase();
     const av = c.avatar ? `<img class="comment-avatar" src="${c.avatar}">` : `<div class="comment-avatar-initial">${init}</div>`;
@@ -777,7 +754,7 @@ function buildDetailComment(c, depth = 0, opts = {}){
     row.innerHTML = `
         <div class="comment-avatar-col">
             ${av}
-            ${hasReplies && !opts.isStandalone ? '<div class="thread-line-down"></div>' : ''}
+            ${hasReplies ? '<div class="thread-line-down"></div>' : ''}
         </div>
         <div class="comment-content">
             <div class="comment-head"><span class="comment-user">${escapeHtml(c.user)}</span><span class="comment-time">${escapeHtml(formatExactTime(c.createdAt || c.time))}</span></div>
@@ -788,13 +765,7 @@ function buildDetailComment(c, depth = 0, opts = {}){
     const actions = document.createElement('div'); actions.className = 'comment-actions';
     
     const likeBtn = document.createElement('button'); likeBtn.className = 'comment-act' + (c.liked?' liked':''); likeBtn.innerHTML = `${ICONS.like}<span class="comment-act-count">${c.likes||0}</span>`;
-    likeBtn.addEventListener('click', (e) => { 
-        e.stopPropagation(); 
-        c.liked = !c.liked; 
-        c.likes = Math.max(0, (c.likes||0) + (c.liked?1:-1)); 
-        PostStore.update(detailPost.id, {comments:detailPost.comments}); 
-        refreshDetailFromStore(); 
-    });
+    likeBtn.addEventListener('click', (e) => { e.stopPropagation(); c.liked = !c.liked; c.likes = Math.max(0, (c.likes||0) + (c.liked?1:-1)); PostStore.update(detailPost.id, {comments:detailPost.comments}); refreshDetailFromStore(); });
     
     const commBtn = document.createElement('button'); commBtn.className = 'comment-act'; commBtn.innerHTML = `${ICONS.comment}<span class="comment-act-count">${(c.replies||[]).length||''}</span>`;
     commBtn.addEventListener('click', (e) => { e.stopPropagation(); replyTargetId = c.id; detailInput.focus(); updateDetailReplyModeUI(); });
@@ -811,13 +782,10 @@ function buildDetailComment(c, depth = 0, opts = {}){
     actions.append(likeBtn, commBtn, viewBtn, saveBtn, shareBtn);
     row.querySelector('.comment-content').appendChild(actions);
 
-    // Faqat standalone bo'lmagan holatda click — comment detail
-    if (!opts.isStandalone) {
-        row.addEventListener('click', (e) => { if (!e.target.closest('.comment-act')) openCommentDetail(c.id); });
-    }
+    row.addEventListener('click', (e) => { if (!e.target.closest('.comment-act')) openCommentDetail(c.id); });
     thread.appendChild(row);
 
-    if (hasReplies && !opts.isStandalone) {
+    if (hasReplies) {
         const repBox = document.createElement('div'); repBox.className = 'comment-replies';
         c.replies.forEach(r => repBox.appendChild(buildDetailComment(r, depth + 1)));
         thread.appendChild(repBox);
@@ -827,16 +795,14 @@ function buildDetailComment(c, depth = 0, opts = {}){
 
 function refreshDetailFromStore(){
     if (!detailPost) return;
-    const fresh = PostStore.get(detailPost.id); if (fresh) detailPost = fresh; 
-    renderDetailPost();
+    const fresh = PostStore.get(detailPost.id); if (fresh) detailPost = fresh; renderDetailPost();
     const clist = document.getElementById('detailCommentsList'); clist.innerHTML = '';
     document.getElementById('detailCommTitle').textContent = (detailPost.comments||[]).length ? `Izohlar (${countComments(detailPost)})` : 'Izohlar';
     (detailPost.comments||[]).forEach(c => clist.appendChild(buildDetailComment(c, 0)));
 }
 
 function renderDetailPost(){
-    if (!detailPost) return; 
-    const p = detailPost, postInit = (p.user||'F').trim().charAt(0).toUpperCase();
+    if (!detailPost) return; const p = detailPost, postInit = (p.user||'F').trim().charAt(0).toUpperCase();
     const av = p.avatar ? `<img class="detail-avatar" src="${p.avatar}">` : `<div class="detail-avatar-initial">${postInit}</div>`;
     let media = '';
     if (p.type === 'image' && p.image) media = `<img class="detail-image" src="${p.image}">`;
@@ -844,7 +810,9 @@ function renderDetailPost(){
 
     document.getElementById('detailPostBox').innerHTML = `
         <div class="detail-post" style="display: flex; gap: 10px; align-items: flex-start;">
-            <div style="flex-shrink: 0;">${av}</div>
+            <div style="flex-shrink: 0;">
+                ${av}
+            </div>
             <div style="flex: 1; min-width: 0;">
                 <div class="detail-info" style="display: flex; flex-direction: row; align-items: baseline; gap: 6px; margin-bottom: 6px;">
                     <div class="detail-user">${escapeHtml(p.user)}</div>
@@ -856,18 +824,13 @@ function renderDetailPost(){
             </div>
         </div>
     `;
-    // cloneNode OLIB TASHLANDI — event listenerlar saqlanadi
-    document.getElementById('detailActionsBar').appendChild(buildPostActions(p));
+    document.getElementById('detailActionsBar').appendChild(buildPostActions(p, document.createElement('div')).cloneNode(true));
 }
 
 function openPostDetail(p){
-    detailPost = PostStore.get(p.id) || p; 
-    if (!detailPost.comments) detailPost.comments = [];
-    replyTargetId = null; 
-    detailInput.value = ''; detailInput.style.height='auto'; detailSend.disabled = true;
-    refreshDetailFromStore(); updateDetailReplyModeUI();
-    detailOverlay.classList.add('show'); 
-    document.getElementById('detailScroll').scrollTop = 0;
+    detailPost = PostStore.get(p.id) || p; if (!detailPost.comments) detailPost.comments = [];
+    replyTargetId = null; refreshDetailFromStore(); updateDetailReplyModeUI();
+    detailOverlay.classList.add('show'); document.getElementById('detailScroll').scrollTop = 0;
     if (isTelegram) { try { tg.BackButton.onClick(closePostDetail); tg.BackButton.show(); } catch {} }
 }
 function closePostDetail(){
@@ -877,102 +840,38 @@ function closePostDetail(){
 }
 
 detailInput.addEventListener('input', () => {
-    detailInput.style.height = 'auto'; 
-    detailInput.style.height = Math.min(detailInput.scrollHeight, 90) + 'px';
+    detailInput.style.height = 'auto'; detailInput.style.height = Math.min(detailInput.scrollHeight, 90) + 'px';
     detailSend.disabled = detailInput.value.trim().length === 0;
-});
-// Enter = yuborish (Shift+Enter = yangi qator)
-detailInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); detailSend.click(); }
 });
 detailSend.addEventListener('click', () => {
     const raw = detailInput.value.trim(); if (!raw || !detailPost) return;
     const newC = makeCommentObj(raw, replyTargetId);
     if (addCommentToPost(detailPost.id, newC, replyTargetId)) {
         pushMyReply({ id: newC.id, postId: detailPost.id, user: newC.user, avatar: newC.avatar, text: newC.text, createdAt: newC.createdAt, postText: detailPost.text });
-        replyTargetId = null; detailInput.value = ''; detailInput.style.height='auto'; detailSend.disabled = true; refreshDetailFromStore();
-        updateDetailReplyModeUI();
+        replyTargetId = null; detailInput.value = ''; detailSend.disabled = true; refreshDetailFromStore();
     }
 });
 
 /* ================= COMMENT DETAIL ================= */
 const commentDetailOverlay = document.getElementById('commentDetailOverlay');
-const cdInput = document.getElementById('commentDetailInput');
-const cdSend = document.getElementById('commentDetailSend');
 let activeCommentId = null;
-let cdReplyTargetId = null;
-
-function updateCdReplyModeUI(){
-    const bar = document.getElementById('cdReplyModeBar'), island = document.getElementById('commentDetailIsland');
-    if (!cdReplyTargetId || !detailPost) { bar.style.display = 'none'; island.classList.remove('reply-mode'); return; }
-    const found = findComment(detailPost.comments || [], cdReplyTargetId);
-    if (found) { document.getElementById('cdReplyModeText').textContent = `↩ ${found.comment.user} ga javob`; bar.style.display = 'flex'; island.classList.add('reply-mode'); }
-    else { bar.style.display = 'none'; island.classList.remove('reply-mode'); }
-}
-document.getElementById('cdReplyModeCancel').addEventListener('click', () => { 
-    cdReplyTargetId = null; cdInput.value = ''; cdInput.style.height='auto'; 
-    cdSend.disabled = true; updateCdReplyModeUI(); 
-});
-
 function openCommentDetail(cid){
-    if (!detailPost) return; 
-    const fresh = PostStore.get(detailPost.id); if (!fresh) return; 
-    detailPost = fresh;
+    if (!detailPost) return; const fresh = PostStore.get(detailPost.id); if (!fresh) return; detailPost = fresh;
     const found = findComment(detailPost.comments || [], cid); if (!found) return;
     activeCommentId = cid;
-    cdReplyTargetId = null;
-    cdInput.value = ''; cdInput.style.height='auto'; cdSend.disabled = true;
+    document.getElementById('commentDetailMain').innerHTML = '';
+    document.getElementById('commentDetailMain').appendChild(buildDetailComment(found.comment, 0).querySelector('.comment-row').cloneNode(true));
+    const reps = document.getElementById('commentDetailReplies'); reps.innerHTML = '';
+    (found.comment.replies || []).forEach(r => reps.appendChild(buildDetailComment(r, 0).querySelector('.comment-row').cloneNode(true)));
     
-    // Asosiy izoh (standalone)
-    const main = document.getElementById('commentDetailMain'); 
-    main.innerHTML = '';
-    main.appendChild(buildDetailComment(found.comment, 0, { isStandalone: true }));
-    
-    // Javoblar (nested ham to'g'ri ko'rsatiladi — buildDetailComment o'zi nested'larni renderlaydi)
-    const reps = document.getElementById('commentDetailReplies'); 
-    reps.innerHTML = '';
-    if (!found.comment.replies || found.comment.replies.length === 0) {
-        reps.innerHTML = '<div class="detail-empty">Javoblar yo\'q</div>';
-    } else {
-        found.comment.replies.forEach(r => reps.appendChild(buildDetailComment(r, 0, { isStandalone: true })));
-    }
-    
-    updateCdReplyModeUI();
     commentDetailOverlay.classList.add('show');
     if (isTelegram) { try { tg.BackButton.onClick(closeCommentDetail); } catch {} }
 }
 function closeCommentDetail(){
-    commentDetailOverlay.classList.remove('show'); 
-    activeCommentId = null; cdReplyTargetId = null;
-    // Post detalni yangilash
-    if (detailPost) refreshDetailFromStore();
+    commentDetailOverlay.classList.remove('show'); activeCommentId = null;
     if (isTelegram) { try { if (detailOverlay.classList.contains('show')) tg.BackButton.onClick(closePostDetail); else tg.BackButton.onClick(goBack); } catch {} }
 }
 
-// Comment detail input
-cdInput.addEventListener('input', () => {
-    cdInput.style.height = 'auto'; 
-    cdInput.style.height = Math.min(cdInput.scrollHeight, 90) + 'px';
-    cdSend.disabled = cdInput.value.trim().length === 0;
-});
-cdInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); cdSend.click(); }
-});
-cdSend.addEventListener('click', () => {
-    const raw = cdInput.value.trim(); 
-    if (!raw || !detailPost || !activeCommentId) return;
-    const targetId = cdReplyTargetId || activeCommentId;
-    const newC = makeCommentObj(raw, targetId);
-    if (addCommentToPost(detailPost.id, newC, targetId)) {
-        pushMyReply({ 
-            id: newC.id, postId: detailPost.id, user: newC.user, avatar: newC.avatar, 
-            text: newC.text, createdAt: newC.createdAt, postText: detailPost.text 
-        });
-        cdReplyTargetId = null; cdInput.value = ''; cdInput.style.height='auto'; cdSend.disabled = true;
-        // Comment detailni qayta ochish
-        openCommentDetail(activeCommentId);
-    }
-});
 
 /* ================= COMPOSER ================= */
 const composer = document.getElementById('composer'), compOverlay = document.getElementById('composerOverlay'), compInput = document.getElementById('composerInput'), compSubmit = document.getElementById('composerSubmit');
@@ -997,11 +896,10 @@ document.getElementById('fileInput').addEventListener('change', async e => {
         document.getElementById('previewVid').style.display = 'none'; document.getElementById('composerPreview').classList.add('show');
         compSubmit.disabled = false;
     } catch {}
-    e.target.value = '';
 });
 document.getElementById('videoInput').addEventListener('change', e => {
     const file = e.target.files[0]; if (!file) return;
-    if (file.size > MAX_VIDEO_SIZE) { showToast("Video juda katta (Maksimum 2MB)"); e.target.value=''; return; }
+    if (file.size > MAX_VIDEO_SIZE) { showToast("Video juda katta (Maksimum 5MB)"); return; }
     const reader = new FileReader();
     reader.onload = ev => {
         currentMedia = { data: ev.target.result, type: 'video' };
@@ -1009,52 +907,25 @@ document.getElementById('videoInput').addEventListener('change', e => {
         document.getElementById('previewImg').style.display = 'none'; document.getElementById('composerPreview').classList.add('show');
         compSubmit.disabled = false;
     }; reader.readAsDataURL(file);
-    e.target.value = '';
 });
 document.getElementById('removeImg').addEventListener('click', () => {
-    currentMedia = null; 
-    document.getElementById('composerPreview').classList.remove('show'); 
-    document.getElementById('previewImg').style.display = 'none';
-    document.getElementById('previewVid').style.display = 'none';
-    compSubmit.disabled = compInput.value.trim().length === 0;
+    currentMedia = null; document.getElementById('composerPreview').classList.remove('show'); compSubmit.disabled = compInput.value.trim().length === 0;
 });
 
 compSubmit.addEventListener('click', () => {
     const text = compInput.value.trim(); if (!text && !currentMedia) return;
-    const newPost = {
+    PostStore.add({
         id: 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
         userId: currentUser?.userId || 'me', user: displayName, avatar: profileOwner?.photo_url || null,
         createdAt: new Date().toISOString(), text, image: currentMedia ? currentMedia.data : null,
         type: currentMedia ? currentMedia.type : 'text', likes: 0, liked: false, views: 0, comments: []
-    };
-    const result = PostStore.add(newPost);
-    if (!result) {
-        showToast('Post saqlanmadi. Xotira to\'lgan bo\'lishi mumkin.');
-        return;
-    }
-    compInput.value = ''; compInput.style.height='auto'; currentMedia = null; 
-    document.getElementById('composerPreview').classList.remove('show');
-    document.getElementById('previewImg').style.display = 'none';
-    document.getElementById('previewVid').style.display = 'none';
-    compSubmit.disabled = true;
+    });
+    compInput.value = ''; currentMedia = null; document.getElementById('composerPreview').classList.remove('show');
     closeComposer(); loadMyPosts(); switchTab('posts');
-    showToast('Post yuborildi');
 });
 
-/* ================= URL ?post= HANDLER ================= */
-if (initialPostId) {
-    const p = PostStore.get(initialPostId);
-    if (p) { 
-        setTimeout(() => openPostDetail(p), 300); 
-    } else {
-        showToast('Post topilmadi');
-    }
-}
-
 /* INIT */
-loadMyReplies(); 
-loadMyPosts(); 
-switchTab('posts');
+loadMyReplies(); loadMyPosts(); switchTab('posts');
 </script>
 </body>
 </html>
