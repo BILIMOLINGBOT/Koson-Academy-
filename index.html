@@ -13,7 +13,7 @@
         
         .mobile-container{width:100%;max-width:420px;padding:0 0 140px 0;display:flex;flex-direction:column}
         
-        /* Yuqori qism: iPhone notch (safe-area) bilan ishlashi uchun padding o'zgartirildi */
+        /* Yuqori qism */
         .modern-header {
             position: sticky;
             top: 0;
@@ -67,8 +67,9 @@
             stroke-linejoin: round;
         }
 
-        .feed{width:100%;display:flex;flex-direction:column;padding:0;gap:0;}
+        .feed{width:100%;display:flex;flex-direction:column;padding-bottom:20px;gap:0}
         
+        /* PROFIL UI BILAN BIR XIL POST STILI */
         .post-item{width:100%;padding:16px 20px;text-align:left;animation:postIn .4s cubic-bezier(.34,1.2,.64,1) both;cursor:pointer;transition:background .15s ease;background:transparent;border-radius:0;border:none;border-bottom:1px solid rgba(255,255,255,0.05)}
         .post-item:active{background:rgba(255,255,255,0.03)}
         @keyframes postIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
@@ -159,7 +160,6 @@
         .comment-time{font-size:12px;color:#8e8e93}
         .comment-text{font-size:14px;line-height:1.45;color:#e5e5ea;word-break:break-word;white-space:pre-wrap;margin-bottom:6px}
         
-        /* 5 TA IKONKA UCHUN */
         .comment-actions{display:flex;gap:2px;align-items:center;justify-content:space-between;padding-top:2px;max-width:100%;width:100%}
         .comment-act{background:none;border:none;color:#8e8e93;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;padding:12px 6px;display:flex;align-items:center;gap:5px;flex:1;justify-content:center;border-radius:10px;transition:transform .15s,color .2s,background .15s}
         .comment-act:active{transform:scale(.9);background:rgba(255,255,255,.06)}
@@ -173,10 +173,8 @@
         /* ===== JAVOBLAR (NESTED) ===== */
         .comment-replies{display:flex;flex-direction:column;position:relative;margin-left:0;padding-left:0;padding-bottom:4px}
         .thread-nested{position:relative}
-        .comment-more-btn{background:none;border:none;color:#fff;font-size:12px;font-weight:600;cursor:pointer;padding:4px 0 8px 52px;margin-top:0;font-family:inherit;text-align:left}
-        .comment-more-btn:active{opacity:.7}
 
-        /* ===== REPLY MODE BAR (NEYTRAL) ===== */
+        /* ===== REPLY MODE BAR ===== */
         .reply-mode-bar{display:flex;align-items:center;gap:8px;padding:10px 16px;background:rgba(255,255,255,.06);border-top:1px solid rgba(255,255,255,.08);font-size:13px;color:#fff;font-weight:600;max-width:420px;width:100%;margin:0 auto}
         .reply-mode-bar span{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
         .reply-mode-bar button{background:none;border:none;color:#fff;font-size:13px;font-weight:600;cursor:pointer;padding:6px 12px;border-radius:14px;background:rgba(255,255,255,.1);font-family:inherit}
@@ -196,8 +194,6 @@
         /* ===== COMMENT DETAIL VIEW ===== */
         .comment-detail-main{padding:16px;border-bottom:1px solid rgba(255,255,255,0.05);background:transparent}
         .comment-detail-replies{padding:0 16px;display:flex;flex-direction:column;gap:12px}
-        .comment-highlight{animation:commentHi 1.3s ease}
-        @keyframes commentHi{0%,100%{background:transparent}20%,60%{background:rgba(255,255,255,.08)}}
 
         .toast{position:fixed;left:50%;bottom:120px;transform:translateX(-50%) translateY(20px);background:rgba(28,28,30,0.9);backdrop-filter:blur(10px);color:#fff;padding:12px 24px;border-radius:16px;font-size:14px;font-weight:500;z-index:1000;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;box-shadow:0 8px 30px rgba(0,0,0,.6);border:1px solid rgba(255,255,255,0.1);max-width:80%;text-align:center}
         .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -286,7 +282,7 @@ if (tg) {
     try {
         tg.ready(); 
         tg.expand();
-        if (tg.requestFullscreen) tg.requestFullscreen(); // Tepa qismni to'liq yo'qotadi va telefon barini yopadi
+        if (tg.requestFullscreen) tg.requestFullscreen();
         if (tg.setHeaderColor) tg.setHeaderColor('#000000');
         if (tg.setBackgroundColor) tg.setBackgroundColor('#000000');
     } catch {}
@@ -297,11 +293,9 @@ document.getElementById('notifBtn').addEventListener('click', () => {
     window.location.href = 'notification.html';
 });
 
-
 /* ================= KONSTANTALAR ================= */
 const MAX_VISIBLE_DEPTH = 2;
 const REPLIES_KEY = 'luz_my_replies_v1';
-
 
 /* ================= DB ================= */
 const DB = {
@@ -311,6 +305,7 @@ const DB = {
         try { const users = JSON.parse(localStorage.getItem(this._K)) || []; return users.find(u => u.userId === id) || null; } catch { return null; }
     }
 };
+
 
 /* ================= POST STORE ================= */
 const POST_STORE_KEY = 'tg_feed_posts_v1';
@@ -442,7 +437,7 @@ function handleShare(entity){
     else { try { navigator.clipboard?.writeText(link); } catch {} showToast('Havola nusxalandi'); }
 }
 
-function buildPostActions(p){
+function buildPostActions(p, item){
     const actions = document.createElement('div'); actions.className = 'post-actions';
     const createBtn = (icon, count, cls, clk) => {
         const b = document.createElement('button'); b.className = 'act-btn ' + cls;
@@ -470,6 +465,10 @@ function buildPostActions(p){
 
 function buildPostItem(p){
     const item = document.createElement('div'); item.className = 'post-item'; item.dataset.id = p.id;
+    item.style.display = 'flex';
+    item.style.gap = '10px';
+    item.style.alignItems = 'flex-start';
+
     const postInit = (p.user || 'F').trim().charAt(0).toUpperCase();
     const av = p.avatar ? `<img class="post-avatar" src="${p.avatar}" alt="">` : `<div class="post-avatar-initial">${postInit}</div>`;
     
@@ -478,18 +477,24 @@ function buildPostItem(p){
     else if (p.type === 'video' && p.image) media = `<video class="post-video" src="${p.image}" controls playsinline></video>`;
 
     item.innerHTML = `
-        <div class="post-head">
+        <div style="flex-shrink: 0;" class="post-avatar-wrapper">
             ${av}
-            <div class="post-head-info"><div class="post-user">${escapeHtml(p.user)}</div><div class="post-time">${escapeHtml(formatExactTime(p.createdAt || p.time))}</div></div>
         </div>
-        ${p.text ? `<div class="post-text">${escapeHtml(p.text)}</div>` : ''}
-        ${media}
+        <div style="flex: 1; min-width: 0;">
+            <div class="post-head-info" style="display: flex; flex-direction: row; align-items: baseline; gap: 6px; margin-bottom: 2px;">
+                <div class="post-user">${escapeHtml(p.user)}</div>
+                <div class="post-time">${escapeHtml(formatExactTime(p.createdAt || p.time))}</div>
+            </div>
+            ${p.text ? `<div class="post-text">${escapeHtml(p.text)}</div>` : ''}
+            ${media}
+            <div class="post-actions-slot"></div>
+        </div>
     `;
 
-    item.querySelector('.post-avatar').addEventListener('click', (e) => { e.stopPropagation(); goToProfile(p.userId); });
-    item.querySelector('.post-user').addEventListener('click', (e) => { e.stopPropagation(); goToProfile(p.userId); });
+    item.querySelector('.post-actions-slot').appendChild(buildPostActions(p, item));
     
-    item.appendChild(buildPostActions(p));
+    item.querySelector('.post-avatar-wrapper').addEventListener('click', (e) => { e.stopPropagation(); goToProfile(p.userId); });
+    item.querySelector('.post-user').addEventListener('click', (e) => { e.stopPropagation(); goToProfile(p.userId); });
     item.addEventListener('click', (e) => { if (e.target.closest('.act-btn') || e.target.tagName === 'VIDEO') return; openPostDetail(p); });
 
     const io = new IntersectionObserver(entries => {
@@ -515,6 +520,7 @@ function renderFeed(){
     if (posts.length === 0) { feed.innerHTML = '<div class="empty">Hali post yo\'q.<br>Profilga o\'tib birinchi postni yarating.</div>'; return; }
     posts.forEach(p => feed.appendChild(buildPostItem(p)));
 }
+
 
 /* ================= POST DETAIL VIEW ================= */
 const detailOverlay = document.getElementById('detailOverlay'), detailInput = document.getElementById('detailInput'), detailSend = document.getElementById('detailSend');
@@ -547,8 +553,6 @@ function buildDetailComment(c, depth = 0){
         </div>
     `;
     
-    
-    // YAXSHILANGAN IZOH HARAKATLARI (5 ta Ikonka)
     const actions = document.createElement('div'); actions.className = 'comment-actions';
     const likeBtn = document.createElement('button'); likeBtn.className = 'comment-act' + (c.liked?' liked':''); likeBtn.innerHTML = `${ICONS.like}<span class="comment-act-count">${c.likes||0}</span>`;
     likeBtn.addEventListener('click', (e) => { e.stopPropagation(); c.liked = !c.liked; c.likes = Math.max(0, (c.likes||0) + (c.liked?1:-1)); PostStore.update(detailPost.id, {comments:detailPost.comments}); refreshDetailFromStore(); });
@@ -594,16 +598,24 @@ function renderDetailPost(){
     else if (p.type === 'video' && p.image) media = `<video class="detail-video" src="${p.image}" controls playsinline></video>`;
 
     document.getElementById('detailPostBox').innerHTML = `
-        <div class="detail-post">
-            <div class="detail-post-head">${av}<div class="detail-info"><div class="detail-user" data-uid="${p.userId||''}">${escapeHtml(p.user)}</div><div class="detail-time">${escapeHtml(formatExactTime(p.createdAt))}</div></div></div>
-            ${p.text ? `<div class="detail-text">${escapeHtml(p.text)}</div>` : ''}
-            ${media}
-            <div class="detail-actions" id="detailActionsBar"></div>
+        <div class="detail-post" style="display: flex; gap: 10px; align-items: flex-start;">
+            <div style="flex-shrink: 0;" class="detail-avatar-wrapper">
+                ${av}
+            </div>
+            <div style="flex: 1; min-width: 0;">
+                <div class="detail-info" style="display: flex; flex-direction: row; align-items: baseline; gap: 6px; margin-bottom: 6px;">
+                    <div class="detail-user" data-uid="${p.userId||''}">${escapeHtml(p.user)}</div>
+                    <div class="detail-time">${escapeHtml(formatExactTime(p.createdAt))}</div>
+                </div>
+                ${p.text ? `<div class="detail-text">${escapeHtml(p.text)}</div>` : ''}
+                ${media}
+                <div class="detail-actions" id="detailActionsBar"></div>
+            </div>
         </div>
     `;
     
     document.getElementById('detailPostBox').querySelectorAll('[data-uid]').forEach(el => { el.style.cursor='pointer'; el.addEventListener('click', (e)=>{ e.stopPropagation(); goToProfile(el.getAttribute('data-uid')); }); });
-    document.getElementById('detailActionsBar').appendChild(buildPostActions(p).cloneNode(true));
+    document.getElementById('detailActionsBar').appendChild(buildPostActions(p, document.createElement('div')).cloneNode(true));
 }
 
 function openPostDetail(p){
@@ -696,10 +708,3 @@ window.addEventListener('popstate', () => {
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
