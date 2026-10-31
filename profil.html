@@ -207,6 +207,7 @@ body{display:flex;justify-content:center;min-height:100vh;-webkit-font-smoothing
 
 
 
+
 <div class="mobile-container">
     <div class="profile-pic-wrapper" id="profilePicWrapper">
         <img id="userPhoto" class="profile-pic" style="display:none" alt="Profil rasmi">
@@ -330,7 +331,6 @@ body{display:flex;justify-content:center;min-height:100vh;-webkit-font-smoothing
 /* ================= KONSTANTALAR ================= */
 const MAX_VIDEO_SIZE = 5 * 1024 * 1024;
 const REPLIES_KEY = 'luz_my_replies_v1';
-const MAX_VISIBLE_DEPTH = 2;
 
 const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
 const isTelegram = !!tg;
@@ -421,7 +421,7 @@ const displayName = profileOwner ? ([profileOwner.firstName, profileOwner.lastNa
 const displayUsername = profileOwner?.username ? '@' + profileOwner.username : '';
 const initialLetter = (displayName || 'F').trim().charAt(0).toUpperCase() || 'F';
 
-/* ================= POST STORE (Supabase Integration) ================= */
+/* ================= SMART POST STORE ================= */
 const POST_STORE_KEY = 'tg_feed_posts_v1';
 const PostStore = {
     _cache: [],
@@ -435,9 +435,38 @@ const PostStore = {
             if (error) throw error;
             
             if (data) {
-                this._cache = data.map(row => {
-                    return { ...row.content, id: row.id, created_at: row.created_at };
+                // Supabase ma'lumotlarini to'g'ri o'qish (agar tasodifan TEXT ustun yaratilgan bo'lsa)
+                const serverPosts = data.map(row => {
+                    let content = row.content;
+                    if (typeof content === 'string') {
+                        try { content = JSON.parse(content); } catch(e) { content = {}; }
+                    }
+                    return { ...content, id: row.id, created_at: row.created_at };
                 });
+
+                try {
+                    // Local Storage dagi eski ma'lumotlarni Server bilan birlashtirish (o'chib ketishidan asrash)
+                    const localRaw = localStorage.getItem(POST_STORE_KEY);
+                    const localPosts = localRaw ? JSON.parse(localRaw) : [];
+                    const serverIds = new Set(serverPosts.map(p => p.id));
+                    
+                    // Serverga yuborilmay qolgan yoki xatolik bilan mahalliy keshda qolib ketgan postlar
+                    const missingLocals = localPosts.filter(p => p && p.id && !serverIds.has(p.id));
+                    
+                    this._cache = [...missingLocals, ...serverPosts];
+                    this._cache.sort((a,b) => new Date(b.createdAt || b.created_at || 0) - new Date(a.createdAt || a.created_at || 0));
+
+                    // Yuklanmay qolgan postlarni orqa fonda serverga tiklashga urinish
+                    missingLocals.forEach(p => {
+                        supabaseClient.from('posts').insert({
+                            id: p.id, content: p, created_at: p.createdAt || p.created_at || new Date().toISOString()
+                        }).then(()=>{});
+                    });
+
+                } catch {
+                    this._cache = serverPosts;
+                }
+                
                 localStorage.setItem(POST_STORE_KEY, JSON.stringify(this._cache));
             }
             return this._cache;
@@ -447,43 +476,36 @@ const PostStore = {
             return this._cache;
         }
     },
-    async byUser(uid){ 
-        const allPosts = await this.all();
-        if (!uid) return allPosts; 
-        return allPosts.filter(p => String(p.userId) === String(uid) || p.user === uid); 
-    },
     get(id){ return this._cache.find(p => p.id === id) || null; },
     async add(post){ 
+        // 1. Mahalliy keshni DARHOL yangilash
         this._cache.unshift(post); 
-        try {
-            const { error } = await supabaseClient.from('posts').insert({
-                id: post.id,
-                content: post, 
-                created_at: post.createdAt || new Date().toISOString()
-            });
-            if (error) throw error;
-        } catch (err) {
-            console.error("Supabase saqlash xatosi:", err);
-        }
         localStorage.setItem(POST_STORE_KEY, JSON.stringify(this._cache)); 
+        
+        // 2. Orqa fonda serverga kiritish (kutmasdan)
+        supabaseClient.from('posts').insert({
+            id: post.id,
+            content: post, 
+            created_at: post.createdAt || new Date().toISOString()
+        }).then(({error}) => {
+            if(error) console.error("Supabase saqlash xatosi:", error);
+        });
+        
         return post; 
     },
     async update(id, patch){
         let post = this.get(id); 
         if (!post) return null;
         Object.assign(post, patch); 
-        
-        try {
-            const { error } = await supabaseClient.from('posts').upsert({
-                id: post.id,
-                content: post,
-                created_at: post.createdAt || post.created_at || new Date().toISOString()
-            });
-            if (error) throw error;
-        } catch (err) {
-            console.error("Supabase yangilash xatosi:", err);
-        }
         localStorage.setItem(POST_STORE_KEY, JSON.stringify(this._cache)); 
+        
+        // Orqa fonda serverni yangilash
+        supabaseClient.from('posts').upsert({
+            id: post.id,
+            content: post,
+            created_at: post.createdAt || post.created_at || new Date().toISOString()
+        }).then(()=>{});
+        
         return post;
     }
 };
@@ -509,6 +531,7 @@ const ViewTracker = {
         try { localStorage.setItem(VIEW_LOG_KEY, JSON.stringify(log)); } catch {} return true;
     }
 };
+
 
 /* ================= HELPERS ================= */
 function escapeHtml(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
@@ -551,7 +574,6 @@ function compressImage(file, maxW = 1080, quality = 0.85){
         }; img.onerror = reject; img.src = url;
     });
 }
-
 
 /* ================= IZOHLAR YORDAMCHISI ================= */
 function findComment(comments, id){
@@ -641,16 +663,26 @@ let posts = [], savedPosts = new Set(), myReplies = [];
 function loadMyReplies(){ try { const raw = localStorage.getItem(REPLIES_KEY); myReplies = raw ? JSON.parse(raw) : []; } catch { myReplies = []; } }
 function saveMyReplies(){ try { localStorage.setItem(REPLIES_KEY, JSON.stringify(myReplies)); } catch {} }
 
-// ASYNC FETCHING
+// ASYNC FETCHING & FILTERING
 async function loadMyPosts(){
-    document.getElementById('contentArea').innerHTML = '<div class="empty-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><p>Yuklanmoqda...</p>';
+    // Dastlab tozalab tashlamaslik uchun "Loading" belgisini faqat post umuman yo'q bo'lsa chiqaramiz
+    if(PostStore._cache.length === 0){
+        document.getElementById('contentArea').innerHTML = '<div class="empty-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><p>Yuklanmoqda...</p>';
+    }
+    
+    // Server bilan ma'lumotlarni birlashtirish
+    await PostStore.all();
+    
+    refreshLocalPostsList();
+}
+
+function refreshLocalPostsList() {
     if (profileUserId) {
-        posts = await PostStore.byUser(profileUserId);
+        posts = PostStore._cache.filter(p => String(p.userId) === String(profileUserId) || p.user === profileUserId);
     } else { 
-        posts = await PostStore.byUser(currentUser.userId); 
+        posts = PostStore._cache.filter(p => String(p.userId) === String(currentUser.userId)); 
         if (posts.length === 0) { 
-            const allPosts = await PostStore.all();
-            posts = allPosts.filter(p => p.user === displayName); 
+            posts = PostStore._cache.filter(p => p.user === displayName); 
         } 
     }
     document.getElementById('postsCount').textContent = posts.length;
@@ -748,7 +780,8 @@ function renderList(list, key){
     area.innerHTML = '<div class="feed" id="feed"></div>';
     list.forEach(p => document.getElementById('feed').appendChild(buildPostItem(p)));
 }
-function renderPosts(){ renderList(posts, 'posts'); } function renderVideos(){ renderList(posts.filter(p => p.type === 'video'), 'video'); }
+function renderPosts(){ renderList(posts, 'posts'); } 
+function renderVideos(){ renderList(posts.filter(p => p.type === 'video'), 'video'); }
 function renderSaved(){ renderList(posts.filter(p => savedPosts.has(p.id)), 'saved'); }
 function renderReplies(){
     const area = document.getElementById('contentArea');
@@ -892,9 +925,10 @@ function openPostDetail(p){
     detailOverlay.classList.add('show'); document.getElementById('detailScroll').scrollTop = 0;
     if (isTelegram) { try { tg.BackButton.onClick(closePostDetail); tg.BackButton.show(); } catch {} }
 }
-async function closePostDetail(){
+
+function closePostDetail(){
     detailOverlay.classList.remove('show'); detailPost = null; replyTargetId = null;
-    await loadMyPosts(); 
+    refreshLocalPostsList(); 
     switchTab(currentTab);
     if (isTelegram) { try { tg.BackButton.onClick(goBack); } catch {} }
 }
@@ -911,9 +945,8 @@ detailSend.addEventListener('click', async () => {
     if (await addCommentToPost(detailPost.id, newC, replyTargetId)) {
         pushMyReply({ id: newC.id, postId: detailPost.id, user: newC.user, avatar: newC.avatar, text: newC.text, createdAt: newC.createdAt, postText: detailPost.text });
         replyTargetId = null; detailInput.value = ''; refreshDetailFromStore();
-    } else {
-        detailSend.disabled = false;
     }
+    detailSend.disabled = false;
 });
 
 /* ================= COMMENT DETAIL ================= */
@@ -964,9 +997,8 @@ commentDetailSend.addEventListener('click', async () => {
             (found.comment.replies || []).forEach(r => reps.appendChild(buildDetailComment(r, 0).querySelector('.comment-row').cloneNode(true)));
         }
         updateCdReplyModeUI(); showToast('Javob qo\'shildi');
-    } else {
-        commentDetailSend.disabled = false;
     }
+    commentDetailSend.disabled = false;
 });
 
 /* ================= COMPOSER ================= */
@@ -1008,19 +1040,25 @@ document.getElementById('removeImg').addEventListener('click', () => {
     currentMedia = null; document.getElementById('composerPreview').classList.remove('show'); compSubmit.disabled = compInput.value.trim().length === 0;
 });
 
-// ASYNC SUBMIT
+// ASYNC SUBMIT -> BAZAGA VA UIGA BIR VAQTDA 
 compSubmit.addEventListener('click', async () => {
     const text = compInput.value.trim(); if (!text && !currentMedia) return;
-    compSubmit.disabled = true; // wait for saving
-    await PostStore.add({
+    compSubmit.disabled = true; 
+    
+    const newPost = {
         id: 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
         userId: currentUser?.userId || 'me', user: displayName, avatar: profileOwner?.photo_url || null,
         createdAt: new Date().toISOString(), text, image: currentMedia ? currentMedia.data : null,
         type: currentMedia ? currentMedia.type : 'text', likes: 0, liked: false, views: 0, comments: []
-    });
+    };
+    
+    await PostStore.add(newPost);
+    
     compInput.value = ''; currentMedia = null; document.getElementById('composerPreview').classList.remove('show');
     closeComposer(); 
-    await loadMyPosts(); 
+    
+    // Serverdan javobni kutib turib Ekranni "Yuklanmoqda" deb tozalab tashlamasligi uchun to'g'ridan-to'g'ri Local UI yangilanadi:
+    refreshLocalPostsList();
     switchTab('posts');
     compSubmit.disabled = false;
 });
