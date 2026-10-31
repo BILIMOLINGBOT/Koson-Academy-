@@ -2,209 +2,100 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Xabarlar - L.uz</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Statistika - iOS UI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* iOS Design System Fonts & Resets */
-        *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-tap-highlight-color:transparent}
-        html,body{background:#000!important;color:#fff;overscroll-behavior-y:none}
-        body{display:flex;justify-content:center;min-height:100vh;-webkit-font-smoothing:antialiased}
-        
-        .mobile-container{width:100%;max-width:420px;padding:0 0 140px 0;display:flex;flex-direction:column;min-height:100vh;}
-        
-        /* Yuqori qism: iPhone notch (safe-area) bilan ishlashi uchun padding */
-        .modern-header {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: calc(70px + env(safe-area-inset-top)) 20px 15px 20px; 
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        /* iOS tipografiyasi va scroll xususiyatlari */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
-        
-        .brand-title {
-            font-size: 26px;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            background: linear-gradient(135deg, #ffffff 0%, #a1a1aa 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin: 0;
-        }
-
-        .icon-btn {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        
-        .icon-btn:active {
-            transform: scale(0.9);
-            background: rgba(255, 255, 255, 0.15);
-        }
-        
-        .icon-btn svg {
-            width: 20px;
-            height: 20px;
-            stroke: currentColor;
-            fill: none;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-
-        /* Bo'sh holat (Empty state) dizayni */
-        .empty-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            flex: 1;
-            padding: 70px;
-            text-align: center;
-            margin-top: 30%;
-            animation: fadeIn 0.4s ease-out;
-        }
-
-        .empty-icon {
-            width: 64px;
-            height: 64px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
-            color: #8e8e93;
-        }
-
-        .empty-icon svg {
-            width: 32px;
-            height: 32px;
-            stroke: currentColor;
-            fill: none;
-            stroke-width: 1.5;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-
-        .empty-text {
-            color: #8e8e93;
-            font-size: 16px;
-            line-height: 1.5;
-            font-weight: 500;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* "ISLAND" PASTKI NAVIGATSIYA */
-        .bottom-nav{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:380px;background:rgba(28,28,30,0.85);backdrop-filter:blur(25px);-webkit-backdrop-filter:blur(25px);border:1px solid rgba(255,255,255,0.1);border-radius:40px;z-index:50;box-shadow:0 10px 40px rgba(0,0,0,0.6);padding:6px 12px}
-        .bottom-nav-inner{display:flex;justify-content:space-between;align-items:center;width:100%}
-        .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;text-decoration:none;color:#8e8e93;transition:color .2s,transform .2s}
-        .nav-btn:active{transform:scale(.92)}
-        .nav-btn svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-        .nav-active{color:#fff}
-        .nav-label{font-size:10px;font-weight:600}
-        .nav-avatar,.nav-avatar-initial{width:26px;height:26px;border-radius:50%;object-fit:cover}
-        .nav-avatar-initial{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:linear-gradient(135deg,#3a3a3c 0%,#1c1c1e 100%);color:#fff}
     </style>
-</head>
-<body>
-
-<div class="mobile-container">
-    <header class="modern-header">
-        <h1 class="brand-title">Xabarlar</h1>
-        <button class="icon-btn" id="newMsgBtn" aria-label="Yangi xabar">
-            <svg viewBox="0 0 24 24">
-                <path d="M12 5v14M5 12h14"></path>
-            </svg>
-        </button>
-    </header>
-
-    <main class="empty-container">
-        <div class="empty-icon">
-            <svg viewBox="0 0 24 24" style="transform:scaleX(-1)">
-                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
-            </svg>
-        </div>
-        <p class="empty-text">Hali xabarlar yo‘q</p>
-    </main>
-</div>
-
-<!-- OROLCHA NAVIGATSIYA -->
-<nav class="bottom-nav">
-    <div class="bottom-nav-inner">
-        <!-- Uy - inactive -->
-        <a href="index.html" class="nav-btn nav-inactive">
-            <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-            <span class="nav-label">Uy</span>
-        </a>
-        <!-- Xabar - ACTIVE -->
-        <a href="xabar.html" class="nav-btn nav-active">
-            <svg viewBox="0 0 24 24" style="transform:scaleX(-1)"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
-            <span class="nav-label">Xabar</span>
-        </a>
-        <!-- Qidiruv - inactive -->
-        <a href="qidiruv.html" class="nav-btn nav-inactive">
-            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <span class="nav-label">Qidiruv</span>
-        </a>
-        <!-- Profil - inactive -->
-        <a href="profil.html" class="nav-btn nav-inactive" id="navProfileLink">
-            <span id="navAvatarSlot"><div class="nav-avatar-initial">F</div></span>
-            <span class="nav-label">Profil</span>
-        </a>
-    </div>
-</nav>
-
-<script>
-    /* Telegram Web App sozlamalari */
-    const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
-    if (tg) {
-        try {
-            tg.ready(); 
-            tg.expand();
-            if (tg.requestFullscreen) tg.requestFullscreen();
-            if (tg.setHeaderColor) tg.setHeaderColor('#000000');
-            if (tg.setBackgroundColor) tg.setBackgroundColor('#000000');
-        } catch (e) {}
-    }
-
-    /* Yangi xabar tugmasi logikasi (ixtiyoriy) */
-    document.getElementById('newMsgBtn').addEventListener('click', () => {
-        // Yangi xabar yozish yoki qidiruv oynasini ochish kodi
-    });
-
-    /* Profil avatarini yuklash (Local DB) */
-    try {
-        const currentUser = JSON.parse(localStorage.getItem('luz_users'))?.find(u => u.userId === localStorage.getItem('luz_current_user'));
-        if (currentUser) {
-            const navAvatarSlot = document.getElementById('navAvatarSlot');
-            const cuInit = (currentUser.firstName || 'F').charAt(0).toUpperCase();
-            if (currentUser.photo_url) {
-                navAvatarSlot.innerHTML = `<img class="nav-avatar" src="${currentUser.photo_url}" alt="${cuInit}">`;
-            } else {
-                navAvatarSlot.innerHTML = `<div class="nav-avatar-initial">${cuInit}</div>`;
+    <script>
+        tailwind.config = {
+            darkMode: 'media', // Qurilma mavzusiga qarab Avto Dark/Light rejim
+            theme: {
+                extend: {
+                    colors: {
+                        ios: {
+                            bg: '#F2F2F7',
+                            darkBg: '#000000',
+                            card: '#FFFFFF',
+                            darkCard: '#1C1C1E',
+                            blue: '#007AFF',
+                            green: '#34C759',
+                            orange: '#FF9500',
+                            text: '#000000',
+                            darkText: '#FFFFFF',
+                            gray: '#8E8E93'
+                        }
+                    }
+                }
             }
         }
-    } catch (e) {}
-</script>
+    </script>
+</head>
+<body class="bg-ios-bg dark:bg-ios-darkBg min-h-screen flex items-center justify-center sm:p-4">
+
+    <!-- Mobil ilova konteyneri (Telegram Mini App uchun moslangan kenglik) -->
+    <div class="w-full h-[100vh] sm:h-auto sm:max-w-[400px] bg-ios-bg dark:bg-ios-darkBg sm:rounded-[40px] sm:shadow-2xl overflow-hidden relative sm:border-[8px] sm:border-gray-900">
+        
+        <!-- Sarlavha -->
+        <div class="px-6 pt-10 pb-4">
+            <h1 class="text-3xl font-bold text-ios-text dark:text-ios-darkText tracking-tight">Statistika</h1>
+        </div>
+
+        <!-- Asosiy Grid -->
+        <div class="px-4 pb-8 grid grid-cols-2 gap-4">
+            
+            <!-- Reyting (To'liq kenglikda) -->
+            <div class="col-span-2 bg-ios-card dark:bg-ios-darkCard rounded-[22px] p-5 shadow-sm active:scale-[0.98] transition-transform">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-ios-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-[15px] font-semibold text-ios-gray">Reytingi oʻrningiz</h3>
+                </div>
+                <div class="mt-1 flex items-baseline gap-1">
+                    <span class="text-[42px] font-bold text-ios-text dark:text-ios-darkText leading-none tracking-tight">343</span>
+                </div>
+            </div>
+
+            <!-- O'sish ko'rsatkichi (Chap kvadrat) -->
+            <div class="bg-ios-card dark:bg-ios-darkCard rounded-[22px] p-5 shadow-sm flex flex-col justify-between aspect-square active:scale-[0.98] transition-transform">
+                <div class="w-9 h-9 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center mb-2">
+                    <svg class="w-5 h-5 text-ios-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+                    </svg>
+                </div>
+                <div>
+                    <span class="text-[32px] font-bold text-ios-text dark:text-ios-darkText leading-none tracking-tight">+33</span>
+                    <p class="text-[13px] font-medium text-ios-gray mt-1 leading-snug">Oʻsish koʻrsatkichi</p>
+                </div>
+            </div>
+
+            <!-- Faollik (O'ng kvadrat) -->
+            <div class="bg-ios-card dark:bg-ios-darkCard rounded-[22px] p-5 shadow-sm flex flex-col justify-between aspect-square active:scale-[0.98] transition-transform">
+                <div class="w-9 h-9 rounded-full bg-orange-100 dark:bg-orange-900/40 flex items-center justify-center mb-2">
+                    <svg class="w-5 h-5 text-ios-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <div class="flex items-baseline gap-1">
+                        <span class="text-[32px] font-bold text-ios-text dark:text-ios-darkText leading-none tracking-tight">80</span>
+                        <span class="text-sm font-semibold text-ios-gray">kun</span>
+                    </div>
+                    <p class="text-[13px] font-medium text-ios-gray mt-1 leading-snug">Faolligingiz</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
 </body>
 </html>
