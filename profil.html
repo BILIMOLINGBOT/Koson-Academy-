@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Profil - L.uz</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<!-- Supabase JS kutubxonasi -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 /* iOS Design System Fonts & Resets */
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-tap-highlight-color:transparent}
@@ -204,6 +206,7 @@ body{display:flex;justify-content:center;min-height:100vh;-webkit-font-smoothing
 
 
 
+
 <div class="mobile-container">
     <div class="profile-pic-wrapper" id="profilePicWrapper">
         <img id="userPhoto" class="profile-pic" style="display:none" alt="Profil rasmi">
@@ -339,6 +342,11 @@ if (tg) {
     } catch {}
 }
 
+/* ================= SUPABASE INIT ================= */
+const supabaseUrl = 'https://qvqibrvcgnppdycftfjw.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF2cWlicnZjZ25wcGR5Y2Z0Zmp3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5MjU0OTIzNywiZXhwIjoyMTA4MTI1MjM3fQ.GepbVTUlTOxIbn47H4NGiHHORywc_zvsCY4rBA36K_8';
+const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
 /* ================= DB ================= */
 const DB = {
     _K: 'luz_users', _S: 'luz_current_user',
@@ -358,15 +366,9 @@ const DB = {
     const users = DB._getUsers();
     let changed = false;
     users.forEach(u => {
-        // Agar foydalanuvchida isEdited flagi bo'lmasa, false deb belgilash
-        if (u.isEdited === undefined) {
-            u.isEdited = false;
-            changed = true;
-        }
+        if (u.isEdited === undefined) { u.isEdited = false; changed = true; }
     });
-    if (changed) {
-        localStorage.setItem(DB._K, JSON.stringify(users));
-    }
+    if (changed) { localStorage.setItem(DB._K, JSON.stringify(users)); }
     localStorage.setItem(MIGRATION_KEY, '1');
 })();
 
@@ -388,18 +390,12 @@ if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
     if (idx >= 0) {
         const stored = users[idx];
         if (stored.isEdited) {
-            // Foydalanuvchi tahrirlagan — STORED ma'lumotlar ustunlik qiladi
-            currentUser = {
-                ...stored,
-                userId: tgUser.userId  // userId har doim Telegram'dan
-            };
-            // Faqat bo'sh bo'lsa Telegram'dan to'ldirish
+            currentUser = { ...stored, userId: tgUser.userId };
             if (!currentUser.firstName) currentUser.firstName = tgUser.firstName;
             if (!currentUser.lastName) currentUser.lastName = tgUser.lastName;
             if (!currentUser.username) currentUser.username = tgUser.username;
             if (!currentUser.photo_url) currentUser.photo_url = tgUser.photo_url;
         } else {
-            // Birinchi marta yoki tahrirlanmagan — Telegram ma'lumotlari ishlatiladi
             currentUser = { ...tgUser, isEdited: false };
         }
         users[idx] = currentUser;
@@ -425,27 +421,70 @@ const displayName = profileOwner ? ([profileOwner.firstName, profileOwner.lastNa
 const displayUsername = profileOwner?.username ? '@' + profileOwner.username : '';
 const initialLetter = (displayName || 'F').trim().charAt(0).toUpperCase() || 'F';
 
-/* ================= POST STORE ================= */
+/* ================= POST STORE (Supabase Integration) ================= */
 const POST_STORE_KEY = 'tg_feed_posts_v1';
 const PostStore = {
-    _cache: null,
-    _load(){
-        if (this._cache !== null) return this._cache;
+    _cache: [],
+    async all(){
         try {
-            const raw = localStorage.getItem(POST_STORE_KEY);
-            this._cache = raw ? JSON.parse(raw) : [];
-            if (!Array.isArray(this._cache)) this._cache = [];
-        } catch { this._cache = []; }
-        return this._cache;
+            const { data, error } = await supabaseClient
+                .from('posts')
+                .select('*')
+                .order('created_at', { ascending: false });
+                
+            if (error) throw error;
+            
+            if (data) {
+                this._cache = data.map(row => {
+                    return { ...row.content, id: row.id, created_at: row.created_at };
+                });
+                localStorage.setItem(POST_STORE_KEY, JSON.stringify(this._cache));
+            }
+            return this._cache;
+        } catch (err) {
+            console.error("Supabase xatolik:", err);
+            try { const raw = localStorage.getItem(POST_STORE_KEY); this._cache = raw ? JSON.parse(raw) : []; } catch { this._cache = []; }
+            return this._cache;
+        }
     },
-    _save(){ try { localStorage.setItem(POST_STORE_KEY, JSON.stringify(this._cache || [])); return true; } catch { showToast('Saqlashda xatolik'); return false; } },
-    all(){ return this._load().slice(); },
-    byUser(uid){ if (!uid) return this.all(); return this._load().filter(p => String(p.userId) === String(uid) || p.user === uid); },
-    get(id){ return this._load().find(p => p.id === id) || null; },
-    add(post){ const list = this._load(); list.unshift(post); this._cache = list; return this._save() ? post : null; },
-    update(id, patch){
-        const list = this._load(); const i = list.findIndex(p => p.id === id); if (i < 0) return null;
-        list[i] = Object.assign({}, list[i], patch); this._cache = list; return this._save() ? list[i] : null;
+    async byUser(uid){ 
+        const allPosts = await this.all();
+        if (!uid) return allPosts; 
+        return allPosts.filter(p => String(p.userId) === String(uid) || p.user === uid); 
+    },
+    get(id){ return this._cache.find(p => p.id === id) || null; },
+    async add(post){ 
+        this._cache.unshift(post); 
+        try {
+            const { error } = await supabaseClient.from('posts').insert({
+                id: post.id,
+                content: post, 
+                created_at: post.createdAt || new Date().toISOString()
+            });
+            if (error) throw error;
+        } catch (err) {
+            console.error("Supabase saqlash xatosi:", err);
+        }
+        localStorage.setItem(POST_STORE_KEY, JSON.stringify(this._cache)); 
+        return post; 
+    },
+    async update(id, patch){
+        let post = this.get(id); 
+        if (!post) return null;
+        Object.assign(post, patch); 
+        
+        try {
+            const { error } = await supabaseClient.from('posts').upsert({
+                id: post.id,
+                content: post,
+                created_at: post.createdAt || post.created_at || new Date().toISOString()
+            });
+            if (error) throw error;
+        } catch (err) {
+            console.error("Supabase yangilash xatosi:", err);
+        }
+        localStorage.setItem(POST_STORE_KEY, JSON.stringify(this._cache)); 
+        return post;
     }
 };
 
@@ -513,6 +552,7 @@ function compressImage(file, maxW = 1080, quality = 0.85){
     });
 }
 
+
 /* ================= IZOHLAR YORDAMCHISI ================= */
 function findComment(comments, id){
     for (const c of (comments || [])) {
@@ -533,16 +573,17 @@ function makeCommentObj(text, parentId){
         text, createdAt: new Date().toISOString(), likes: 0, liked: false, replies: [], parentId: parentId || null
     };
 }
-function addCommentToPost(postId, newComment, replyToId){
+async function addCommentToPost(postId, newComment, replyToId){
     const post = PostStore.get(postId); if (!post) return null;
     if (!post.comments) post.comments = [];
     if (!replyToId) {
         newComment.parentId = null; post.comments.push(newComment);
-        PostStore.update(postId, { comments: post.comments }); return { post, comment: newComment, parent: null };
+        await PostStore.update(postId, { comments: post.comments }); return { post, comment: newComment, parent: null };
     }
     const found = findComment(post.comments, replyToId); if (!found) return null;
     newComment.parentId = replyToId; if (!found.comment.replies) found.comment.replies = [];
-    found.comment.replies.push(newComment); PostStore.update(postId, { comments: post.comments });
+    found.comment.replies.push(newComment); 
+    await PostStore.update(postId, { comments: post.comments });
     return { post, comment: newComment, parent: found.comment };
 }
 function pushMyReply(entry){ myReplies.unshift(entry); saveMyReplies(); }
@@ -599,11 +640,22 @@ let posts = [], savedPosts = new Set(), myReplies = [];
 
 function loadMyReplies(){ try { const raw = localStorage.getItem(REPLIES_KEY); myReplies = raw ? JSON.parse(raw) : []; } catch { myReplies = []; } }
 function saveMyReplies(){ try { localStorage.setItem(REPLIES_KEY, JSON.stringify(myReplies)); } catch {} }
-function loadMyPosts(){
-    if (profileUserId) posts = PostStore.byUser(profileUserId);
-    else { posts = PostStore.byUser(currentUser.userId); if (posts.length === 0) posts = PostStore.all().filter(p => p.user === displayName); }
+
+// ASYNC FETCHING
+async function loadMyPosts(){
+    document.getElementById('contentArea').innerHTML = '<div class="empty-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><p>Yuklanmoqda...</p>';
+    if (profileUserId) {
+        posts = await PostStore.byUser(profileUserId);
+    } else { 
+        posts = await PostStore.byUser(currentUser.userId); 
+        if (posts.length === 0) { 
+            const allPosts = await PostStore.all();
+            posts = allPosts.filter(p => p.user === displayName); 
+        } 
+    }
     document.getElementById('postsCount').textContent = posts.length;
 }
+
 function countComments(p){
     let n = (p.comments || []).length; const walk = (arr) => arr.forEach(c => { n += (c.replies || []).length; if (c.replies) walk(c.replies); }); walk(p.comments || []); return n;
 }
@@ -620,11 +672,12 @@ function buildPostActions(p, item){
         b.innerHTML = `${icon}<span class="act-count">${count!==null?count:''}</span>`;
         if (clk) b.addEventListener('click', clk); return b;
     };
-    const likeBtn = createBtn(ICONS.like, p.likes||0, p.liked?'liked':'', (e)=>{
+    const likeBtn = createBtn(ICONS.like, p.likes||0, p.liked?'liked':'', async (e)=>{
         e.stopPropagation(); const fresh = PostStore.get(p.id) || p; const liked = !fresh.liked;
         const likes = Math.max(0, (fresh.likes || 0) + (liked ? 1 : -1));
-        PostStore.update(p.id, { liked, likes }); p.liked = liked; p.likes = likes;
+        p.liked = liked; p.likes = likes;
         likeBtn.classList.toggle('liked', liked); likeBtn.querySelector('.act-count').textContent = likes;
+        await PostStore.update(p.id, { liked, likes });
     });
     const commBtn = createBtn(ICONS.comment, countComments(p), '', (e)=>{ e.stopPropagation(); openPostDetail(p); });
     const viewBtn = createBtn(ICONS.view, p.views||0, '', (e)=>{ e.stopPropagation(); }); viewBtn.style.cursor='default';
@@ -659,7 +712,7 @@ function buildPostItem(p){
         <div style="flex: 1; min-width: 0;">
             <div class="post-head-info" style="display: flex; flex-direction: row; align-items: baseline; gap: 6px; margin-bottom: 2px;">
                 <div class="post-user">${escapeHtml(p.user)}</div>
-                <div class="post-time">${escapeHtml(formatExactTime(p.createdAt || p.time))}</div>
+                <div class="post-time">${escapeHtml(formatExactTime(p.createdAt || p.created_at || p.time))}</div>
             </div>
             ${p.text ? `<div class="post-text">${escapeHtml(p.text)}</div>` : ''}
             ${media}
@@ -671,13 +724,14 @@ function buildPostItem(p){
     item.addEventListener('click', (e) => { if (e.target.closest('.act-btn') || e.target.tagName === 'VIDEO') return; openPostDetail(p); });
 
     const io = new IntersectionObserver(entries => {
-        entries.forEach(en => {
+        entries.forEach(async en => {
             if (en.isIntersecting && !ViewTracker.hasViewed(currentUser?.userId, p.id)) {
                 io.disconnect();
                 if (ViewTracker.record(currentUser?.userId, p.id)) {
                     const fresh = PostStore.get(p.id);
                     if (fresh) {
-                        p.views = (fresh.views || 0) + 1; PostStore.update(p.id, { views: p.views });
+                        p.views = (fresh.views || 0) + 1; 
+                        await PostStore.update(p.id, { views: p.views });
                         item.querySelectorAll('.act-btn')[2].querySelector('.act-count').textContent = p.views;
                     }
                 }
@@ -723,13 +777,13 @@ function renderReplies(){
         document.getElementById('feed').appendChild(item);
     });
 }
+
 let currentTab = 'posts';
 function switchTab(k){
     currentTab = k; document.querySelectorAll('.tab-item').forEach(t => t.classList.toggle('active', t.dataset.tab === k));
     if (k === 'posts') renderPosts(); else if (k === 'video') renderVideos(); else if (k === 'answers') renderReplies(); else if (k === 'saved') renderSaved();
 }
 document.getElementById('tabsContainer').addEventListener('click', e => { const tab = e.target.closest('.tab-item'); if (tab) switchTab(tab.dataset.tab); });
-
 
 
 /* ================= COMMENTS & POST DETAIL ================= */
@@ -766,7 +820,11 @@ function buildDetailComment(c, depth = 0){
     const actions = document.createElement('div'); actions.className = 'comment-actions';
     
     const likeBtn = document.createElement('button'); likeBtn.className = 'comment-act' + (c.liked?' liked':''); likeBtn.innerHTML = `${ICONS.like}<span class="comment-act-count">${c.likes||0}</span>`;
-    likeBtn.addEventListener('click', (e) => { e.stopPropagation(); c.liked = !c.liked; c.likes = Math.max(0, (c.likes||0) + (c.liked?1:-1)); PostStore.update(detailPost.id, {comments:detailPost.comments}); refreshDetailFromStore(); });
+    likeBtn.addEventListener('click', async (e) => { 
+        e.stopPropagation(); c.liked = !c.liked; c.likes = Math.max(0, (c.likes||0) + (c.liked?1:-1)); 
+        await PostStore.update(detailPost.id, {comments:detailPost.comments}); 
+        refreshDetailFromStore(); 
+    });
     
     const commBtn = document.createElement('button'); commBtn.className = 'comment-act'; commBtn.innerHTML = `${ICONS.comment}<span class="comment-act-count">${(c.replies||[]).length||''}</span>`;
     commBtn.addEventListener('click', (e) => { e.stopPropagation(); replyTargetId = c.id; detailInput.focus(); updateDetailReplyModeUI(); });
@@ -817,7 +875,7 @@ function renderDetailPost(){
             <div style="flex: 1; min-width: 0;">
                 <div class="detail-info" style="display: flex; flex-direction: row; align-items: baseline; gap: 6px; margin-bottom: 6px;">
                     <div class="detail-user">${escapeHtml(p.user)}</div>
-                    <div class="detail-time">${escapeHtml(formatExactTime(p.createdAt))}</div>
+                    <div class="detail-time">${escapeHtml(formatExactTime(p.createdAt || p.created_at))}</div>
                 </div>
                 ${p.text ? `<div class="detail-text">${escapeHtml(p.text)}</div>` : ''}
                 ${media}
@@ -834,9 +892,10 @@ function openPostDetail(p){
     detailOverlay.classList.add('show'); document.getElementById('detailScroll').scrollTop = 0;
     if (isTelegram) { try { tg.BackButton.onClick(closePostDetail); tg.BackButton.show(); } catch {} }
 }
-function closePostDetail(){
+async function closePostDetail(){
     detailOverlay.classList.remove('show'); detailPost = null; replyTargetId = null;
-    loadMyPosts(); switchTab(currentTab);
+    await loadMyPosts(); 
+    switchTab(currentTab);
     if (isTelegram) { try { tg.BackButton.onClick(goBack); } catch {} }
 }
 
@@ -844,12 +903,16 @@ detailInput.addEventListener('input', () => {
     detailInput.style.height = 'auto'; detailInput.style.height = Math.min(detailInput.scrollHeight, 90) + 'px';
     detailSend.disabled = detailInput.value.trim().length === 0;
 });
-detailSend.addEventListener('click', () => {
+detailSend.addEventListener('click', async () => {
     const raw = detailInput.value.trim(); if (!raw || !detailPost) return;
+    detailSend.disabled = true; // Wait for promise
     const newC = makeCommentObj(raw, replyTargetId);
-    if (addCommentToPost(detailPost.id, newC, replyTargetId)) {
+    
+    if (await addCommentToPost(detailPost.id, newC, replyTargetId)) {
         pushMyReply({ id: newC.id, postId: detailPost.id, user: newC.user, avatar: newC.avatar, text: newC.text, createdAt: newC.createdAt, postText: detailPost.text });
-        replyTargetId = null; detailInput.value = ''; detailSend.disabled = true; refreshDetailFromStore();
+        replyTargetId = null; detailInput.value = ''; refreshDetailFromStore();
+    } else {
+        detailSend.disabled = false;
     }
 });
 
@@ -872,6 +935,39 @@ function closeCommentDetail(){
     commentDetailOverlay.classList.remove('show'); activeCommentId = null;
     if (isTelegram) { try { if (detailOverlay.classList.contains('show')) tg.BackButton.onClick(closePostDetail); else tg.BackButton.onClick(goBack); } catch {} }
 }
+
+const cdReplyModeCancel = document.getElementById('cdReplyModeCancel'), commentDetailInput = document.getElementById('commentDetailInput'), commentDetailSend = document.getElementById('commentDetailSend');
+function updateCdReplyModeUI(){
+    if (!detailPost) { document.getElementById('cdReplyModeBar').style.display = 'none'; document.getElementById('commentDetailIsland').classList.remove('reply-mode'); return; }
+    const found = activeCommentId ? findComment(detailPost.comments || [], activeCommentId) : null;
+    if (found) { document.getElementById('cdReplyModeText').textContent = `↩ ${found.comment.user} ga javob`; document.getElementById('cdReplyModeBar').style.display = 'flex'; document.getElementById('commentDetailIsland').classList.add('reply-mode'); }
+    else { document.getElementById('cdReplyModeBar').style.display = 'none'; document.getElementById('commentDetailIsland').classList.remove('reply-mode'); }
+}
+cdReplyModeCancel.addEventListener('click', closeCommentDetail);
+commentDetailInput.addEventListener('input', () => {
+    commentDetailInput.style.height = 'auto'; commentDetailInput.style.height = Math.min(commentDetailInput.scrollHeight, 90) + 'px';
+    commentDetailSend.disabled = commentDetailInput.value.trim().length === 0;
+});
+commentDetailSend.addEventListener('click', async () => {
+    const txt = commentDetailInput.value.trim(); if (!txt || !detailPost || !activeCommentId) return;
+    commentDetailSend.disabled = true;
+    
+    const newReply = makeCommentObj(txt, activeCommentId);
+    if (await addCommentToPost(detailPost.id, newReply, activeCommentId)) {
+        pushMyReply({ id: newReply.id, postId: detailPost.id, user: newReply.user, avatar: newReply.avatar, text: newReply.text, createdAt: newReply.createdAt, postText: detailPost.text });
+        commentDetailInput.value = ''; refreshDetailFromStore();
+        
+        const found = findComment(detailPost.comments || [], activeCommentId);
+        if (found) {
+            document.getElementById('commentDetailMain').innerHTML = ''; document.getElementById('commentDetailMain').appendChild(buildDetailComment(found.comment, 0).querySelector('.comment-row').cloneNode(true));
+            const reps = document.getElementById('commentDetailReplies'); reps.innerHTML = '';
+            (found.comment.replies || []).forEach(r => reps.appendChild(buildDetailComment(r, 0).querySelector('.comment-row').cloneNode(true)));
+        }
+        updateCdReplyModeUI(); showToast('Javob qo\'shildi');
+    } else {
+        commentDetailSend.disabled = false;
+    }
+});
 
 /* ================= COMPOSER ================= */
 const composer = document.getElementById('composer'), compOverlay = document.getElementById('composerOverlay'), compInput = document.getElementById('composerInput'), compSubmit = document.getElementById('composerSubmit');
@@ -912,20 +1008,31 @@ document.getElementById('removeImg').addEventListener('click', () => {
     currentMedia = null; document.getElementById('composerPreview').classList.remove('show'); compSubmit.disabled = compInput.value.trim().length === 0;
 });
 
-compSubmit.addEventListener('click', () => {
+// ASYNC SUBMIT
+compSubmit.addEventListener('click', async () => {
     const text = compInput.value.trim(); if (!text && !currentMedia) return;
-    PostStore.add({
+    compSubmit.disabled = true; // wait for saving
+    await PostStore.add({
         id: 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
         userId: currentUser?.userId || 'me', user: displayName, avatar: profileOwner?.photo_url || null,
         createdAt: new Date().toISOString(), text, image: currentMedia ? currentMedia.data : null,
         type: currentMedia ? currentMedia.type : 'text', likes: 0, liked: false, views: 0, comments: []
     });
     compInput.value = ''; currentMedia = null; document.getElementById('composerPreview').classList.remove('show');
-    closeComposer(); loadMyPosts(); switchTab('posts');
+    closeComposer(); 
+    await loadMyPosts(); 
+    switchTab('posts');
+    compSubmit.disabled = false;
 });
 
-/* INIT */
-loadMyReplies(); loadMyPosts(); switchTab('posts');
+/* INIT (Async run) */
+async function runInit() {
+    loadMyReplies(); 
+    await loadMyPosts(); 
+    switchTab('posts');
+}
+runInit();
+
 </script>
 </body>
 </html>
