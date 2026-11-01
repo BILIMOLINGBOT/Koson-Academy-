@@ -3,42 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Maxsus Klaviatura - W va C siz</title>
+    <title>Gboard UI - Maxsus Klaviatura</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            font-family: -apple-system, BlinkMacSystemFont, "Roboto", "Segoe UI", Helvetica, Arial, sans-serif; 
             background-color: #121212; 
             color: #ffffff; 
             overflow: hidden;
         }
-        .key { 
+        /* Chegarasiz oddiy harf tugmalari */
+        .key-letter { 
+            position: relative;
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            background-color: #2c2d30; 
+            background-color: transparent; 
             border-radius: 8px; 
-            font-weight: 500; 
-            font-size: 1.35rem; 
+            font-weight: 400; 
+            font-size: 1.5rem; 
             user-select: none; 
             cursor: pointer; 
-            box-shadow: 0 1px 1px rgba(0,0,0,0.3);
+            height: 48px;
         }
-        .key:active { 
-            background-color: #4a4b4f; 
+        .key-letter:active { 
+            background-color: rgba(255, 255, 255, 0.1); 
         }
+        /* Kichik raqamlar (harflar ustidagi) */
+        .sup-num {
+            position: absolute;
+            top: 2px;
+            right: 4px;
+            font-size: 0.6rem;
+            color: #888;
+        }
+        /* Pastki va chetdagi maxsus tugmalar */
         .key-action { 
-            background-color: #1f2022; 
-            padding: 0 12px;
-            font-size: 1.1rem;
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            background-color: #323339; 
+            border-radius: 24px; /* Dumaloq shakl */
+            font-size: 1rem;
+            user-select: none; 
+            cursor: pointer; 
+            height: 44px;
+        }
+        .key-action:active {
+            background-color: #45464d;
         }
         .key-space { 
             flex-grow: 1; 
-            max-width: 45%; 
+            min-width: 40%; 
+            background-color: #323339;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #e2e2e2;
+            font-size: 0.95rem;
         }
-        /* Asosiy klaviatura balandligi */
-        .keyboard-row {
-            height: 48px;
+        .key-enter {
+            background-color: #8ab4f8; /* Ochiq ko'k rang */
+            color: #202124;
+            border-radius: 24px;
+        }
+        .key-enter:active {
+            background-color: #a8c7fa;
         }
     </style>
 </head>
@@ -46,62 +77,82 @@
 
     <!-- Kiritish maydoni -->
     <div class="flex-1 p-5 flex flex-col">
-        <!-- inputmode="none" orqali telefonning original klaviaturasi chiqishini to'xtatamiz -->
         <textarea id="textInput" class="w-full h-full bg-transparent text-3xl outline-none resize-none placeholder-gray-600" placeholder="Yozishni boshlang..." inputmode="none" autofocus></textarea>
     </div>
 
-    <!-- Virtual Klaviatura (Telegram Mini App stilida) -->
-    <div class="bg-[#1e1e1e] p-2 pb-8 flex flex-col gap-2 select-none" id="keyboard">
+    <!-- Virtual Klaviatura (Gboard UI) -->
+    <div class="bg-[#1c1d22] p-2 pb-6 flex flex-col gap-1.5 select-none w-full shadow-2xl" id="keyboard">
         
-        <!-- 1-qator (W olib tashlandi, Ö qo'shildi) -->
-        <div class="flex justify-center gap-1.5 keyboard-row">
-            <div class="key flex-1 key-letter">q</div>
-            <div class="key flex-1 key-letter">e</div>
-            <div class="key flex-1 key-letter">r</div>
-            <div class="key flex-1 key-letter">t</div>
-            <div class="key flex-1 key-letter">y</div>
-            <div class="key flex-1 key-letter">u</div>
-            <div class="key flex-1 key-letter">i</div>
-            <div class="key flex-1 key-letter">o</div>
-            <div class="key flex-1 key-letter">p</div>
-            <div class="key flex-1 key-letter">ö</div>
-        </div>
-        
-        <!-- 2-qator (Ğ qo'shildi) -->
-        <div class="flex justify-center gap-1.5 keyboard-row px-3">
-            <div class="key flex-1 key-letter">a</div>
-            <div class="key flex-1 key-letter">s</div>
-            <div class="key flex-1 key-letter">d</div>
-            <div class="key flex-1 key-letter">f</div>
-            <div class="key flex-1 key-letter">g</div>
-            <div class="key flex-1 key-letter">h</div>
-            <div class="key flex-1 key-letter">j</div>
-            <div class="key flex-1 key-letter">k</div>
-            <div class="key flex-1 key-letter">l</div>
-            <div class="key flex-1 key-letter">ğ</div>
+        <!-- Tepa panel (Menyu va Mikrofon) -->
+        <div class="flex justify-between items-center px-3 py-1 mb-1">
+            <svg class="w-6 h-6 text-gray-300 cursor-pointer" fill="currentColor" viewBox="0 0 24 24"><path d="M4 4h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 10h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z"/></svg>
+            <svg class="w-6 h-6 text-gray-300 cursor-pointer" fill="currentColor" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
         </div>
 
-        <!-- 3-qator (C olib tashlandi, Ş va Ç qo'shildi) -->
-        <div class="flex justify-center gap-1.5 keyboard-row">
-            <div class="key key-action" onclick="toggleCaps()">⇧</div>
-            <div class="key flex-1 key-letter">z</div>
-            <div class="key flex-1 key-letter">x</div>
-            <div class="key flex-1 key-letter">v</div>
-            <div class="key flex-1 key-letter">b</div>
-            <div class="key flex-1 key-letter">n</div>
-            <div class="key flex-1 key-letter">m</div>
-            <div class="key flex-1 key-letter">ş</div>
-            <div class="key flex-1 key-letter">ç</div>
-            <div class="key key-action" onclick="backspace()">⌫</div>
+        <!-- 1-qator -->
+        <div class="flex justify-center gap-0.5">
+            <div class="key-letter flex-1"><span class="sup-num">1</span>q</div>
+            <div class="key-letter flex-1"><span class="sup-num">2</span>e</div>
+            <div class="key-letter flex-1"><span class="sup-num">3</span>r</div>
+            <div class="key-letter flex-1"><span class="sup-num">4</span>t</div>
+            <div class="key-letter flex-1"><span class="sup-num">5</span>y</div>
+            <div class="key-letter flex-1"><span class="sup-num">6</span>u</div>
+            <div class="key-letter flex-1"><span class="sup-num">7</span>i</div>
+            <div class="key-letter flex-1"><span class="sup-num">8</span>o</div>
+            <div class="key-letter flex-1"><span class="sup-num">9</span>p</div>
+            <div class="key-letter flex-1"><span class="sup-num">0</span>ö</div>
+        </div>
+        
+        <!-- 2-qator -->
+        <div class="flex justify-center gap-0.5 px-4">
+            <div class="key-letter flex-1">a</div>
+            <div class="key-letter flex-1">s</div>
+            <div class="key-letter flex-1">d</div>
+            <div class="key-letter flex-1">f</div>
+            <div class="key-letter flex-1">g</div>
+            <div class="key-letter flex-1">h</div>
+            <div class="key-letter flex-1">j</div>
+            <div class="key-letter flex-1">k</div>
+            <div class="key-letter flex-1">l</div>
+            <div class="key-letter flex-1">ğ</div>
         </div>
 
-        <!-- 4-qator (Boshqaruv tugmalari) -->
-        <div class="flex justify-center gap-1.5 keyboard-row">
-            <div class="key key-action">?123</div>
-            <div class="key key-action text-xl">🌐</div>
-            <div class="key key-space" onclick="insertText(' ')">UZ</div>
-            <div class="key key-action text-2xl" onclick="insertText('.')">.</div>
-            <div class="key key-action text-blue-500 text-xl font-bold" onclick="insertText('\n')">↵</div>
+        <!-- 3-qator -->
+        <div class="flex justify-center gap-1 items-center">
+            <!-- Shift -->
+            <div class="key-letter w-12" onclick="toggleCaps()">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"></path></svg>
+            </div>
+            <div class="key-letter flex-1">z</div>
+            <div class="key-letter flex-1">x</div>
+            <div class="key-letter flex-1">v</div>
+            <div class="key-letter flex-1">b</div>
+            <div class="key-letter flex-1">n</div>
+            <div class="key-letter flex-1">m</div>
+            <div class="key-letter flex-1">ş</div>
+            <div class="key-letter flex-1">ç</div>
+            <!-- Backspace -->
+            <div class="key-letter w-12" onclick="backspace()">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l6.414 6.414a2 2 0 001.414.586H19a2 2 0 002-2V7a2 2 0 00-2-2h-8.172a2 2 0 00-1.414.586L3 12z"></path></svg>
+            </div>
+        </div>
+
+        <!-- 4-qator (Maxsus tugmalar) -->
+        <div class="flex justify-between gap-2 px-1 mt-1">
+            <div class="key-action w-14 font-medium text-gray-300">?123</div>
+            <div class="key-action w-10 text-gray-300">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            <div class="key-action w-10 text-gray-300">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
+            </div>
+            
+            <div class="key-space cursor-pointer" onclick="insertText(' ')">O'zbekcha</div>
+            
+            <div class="key-action w-10 text-gray-300 text-xl font-bold" onclick="insertText('.')">.</div>
+            <div class="key-action key-enter w-14" onclick="insertText('\n')">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
+            </div>
         </div>
     </div>
 
@@ -109,28 +160,25 @@
         const input = document.getElementById('textInput');
         let isCaps = false;
 
-        // Harflarni kiritish
         document.querySelectorAll('.key-letter').forEach(key => {
             key.addEventListener('click', (e) => {
-                insertText(e.target.innerText);
+                // Agar bosilgan element harf bo'lsa (kursor svg ga tushib qolmasligi uchun)
+                const char = e.currentTarget.innerText.replace(/[0-9]/g, '').trim(); 
+                if(char && char.length === 1) {
+                    insertText(char);
+                }
             });
         });
 
-        // Kursor turgan joyga matn qistirish
         function insertText(char) {
             const start = input.selectionStart;
             const end = input.selectionEnd;
             const text = input.value;
             input.value = text.substring(0, start) + char + text.substring(end);
-            
-            // Kursorni yangilash
             input.selectionStart = input.selectionEnd = start + 1;
-            
-            // Fokusni inputda ushlab turish (Telegram ekranida yopilib qolmasligi uchun)
             input.focus();
         }
 
-        // O'chirish (Backspace)
         function backspace() {
             const start = input.selectionStart;
             if (start === 0) return;
@@ -140,17 +188,19 @@
             input.focus();
         }
 
-        // Katta/kichik harflarni o'zgartirish (Caps Lock)
         function toggleCaps() {
             isCaps = !isCaps;
             document.querySelectorAll('.key-letter').forEach(btn => {
-                btn.innerText = isCaps ? btn.innerText.toUpperCase() : btn.innerText.toLowerCase();
+                const textNodes = Array.from(btn.childNodes).filter(node => node.nodeType === 3);
+                textNodes.forEach(node => {
+                    if (node.nodeValue.trim()) {
+                        node.nodeValue = isCaps ? node.nodeValue.toUpperCase() : node.nodeValue.toLowerCase();
+                    }
+                });
             });
         }
         
-        // Kursor ustiga bosilganda telefonning o'z klaviaturasi chiqib ketishini to'xtatish
         input.addEventListener('touchstart', (e) => {
-            // Agar inputmode="none" ishlamasa, bu yordamchi bo'ladi
             input.focus();
         });
     </script>
