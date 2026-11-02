@@ -2,207 +2,206 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gboard UI - Maxsus Klaviatura</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Bildirishnoma - L.uz</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Roboto", "Segoe UI", Helvetica, Arial, sans-serif; 
-            background-color: #121212; 
-            color: #ffffff; 
-            overflow: hidden;
+        /* iOS Design System Fonts & Resets */
+        *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-tap-highlight-color:transparent}
+        html,body{background:#000!important;color:#fff;overscroll-behavior-y:none}
+        body{display:flex;justify-content:center;min-height:100vh;-webkit-font-smoothing:antialiased}
+        
+        .mobile-container{width:100%;max-width:420px;padding:0 0 140px 0;display:flex;flex-direction:column;min-height:100vh;}
+        
+        /* Yuqori qism: iPhone notch (safe-area) bilan ishlashi uchun padding */
+        .modern-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: calc(70px + env(safe-area-inset-top)) 20px 15px 20px; 
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
-        /* Chegarasiz oddiy harf tugmalari */
-        .key-letter { 
-            position: relative;
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            background-color: transparent; 
-            border-radius: 8px; 
-            font-weight: 400; 
-            font-size: 1.5rem; 
-            user-select: none; 
-            cursor: pointer; 
-            height: 48px;
-        }
-        .key-letter:active { 
-            background-color: rgba(255, 255, 255, 0.1); 
-        }
-        /* Kichik raqamlar (harflar ustidagi) */
-        .sup-num {
+        
+        .header-title {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            color: #fff;
+            margin: 0;
             position: absolute;
-            top: 2px;
-            right: 4px;
-            font-size: 0.6rem;
-            color: #888;
+            left: 50%;
+            transform: translateX(-50%);
         }
-        /* Pastki va chetdagi maxsus tugmalar */
-        .key-action { 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            background-color: #323339; 
-            border-radius: 24px; /* Dumaloq shakl */
-            font-size: 1rem;
-            user-select: none; 
-            cursor: pointer; 
-            height: 44px;
-        }
-        .key-action:active {
-            background-color: #45464d;
-        }
-        .key-space { 
-            flex-grow: 1; 
-            min-width: 40%; 
-            background-color: #323339;
-            border-radius: 24px;
+        
+        .icon-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #e2e2e2;
-            font-size: 0.95rem;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 2;
         }
-        .key-enter {
-            background-color: #8ab4f8; /* Ochiq ko'k rang */
-            color: #202124;
-            border-radius: 24px;
+        
+        .icon-btn:active {
+            transform: scale(0.9);
+            background: rgba(255, 255, 255, 0.15);
         }
-        .key-enter:active {
-            background-color: #a8c7fa;
+        
+        .icon-btn svg {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
         }
+
+        /* Bo'sh holat (Empty state) dizayni */
+        .empty-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+            margin-top: 30%;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .empty-icon {
+            width: 64px;
+            height: 64px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            color: #8e8e93;
+        }
+
+        .empty-icon svg {
+            width: 32px;
+            height: 32px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 1.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .empty-text {
+            color: #8e8e93;
+            font-size: 16px;
+            line-height: 1.5;
+            font-weight: 500;
+            max-width: 80%;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* "ISLAND" PASTKI NAVIGATSIYA */
+        .bottom-nav{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:380px;background:rgba(28,28,30,0.85);backdrop-filter:blur(25px);-webkit-backdrop-filter:blur(25px);border:1px solid rgba(255,255,255,0.1);border-radius:40px;z-index:50;box-shadow:0 10px 40px rgba(0,0,0,0.6);padding:6px 12px}
+        .bottom-nav-inner{display:flex;justify-content:space-between;align-items:center;width:100%}
+        .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;text-decoration:none;color:#8e8e93;transition:color .2s,transform .2s}
+        .nav-btn:active{transform:scale(.92)}
+        .nav-btn svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+        .nav-active{color:#fff}
+        .nav-label{font-size:10px;font-weight:600}
+        .nav-avatar,.nav-avatar-initial{width:26px;height:26px;border-radius:50%;object-fit:cover}
+        .nav-avatar-initial{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:linear-gradient(135deg,#3a3a3c 0%,#1c1c1e 100%);color:#fff}
     </style>
 </head>
-<body class="h-screen flex flex-col">
+<body>
 
-    <!-- Kiritish maydoni -->
-    <div class="flex-1 p-5 flex flex-col">
-        <textarea id="textInput" class="w-full h-full bg-transparent text-3xl outline-none resize-none placeholder-gray-600" placeholder="Yozishni boshlang..." inputmode="none" autofocus></textarea>
+<div class="mobile-container">
+    <header class="modern-header">
+        <button class="icon-btn" id="backBtn" aria-label="Orqaga">
+            <svg viewBox="0 0 24 24">
+                <path d="M15 18l-6-6 6-6"/>
+            </svg>
+        </button>
+        <h1 class="header-title">Bildirishnoma</h1>
+        <div style="width: 40px;"></div> <!-- Sarlavhani o'rtaga joylashtirish uchun bo'sh joy -->
+    </header>
+
+    <main class="empty-container">
+        <div class="empty-icon">
+            <svg viewBox="0 0 24 24">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+        </div>
+        <p class="empty-text">Barcha bildirishnomalar shu yerda paydo boʻladi</p>
+    </main>
+</div>
+
+<!-- OROLCHA NAVIGATSIYA -->
+<nav class="bottom-nav">
+    <div class="bottom-nav-inner">
+        <a href="index.html" class="nav-btn nav-inactive"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span class="nav-label">Uy</span></a>
+        <!-- Ushbu sahifa (Bildirishnoma) faol bo'lganligi uchun nav-active va oq rangga o'zgardi -->
+        <a href="notification.html" class="nav-btn nav-active"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg><span class="nav-label">Bildirishnoma</span></a>
+        <a href="qidiruv.html" class="nav-btn nav-inactive"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span class="nav-label">Qidiruv</span></a>
+        <a href="profil.html" class="nav-btn nav-inactive" id="navProfileLink"><span id="navAvatarSlot"><div class="nav-avatar-initial">F</div></span><span class="nav-label">Profil</span></a>
     </div>
+</nav>
 
-    <!-- Virtual Klaviatura (Gboard UI) -->
-    <div class="bg-[#1c1d22] p-2 pb-6 flex flex-col gap-1.5 select-none w-full shadow-2xl" id="keyboard">
-        
-        <!-- Tepa panel (Menyu va Mikrofon) -->
-        <div class="flex justify-between items-center px-3 py-1 mb-1">
-            <svg class="w-6 h-6 text-gray-300 cursor-pointer" fill="currentColor" viewBox="0 0 24 24"><path d="M4 4h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 10h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z"/></svg>
-            <svg class="w-6 h-6 text-gray-300 cursor-pointer" fill="currentColor" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
-        </div>
-
-        <!-- 1-qator -->
-        <div class="flex justify-center gap-0.5">
-            <div class="key-letter flex-1"><span class="sup-num">1</span>q</div>
-            <div class="key-letter flex-1"><span class="sup-num">2</span>e</div>
-            <div class="key-letter flex-1"><span class="sup-num">3</span>r</div>
-            <div class="key-letter flex-1"><span class="sup-num">4</span>t</div>
-            <div class="key-letter flex-1"><span class="sup-num">5</span>y</div>
-            <div class="key-letter flex-1"><span class="sup-num">6</span>u</div>
-            <div class="key-letter flex-1"><span class="sup-num">7</span>i</div>
-            <div class="key-letter flex-1"><span class="sup-num">8</span>o</div>
-            <div class="key-letter flex-1"><span class="sup-num">9</span>p</div>
-            <div class="key-letter flex-1"><span class="sup-num">0</span>ö</div>
-        </div>
-        
-        <!-- 2-qator -->
-        <div class="flex justify-center gap-0.5 px-4">
-            <div class="key-letter flex-1">a</div>
-            <div class="key-letter flex-1">s</div>
-            <div class="key-letter flex-1">d</div>
-            <div class="key-letter flex-1">f</div>
-            <div class="key-letter flex-1">g</div>
-            <div class="key-letter flex-1">h</div>
-            <div class="key-letter flex-1">j</div>
-            <div class="key-letter flex-1">k</div>
-            <div class="key-letter flex-1">l</div>
-            <div class="key-letter flex-1">ğ</div>
-        </div>
-
-        <!-- 3-qator -->
-        <div class="flex justify-center gap-1 items-center">
-            <!-- Shift -->
-            <div class="key-letter w-12" onclick="toggleCaps()">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"></path></svg>
-            </div>
-            <div class="key-letter flex-1">z</div>
-            <div class="key-letter flex-1">x</div>
-            <div class="key-letter flex-1">v</div>
-            <div class="key-letter flex-1">b</div>
-            <div class="key-letter flex-1">n</div>
-            <div class="key-letter flex-1">m</div>
-            <div class="key-letter flex-1">ş</div>
-            <div class="key-letter flex-1">ç</div>
-            <!-- Backspace -->
-            <div class="key-letter w-12" onclick="backspace()">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l6.414 6.414a2 2 0 001.414.586H19a2 2 0 002-2V7a2 2 0 00-2-2h-8.172a2 2 0 00-1.414.586L3 12z"></path></svg>
-            </div>
-        </div>
-
-        <!-- 4-qator (Maxsus tugmalar) -->
-        <div class="flex justify-between gap-2 px-1 mt-1">
-            <div class="key-action w-14 font-medium text-gray-300">?123</div>
-            <div class="key-action w-10 text-gray-300">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            </div>
-            <div class="key-action w-10 text-gray-300">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
-            </div>
+<script>
+    /* Telegram Web App sozlamalari */
+    const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
+    if (tg) {
+        try {
+            tg.ready(); 
+            tg.expand();
+            if (tg.setHeaderColor) tg.setHeaderColor('#000000');
+            if (tg.setBackgroundColor) tg.setBackgroundColor('#000000');
             
-            <div class="key-space cursor-pointer" onclick="insertText(' ')">O'zbekcha</div>
-            
-            <div class="key-action w-10 text-gray-300 text-xl font-bold" onclick="insertText('.')">.</div>
-            <div class="key-action key-enter w-14" onclick="insertText('\n')">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const input = document.getElementById('textInput');
-        let isCaps = false;
-
-        document.querySelectorAll('.key-letter').forEach(key => {
-            key.addEventListener('click', (e) => {
-                // Agar bosilgan element harf bo'lsa (kursor svg ga tushib qolmasligi uchun)
-                const char = e.currentTarget.innerText.replace(/[0-9]/g, '').trim(); 
-                if(char && char.length === 1) {
-                    insertText(char);
-                }
-            });
-        });
-
-        function insertText(char) {
-            const start = input.selectionStart;
-            const end = input.selectionEnd;
-            const text = input.value;
-            input.value = text.substring(0, start) + char + text.substring(end);
-            input.selectionStart = input.selectionEnd = start + 1;
-            input.focus();
-        }
-
-        function backspace() {
-            const start = input.selectionStart;
-            if (start === 0) return;
-            const text = input.value;
-            input.value = text.substring(0, start - 1) + text.substring(start);
-            input.selectionStart = input.selectionEnd = start - 1;
-            input.focus();
-        }
-
-        function toggleCaps() {
-            isCaps = !isCaps;
-            document.querySelectorAll('.key-letter').forEach(btn => {
-                const textNodes = Array.from(btn.childNodes).filter(node => node.nodeType === 3);
-                textNodes.forEach(node => {
-                    if (node.nodeValue.trim()) {
-                        node.nodeValue = isCaps ? node.nodeValue.toUpperCase() : node.nodeValue.toLowerCase();
-                    }
+            // Telegramning o'zining "Back" tugmasini ko'rsatish
+            if (tg.BackButton) {
+                tg.BackButton.show();
+                tg.BackButton.onClick(() => {
+                    window.location.href = 'index.html';
                 });
-            });
+            }
+        } catch (e) {}
+    }
+
+    /* Orqaga qaytish tugmasi */
+    document.getElementById('backBtn').addEventListener('click', () => {
+        window.location.href = 'index.html'; 
+    });
+
+    /* Profil avatarini yuklash (Local DB dan olingan bo'lsa) */
+    try {
+        const currentUser = JSON.parse(localStorage.getItem('luz_users'))?.find(u => u.userId === localStorage.getItem('luz_current_user'));
+        if (currentUser) {
+            const navAvatarSlot = document.getElementById('navAvatarSlot');
+            const cuInit = (currentUser.firstName || 'F').charAt(0).toUpperCase();
+            if (currentUser.photo_url) {
+                navAvatarSlot.innerHTML = `<img class="nav-avatar" src="${currentUser.photo_url}" alt="${cuInit}">`;
+            } else {
+                navAvatarSlot.innerHTML = `<div class="nav-avatar-initial">${cuInit}</div>`;
+            }
         }
-        
-        input.addEventListener('touchstart', (e) => {
-            input.focus();
-        });
-    </script>
+    } catch (e) {}
+</script>
 </body>
 </html>
