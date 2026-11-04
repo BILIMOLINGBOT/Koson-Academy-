@@ -21,7 +21,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: calc(74px + env(safe-area-inset-top)) 20px 15px 20px; 
+            padding: calc(16px + env(safe-area-inset-top)) 20px 15px 20px; 
             background: rgba(0, 0, 0, 0.8);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
@@ -256,6 +256,7 @@ if (tg) {
 /* ================= KONSTANTALAR ================= */
 const MAX_VISIBLE_DEPTH = 2;
 const REPLIES_KEY = 'luz_my_replies_v1';
+const NOTIF_KEY = 'luz_notifications_v1'; // BILDIRISHNOMALAR UCHUN KALIT
 
 /* ================= DB ================= */
 const DB = {
@@ -265,6 +266,30 @@ const DB = {
         try { const users = JSON.parse(localStorage.getItem(this._K)) || []; return users.find(u => u.userId === id) || null; } catch { return null; }
     }
 };
+
+/* ================= BILDIRISHNOMA YUBORISH LOGIKASI ================= */
+function addNotification(type, targetUserId, postId = null) {
+    if (!currentUser || targetUserId === currentUser.userId) return; // O'ziga o'zi bildirishnoma bormaydi
+    
+    try {
+        const raw = localStorage.getItem(NOTIF_KEY);
+        const notifs = raw ? JSON.parse(raw) : [];
+        
+        notifs.unshift({
+            id: 'n_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+            type: type, // 'like', 'comment', 'reply', 'follow'
+            actorId: currentUser.userId,
+            actorName: currentUser.firstName || 'Foydalanuvchi',
+            targetUserId: targetUserId,
+            postId: postId,
+            createdAt: new Date().toISOString(),
+            read: false
+        });
+        
+        localStorage.setItem(NOTIF_KEY, JSON.stringify(notifs));
+    } catch (e) { console.error("Notif Error:", e); }
+}
+
 
 /* ================= POST STORE ================= */
 const POST_STORE_KEY = 'tg_feed_posts_v1';
@@ -283,7 +308,6 @@ const PostStore = {
         list[i] = Object.assign({}, list[i], patch); this._cache = list; this._save(); return list[i];
     }
 };
-
 
 /* ================= VIEW TRACKER ================= */
 const VIEW_LOG_KEY = 'luz_view_log_v1';
@@ -304,7 +328,7 @@ const ViewTracker = {
 };
 
 /* ================= SESSION & AVATAR ================= */
-const currentUser = DB.getCurrentUser() || {};
+const currentUser = DB.getCurrentUser() || { firstName: "Mehmon" };
 
 const navAvatarSlot = document.getElementById('navAvatarSlot');
 const cuName = [currentUser.firstName, currentUser.lastName].filter(Boolean).join(' ') || 'Foydalanuvchi';
@@ -409,7 +433,11 @@ function buildPostActions(p, item){
         const likes = Math.max(0, (fresh.likes || 0) + (liked ? 1 : -1));
         PostStore.update(p.id, { liked, likes }); p.liked = liked; p.likes = likes;
         likeBtn.classList.toggle('liked', liked); likeBtn.querySelector('.act-count').textContent = likes;
+        
+        // YOQDI BILDIRISHNOMASI
+        if (liked && fresh.userId) addNotification('like', fresh.userId, fresh.id);
     });
+    
     const commBtn = createBtn(ICONS.comment, countComments(p), '', (e)=>{ e.stopPropagation(); openPostDetail(p); });
     const viewBtn = createBtn(ICONS.view, p.views||0, '', (e)=>{ e.stopPropagation(); }); viewBtn.style.cursor='default';
     const saveBtn = createBtn(ICONS.bookmark, null, savedPosts.has(p.id)?'saved':'', (e)=>{
@@ -480,8 +508,7 @@ function renderFeed(){
     posts.forEach(p => feed.appendChild(buildPostItem(p)));
 }
 
-
-
+   
 /* ================= POST DETAIL VIEW ================= */
 const detailOverlay = document.getElementById('detailOverlay'), detailInput = document.getElementById('detailInput'), detailSend = document.getElementById('detailSend');
 let detailPost = null, replyTargetId = null;
@@ -600,8 +627,18 @@ detailSend.addEventListener('click', () => {
     if (!cleanText) { showToast('Javob matni bo\'sh'); return; }
 
     const newC = makeCommentObj(cleanText, replyTargetId);
-    if (addCommentToPost(detailPost.id, newC, replyTargetId)) {
+    const result = addCommentToPost(detailPost.id, newC, replyTargetId);
+    
+    if (result) {
         pushMyReply({ id: newC.id, postId: detailPost.id, userId: newC.userId, user: newC.user, avatar: newC.avatar, text: newC.text, createdAt: newC.createdAt, postText: detailPost.text });
+        
+        // BILDIRISHNOMA (COMMENT / REPLY)
+        if (replyTargetId && result.parent && result.parent.userId) {
+            addNotification('reply', result.parent.userId, detailPost.id);
+        } else if (detailPost.userId) {
+            addNotification('comment', detailPost.userId, detailPost.id);
+        }
+        
         replyTargetId = null; detailInput.value = ''; detailSend.disabled = true; refreshDetailFromStore();
     }
 });
@@ -641,8 +678,16 @@ commentDetailInput.addEventListener('input', () => {
 commentDetailSend.addEventListener('click', () => {
     const txt = commentDetailInput.value.trim(); if (!txt || !detailPost || !activeCommentId) return;
     const newReply = makeCommentObj(txt, activeCommentId);
-    if (addCommentToPost(detailPost.id, newReply, activeCommentId)) {
+    const result = addCommentToPost(detailPost.id, newReply, activeCommentId);
+    
+    if (result) {
         pushMyReply({ id: newReply.id, postId: detailPost.id, userId: newReply.userId, user: newReply.user, avatar: newReply.avatar, text: newReply.text, createdAt: newReply.createdAt, postText: detailPost.text });
+        
+        // JAVOB BILDIRISHNOMASI
+        if (result.parent && result.parent.userId) {
+            addNotification('reply', result.parent.userId, detailPost.id);
+        }
+
         commentDetailInput.value = ''; commentDetailSend.disabled = true; refreshDetailFromStore();
         
         const found = findComment(detailPost.comments || [], activeCommentId);
@@ -665,6 +710,14 @@ window.addEventListener('popstate', () => {
     else if (detailOverlay?.classList.contains('show')) { closePostDetail(); window.history.pushState({ page: 'uy' }, 'Uy', ''); }
     else goHome();
 });
+
+// URL orqali post ID si kelsa, to'g'ridan-to'g'ri o'sha postni ochish (Notification dan o'tish uchun)
+const urlParams = new URLSearchParams(window.location.search);
+const targetPostId = urlParams.get('post');
+if (targetPostId) {
+    const p = PostStore.get(targetPostId);
+    if (p) openPostDetail(p);
+}
 </script>
 </body>
 </html>
