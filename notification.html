@@ -72,6 +72,9 @@
         
         .notif-time { font-size: 13px; color: #71767b; white-space: nowrap; margin-left: 10px; }
 
+        /* Like / Comment / Reply matni (preview) */
+        .notif-preview{font-size:15px;line-height:1.4;color:#71767b;margin-top:6px;word-break:break-word;white-space:pre-wrap;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+
         /* Empty State */
         .empty-container { display: none; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; text-align: center; margin-top: 20%; animation: fadeIn 0.4s ease-out; }
         .empty-title { font-size: 28px; font-weight: 800; margin-bottom: 8px; color: #e7e9ea; }
@@ -136,6 +139,7 @@
     }
 
     const NOTIF_KEY = 'notifications';
+    const POST_STORE_KEY = 'tg_feed_posts_v1';
     
     function getCurrentUser() {
         const id = localStorage.getItem('luz_current_user'); if (!id) return null;
@@ -170,11 +174,40 @@
     };
 
     const TEXT_MAP = {
-        like: "ga yoqdi",
+        like: "postingizni yoqtirdi",
         follow: "sizga Obuna boʻldi",
-        comment: "sizga izoh yozdi",
-        reply: "sizga javob yozdi"
+        comment: "postingizga izoh yozdi",
+        reply: "izohingizga javob yozdi"
     };
+
+    /* ================= PREVIEW MATNI (post / izoh / javob) ================= */
+    function getPostById(id){
+        try { return (JSON.parse(localStorage.getItem(POST_STORE_KEY)) || []).find(p => p.id === id) || null; } catch { return null; }
+    }
+    function findCommentById(list, id){
+        for (const c of (list || [])) {
+            if (c.id === id) return c;
+            const r = findCommentById(c.replies, id);
+            if (r) return r;
+        }
+        return null;
+    }
+    function getPreviewText(n){
+        if (!n.postId) return '';
+        const post = getPostById(n.postId);
+        if (!post) return '';
+        if (n.type === 'like') {
+            if (post.text) return post.text;
+            if (post.type === 'image') return '📷 Rasm';
+            if (post.type === 'video') return '🎥 Video';
+            return '';
+        }
+        if (n.type === 'comment' || n.type === 'reply') {
+            const c = findCommentById(post.comments, n.commentId);
+            return c ? (c.text || '') : '';
+        }
+        return '';
+    }
 
     /* ================= NOTIFICATION LOGIC ================= */
     const Store = {
@@ -203,6 +236,7 @@
                 
                 const init = (n.senderName || 'F').trim().charAt(0).toUpperCase();
                 const av = n.senderAvatar ? `<img class="notif-avatar" src="${n.senderAvatar}">` : `<div class="notif-avatar-initial">${init}</div>`;
+                const preview = getPreviewText(n);
                 
                 item.innerHTML = `
                     <div class="notif-icon-col">${ICONS_SVG[n.type] || ''}</div>
@@ -214,6 +248,7 @@
                         <div class="notif-text">
                             <strong>${escapeHtml(n.senderName)}</strong> ${TEXT_MAP[n.type] || ''}
                         </div>
+                        ${preview ? `<div class="notif-preview">${escapeHtml(preview)}</div>` : ''}
                     </div>
                 `;
                 
@@ -258,7 +293,7 @@
     });
 
     /* Live Syncing */
-    window.addEventListener('storage', (e) => { if (e.key === NOTIF_KEY) renderNotifications(); });
+    window.addEventListener('storage', (e) => { if (e.key === NOTIF_KEY || e.key === POST_STORE_KEY) renderNotifications(); });
     window.addEventListener('luz_notifs_updated', renderNotifications);
     
     // Bottom badge update just for this page's icon (hide badge if active)
