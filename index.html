@@ -82,13 +82,16 @@
         /* "ISLAND" PASTKI NAVIGATSIYA */
         .bottom-nav{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:380px;background:rgba(28,28,30,0.85);backdrop-filter:blur(25px);-webkit-backdrop-filter:blur(25px);border:1px solid rgba(255,255,255,0.1);border-radius:40px;z-index:50;box-shadow:0 10px 40px rgba(0,0,0,0.6);padding:6px 12px}
         .bottom-nav-inner{display:flex;justify-content:space-between;align-items:center;width:100%}
-        .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;text-decoration:none;color:#8e8e93;transition:color .2s,transform .2s}
+        .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;text-decoration:none;color:#8e8e93;transition:color .2s,transform .2s;position:relative}
         .nav-btn:active{transform:scale(.92)}
         .nav-btn svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
         .nav-active{color:#fff}
         .nav-label{font-size:10px;font-weight:600}
         .nav-avatar,.nav-avatar-initial{width:26px;height:26px;border-radius:50%;object-fit:cover}
         .nav-avatar-initial{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:linear-gradient(135deg,#3a3a3c 0%,#1c1c1e 100%);color:#fff}
+        
+        /* Navigatsiya Notification Badge */
+        .nav-badge{position:absolute;top:2px;right:25%;background:#ff2d55;color:#fff;font-size:10px;font-weight:700;border-radius:10px;padding:2px 5px;min-width:16px;text-align:center;line-height:1;border:2px solid #1c1c1e;z-index:10}
 
         /* ============ DETAIL (POST) ============ */
         .detail-overlay, .comment-detail-overlay{position:fixed;inset:0;background:#000;z-index:500;display:none;flex-direction:column;animation:detailIn .3s cubic-bezier(.34,1.2,.64,1) both}
@@ -256,6 +259,7 @@ if (tg) {
 /* ================= KONSTANTALAR ================= */
 const MAX_VISIBLE_DEPTH = 2;
 const REPLIES_KEY = 'luz_my_replies_v1';
+const NOTIF_KEY = 'notifications'; // Notification uchun baza
 
 /* ================= DB ================= */
 const DB = {
@@ -285,6 +289,74 @@ const PostStore = {
 };
 
 
+/* ================= NOTIFICATION HELPER ================= */
+function sendNotification(type, recipientId, postId, commentId = null) {
+    if (!currentUser || !currentUser.userId || String(currentUser.userId) === String(recipientId)) return;
+    
+    try {
+        let notifs = JSON.parse(localStorage.getItem(NOTIF_KEY)) || [];
+        
+        // Layk bosilganda avval bosilgan bo'lsa takrorlanmasligi uchun
+        if (type === 'like') {
+            const exists = notifs.some(n => n.type === 'like' && n.postId === postId && n.senderId === currentUser.userId);
+            if (exists) return;
+        }
+
+        const newNotif = {
+            id: 'n_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+            type: type,
+            recipientId: String(recipientId),
+            senderId: currentUser.userId,
+            senderName: [currentUser.firstName, currentUser.lastName].filter(Boolean).join(' ') || 'Foydalanuvchi',
+            senderAvatar: currentUser.photo_url || null,
+            postId: postId,
+            commentId: commentId,
+            createdAt: new Date().toISOString(),
+            isRead: false
+        };
+        
+        notifs.push(newNotif);
+        localStorage.setItem(NOTIF_KEY, JSON.stringify(notifs));
+        window.dispatchEvent(new Event('luz_notifs_updated'));
+        updateNotificationBadgeLocal();
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+function removeNotification(type, postId) {
+    if (!currentUser || !currentUser.userId) return;
+    try {
+        let notifs = JSON.parse(localStorage.getItem(NOTIF_KEY)) || [];
+        notifs = notifs.filter(n => !(n.type === type && n.postId === postId && n.senderId === currentUser.userId));
+        localStorage.setItem(NOTIF_KEY, JSON.stringify(notifs));
+        window.dispatchEvent(new Event('luz_notifs_updated'));
+        updateNotificationBadgeLocal();
+    } catch (e) {}
+}
+
+function updateNotificationBadgeLocal() {
+    const btn = document.getElementById('navNotifBtn'); if (!btn) return;
+    try {
+        const notifs = JSON.parse(localStorage.getItem(NOTIF_KEY)) || [];
+        const unreadCount = notifs.filter(n => n.recipientId === currentUser?.userId && !n.isRead).length;
+        let badge = btn.querySelector('.nav-badge');
+        
+        if (unreadCount > 0) {
+            if (!badge) {
+                badge = document.createElement('div');
+                badge.className = 'nav-badge';
+                btn.appendChild(badge);
+            }
+            badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+        } else if (badge) {
+            badge.remove();
+        }
+    } catch(e){}
+}
+window.addEventListener('storage', (e) => { if(e.key === NOTIF_KEY) updateNotificationBadgeLocal(); });
+
+
 /* ================= VIEW TRACKER ================= */
 const VIEW_LOG_KEY = 'luz_view_log_v1';
 const ViewTracker = {
@@ -311,99 +383,6 @@ const cuName = [currentUser.firstName, currentUser.lastName].filter(Boolean).joi
 const cuInit = cuName.trim().charAt(0).toUpperCase() || 'F';
 if (currentUser.photo_url) navAvatarSlot.innerHTML = `<img class="nav-avatar" src="${currentUser.photo_url}" alt="${cuInit}">`;
 else navAvatarSlot.innerHTML = `<div class="nav-avatar-initial">${cuInit}</div>`;
-
-/* ================= NOTIFICATION MANAGER ================= */
-const NOTIF_KEY = 'notifications';
-
-const NotificationManager = {
-    getAll() {
-        try { return JSON.parse(localStorage.getItem(NOTIF_KEY)) || []; } catch { return []; }
-    },
-    save(notifs) {
-        localStorage.setItem(NOTIF_KEY, JSON.stringify(notifs));
-        window.dispatchEvent(new Event('luz_notifs_updated'));
-    },
-    add(type, recipientId, postId, commentId) {
-        if (!currentUser || !currentUser.userId || currentUser.userId === String(recipientId)) return; // O'ziga o'zi yubormaydi
-
-        let notifs = this.getAll();
-        
-        // Like va Follow dublikatlarini oldini olish
-        if (type === 'like' || type === 'follow') {
-            const exists = notifs.some(n => n.type === type && n.senderId === currentUser.userId && (type === 'like' ? n.postId === postId : true) && n.recipientId === String(recipientId));
-            if (exists) return;
-        }
-
-        const newNotif = {
-            id: 'n_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
-            recipientId: String(recipientId),
-            senderId: currentUser.userId,
-            senderName: cuName,
-            senderAvatar: currentUser.photo_url || null,
-            type: type, // like, follow, comment, reply
-            postId: postId || null,
-            commentId: commentId || null,
-            isRead: false,
-            createdAt: new Date().toISOString()
-        };
-        
-        notifs.unshift(newNotif); // Yangilari eng tepaga
-        this.save(notifs);
-    },
-    removeLike(recipientId, postId) {
-        let notifs = this.getAll();
-        notifs = notifs.filter(n => !(n.type === 'like' && n.senderId === currentUser?.userId && n.postId === postId));
-        this.save(notifs);
-    },
-    removeFollow(recipientId) { 
-        let notifs = this.getAll();
-        notifs = notifs.filter(n => !(n.type === 'follow' && n.senderId === currentUser?.userId && n.recipientId === String(recipientId)));
-        this.save(notifs);
-    },
-    getUnreadCount() {
-        if (!currentUser?.userId) return 0;
-        return this.getAll().filter(n => n.recipientId === currentUser.userId && !n.isRead).length;
-    }
-};
-
-/* --- Bottom Nav Badge (O'qilmagan xabarlar soni) --- */
-function updateNotificationBadge() {
-    const count = NotificationManager.getUnreadCount();
-    let badge = document.getElementById('notifBadge');
-    const notifBtn = document.getElementById('navNotifBtn');
-    
-    if (!notifBtn) return;
-
-    if (count > 0) {
-        if (!badge) {
-            badge = document.createElement('div');
-            badge.id = 'notifBadge';
-            badge.style.cssText = 'position:absolute;top:2px;right:25%;background:#ff2d55;color:#fff;font-size:10px;font-weight:700;border-radius:10px;padding:2px 5px;min-width:16px;text-align:center;line-height:1;border:2px solid #1c1c1e;z-index:10;';
-            notifBtn.style.position = 'relative';
-            notifBtn.appendChild(badge);
-        }
-        badge.textContent = count > 99 ? '99+' : count;
-    } else if (badge) {
-        badge.remove();
-    }
-}
-
-window.addEventListener('storage', (e) => { if (e.key === NOTIF_KEY) updateNotificationBadge(); });
-window.addEventListener('luz_notifs_updated', updateNotificationBadge);
-updateNotificationBadge();
-
-/* URL orqali postni ochish (Notificationdan qaytish uchun) */
-window.addEventListener('DOMContentLoaded', () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const postIdToOpen = urlParams.get('post');
-    if (postIdToOpen) {
-        setTimeout(() => {
-            const postToOpen = PostStore.get(postIdToOpen);
-            if (postToOpen) openPostDetail(postToOpen);
-        }, 100);
-        window.history.replaceState({}, document.title, window.location.pathname);
-    }
-});
 
 /* ================= HELPERS ================= */
 function escapeHtml(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
@@ -497,17 +476,18 @@ function buildPostActions(p, item){
         if (clk) b.addEventListener('click', clk); return b;
     };
     
+    // LAYK BOSILISHI VA NOTIFICATION
     const likeBtn = createBtn(ICONS.like, p.likes||0, p.liked?'liked':'', (e)=>{
         e.stopPropagation(); const fresh = PostStore.get(p.id) || p; const liked = !fresh.liked;
         const likes = Math.max(0, (fresh.likes || 0) + (liked ? 1 : -1));
         PostStore.update(p.id, { liked, likes }); p.liked = liked; p.likes = likes;
         likeBtn.classList.toggle('liked', liked); likeBtn.querySelector('.act-count').textContent = likes;
-
-        // Bidirishnoma (Notification) Logic - LIKE
+        
+        // NOTIFICATION LOGIC
         if (liked) {
-            NotificationManager.add('like', p.userId, p.id);
+            sendNotification('like', fresh.userId, fresh.id);
         } else {
-            NotificationManager.removeLike(p.userId, p.id);
+            removeNotification('like', fresh.id);
         }
     });
     
@@ -580,6 +560,7 @@ function renderFeed(){
     if (posts.length === 0) { feed.innerHTML = '<div class="empty">Hali post yo\'q.<br>Profilga o\'tib birinchi postni yarating.</div>'; return; }
     posts.forEach(p => feed.appendChild(buildPostItem(p)));
 }
+
 
 
 /* ================= POST DETAIL VIEW ================= */
@@ -694,6 +675,8 @@ detailInput.addEventListener('input', () => {
     detailInput.style.height = 'auto'; detailInput.style.height = Math.min(detailInput.scrollHeight, 90) + 'px';
     detailSend.disabled = detailInput.value.trim().length === 0;
 });
+
+// POSTGA IZOH YOKI JAVOB YOZISH VA NOTIFICATION
 detailSend.addEventListener('click', () => {
     const raw = detailInput.value.trim(); if (!raw || !detailPost) return;
     let cleanText = raw; if (replyTargetId) cleanText = raw.replace(/^@\S+\s*/, '').trim();
@@ -703,16 +686,16 @@ detailSend.addEventListener('click', () => {
     if (addCommentToPost(detailPost.id, newC, replyTargetId)) {
         pushMyReply({ id: newC.id, postId: detailPost.id, userId: newC.userId, user: newC.user, avatar: newC.avatar, text: newC.text, createdAt: newC.createdAt, postText: detailPost.text });
         
-        // Bildirishnoma Logic - COMMENT yoki REPLY
+        // NOTIFICATION LOGIC
         if (replyTargetId) {
-            const repliedTo = findComment(detailPost.comments, replyTargetId);
-            if (repliedTo && repliedTo.comment) {
-                NotificationManager.add('reply', repliedTo.comment.userId, detailPost.id, newC.id);
+            const parentFound = findComment(detailPost.comments, replyTargetId);
+            if (parentFound && parentFound.comment) {
+                sendNotification('reply', parentFound.comment.userId, detailPost.id, newC.id);
             }
         } else {
-            NotificationManager.add('comment', detailPost.userId, detailPost.id, newC.id);
+            sendNotification('comment', detailPost.userId, detailPost.id, newC.id);
         }
-
+        
         replyTargetId = null; detailInput.value = ''; detailSend.disabled = true; refreshDetailFromStore();
     }
 });
@@ -750,16 +733,18 @@ commentDetailInput.addEventListener('input', () => {
     commentDetailInput.style.height = 'auto'; commentDetailInput.style.height = Math.min(commentDetailInput.scrollHeight, 90) + 'px';
     commentDetailSend.disabled = commentDetailInput.value.trim().length === 0;
 });
+
+// ICHKI IZOHGA JAVOB YOZISH VA NOTIFICATION
 commentDetailSend.addEventListener('click', () => {
     const txt = commentDetailInput.value.trim(); if (!txt || !detailPost || !activeCommentId) return;
     const newReply = makeCommentObj(txt, activeCommentId);
     if (addCommentToPost(detailPost.id, newReply, activeCommentId)) {
         pushMyReply({ id: newReply.id, postId: detailPost.id, userId: newReply.userId, user: newReply.user, avatar: newReply.avatar, text: newReply.text, createdAt: newReply.createdAt, postText: detailPost.text });
         
-        // Bildirishnoma Logic - REPLY (Ichki)
-        const repliedTo = findComment(detailPost.comments, activeCommentId);
-        if (repliedTo && repliedTo.comment) {
-            NotificationManager.add('reply', repliedTo.comment.userId, detailPost.id, newReply.id);
+        // NOTIFICATION LOGIC
+        const parentFound = findComment(detailPost.comments, activeCommentId);
+        if (parentFound && parentFound.comment) {
+            sendNotification('reply', parentFound.comment.userId, detailPost.id, newReply.id);
         }
 
         commentDetailInput.value = ''; commentDetailSend.disabled = true; refreshDetailFromStore();
@@ -775,7 +760,9 @@ commentDetailSend.addEventListener('click', () => {
 });
 
 /* ================= INIT & NAVIGATION ================= */
-loadMyReplies(); renderFeed();
+loadMyReplies(); renderFeed(); 
+updateNotificationBadgeLocal(); // Dastlabki yuklanishda qizil belgi bormi yo'qmi tekshirish
+
 function goHome(){ window.location.href = 'index.html'; }
 
 window.history.pushState({ page: 'uy' }, 'Uy', '');
