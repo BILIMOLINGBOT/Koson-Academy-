@@ -64,7 +64,10 @@
         .notif-body { flex: 1; display: flex; flex-direction: column; min-width: 0; }
         
         .notif-avatar-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .notif-avatar, .notif-avatar-initial { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; }
+        .notif-avatars { display: flex; align-items: center; }
+        .notif-avatars > * + * { margin-left: -10px; }
+        .notif-avatar, .notif-avatar-initial { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 2px solid #000; }
+        .notif-item.unread .notif-avatar, .notif-item.unread .notif-avatar-initial { border-color: #07131d; }
         .notif-avatar-initial { background: linear-gradient(135deg,#3a3a3c 0%,#1c1c1e 100%); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: #fff; }
         
         .notif-text { font-size: 15px; line-height: 1.4; color: #e7e9ea; word-break: break-word; }
@@ -92,6 +95,7 @@
         .nav-label{font-size:10px;font-weight:600}
         .nav-avatar,.nav-avatar-initial{width:26px;height:26px;border-radius:50%;object-fit:cover}
         .nav-avatar-initial{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:linear-gradient(135deg,#3a3a3c 0%,#1c1c1e 100%);color:#fff}
+        .nav-badge{position:absolute;top:2px;right:25%;background:#ff2d55;color:#fff;font-size:10px;font-weight:700;border-radius:10px;padding:2px 5px;min-width:16px;text-align:center;line-height:1;border:2px solid #1c1c1e;z-index:10}
     </style>
 </head>
 <body>
@@ -121,7 +125,7 @@
 <nav class="bottom-nav">
     <div class="bottom-nav-inner">
         <a href="index.html" class="nav-btn nav-inactive"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span class="nav-label">Uy</span></a>
-        <a href="notification.html" class="nav-btn nav-active"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg><span class="nav-label">Bildirishnoma</span></a>
+        <a href="notification.html" class="nav-btn nav-active" id="navNotifBtn"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg><span class="nav-label">Bildirishnoma</span></a>
         <a href="qidiruv.html" class="nav-btn nav-inactive"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span class="nav-label">Qidiruv</span></a>
         <a href="profil.html" class="nav-btn nav-inactive"><span id="navAvatarSlot"></span><span class="nav-label">Profil</span></a>
     </div>
@@ -211,9 +215,50 @@
 
     /* ================= NOTIFICATION LOGIC ================= */
     const Store = {
-        load: () => JSON.parse(localStorage.getItem(NOTIF_KEY)) || [],
+        load: () => { try { return JSON.parse(localStorage.getItem(NOTIF_KEY)) || []; } catch { return []; } },
         save: (data) => { localStorage.setItem(NOTIF_KEY, JSON.stringify(data)); window.dispatchEvent(new Event('luz_notifs_updated')); }
     };
+
+    /* ----- Guruhlash: bir postdagi layklar va barcha obunalar bitta xabarga birlashadi.
+           Bir odamning takroriy layki bitta deb hisoblanadi. Izoh va javoblar alohida qoladi. ----- */
+    function buildGroups(myNotifs){
+        const sorted = myNotifs.slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        const map = new Map();
+        const groups = [];
+
+        sorted.forEach(n => {
+            const sender = { id: n.senderId, name: n.senderName, avatar: n.senderAvatar };
+            if (n.type === 'like' || n.type === 'follow') {
+                const key = n.type === 'like' ? 'like::' + n.postId : 'follow';
+                let g = map.get(key);
+                if (!g) {
+                    g = { type: n.type, first: n, ids: [], senders: [], latest: n.createdAt, unread: false };
+                    map.set(key, g);
+                    groups.push(g);
+                }
+                g.ids.push(n.id);
+                if (!n.isRead) g.unread = true;
+                if (!g.senders.some(s => s.id === n.senderId)) g.senders.push(sender); // eng yangisi birinchi
+            } else {
+                groups.push({ type: n.type, first: n, ids: [n.id], senders: [sender], latest: n.createdAt, unread: !n.isRead });
+            }
+        });
+        return groups;
+    }
+
+    function buildAvatarsHtml(senders){
+        return senders.slice(0, 3).map(s => {
+            const init = (s.name || 'F').trim().charAt(0).toUpperCase();
+            return s.avatar ? `<img class="notif-avatar" src="${s.avatar}" alt="">` : `<div class="notif-avatar-initial">${init}</div>`;
+        }).join('');
+    }
+
+    function buildGroupText(g){
+        const name = escapeHtml(g.senders[0].name);
+        const others = g.senders.length - 1;
+        const who = others > 0 ? `<strong>${name}</strong> va yana ${others} kishi` : `<strong>${name}</strong>`;
+        return `${who} ${TEXT_MAP[g.type] || ''}`;
+    }
 
     function renderNotifications() {
         if (!currentUser || !currentUser.userId) return;
@@ -230,39 +275,37 @@
             emptyState.style.display = 'flex';
         } else {
             emptyState.style.display = 'none';
-            myNotifs.forEach(n => {
+            buildGroups(myNotifs).forEach(g => {
+                const n = g.first;
                 const item = document.createElement('div');
-                item.className = `notif-item ${n.isRead ? '' : 'unread'}`;
+                item.className = `notif-item ${g.unread ? 'unread' : ''}`;
                 
-                const init = (n.senderName || 'F').trim().charAt(0).toUpperCase();
-                const av = n.senderAvatar ? `<img class="notif-avatar" src="${n.senderAvatar}">` : `<div class="notif-avatar-initial">${init}</div>`;
                 const preview = getPreviewText(n);
                 
                 item.innerHTML = `
-                    <div class="notif-icon-col">${ICONS_SVG[n.type] || ''}</div>
+                    <div class="notif-icon-col">${ICONS_SVG[g.type] || ''}</div>
                     <div class="notif-body">
                         <div class="notif-avatar-row">
-                            ${av}
-                            <span class="notif-time">${formatExactTime(n.createdAt)}</span>
+                            <div class="notif-avatars">${buildAvatarsHtml(g.senders)}</div>
+                            <span class="notif-time">${formatExactTime(g.latest)}</span>
                         </div>
-                        <div class="notif-text">
-                            <strong>${escapeHtml(n.senderName)}</strong> ${TEXT_MAP[n.type] || ''}
-                        </div>
+                        <div class="notif-text">${buildGroupText(g)}</div>
                         ${preview ? `<div class="notif-preview">${escapeHtml(preview)}</div>` : ''}
                     </div>
                 `;
                 
                 item.addEventListener('click', () => {
-                    // Mark as read
-                    if (!n.isRead) {
+                    // Guruhdagi barcha bildirishnomalarni o'qilgan qilish
+                    if (g.unread) {
                         const notifs = Store.load();
-                        const found = notifs.find(x => x.id === n.id);
-                        if (found) { found.isRead = true; Store.save(notifs); }
+                        let changed = false;
+                        notifs.forEach(x => { if (g.ids.includes(x.id) && !x.isRead) { x.isRead = true; changed = true; } });
+                        if (changed) Store.save(notifs);
                     }
                     
                     // Navigate
-                    if (n.type === 'follow') {
-                        window.location.href = `profil.html?id=${n.senderId}`;
+                    if (g.type === 'follow') {
+                        if (g.senders.length === 1) window.location.href = `profil.html?id=${n.senderId}`;
                     } else if (n.postId) {
                         window.location.href = `index.html?post=${n.postId}`;
                     }
@@ -292,16 +335,26 @@
         }
     });
 
-    /* Live Syncing */
+    /* Live Syncing (bir xil qurilma / brauzer ichida) */
     window.addEventListener('storage', (e) => { if (e.key === NOTIF_KEY || e.key === POST_STORE_KEY) renderNotifications(); });
     window.addEventListener('luz_notifs_updated', renderNotifications);
     
-    // Bottom badge update just for this page's icon (hide badge if active)
+    /* ----- Pastki navigatsiyadagi o'qilmagan xabarlar soni (badge) ----- */
     function updateNotificationBadgeLocal() {
-        const notifs = Store.load();
-        const unreadCount = notifs.filter(n => n.recipientId === currentUser?.userId && !n.isRead).length;
-        // Sahifa aktiv, badgeni o'zida yashiramiz yoki shunchaki domni yangilaymiz.
-        // Hozirgi dizaynda sahifa ichida bo'lsa uni ko'rish shart emas, baribir o'qiladi.
+        const btn = document.getElementById('navNotifBtn'); if (!btn) return;
+        const unreadCount = Store.load().filter(n => n.recipientId === currentUser?.userId && !n.isRead).length;
+        let badge = document.getElementById('notifBadge');
+        if (unreadCount > 0) {
+            if (!badge) {
+                badge = document.createElement('div');
+                badge.id = 'notifBadge';
+                badge.className = 'nav-badge';
+                btn.appendChild(badge);
+            }
+            badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+        } else if (badge) {
+            badge.remove();
+        }
     }
 
     renderNotifications();
