@@ -184,7 +184,7 @@
 <nav class="bottom-nav">
     <div class="bottom-nav-inner">
         <a href="index.html" class="nav-btn nav-active"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span class="nav-label">Uy</span></a>
-        <a href="notification.html" class="nav-btn nav-inactive"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg><span class="nav-label">Bildirishnoma</span></a>
+        <a href="notification.html" class="nav-btn nav-inactive" id="navNotifBtn"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg><span class="nav-label">Bildirishnoma</span></a>
         <a href="qidiruv.html" class="nav-btn nav-inactive"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span class="nav-label">Qidiruv</span></a>
         <a href="profil.html" class="nav-btn nav-inactive" id="navProfileLink"><span id="navAvatarSlot"></span><span class="nav-label">Profil</span></a>
     </div>
@@ -256,7 +256,6 @@ if (tg) {
 /* ================= KONSTANTALAR ================= */
 const MAX_VISIBLE_DEPTH = 2;
 const REPLIES_KEY = 'luz_my_replies_v1';
-const NOTIF_KEY = 'luz_notifications_v1'; // BILDIRISHNOMALAR UCHUN KALIT
 
 /* ================= DB ================= */
 const DB = {
@@ -266,30 +265,6 @@ const DB = {
         try { const users = JSON.parse(localStorage.getItem(this._K)) || []; return users.find(u => u.userId === id) || null; } catch { return null; }
     }
 };
-
-/* ================= BILDIRISHNOMA YUBORISH LOGIKASI ================= */
-function addNotification(type, targetUserId, postId = null) {
-    if (!currentUser || targetUserId === currentUser.userId) return; // O'ziga o'zi bildirishnoma bormaydi
-    
-    try {
-        const raw = localStorage.getItem(NOTIF_KEY);
-        const notifs = raw ? JSON.parse(raw) : [];
-        
-        notifs.unshift({
-            id: 'n_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
-            type: type, // 'like', 'comment', 'reply', 'follow'
-            actorId: currentUser.userId,
-            actorName: currentUser.firstName || 'Foydalanuvchi',
-            targetUserId: targetUserId,
-            postId: postId,
-            createdAt: new Date().toISOString(),
-            read: false
-        });
-        
-        localStorage.setItem(NOTIF_KEY, JSON.stringify(notifs));
-    } catch (e) { console.error("Notif Error:", e); }
-}
-
 
 /* ================= POST STORE ================= */
 const POST_STORE_KEY = 'tg_feed_posts_v1';
@@ -308,6 +283,7 @@ const PostStore = {
         list[i] = Object.assign({}, list[i], patch); this._cache = list; this._save(); return list[i];
     }
 };
+
 
 /* ================= VIEW TRACKER ================= */
 const VIEW_LOG_KEY = 'luz_view_log_v1';
@@ -328,13 +304,106 @@ const ViewTracker = {
 };
 
 /* ================= SESSION & AVATAR ================= */
-const currentUser = DB.getCurrentUser() || { firstName: "Mehmon" };
+const currentUser = DB.getCurrentUser() || {};
 
 const navAvatarSlot = document.getElementById('navAvatarSlot');
 const cuName = [currentUser.firstName, currentUser.lastName].filter(Boolean).join(' ') || 'Foydalanuvchi';
 const cuInit = cuName.trim().charAt(0).toUpperCase() || 'F';
 if (currentUser.photo_url) navAvatarSlot.innerHTML = `<img class="nav-avatar" src="${currentUser.photo_url}" alt="${cuInit}">`;
 else navAvatarSlot.innerHTML = `<div class="nav-avatar-initial">${cuInit}</div>`;
+
+/* ================= NOTIFICATION MANAGER ================= */
+const NOTIF_KEY = 'notifications';
+
+const NotificationManager = {
+    getAll() {
+        try { return JSON.parse(localStorage.getItem(NOTIF_KEY)) || []; } catch { return []; }
+    },
+    save(notifs) {
+        localStorage.setItem(NOTIF_KEY, JSON.stringify(notifs));
+        window.dispatchEvent(new Event('luz_notifs_updated'));
+    },
+    add(type, recipientId, postId, commentId) {
+        if (!currentUser || !currentUser.userId || currentUser.userId === String(recipientId)) return; // O'ziga o'zi yubormaydi
+
+        let notifs = this.getAll();
+        
+        // Like va Follow dublikatlarini oldini olish
+        if (type === 'like' || type === 'follow') {
+            const exists = notifs.some(n => n.type === type && n.senderId === currentUser.userId && (type === 'like' ? n.postId === postId : true) && n.recipientId === String(recipientId));
+            if (exists) return;
+        }
+
+        const newNotif = {
+            id: 'n_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+            recipientId: String(recipientId),
+            senderId: currentUser.userId,
+            senderName: cuName,
+            senderAvatar: currentUser.photo_url || null,
+            type: type, // like, follow, comment, reply
+            postId: postId || null,
+            commentId: commentId || null,
+            isRead: false,
+            createdAt: new Date().toISOString()
+        };
+        
+        notifs.unshift(newNotif); // Yangilari eng tepaga
+        this.save(notifs);
+    },
+    removeLike(recipientId, postId) {
+        let notifs = this.getAll();
+        notifs = notifs.filter(n => !(n.type === 'like' && n.senderId === currentUser?.userId && n.postId === postId));
+        this.save(notifs);
+    },
+    removeFollow(recipientId) { 
+        let notifs = this.getAll();
+        notifs = notifs.filter(n => !(n.type === 'follow' && n.senderId === currentUser?.userId && n.recipientId === String(recipientId)));
+        this.save(notifs);
+    },
+    getUnreadCount() {
+        if (!currentUser?.userId) return 0;
+        return this.getAll().filter(n => n.recipientId === currentUser.userId && !n.isRead).length;
+    }
+};
+
+/* --- Bottom Nav Badge (O'qilmagan xabarlar soni) --- */
+function updateNotificationBadge() {
+    const count = NotificationManager.getUnreadCount();
+    let badge = document.getElementById('notifBadge');
+    const notifBtn = document.getElementById('navNotifBtn');
+    
+    if (!notifBtn) return;
+
+    if (count > 0) {
+        if (!badge) {
+            badge = document.createElement('div');
+            badge.id = 'notifBadge';
+            badge.style.cssText = 'position:absolute;top:2px;right:25%;background:#ff2d55;color:#fff;font-size:10px;font-weight:700;border-radius:10px;padding:2px 5px;min-width:16px;text-align:center;line-height:1;border:2px solid #1c1c1e;z-index:10;';
+            notifBtn.style.position = 'relative';
+            notifBtn.appendChild(badge);
+        }
+        badge.textContent = count > 99 ? '99+' : count;
+    } else if (badge) {
+        badge.remove();
+    }
+}
+
+window.addEventListener('storage', (e) => { if (e.key === NOTIF_KEY) updateNotificationBadge(); });
+window.addEventListener('luz_notifs_updated', updateNotificationBadge);
+updateNotificationBadge();
+
+/* URL orqali postni ochish (Notificationdan qaytish uchun) */
+window.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const postIdToOpen = urlParams.get('post');
+    if (postIdToOpen) {
+        setTimeout(() => {
+            const postToOpen = PostStore.get(postIdToOpen);
+            if (postToOpen) openPostDetail(postToOpen);
+        }, 100);
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+});
 
 /* ================= HELPERS ================= */
 function escapeHtml(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
@@ -433,9 +502,13 @@ function buildPostActions(p, item){
         const likes = Math.max(0, (fresh.likes || 0) + (liked ? 1 : -1));
         PostStore.update(p.id, { liked, likes }); p.liked = liked; p.likes = likes;
         likeBtn.classList.toggle('liked', liked); likeBtn.querySelector('.act-count').textContent = likes;
-        
-        // YOQDI BILDIRISHNOMASI
-        if (liked && fresh.userId) addNotification('like', fresh.userId, fresh.id);
+
+        // Bidirishnoma (Notification) Logic - LIKE
+        if (liked) {
+            NotificationManager.add('like', p.userId, p.id);
+        } else {
+            NotificationManager.removeLike(p.userId, p.id);
+        }
     });
     
     const commBtn = createBtn(ICONS.comment, countComments(p), '', (e)=>{ e.stopPropagation(); openPostDetail(p); });
@@ -508,7 +581,7 @@ function renderFeed(){
     posts.forEach(p => feed.appendChild(buildPostItem(p)));
 }
 
-   
+
 /* ================= POST DETAIL VIEW ================= */
 const detailOverlay = document.getElementById('detailOverlay'), detailInput = document.getElementById('detailInput'), detailSend = document.getElementById('detailSend');
 let detailPost = null, replyTargetId = null;
@@ -627,21 +700,23 @@ detailSend.addEventListener('click', () => {
     if (!cleanText) { showToast('Javob matni bo\'sh'); return; }
 
     const newC = makeCommentObj(cleanText, replyTargetId);
-    const result = addCommentToPost(detailPost.id, newC, replyTargetId);
-    
-    if (result) {
+    if (addCommentToPost(detailPost.id, newC, replyTargetId)) {
         pushMyReply({ id: newC.id, postId: detailPost.id, userId: newC.userId, user: newC.user, avatar: newC.avatar, text: newC.text, createdAt: newC.createdAt, postText: detailPost.text });
         
-        // BILDIRISHNOMA (COMMENT / REPLY)
-        if (replyTargetId && result.parent && result.parent.userId) {
-            addNotification('reply', result.parent.userId, detailPost.id);
-        } else if (detailPost.userId) {
-            addNotification('comment', detailPost.userId, detailPost.id);
+        // Bildirishnoma Logic - COMMENT yoki REPLY
+        if (replyTargetId) {
+            const repliedTo = findComment(detailPost.comments, replyTargetId);
+            if (repliedTo && repliedTo.comment) {
+                NotificationManager.add('reply', repliedTo.comment.userId, detailPost.id, newC.id);
+            }
+        } else {
+            NotificationManager.add('comment', detailPost.userId, detailPost.id, newC.id);
         }
-        
+
         replyTargetId = null; detailInput.value = ''; detailSend.disabled = true; refreshDetailFromStore();
     }
 });
+
 
 /* ================= COMMENT DETAIL ================= */
 const commentDetailOverlay = document.getElementById('commentDetailOverlay');
@@ -678,14 +753,13 @@ commentDetailInput.addEventListener('input', () => {
 commentDetailSend.addEventListener('click', () => {
     const txt = commentDetailInput.value.trim(); if (!txt || !detailPost || !activeCommentId) return;
     const newReply = makeCommentObj(txt, activeCommentId);
-    const result = addCommentToPost(detailPost.id, newReply, activeCommentId);
-    
-    if (result) {
+    if (addCommentToPost(detailPost.id, newReply, activeCommentId)) {
         pushMyReply({ id: newReply.id, postId: detailPost.id, userId: newReply.userId, user: newReply.user, avatar: newReply.avatar, text: newReply.text, createdAt: newReply.createdAt, postText: detailPost.text });
         
-        // JAVOB BILDIRISHNOMASI
-        if (result.parent && result.parent.userId) {
-            addNotification('reply', result.parent.userId, detailPost.id);
+        // Bildirishnoma Logic - REPLY (Ichki)
+        const repliedTo = findComment(detailPost.comments, activeCommentId);
+        if (repliedTo && repliedTo.comment) {
+            NotificationManager.add('reply', repliedTo.comment.userId, detailPost.id, newReply.id);
         }
 
         commentDetailInput.value = ''; commentDetailSend.disabled = true; refreshDetailFromStore();
@@ -710,14 +784,6 @@ window.addEventListener('popstate', () => {
     else if (detailOverlay?.classList.contains('show')) { closePostDetail(); window.history.pushState({ page: 'uy' }, 'Uy', ''); }
     else goHome();
 });
-
-// URL orqali post ID si kelsa, to'g'ridan-to'g'ri o'sha postni ochish (Notification dan o'tish uchun)
-const urlParams = new URLSearchParams(window.location.search);
-const targetPostId = urlParams.get('post');
-if (targetPostId) {
-    const p = PostStore.get(targetPostId);
-    if (p) openPostDetail(p);
-}
 </script>
 </body>
 </html>
