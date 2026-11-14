@@ -79,24 +79,121 @@
         
         .empty{text-align:center;color:#5a5a5e;padding:60px 20px;font-size:15px;line-height:1.6}
 
-        /* ===== CHEKSIZ SCROLL: SKELET VA SPINNER ===== */
+        /* ===== ZAMONAVIY LOADING (SKELETON) KARTALAR ===== */
         .feed-loader{display:none;flex-direction:column;width:100%}
         .feed-loader.active{display:flex}
-        .skeleton-post{display:flex;gap:10px;padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.05)}
-        .skeleton-avatar{width:42px;height:42px;border-radius:50%;background:#1c1c1e;flex-shrink:0;position:relative;overflow:hidden}
-        .skeleton-body{flex:1;display:flex;flex-direction:column;gap:9px;padding-top:3px}
-        .skeleton-line{height:12px;border-radius:6px;background:#1c1c1e;position:relative;overflow:hidden}
-        .skeleton-line.short{width:36%;height:13px}
-        .skeleton-line.full{width:94%}
-        .skeleton-line.medium{width:68%}
-        .skeleton-avatar::after,.skeleton-line::after{
-            content:"";position:absolute;inset:0;transform:translateX(-100%);
-            background:linear-gradient(90deg,transparent,rgba(255,255,255,0.06),transparent);
-            animation:skeletonShimmer 1.25s infinite;
+
+        .sk-card{
+            display:flex;
+            gap:12px;
+            padding:16px 20px;
+            border-bottom:1px solid rgba(255,255,255,0.05);
+            background:transparent;
         }
-        @keyframes skeletonShimmer{100%{transform:translateX(100%)}}
-        .feed-spinner-wrap{display:flex;align-items:center;justify-content:center;gap:10px;padding:16px 0 24px;color:#8e8e93;font-size:13px;font-weight:500}
-        .feed-spinner{width:20px;height:20px;border:2.5px solid rgba(255,255,255,0.15);border-top-color:#fff;border-radius:50%;animation:spinLoader .75s linear infinite;flex-shrink:0}
+        .sk-shimmer{
+            background:#161618;
+            background-image:linear-gradient(
+                110deg,
+                #161618 0%,
+                #161618 35%,
+                #26262b 50%,
+                #161618 65%,
+                #161618 100%
+            );
+            background-size:250% 100%;
+            animation:skWave 1.35s cubic-bezier(0.4,0,0.2,1) infinite;
+        }
+        @keyframes skWave{
+            0%{background-position:100% 0}
+            100%{background-position:-100% 0}
+        }
+        .sk-avatar{
+            width:42px;
+            height:42px;
+            border-radius:50%;
+            flex-shrink:0;
+            border:0.5px solid rgba(255,255,255,0.06);
+        }
+        .sk-main{
+            flex:1;
+            min-width:0;
+            display:flex;
+            flex-direction:column;
+            gap:10px;
+            padding-top:2px;
+        }
+        .sk-head{
+            display:flex;
+            align-items:center;
+            gap:8px;
+        }
+        .sk-name{
+            width:112px;
+            height:13px;
+            border-radius:7px;
+        }
+        .sk-time{
+            width:52px;
+            height:11px;
+            border-radius:6px;
+            opacity:0.75;
+        }
+        .sk-lines{
+            display:flex;
+            flex-direction:column;
+            gap:7px;
+        }
+        .sk-line{
+            height:12px;
+            border-radius:6px;
+        }
+        .sk-line.w-95{width:95%}
+        .sk-line.w-80{width:80%}
+        .sk-line.w-55{width:55%}
+        .sk-media{
+            width:100%;
+            height:168px;
+            border-radius:16px;
+            border:0.5px solid rgba(255,255,255,0.08);
+            margin-top:2px;
+        }
+        .sk-actions{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            padding-top:6px;
+            padding-right:8px;
+        }
+        .sk-act-pill{
+            width:30px;
+            height:14px;
+            border-radius:7px;
+            opacity:0.75;
+        }
+        .sk-status-pill{
+            margin:16px auto 22px;
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+            padding:7px 15px;
+            border-radius:20px;
+            background:rgba(28,28,30,0.8);
+            border:1px solid rgba(255,255,255,0.08);
+            backdrop-filter:blur(12px);
+            -webkit-backdrop-filter:blur(12px);
+            color:#8e8e93;
+            font-size:12px;
+            font-weight:500;
+        }
+        .sk-spinner{
+            width:14px;
+            height:14px;
+            border:2px solid rgba(255,255,255,0.16);
+            border-top-color:#fff;
+            border-radius:50%;
+            animation:spinLoader .7s linear infinite;
+            flex-shrink:0;
+        }
         @keyframes spinLoader{to{transform:rotate(360deg)}}
 
         /* "ISLAND" PASTKI NAVIGATSIYA */
@@ -202,21 +299,8 @@
 
     <div class="feed" id="feed"></div>
 
-    <!-- CHEKSIZ SCROLL YUKLANISH INDIKATORI (SKELET + SPINNER) -->
-    <div class="feed-loader" id="feedLoader" aria-hidden="true">
-        <div class="skeleton-post">
-            <div class="skeleton-avatar"></div>
-            <div class="skeleton-body">
-                <div class="skeleton-line short"></div>
-                <div class="skeleton-line full"></div>
-                <div class="skeleton-line medium"></div>
-            </div>
-        </div>
-        <div class="feed-spinner-wrap">
-            <div class="feed-spinner"></div>
-            <span>Yuklanmoqda...</span>
-        </div>
-    </div>
+    <!-- CHEKSIZ SCROLL UCHUN ZAMONAVIY LOADING KARTALAR -->
+    <div class="feed-loader" id="feedLoader" aria-hidden="true"></div>
 </div>
 
 <!-- OROLCHA NAVIGATSIYA -->
@@ -280,7 +364,6 @@
 <div class="toast" id="toast"></div>
 
 <script>
-
 /* ================= TELEGRAM FULLSCREEN ================= */
 const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
 if (tg) {
@@ -297,7 +380,7 @@ if (tg) {
 const MAX_VISIBLE_DEPTH = 2;
 const REPLIES_KEY = 'luz_my_replies_v1';
 const NOTIF_KEY = 'notifications';
-const FEED_BATCH_SIZE = 15; // Bir martada 15 tadan post yuklanadi (10-20 oralig'ida)
+const FEED_BATCH_SIZE = 15;
 
 /* ================= DB ================= */
 const DB = {
@@ -447,6 +530,48 @@ const ICONS = {
     share: `<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>`
 };
 
+/* ================= ZAMONAVIY SKELET LOADING KARTALAR ================= */
+function buildSkeletonCardHTML(withMedia = false){
+    return `
+        <div class="sk-card">
+            <div class="sk-avatar sk-shimmer"></div>
+            <div class="sk-main">
+                <div class="sk-head">
+                    <div class="sk-name sk-shimmer"></div>
+                    <div class="sk-time sk-shimmer"></div>
+                </div>
+                <div class="sk-lines">
+                    <div class="sk-line w-95 sk-shimmer"></div>
+                    <div class="sk-line ${withMedia ? 'w-55' : 'w-80'} sk-shimmer"></div>
+                    ${withMedia ? '' : '<div class="sk-line w-55 sk-shimmer"></div>'}
+                </div>
+                ${withMedia ? '<div class="sk-media sk-shimmer"></div>' : ''}
+                <div class="sk-actions">
+                    <div class="sk-act-pill sk-shimmer"></div>
+                    <div class="sk-act-pill sk-shimmer"></div>
+                    <div class="sk-act-pill sk-shimmer"></div>
+                    <div class="sk-act-pill sk-shimmer"></div>
+                    <div class="sk-act-pill sk-shimmer"></div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function initLoaderMarkup(){
+    const loader = document.getElementById('feedLoader');
+    if (!loader) return;
+    loader.innerHTML = `
+        ${buildSkeletonCardHTML(false)}
+        ${buildSkeletonCardHTML(true)}
+        <div class="sk-status-pill">
+            <div class="sk-spinner"></div>
+            <span>Yuklanmoqda...</span>
+        </div>
+    `;
+}
+initLoaderMarkup();
+
 /* ================= MY REPLIES & HELPERS ================= */
 let myReplies = [];
 function loadMyReplies(){ try { const raw = localStorage.getItem(REPLIES_KEY); myReplies = raw ? JSON.parse(raw) : []; } catch { myReplies = []; } }
@@ -487,6 +612,7 @@ function addCommentToPost(postId, newComment, replyToId){
 function countRepliesDeep(c){
     let n = (c.replies || []).length; (c.replies || []).forEach(r => { n += countRepliesDeep(r); }); return n;
 }
+
 
 /* ================= POST RENDER & INFINITE SCROLL ================= */
 const savedPosts = new Set();
@@ -631,7 +757,7 @@ function initInfiniteScrollObserver(){
             setTimeout(() => {
                 appendNextFeedBatch();
                 isLoadingMorePosts = false;
-            }, 350);
+            }, 450);
         }
     }, {
         root: null,
@@ -642,10 +768,9 @@ function initInfiniteScrollObserver(){
     feedScrollObserver.observe(loader);
 }
 
-function renderFeed(preserveCount = false){
+function mountFeedBatch(targetCount){
     const feed = document.getElementById('feed');
     const loader = document.getElementById('feedLoader');
-    const targetCount = preserveCount ? Math.max(FEED_BATCH_SIZE, renderedPostCount) : FEED_BATCH_SIZE;
 
     allFeedPosts = PostStore.all();
     feed.innerHTML = '';
@@ -667,6 +792,24 @@ function renderFeed(preserveCount = false){
     initInfiniteScrollObserver();
 }
 
+function renderFeed(preserveCount = false){
+    const feed = document.getElementById('feed');
+    const loader = document.getElementById('feedLoader');
+    const targetCount = preserveCount ? Math.max(FEED_BATCH_SIZE, renderedPostCount) : FEED_BATCH_SIZE;
+
+    if (preserveCount) {
+        mountFeedBatch(targetCount);
+        return;
+    }
+
+    // Dastlabki ochilishda zamonaviy skelet kartalarni ko'rsatish
+    loader.classList.remove('active');
+    feed.innerHTML = buildSkeletonCardHTML(false) + buildSkeletonCardHTML(true) + buildSkeletonCardHTML(false);
+
+    setTimeout(() => {
+        mountFeedBatch(targetCount);
+    }, 360);
+}
 
 
 /* ================= POST DETAIL VIEW ================= */
@@ -803,6 +946,7 @@ detailSend.addEventListener('click', () => {
         replyTargetId = null; detailInput.value = ''; detailInput.style.height = 'auto'; detailSend.disabled = true; refreshDetailFromStore();
     }
 });
+
 
 
 /* ================= COMMENT DETAIL ================= */
