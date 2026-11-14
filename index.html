@@ -11,7 +11,7 @@
         html,body{background:#000!important;color:#fff;overscroll-behavior-y:none}
         body{display:flex;justify-content:center;min-height:100vh;-webkit-font-smoothing:antialiased}
         
-        .mobile-container{width:100%;max-width:420px;padding:0 0 70px 0;display:flex;flex-direction:column}
+        .mobile-container{width:100%;max-width:420px;padding:0 0 140px 0;display:flex;flex-direction:column}
         
         /* Yuqori qism */
         .modern-header {
@@ -21,7 +21,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: calc(70px + env(safe-area-inset-top)) 20px 15px 20px; 
+            padding: calc(16px + env(safe-area-inset-top)) 20px 15px 20px; 
             background: rgba(0, 0, 0, 0.8);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
@@ -38,7 +38,7 @@
             margin: 0;
         }
 
-        .feed{width:100%;display:flex;flex-direction:column;padding-bottom:20px;gap:0}
+        .feed{width:100%;display:flex;flex-direction:column;padding-bottom:8px;gap:0}
         
         /* PROFIL UI BILAN BIR XIL POST STILI */
         .post-item{width:100%;padding:16px 20px;text-align:left;animation:postIn .4s cubic-bezier(.34,1.2,.64,1) both;cursor:pointer;transition:background .15s ease;background:transparent;border-radius:0;border:none;border-bottom:1px solid rgba(255,255,255,0.05)}
@@ -78,6 +78,26 @@
         .act-btn.saved svg{fill:#fff;stroke:#fff;animation:likePop .35s cubic-bezier(.34,1.56,.64,1)}
         
         .empty{text-align:center;color:#5a5a5e;padding:60px 20px;font-size:15px;line-height:1.6}
+
+        /* ===== CHEKSIZ SCROLL: SKELET VA SPINNER ===== */
+        .feed-loader{display:none;flex-direction:column;width:100%}
+        .feed-loader.active{display:flex}
+        .skeleton-post{display:flex;gap:10px;padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.05)}
+        .skeleton-avatar{width:42px;height:42px;border-radius:50%;background:#1c1c1e;flex-shrink:0;position:relative;overflow:hidden}
+        .skeleton-body{flex:1;display:flex;flex-direction:column;gap:9px;padding-top:3px}
+        .skeleton-line{height:12px;border-radius:6px;background:#1c1c1e;position:relative;overflow:hidden}
+        .skeleton-line.short{width:36%;height:13px}
+        .skeleton-line.full{width:94%}
+        .skeleton-line.medium{width:68%}
+        .skeleton-avatar::after,.skeleton-line::after{
+            content:"";position:absolute;inset:0;transform:translateX(-100%);
+            background:linear-gradient(90deg,transparent,rgba(255,255,255,0.06),transparent);
+            animation:skeletonShimmer 1.25s infinite;
+        }
+        @keyframes skeletonShimmer{100%{transform:translateX(100%)}}
+        .feed-spinner-wrap{display:flex;align-items:center;justify-content:center;gap:10px;padding:16px 0 24px;color:#8e8e93;font-size:13px;font-weight:500}
+        .feed-spinner{width:20px;height:20px;border:2.5px solid rgba(255,255,255,0.15);border-top-color:#fff;border-radius:50%;animation:spinLoader .75s linear infinite;flex-shrink:0}
+        @keyframes spinLoader{to{transform:rotate(360deg)}}
 
         /* "ISLAND" PASTKI NAVIGATSIYA */
         .bottom-nav{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:380px;background:rgba(28,28,30,0.85);backdrop-filter:blur(25px);-webkit-backdrop-filter:blur(25px);border:1px solid rgba(255,255,255,0.1);border-radius:40px;z-index:50;box-shadow:0 10px 40px rgba(0,0,0,0.6);padding:6px 12px}
@@ -181,6 +201,22 @@
     </header>
 
     <div class="feed" id="feed"></div>
+
+    <!-- CHEKSIZ SCROLL YUKLANISH INDIKATORI (SKELET + SPINNER) -->
+    <div class="feed-loader" id="feedLoader" aria-hidden="true">
+        <div class="skeleton-post">
+            <div class="skeleton-avatar"></div>
+            <div class="skeleton-body">
+                <div class="skeleton-line short"></div>
+                <div class="skeleton-line full"></div>
+                <div class="skeleton-line medium"></div>
+            </div>
+        </div>
+        <div class="feed-spinner-wrap">
+            <div class="feed-spinner"></div>
+            <span>Yuklanmoqda...</span>
+        </div>
+    </div>
 </div>
 
 <!-- OROLCHA NAVIGATSIYA -->
@@ -244,6 +280,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
+
 /* ================= TELEGRAM FULLSCREEN ================= */
 const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
 if (tg) {
@@ -259,7 +296,8 @@ if (tg) {
 /* ================= KONSTANTALAR ================= */
 const MAX_VISIBLE_DEPTH = 2;
 const REPLIES_KEY = 'luz_my_replies_v1';
-const NOTIF_KEY = 'notifications'; // Notification uchun baza
+const NOTIF_KEY = 'notifications';
+const FEED_BATCH_SIZE = 15; // Bir martada 15 tadan post yuklanadi (10-20 oralig'ida)
 
 /* ================= DB ================= */
 const DB = {
@@ -288,20 +326,15 @@ const PostStore = {
     }
 };
 
-
 /* ================= NOTIFICATION HELPER ================= */
 function sendNotification(type, recipientId, postId, commentId = null) {
     if (!currentUser || !currentUser.userId || String(currentUser.userId) === String(recipientId)) return;
-    
     try {
         let notifs = JSON.parse(localStorage.getItem(NOTIF_KEY)) || [];
-        
-        // Layk bosilganda avval bosilgan bo'lsa takrorlanmasligi uchun
         if (type === 'like') {
             const exists = notifs.some(n => n.type === 'like' && n.postId === postId && n.senderId === currentUser.userId);
             if (exists) return;
         }
-
         const newNotif = {
             id: 'n_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
             type: type,
@@ -314,14 +347,11 @@ function sendNotification(type, recipientId, postId, commentId = null) {
             createdAt: new Date().toISOString(),
             isRead: false
         };
-        
         notifs.push(newNotif);
         localStorage.setItem(NOTIF_KEY, JSON.stringify(notifs));
         window.dispatchEvent(new Event('luz_notifs_updated'));
         updateNotificationBadgeLocal();
-    } catch (e) {
-        console.error(e);
-    }
+    } catch (e) {}
 }
 
 function removeNotification(type, postId) {
@@ -341,7 +371,6 @@ function updateNotificationBadgeLocal() {
         const notifs = JSON.parse(localStorage.getItem(NOTIF_KEY)) || [];
         const unreadCount = notifs.filter(n => n.recipientId === currentUser?.userId && !n.isRead).length;
         let badge = btn.querySelector('.nav-badge');
-        
         if (unreadCount > 0) {
             if (!badge) {
                 badge = document.createElement('div');
@@ -354,8 +383,10 @@ function updateNotificationBadgeLocal() {
         }
     } catch(e){}
 }
-window.addEventListener('storage', (e) => { if(e.key === NOTIF_KEY) updateNotificationBadgeLocal(); });
-
+window.addEventListener('storage', (e) => {
+    if (e.key === NOTIF_KEY) updateNotificationBadgeLocal();
+    if (e.key === POST_STORE_KEY) { PostStore._cache = null; renderFeed(true); }
+});
 
 /* ================= VIEW TRACKER ================= */
 const VIEW_LOG_KEY = 'luz_view_log_v1';
@@ -457,8 +488,13 @@ function countRepliesDeep(c){
     let n = (c.replies || []).length; (c.replies || []).forEach(r => { n += countRepliesDeep(r); }); return n;
 }
 
-/* ================= POST RENDER ================= */
+/* ================= POST RENDER & INFINITE SCROLL ================= */
 const savedPosts = new Set();
+let allFeedPosts = [];
+let renderedPostCount = 0;
+let isLoadingMorePosts = false;
+let feedScrollObserver = null;
+
 function countComments(p){
     let n = (p.comments || []).length; const walk = (arr) => arr.forEach(c => { n += (c.replies || []).length; if (c.replies) walk(c.replies); }); walk(p.comments || []); return n;
 }
@@ -468,7 +504,7 @@ function handleShare(entity){
     else { try { navigator.clipboard?.writeText(link); } catch {} showToast('Havola nusxalandi'); }
 }
 
-function buildPostActions(p, item){
+function buildPostActions(p){
     const actions = document.createElement('div'); actions.className = 'post-actions';
     const createBtn = (icon, count, cls, clk) => {
         const b = document.createElement('button'); b.className = 'act-btn ' + cls;
@@ -476,14 +512,12 @@ function buildPostActions(p, item){
         if (clk) b.addEventListener('click', clk); return b;
     };
     
-    // LAYK BOSILISHI VA NOTIFICATION
     const likeBtn = createBtn(ICONS.like, p.likes||0, p.liked?'liked':'', (e)=>{
         e.stopPropagation(); const fresh = PostStore.get(p.id) || p; const liked = !fresh.liked;
         const likes = Math.max(0, (fresh.likes || 0) + (liked ? 1 : -1));
         PostStore.update(p.id, { liked, likes }); p.liked = liked; p.likes = likes;
         likeBtn.classList.toggle('liked', liked); likeBtn.querySelector('.act-count').textContent = likes;
         
-        // NOTIFICATION LOGIC
         if (liked) {
             sendNotification('like', fresh.userId, fresh.id);
         } else {
@@ -510,11 +544,11 @@ function buildPostItem(p){
     item.style.alignItems = 'flex-start';
 
     const postInit = (p.user || 'F').trim().charAt(0).toUpperCase();
-    const av = p.avatar ? `<img class="post-avatar" src="${p.avatar}" alt="">` : `<div class="post-avatar-initial">${postInit}</div>`;
+    const av = p.avatar ? `<img class="post-avatar" src="${p.avatar}" alt="" loading="lazy">` : `<div class="post-avatar-initial">${postInit}</div>`;
     
     let media = '';
     if (p.type === 'image' && p.image) media = `<img class="post-image" src="${p.image}" alt="" loading="lazy">`;
-    else if (p.type === 'video' && p.image) media = `<video class="post-video" src="${p.image}" controls playsinline></video>`;
+    else if (p.type === 'video' && p.image) media = `<video class="post-video" src="${p.image}" controls playsinline preload="metadata"></video>`;
 
     item.innerHTML = `
         <div style="flex-shrink: 0;" class="post-avatar-wrapper">
@@ -531,7 +565,7 @@ function buildPostItem(p){
         </div>
     `;
 
-    item.querySelector('.post-actions-slot').appendChild(buildPostActions(p, item));
+    item.querySelector('.post-actions-slot').appendChild(buildPostActions(p));
     
     item.querySelector('.post-avatar-wrapper').addEventListener('click', (e) => { e.stopPropagation(); goToProfile(p.userId); });
     item.querySelector('.post-user').addEventListener('click', (e) => { e.stopPropagation(); goToProfile(p.userId); });
@@ -555,10 +589,82 @@ function buildPostItem(p){
     return item;
 }
 
-function renderFeed(){
-    const feed = document.getElementById('feed'); const posts = PostStore.all(); feed.innerHTML = '';
-    if (posts.length === 0) { feed.innerHTML = '<div class="empty">Hali post yo\'q.<br>Profilga o\'tib birinchi postni yarating.</div>'; return; }
-    posts.forEach(p => feed.appendChild(buildPostItem(p)));
+function appendNextFeedBatch(){
+    const feed = document.getElementById('feed');
+    const loader = document.getElementById('feedLoader');
+    const nextBatch = allFeedPosts.slice(renderedPostCount, renderedPostCount + FEED_BATCH_SIZE);
+
+    if (nextBatch.length > 0) {
+        const fragment = document.createDocumentFragment();
+        nextBatch.forEach(p => fragment.appendChild(buildPostItem(p)));
+        feed.appendChild(fragment);
+        renderedPostCount += nextBatch.length;
+    }
+
+    if (renderedPostCount >= allFeedPosts.length) {
+        loader.classList.remove('active');
+        if (feedScrollObserver) {
+            feedScrollObserver.disconnect();
+            feedScrollObserver = null;
+        }
+    } else {
+        loader.classList.add('active');
+    }
+}
+
+function initInfiniteScrollObserver(){
+    if (feedScrollObserver) {
+        feedScrollObserver.disconnect();
+        feedScrollObserver = null;
+    }
+    const loader = document.getElementById('feedLoader');
+    if (renderedPostCount >= allFeedPosts.length) {
+        loader.classList.remove('active');
+        return;
+    }
+
+    loader.classList.add('active');
+    feedScrollObserver = new IntersectionObserver((entries) => {
+        const entry = entries[0];
+        if (entry && entry.isIntersecting && !isLoadingMorePosts && renderedPostCount < allFeedPosts.length) {
+            isLoadingMorePosts = true;
+            setTimeout(() => {
+                appendNextFeedBatch();
+                isLoadingMorePosts = false;
+            }, 350);
+        }
+    }, {
+        root: null,
+        rootMargin: '120px',
+        threshold: 0.05
+    });
+
+    feedScrollObserver.observe(loader);
+}
+
+function renderFeed(preserveCount = false){
+    const feed = document.getElementById('feed');
+    const loader = document.getElementById('feedLoader');
+    const targetCount = preserveCount ? Math.max(FEED_BATCH_SIZE, renderedPostCount) : FEED_BATCH_SIZE;
+
+    allFeedPosts = PostStore.all();
+    feed.innerHTML = '';
+    renderedPostCount = 0;
+    isLoadingMorePosts = false;
+
+    if (allFeedPosts.length === 0) {
+        loader.classList.remove('active');
+        feed.innerHTML = '<div class="empty">Hali post yo\'q.<br>Profilga o\'tib birinchi postni yarating.</div>';
+        return;
+    }
+
+    const initialPosts = allFeedPosts.slice(0, targetCount);
+    const fragment = document.createDocumentFragment();
+    initialPosts.forEach(p => fragment.appendChild(buildPostItem(p)));
+    feed.appendChild(fragment);
+    renderedPostCount = initialPosts.length;
+
+    initInfiniteScrollObserver();
 }
 
 
@@ -656,7 +762,7 @@ function renderDetailPost(){
     `;
     
     document.getElementById('detailPostBox').querySelectorAll('[data-uid]').forEach(el => { el.style.cursor='pointer'; el.addEventListener('click', (e)=>{ e.stopPropagation(); goToProfile(el.getAttribute('data-uid')); }); });
-    document.getElementById('detailActionsBar').appendChild(buildPostActions(p, document.createElement('div')).cloneNode(true));
+    document.getElementById('detailActionsBar').appendChild(buildPostActions(p));
 }
 
 function openPostDetail(p){
@@ -667,7 +773,7 @@ function openPostDetail(p){
 }
 function closePostDetail(){
     detailOverlay.classList.remove('show'); detailPost = null; replyTargetId = null;
-    renderFeed();
+    renderFeed(true);
     if (tg?.BackButton) { try { tg.BackButton.onClick(goHome); } catch {} }
 }
 
@@ -676,7 +782,6 @@ detailInput.addEventListener('input', () => {
     detailSend.disabled = detailInput.value.trim().length === 0;
 });
 
-// POSTGA IZOH YOKI JAVOB YOZISH VA NOTIFICATION
 detailSend.addEventListener('click', () => {
     const raw = detailInput.value.trim(); if (!raw || !detailPost) return;
     let cleanText = raw; if (replyTargetId) cleanText = raw.replace(/^@\S+\s*/, '').trim();
@@ -686,7 +791,6 @@ detailSend.addEventListener('click', () => {
     if (addCommentToPost(detailPost.id, newC, replyTargetId)) {
         pushMyReply({ id: newC.id, postId: detailPost.id, userId: newC.userId, user: newC.user, avatar: newC.avatar, text: newC.text, createdAt: newC.createdAt, postText: detailPost.text });
         
-        // NOTIFICATION LOGIC
         if (replyTargetId) {
             const parentFound = findComment(detailPost.comments, replyTargetId);
             if (parentFound && parentFound.comment) {
@@ -696,7 +800,7 @@ detailSend.addEventListener('click', () => {
             sendNotification('comment', detailPost.userId, detailPost.id, newC.id);
         }
         
-        replyTargetId = null; detailInput.value = ''; detailSend.disabled = true; refreshDetailFromStore();
+        replyTargetId = null; detailInput.value = ''; detailInput.style.height = 'auto'; detailSend.disabled = true; refreshDetailFromStore();
     }
 });
 
@@ -734,20 +838,18 @@ commentDetailInput.addEventListener('input', () => {
     commentDetailSend.disabled = commentDetailInput.value.trim().length === 0;
 });
 
-// ICHKI IZOHGA JAVOB YOZISH VA NOTIFICATION
 commentDetailSend.addEventListener('click', () => {
     const txt = commentDetailInput.value.trim(); if (!txt || !detailPost || !activeCommentId) return;
     const newReply = makeCommentObj(txt, activeCommentId);
     if (addCommentToPost(detailPost.id, newReply, activeCommentId)) {
         pushMyReply({ id: newReply.id, postId: detailPost.id, userId: newReply.userId, user: newReply.user, avatar: newReply.avatar, text: newReply.text, createdAt: newReply.createdAt, postText: detailPost.text });
         
-        // NOTIFICATION LOGIC
         const parentFound = findComment(detailPost.comments, activeCommentId);
         if (parentFound && parentFound.comment) {
             sendNotification('reply', parentFound.comment.userId, detailPost.id, newReply.id);
         }
 
-        commentDetailInput.value = ''; commentDetailSend.disabled = true; refreshDetailFromStore();
+        commentDetailInput.value = ''; commentDetailInput.style.height = 'auto'; commentDetailSend.disabled = true; refreshDetailFromStore();
         
         const found = findComment(detailPost.comments || [], activeCommentId);
         if (found) {
@@ -760,8 +862,16 @@ commentDetailSend.addEventListener('click', () => {
 });
 
 /* ================= INIT & NAVIGATION ================= */
-loadMyReplies(); renderFeed(); 
-updateNotificationBadgeLocal(); // Dastlabki yuklanishda qizil belgi bormi yo'qmi tekshirish
+loadMyReplies();
+renderFeed();
+updateNotificationBadgeLocal();
+
+// Agar bildirishnomadan (?post=ID) o'tilgan bo'lsa, o'sha postni darhol ochish
+const urlPostId = new URLSearchParams(window.location.search).get('post');
+if (urlPostId) {
+    const targetPost = PostStore.get(urlPostId);
+    if (targetPost) openPostDetail(targetPost);
+}
 
 function goHome(){ window.location.href = 'index.html'; }
 
