@@ -18,15 +18,14 @@
         .container {
             width: 100%;
             max-width: 420px;
-            padding: 20px;
-            padding-bottom: 100px;
+            padding: 0 20px 100px;
         }
 
         .top-bar {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-top: 10px;
+            padding-top: 90px;
             margin-bottom: 40px;
         }
 
@@ -307,9 +306,8 @@
     </div>
 
     <div class="form-group">
-        <label for="familiya">Familiya</label>
-        <input type="text" id="familiya" placeholder="Familiya" maxlength="30">
-        <div class="input-error" id="familiyaError">Iltimos, familiyangizni kiriting</div>
+        <label for="familiya">Familiya (ixtiyoriy)</label>
+        <input type="text" id="familiya" placeholder="Familiya (ixtiyoriy)" maxlength="30">
     </div>
 
     <h2>Foydalanuvchi nomi</h2>
@@ -319,7 +317,7 @@
         <label for="username">Foydalanuvchi nomi</label>
         <input type="text" id="username" placeholder="Foydalanuvchi nomi" maxlength="20">
         <div class="input-error" id="usernameError">Bu nom allaqachon band</div>
-        <div class="input-error" id="usernameFormatError">3-20 belgi, faqat harf, raqam va (_) bo'lishi kerak</div>
+        <div class="input-error" id="usernameFormatError">1-20 belgi, faqat harf, raqam va (_) bo'lishi kerak</div>
         <div class="input-success" id="usernameAvailable">✓ Bu nom bo'sh</div>
     </div>
 </div>
@@ -420,8 +418,6 @@ if (!currentUser) {
         let changed = false;
         users.forEach(u => {
             if (u.isEdited === undefined) {
-                // Eski user — tahrirlamagan deb hisoblaymiz
-                // LEKIN agar username Telegram'dagi username'dan farq qilsa — tahrirlangan
                 u.isEdited = false;
                 changed = true;
             }
@@ -459,7 +455,6 @@ const familiyaInput = document.getElementById('familiya');
 const usernameInput = document.getElementById('username');
 
 const ismError = document.getElementById('ismError');
-const familiyaError = document.getElementById('familiyaError');
 const usernameError = document.getElementById('usernameError');
 const usernameFormatError = document.getElementById('usernameFormatError');
 const usernameAvailable = document.getElementById('usernameAvailable');
@@ -502,7 +497,7 @@ function checkChanges() {
               (usr !== initialState.username) || 
               (currentPhoto !== initialState.photo);
               
-    if (isDirty && usernameValid && ism && fam && usr) {
+    if (isDirty && usernameValid && ism && usr) {
         saveBtn.disabled = false;
     } else {
         saveBtn.disabled = true;
@@ -510,6 +505,7 @@ function checkChanges() {
 }
 
 ismInput.addEventListener('input', () => {
+    ismError.classList.remove('show');
     if (!currentPhoto) {
         const name = ismInput.value.trim() || 'F';
         avatarInitial.textContent = name.charAt(0).toUpperCase();
@@ -574,7 +570,7 @@ avatarInput.addEventListener('change', function(e){
 /* ================= USERNAME TEKSHIRISH ================= */
 let checkTimeout = null;
 
-function isValidUsernameFormat(u){ return /^[a-zA-Z0-9_]{3,20}$/.test(u); }
+function isValidUsernameFormat(u){ return /^[a-zA-Z0-9_]{1,20}$/.test(u); }
 
 usernameInput.addEventListener('input', () => {
     const value = usernameInput.value.trim();
@@ -613,7 +609,6 @@ usernameInput.addEventListener('input', () => {
 
 function hideErrors(){
     ismError.classList.remove('show');
-    familiyaError.classList.remove('show');
     usernameError.classList.remove('show');
     usernameFormatError.classList.remove('show');
     usernameAvailable.classList.remove('show');
@@ -628,9 +623,7 @@ saveBtn.addEventListener('click', () => {
     const lastName = familiyaInput.value.trim();
     const username = usernameInput.value.trim();
 
-    // Validatsiya
     if (!firstName) { ismError.classList.add('show'); saveBtn.disabled = false; return; }
-    if (!lastName) { familiyaError.classList.add('show'); saveBtn.disabled = false; return; }
 
     try {
         const patch = {
@@ -638,16 +631,14 @@ saveBtn.addEventListener('click', () => {
             lastName,
             username,
             photo_url: currentPhoto,
-            isEdited: true   // ← MUHIM: tahrirlangan flag
+            isEdited: true
         };
         
         const updated = DB.updateUser(currentUser.userId, patch);
         if (updated) {
-            // currentUser'ni ham yangilash (bir sahifada qolsa kerak bo'ladi)
             currentUser = updated;
         }
 
-        // Postlar va izohlardagi ism/avatar/username yangilash
         PostStore.updateUserInfo(currentUser.userId, { 
             firstName, 
             lastName, 
