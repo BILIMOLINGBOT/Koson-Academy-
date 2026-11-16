@@ -486,7 +486,7 @@ const DB = {
     _getUsers(){ try { return JSON.parse(localStorage.getItem(this._K)) || []; } catch { return []; } },
     getCurrentUser(){
         const id = localStorage.getItem(this._S); if (!id) return null;
-        return this._getUsers().find(u => u.userId === id) || null;
+        return this._getUsers().find(u => String(u.userId) === String(id)) || null;
     },
     getUserById(id){ return this._getUsers().find(u => String(u.userId) === String(id)) || null; }
 };
@@ -507,7 +507,7 @@ if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
     if (idx >= 0) {
         const stored = users[idx];
         if (stored.isEdited) {
-            currentUser = { ...stored, userId: tgUser.userId };
+            currentUser = { ...stored, userId: String(tgUser.userId) };
             if (!currentUser.firstName) currentUser.firstName = tgUser.firstName;
             if (!currentUser.lastName) currentUser.lastName = tgUser.lastName;
             if (!currentUser.username) currentUser.username = tgUser.username;
@@ -527,29 +527,20 @@ if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
         users.push(currentUser);
     }
     localStorage.setItem(DB._K, JSON.stringify(users));
-    localStorage.setItem(DB._S, currentUser.userId);
+    localStorage.setItem(DB._S, String(currentUser.userId));
 } else {
     currentUser = DB.getCurrentUser();
     if (!currentUser) {
         const isLocalVerified = localStorage.getItem(VERIFIED_KEY) === '1';
         currentUser = { userId: 'mehmon_' + Date.now(), firstName: 'Mehmon', lastName: '', username: 'mehmon', isEdited: false, verified: isLocalVerified, isVerified: isLocalVerified };
-        localStorage.setItem(DB._S, currentUser.userId);
+        localStorage.setItem(DB._S, String(currentUser.userId));
         localStorage.setItem(DB._K, JSON.stringify([currentUser]));
     }
 }
 
-function getFreshCurrentUser() {
-    return DB.getCurrentUser() || currentUser;
-}
-
-function getFreshUserDisplayName(userObj) {
-    const u = userObj || getFreshCurrentUser();
-    return [u?.firstName, u?.lastName].filter(Boolean).join(' ') || 'Foydalanuvchi';
-}
-
 /* ================= VERIFIED BADGE HELPER ================= */
 function isUserVerified(uid, fallbackUser) {
-    if (String(uid) === String(getFreshCurrentUser()?.userId)) {
+    if (String(uid) === String(currentUser?.userId)) {
         const saved = localStorage.getItem(VERIFIED_KEY);
         if (saved !== null) return saved === '1';
     }
@@ -572,33 +563,36 @@ const PostStore = {
     },
     _save(){ try { localStorage.setItem(POST_STORE_KEY, JSON.stringify(this._cache || [])); return true; } catch { showToast('Saqlashda xatolik'); return false; } },
     all(){ return this._load().slice(); },
-    get(id){ return this._load().find(p => p.id === id) || null; },
+    get(id){ return this._load().find(p => String(p.id) === String(id)) || null; },
     add(post){ const list = this._load(); list.unshift(post); this._cache = list; return this._save() ? post : null; },
     update(id, patch){
-        const list = this._load(); const i = list.findIndex(p => p.id === id); if (i < 0) return null;
+        const list = this._load(); const i = list.findIndex(p => String(p.id) === String(id)); if (i < 0) return null;
         list[i] = Object.assign({}, list[i], patch); this._cache = list; this._save(); return list[i];
     }
 };
 
 /* ================= NOTIFICATION HELPER ================= */
 function sendNotification(type, recipientId, postId, commentId = null) {
-    const freshUser = getFreshCurrentUser();
-    if (!freshUser || !freshUser.userId || !recipientId || String(freshUser.userId) === String(recipientId)) return;
+    if (!currentUser || !currentUser.userId || !recipientId) return;
     try {
         let notifs = JSON.parse(localStorage.getItem(NOTIF_KEY)) || [];
         if (type === 'like') {
-            const exists = notifs.some(n => n.type === 'like' && n.postId === postId && String(n.senderId) === String(freshUser.userId));
+            const exists = notifs.some(n =>
+                n.type === 'like' &&
+                String(n.postId) === String(postId) &&
+                String(n.senderId) === String(currentUser.userId)
+            );
             if (exists) return;
         }
         const newNotif = {
             id: 'n_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
             type: type,
             recipientId: String(recipientId),
-            senderId: String(freshUser.userId),
-            senderName: getFreshUserDisplayName(freshUser),
-            senderAvatar: freshUser.photo_url || null,
-            postId: postId,
-            commentId: commentId,
+            senderId: String(currentUser.userId),
+            senderName: [currentUser.firstName, currentUser.lastName].filter(Boolean).join(' ') || 'Foydalanuvchi',
+            senderAvatar: currentUser.photo_url || null,
+            postId: String(postId),
+            commentId: commentId ? String(commentId) : null,
             createdAt: new Date().toISOString(),
             isRead: false
         };
@@ -610,11 +604,14 @@ function sendNotification(type, recipientId, postId, commentId = null) {
 }
 
 function removeNotification(type, postId) {
-    const freshUser = getFreshCurrentUser();
-    if (!freshUser || !freshUser.userId) return;
+    if (!currentUser || !currentUser.userId) return;
     try {
         let notifs = JSON.parse(localStorage.getItem(NOTIF_KEY)) || [];
-        notifs = notifs.filter(n => !(n.type === type && n.postId === postId && String(n.senderId) === String(freshUser.userId)));
+        notifs = notifs.filter(n => !(
+            n.type === type &&
+            String(n.postId) === String(postId) &&
+            String(n.senderId) === String(currentUser.userId)
+        ));
         localStorage.setItem(NOTIF_KEY, JSON.stringify(notifs));
         window.dispatchEvent(new Event('luz_notifs_updated'));
         updateNotificationBadgeLocal();
@@ -623,10 +620,9 @@ function removeNotification(type, postId) {
 
 function updateNotificationBadgeLocal() {
     const btn = document.getElementById('navNotifBtn'); if (!btn) return;
-    const freshUser = getFreshCurrentUser();
     try {
         const notifs = JSON.parse(localStorage.getItem(NOTIF_KEY)) || [];
-        const unreadCount = notifs.filter(n => String(n.recipientId) === String(freshUser?.userId) && !n.isRead).length;
+        const unreadCount = notifs.filter(n => String(n.recipientId) === String(currentUser?.userId) && !n.isRead).length;
         let badge = btn.querySelector('.nav-badge');
         if (unreadCount > 0) {
             if (!badge) {
@@ -642,20 +638,22 @@ function updateNotificationBadgeLocal() {
 }
 
 function syncVerifiedStateUI() {
-    currentUser = getFreshCurrentUser();
-    syncCurrentUserAvatars();
     renderFeed(true);
     if (detailOverlay?.classList.contains('show') && detailPost) {
         refreshDetailFromStore();
     }
 }
 
-window.addEventListener('pageshow', syncVerifiedStateUI);
+window.addEventListener('pageshow', () => {
+    syncVerifiedStateUI();
+    updateNotificationBadgeLocal();
+});
 window.addEventListener('storage', (e) => {
     if (e.key === NOTIF_KEY) updateNotificationBadgeLocal();
     if (e.key === POST_STORE_KEY) { PostStore._cache = null; renderFeed(true); }
     if (e.key === VERIFIED_KEY || e.key === DB._K) syncVerifiedStateUI();
 });
+
 
 /* ================= VIEW TRACKER ================= */
 const VIEW_LOG_KEY = 'luz_view_log_v1';
@@ -678,20 +676,16 @@ const ViewTracker = {
 /* ================= AVATARS (NAV & COMPOSER) ================= */
 const navAvatarSlot = document.getElementById('navAvatarSlot');
 const composerAvatarSlot = document.getElementById('composerAvatarSlot');
+const cuName = [currentUser.firstName, currentUser.lastName].filter(Boolean).join(' ') || 'Foydalanuvchi';
+const cuInit = cuName.trim().charAt(0).toUpperCase() || 'F';
 
-function syncCurrentUserAvatars() {
-    const fresh = getFreshCurrentUser();
-    const name = getFreshUserDisplayName(fresh);
-    const init = name.trim().charAt(0).toUpperCase() || 'F';
-    if (fresh?.photo_url) {
-        navAvatarSlot.innerHTML = `<img class="nav-avatar" src="${fresh.photo_url}" alt="${init}">`;
-        composerAvatarSlot.innerHTML = `<img class="composer-avatar" src="${fresh.photo_url}" alt="${init}">`;
-    } else {
-        navAvatarSlot.innerHTML = `<div class="nav-avatar-initial">${init}</div>`;
-        composerAvatarSlot.innerHTML = `<div class="composer-avatar-initial">${init}</div>`;
-    }
+if (currentUser.photo_url) {
+    navAvatarSlot.innerHTML = `<img class="nav-avatar" src="${currentUser.photo_url}" alt="${cuInit}">`;
+    composerAvatarSlot.innerHTML = `<img class="composer-avatar" src="${currentUser.photo_url}" alt="${cuInit}">`;
+} else {
+    navAvatarSlot.innerHTML = `<div class="nav-avatar-initial">${cuInit}</div>`;
+    composerAvatarSlot.innerHTML = `<div class="composer-avatar-initial">${cuInit}</div>`;
 }
-syncCurrentUserAvatars();
 
 /* ================= HELPERS ================= */
 function escapeHtml(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
@@ -706,7 +700,7 @@ function formatExactTime(dateInput){
 }
 function goToProfile(uid){
     if (!uid) return;
-    if (String(uid) === String(getFreshCurrentUser()?.userId)) window.location.href = 'profil.html';
+    if (String(uid) === String(currentUser?.userId)) window.location.href = 'profil.html';
     else window.location.href = `profil.html?id=${encodeURIComponent(uid)}`;
 }
 let toastTimer;
@@ -789,7 +783,6 @@ const videoInput = document.getElementById('videoInput');
 let currentMedia = null;
 
 function openComposer(){
-    syncCurrentUserAvatars();
     compOverlay.classList.add('show');
     composer.classList.add('show');
     setTimeout(() => compInput.focus(), 300);
@@ -855,12 +848,11 @@ compSubmit.addEventListener('click', () => {
     const text = compInput.value.trim();
     if (!text && !currentMedia) return;
 
-    const freshUser = getFreshCurrentUser();
     PostStore.add({
         id: 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-        userId: freshUser?.userId || 'me',
-        user: getFreshUserDisplayName(freshUser),
-        avatar: freshUser?.photo_url || null,
+        userId: String(currentUser?.userId || 'me'),
+        user: cuName,
+        avatar: currentUser?.photo_url || null,
         createdAt: new Date().toISOString(),
         text,
         image: currentMedia ? currentMedia.data : null,
@@ -895,29 +887,21 @@ function pushMyReply(entry){ myReplies.unshift(entry); saveMyReplies(); }
 
 function findComment(comments, id){
     for (const c of (comments || [])) {
-        if (c.id === id) return { comment: c, parent: null, isReply: false, root: c };
+        if (String(c.id) === String(id)) return { comment: c, parent: null, isReply: false, root: c };
         const found = findInReplies(c, id, c); if (found) return found;
     } return null;
 }
 function findInReplies(parent, id, root){
     for (const r of (parent.replies || [])) {
-        if (r.id === id) return { comment: r, parent, isReply: true, root };
+        if (String(r.id) === String(id)) return { comment: r, parent, isReply: true, root };
         const found = findInReplies(r, id, root); if (found) return found;
     } return null;
 }
 function makeCommentObj(text, parentId){
-    const freshUser = getFreshCurrentUser();
     return {
         id: 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
-        userId: freshUser?.userId || '',
-        user: getFreshUserDisplayName(freshUser),
-        avatar: freshUser?.photo_url || null,
-        text,
-        createdAt: new Date().toISOString(),
-        likes: 0,
-        liked: false,
-        replies: [],
-        parentId: parentId || null
+        userId: String(currentUser?.userId || ''), user: cuName, avatar: currentUser.photo_url || null,
+        text, createdAt: new Date().toISOString(), likes: 0, liked: false, replies: [], parentId: parentId || null
     };
 }
 function addCommentToPost(postId, newComment, replyToId){
@@ -992,11 +976,8 @@ function buildPostItem(p){
     item.style.gap = '10px';
     item.style.alignItems = 'flex-start';
 
-    const dbUser = DB.getUserById(p.userId);
-    const displayUser = dbUser ? getFreshUserDisplayName(dbUser) : (p.user || 'Foydalanuvchi');
-    const displayAvatar = (dbUser && dbUser.photo_url) ? dbUser.photo_url : p.avatar;
-    const postInit = (displayUser || 'F').trim().charAt(0).toUpperCase();
-    const av = displayAvatar ? `<img class="post-avatar" src="${displayAvatar}" alt="" loading="lazy">` : `<div class="post-avatar-initial">${postInit}</div>`;
+    const postInit = (p.user || 'F').trim().charAt(0).toUpperCase();
+    const av = p.avatar ? `<img class="post-avatar" src="${p.avatar}" alt="" loading="lazy">` : `<div class="post-avatar-initial">${postInit}</div>`;
     
     let media = '';
     if (p.type === 'image' && p.image) media = `<img class="post-image" src="${p.image}" alt="" loading="lazy">`;
@@ -1008,7 +989,7 @@ function buildPostItem(p){
         </div>
         <div style="flex: 1; min-width: 0;">
             <div class="post-head-info" style="display: flex; flex-direction: row; align-items: baseline; gap: 6px; margin-bottom: 2px;">
-                <div class="post-user">${escapeHtml(displayUser)}${getInlineVerifiedBadge(p.userId)}</div>
+                <div class="post-user">${escapeHtml(p.user)}${getInlineVerifiedBadge(p.userId)}</div>
                 <div class="post-time">${escapeHtml(formatExactTime(p.createdAt || p.time))}</div>
             </div>
             ${p.text ? `<div class="post-text">${escapeHtml(p.text)}</div>` : ''}
@@ -1025,10 +1006,9 @@ function buildPostItem(p){
 
     const io = new IntersectionObserver(entries => {
         entries.forEach(en => {
-            const uid = getFreshCurrentUser()?.userId;
-            if (en.isIntersecting && !ViewTracker.hasViewed(uid, p.id)) {
+            if (en.isIntersecting && !ViewTracker.hasViewed(currentUser?.userId, p.id)) {
                 io.disconnect();
-                if (ViewTracker.record(uid, p.id)) {
+                if (ViewTracker.record(currentUser?.userId, p.id)) {
                     const fresh = PostStore.get(p.id);
                     if (fresh) {
                         p.views = (fresh.views || 0) + 1; PostStore.update(p.id, { views: p.views });
@@ -1152,11 +1132,8 @@ document.getElementById('replyModeCancel').addEventListener('click', () => { rep
 
 function buildDetailComment(c, depth = 0){
     const thread = document.createElement('div'); thread.className = 'comment-thread' + (depth > 0 ? ' thread-nested' : ''); thread.dataset.cid = c.id;
-    const dbUser = DB.getUserById(c.userId);
-    const displayUser = dbUser ? getFreshUserDisplayName(dbUser) : (c.user || 'Foydalanuvchi');
-    const displayAvatar = (dbUser && dbUser.photo_url) ? dbUser.photo_url : c.avatar;
-    const init = (displayUser || 'F').trim().charAt(0).toUpperCase();
-    const av = displayAvatar ? `<img class="comment-avatar" src="${displayAvatar}">` : `<div class="comment-avatar-initial">${init}</div>`;
+    const init = (c.user || 'F').trim().charAt(0).toUpperCase();
+    const av = c.avatar ? `<img class="comment-avatar" src="${c.avatar}">` : `<div class="comment-avatar-initial">${init}</div>`;
     const hasReplies = c.replies && c.replies.length > 0;
 
     const row = document.createElement('div'); row.className = 'comment-row';
@@ -1166,7 +1143,7 @@ function buildDetailComment(c, depth = 0){
             ${hasReplies ? '<div class="thread-line-down"></div>' : ''}
         </div>
         <div class="comment-content">
-            <div class="comment-head"><span class="comment-user" data-uid="${c.userId||''}">${escapeHtml(displayUser)}${getInlineVerifiedBadge(c.userId)}</span><span class="comment-time">${escapeHtml(formatExactTime(c.createdAt || c.time))}</span></div>
+            <div class="comment-head"><span class="comment-user" data-uid="${c.userId||''}">${escapeHtml(c.user)}${getInlineVerifiedBadge(c.userId)}</span><span class="comment-time">${escapeHtml(formatExactTime(c.createdAt || c.time))}</span></div>
             <div class="comment-text">${escapeHtml(c.text || '')}</div>
         </div>
     `;
@@ -1209,12 +1186,8 @@ function refreshDetailFromStore(){
     (detailPost.comments||[]).forEach(c => clist.appendChild(buildDetailComment(c, 0)));
 }
 function renderDetailPost(){
-    if (!detailPost) return; const p = detailPost;
-    const dbUser = DB.getUserById(p.userId);
-    const displayUser = dbUser ? getFreshUserDisplayName(dbUser) : (p.user || 'Foydalanuvchi');
-    const displayAvatar = (dbUser && dbUser.photo_url) ? dbUser.photo_url : p.avatar;
-    const postInit = (displayUser||'F').trim().charAt(0).toUpperCase();
-    const av = displayAvatar ? `<img class="detail-avatar" src="${displayAvatar}" data-uid="${p.userId||''}">` : `<div class="detail-avatar-initial" data-uid="${p.userId||''}">${postInit}</div>`;
+    if (!detailPost) return; const p = detailPost, postInit = (p.user||'F').trim().charAt(0).toUpperCase();
+    const av = p.avatar ? `<img class="detail-avatar" src="${p.avatar}" data-uid="${p.userId||''}">` : `<div class="detail-avatar-initial" data-uid="${p.userId||''}">${postInit}</div>`;
     let media = '';
     if (p.type === 'image' && p.image) media = `<img class="detail-image" src="${p.image}">`;
     else if (p.type === 'video' && p.image) media = `<video class="detail-video" src="${p.image}" controls playsinline></video>`;
@@ -1226,7 +1199,7 @@ function renderDetailPost(){
             </div>
             <div style="flex: 1; min-width: 0;">
                 <div class="detail-info" style="display: flex; flex-direction: row; align-items: baseline; gap: 6px; margin-bottom: 6px;">
-                    <div class="detail-user" data-uid="${p.userId||''}">${escapeHtml(displayUser)}${getInlineVerifiedBadge(p.userId)}</div>
+                    <div class="detail-user" data-uid="${p.userId||''}">${escapeHtml(p.user)}${getInlineVerifiedBadge(p.userId)}</div>
                     <div class="detail-time">${escapeHtml(formatExactTime(p.createdAt))}</div>
                 </div>
                 ${p.text ? `<div class="detail-text">${escapeHtml(p.text)}</div>` : ''}
@@ -1278,6 +1251,7 @@ detailSend.addEventListener('click', () => {
         replyTargetId = null; detailInput.value = ''; detailInput.style.height = 'auto'; detailSend.disabled = true; refreshDetailFromStore();
     }
 });
+
 
 /* ================= COMMENT DETAIL ================= */
 const commentDetailOverlay = document.getElementById('commentDetailOverlay');
