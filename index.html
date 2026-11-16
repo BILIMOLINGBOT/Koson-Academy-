@@ -315,7 +315,7 @@
         .comment-act.saved{color:#fff}
         .comment-act.saved svg{fill:#fff;stroke:#fff}
 
-         /* ===== JAVOBLAR (NESTED) ===== */
+        /* ===== JAVOBLAR (NESTED) ===== */
         .comment-replies{display:flex;flex-direction:column;position:relative;margin-left:0;padding-left:0;padding-bottom:4px}
         .thread-nested{position:relative}
 
@@ -538,9 +538,18 @@ if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
     }
 }
 
+function getFreshCurrentUser() {
+    return DB.getCurrentUser() || currentUser;
+}
+
+function getFreshUserDisplayName(userObj) {
+    const u = userObj || getFreshCurrentUser();
+    return [u?.firstName, u?.lastName].filter(Boolean).join(' ') || 'Foydalanuvchi';
+}
+
 /* ================= VERIFIED BADGE HELPER ================= */
 function isUserVerified(uid, fallbackUser) {
-    if (String(uid) === String(currentUser?.userId)) {
+    if (String(uid) === String(getFreshCurrentUser()?.userId)) {
         const saved = localStorage.getItem(VERIFIED_KEY);
         if (saved !== null) return saved === '1';
     }
@@ -571,23 +580,23 @@ const PostStore = {
     }
 };
 
-
 /* ================= NOTIFICATION HELPER ================= */
 function sendNotification(type, recipientId, postId, commentId = null) {
-    if (!currentUser || !currentUser.userId || String(currentUser.userId) === String(recipientId)) return;
+    const freshUser = getFreshCurrentUser();
+    if (!freshUser || !freshUser.userId || !recipientId || String(freshUser.userId) === String(recipientId)) return;
     try {
         let notifs = JSON.parse(localStorage.getItem(NOTIF_KEY)) || [];
         if (type === 'like') {
-            const exists = notifs.some(n => n.type === 'like' && n.postId === postId && n.senderId === currentUser.userId);
+            const exists = notifs.some(n => n.type === 'like' && n.postId === postId && String(n.senderId) === String(freshUser.userId));
             if (exists) return;
         }
         const newNotif = {
             id: 'n_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
             type: type,
             recipientId: String(recipientId),
-            senderId: currentUser.userId,
-            senderName: [currentUser.firstName, currentUser.lastName].filter(Boolean).join(' ') || 'Foydalanuvchi',
-            senderAvatar: currentUser.photo_url || null,
+            senderId: String(freshUser.userId),
+            senderName: getFreshUserDisplayName(freshUser),
+            senderAvatar: freshUser.photo_url || null,
             postId: postId,
             commentId: commentId,
             createdAt: new Date().toISOString(),
@@ -601,10 +610,11 @@ function sendNotification(type, recipientId, postId, commentId = null) {
 }
 
 function removeNotification(type, postId) {
-    if (!currentUser || !currentUser.userId) return;
+    const freshUser = getFreshCurrentUser();
+    if (!freshUser || !freshUser.userId) return;
     try {
         let notifs = JSON.parse(localStorage.getItem(NOTIF_KEY)) || [];
-        notifs = notifs.filter(n => !(n.type === type && n.postId === postId && n.senderId === currentUser.userId));
+        notifs = notifs.filter(n => !(n.type === type && n.postId === postId && String(n.senderId) === String(freshUser.userId)));
         localStorage.setItem(NOTIF_KEY, JSON.stringify(notifs));
         window.dispatchEvent(new Event('luz_notifs_updated'));
         updateNotificationBadgeLocal();
@@ -613,9 +623,10 @@ function removeNotification(type, postId) {
 
 function updateNotificationBadgeLocal() {
     const btn = document.getElementById('navNotifBtn'); if (!btn) return;
+    const freshUser = getFreshCurrentUser();
     try {
         const notifs = JSON.parse(localStorage.getItem(NOTIF_KEY)) || [];
-        const unreadCount = notifs.filter(n => n.recipientId === currentUser?.userId && !n.isRead).length;
+        const unreadCount = notifs.filter(n => String(n.recipientId) === String(freshUser?.userId) && !n.isRead).length;
         let badge = btn.querySelector('.nav-badge');
         if (unreadCount > 0) {
             if (!badge) {
@@ -631,6 +642,8 @@ function updateNotificationBadgeLocal() {
 }
 
 function syncVerifiedStateUI() {
+    currentUser = getFreshCurrentUser();
+    syncCurrentUserAvatars();
     renderFeed(true);
     if (detailOverlay?.classList.contains('show') && detailPost) {
         refreshDetailFromStore();
@@ -665,16 +678,20 @@ const ViewTracker = {
 /* ================= AVATARS (NAV & COMPOSER) ================= */
 const navAvatarSlot = document.getElementById('navAvatarSlot');
 const composerAvatarSlot = document.getElementById('composerAvatarSlot');
-const cuName = [currentUser.firstName, currentUser.lastName].filter(Boolean).join(' ') || 'Foydalanuvchi';
-const cuInit = cuName.trim().charAt(0).toUpperCase() || 'F';
 
-if (currentUser.photo_url) {
-    navAvatarSlot.innerHTML = `<img class="nav-avatar" src="${currentUser.photo_url}" alt="${cuInit}">`;
-    composerAvatarSlot.innerHTML = `<img class="composer-avatar" src="${currentUser.photo_url}" alt="${cuInit}">`;
-} else {
-    navAvatarSlot.innerHTML = `<div class="nav-avatar-initial">${cuInit}</div>`;
-    composerAvatarSlot.innerHTML = `<div class="composer-avatar-initial">${cuInit}</div>`;
+function syncCurrentUserAvatars() {
+    const fresh = getFreshCurrentUser();
+    const name = getFreshUserDisplayName(fresh);
+    const init = name.trim().charAt(0).toUpperCase() || 'F';
+    if (fresh?.photo_url) {
+        navAvatarSlot.innerHTML = `<img class="nav-avatar" src="${fresh.photo_url}" alt="${init}">`;
+        composerAvatarSlot.innerHTML = `<img class="composer-avatar" src="${fresh.photo_url}" alt="${init}">`;
+    } else {
+        navAvatarSlot.innerHTML = `<div class="nav-avatar-initial">${init}</div>`;
+        composerAvatarSlot.innerHTML = `<div class="composer-avatar-initial">${init}</div>`;
+    }
 }
+syncCurrentUserAvatars();
 
 /* ================= HELPERS ================= */
 function escapeHtml(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
@@ -689,7 +706,7 @@ function formatExactTime(dateInput){
 }
 function goToProfile(uid){
     if (!uid) return;
-    if (String(uid) === String(currentUser?.userId)) window.location.href = 'profil.html';
+    if (String(uid) === String(getFreshCurrentUser()?.userId)) window.location.href = 'profil.html';
     else window.location.href = `profil.html?id=${encodeURIComponent(uid)}`;
 }
 let toastTimer;
@@ -772,6 +789,7 @@ const videoInput = document.getElementById('videoInput');
 let currentMedia = null;
 
 function openComposer(){
+    syncCurrentUserAvatars();
     compOverlay.classList.add('show');
     composer.classList.add('show');
     setTimeout(() => compInput.focus(), 300);
@@ -837,11 +855,12 @@ compSubmit.addEventListener('click', () => {
     const text = compInput.value.trim();
     if (!text && !currentMedia) return;
 
+    const freshUser = getFreshCurrentUser();
     PostStore.add({
         id: 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-        userId: currentUser?.userId || 'me',
-        user: cuName,
-        avatar: currentUser?.photo_url || null,
+        userId: freshUser?.userId || 'me',
+        user: getFreshUserDisplayName(freshUser),
+        avatar: freshUser?.photo_url || null,
         createdAt: new Date().toISOString(),
         text,
         image: currentMedia ? currentMedia.data : null,
@@ -887,10 +906,18 @@ function findInReplies(parent, id, root){
     } return null;
 }
 function makeCommentObj(text, parentId){
+    const freshUser = getFreshCurrentUser();
     return {
         id: 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
-        userId: currentUser?.userId || '', user: cuName, avatar: currentUser.photo_url || null,
-        text, createdAt: new Date().toISOString(), likes: 0, liked: false, replies: [], parentId: parentId || null
+        userId: freshUser?.userId || '',
+        user: getFreshUserDisplayName(freshUser),
+        avatar: freshUser?.photo_url || null,
+        text,
+        createdAt: new Date().toISOString(),
+        likes: 0,
+        liked: false,
+        replies: [],
+        parentId: parentId || null
     };
 }
 function addCommentToPost(postId, newComment, replyToId){
@@ -965,8 +992,11 @@ function buildPostItem(p){
     item.style.gap = '10px';
     item.style.alignItems = 'flex-start';
 
-    const postInit = (p.user || 'F').trim().charAt(0).toUpperCase();
-    const av = p.avatar ? `<img class="post-avatar" src="${p.avatar}" alt="" loading="lazy">` : `<div class="post-avatar-initial">${postInit}</div>`;
+    const dbUser = DB.getUserById(p.userId);
+    const displayUser = dbUser ? getFreshUserDisplayName(dbUser) : (p.user || 'Foydalanuvchi');
+    const displayAvatar = (dbUser && dbUser.photo_url) ? dbUser.photo_url : p.avatar;
+    const postInit = (displayUser || 'F').trim().charAt(0).toUpperCase();
+    const av = displayAvatar ? `<img class="post-avatar" src="${displayAvatar}" alt="" loading="lazy">` : `<div class="post-avatar-initial">${postInit}</div>`;
     
     let media = '';
     if (p.type === 'image' && p.image) media = `<img class="post-image" src="${p.image}" alt="" loading="lazy">`;
@@ -978,7 +1008,7 @@ function buildPostItem(p){
         </div>
         <div style="flex: 1; min-width: 0;">
             <div class="post-head-info" style="display: flex; flex-direction: row; align-items: baseline; gap: 6px; margin-bottom: 2px;">
-                <div class="post-user">${escapeHtml(p.user)}${getInlineVerifiedBadge(p.userId)}</div>
+                <div class="post-user">${escapeHtml(displayUser)}${getInlineVerifiedBadge(p.userId)}</div>
                 <div class="post-time">${escapeHtml(formatExactTime(p.createdAt || p.time))}</div>
             </div>
             ${p.text ? `<div class="post-text">${escapeHtml(p.text)}</div>` : ''}
@@ -995,9 +1025,10 @@ function buildPostItem(p){
 
     const io = new IntersectionObserver(entries => {
         entries.forEach(en => {
-            if (en.isIntersecting && !ViewTracker.hasViewed(currentUser?.userId, p.id)) {
+            const uid = getFreshCurrentUser()?.userId;
+            if (en.isIntersecting && !ViewTracker.hasViewed(uid, p.id)) {
                 io.disconnect();
-                if (ViewTracker.record(currentUser?.userId, p.id)) {
+                if (ViewTracker.record(uid, p.id)) {
                     const fresh = PostStore.get(p.id);
                     if (fresh) {
                         p.views = (fresh.views || 0) + 1; PostStore.update(p.id, { views: p.views });
@@ -1121,8 +1152,11 @@ document.getElementById('replyModeCancel').addEventListener('click', () => { rep
 
 function buildDetailComment(c, depth = 0){
     const thread = document.createElement('div'); thread.className = 'comment-thread' + (depth > 0 ? ' thread-nested' : ''); thread.dataset.cid = c.id;
-    const init = (c.user || 'F').trim().charAt(0).toUpperCase();
-    const av = c.avatar ? `<img class="comment-avatar" src="${c.avatar}">` : `<div class="comment-avatar-initial">${init}</div>`;
+    const dbUser = DB.getUserById(c.userId);
+    const displayUser = dbUser ? getFreshUserDisplayName(dbUser) : (c.user || 'Foydalanuvchi');
+    const displayAvatar = (dbUser && dbUser.photo_url) ? dbUser.photo_url : c.avatar;
+    const init = (displayUser || 'F').trim().charAt(0).toUpperCase();
+    const av = displayAvatar ? `<img class="comment-avatar" src="${displayAvatar}">` : `<div class="comment-avatar-initial">${init}</div>`;
     const hasReplies = c.replies && c.replies.length > 0;
 
     const row = document.createElement('div'); row.className = 'comment-row';
@@ -1132,7 +1166,7 @@ function buildDetailComment(c, depth = 0){
             ${hasReplies ? '<div class="thread-line-down"></div>' : ''}
         </div>
         <div class="comment-content">
-            <div class="comment-head"><span class="comment-user" data-uid="${c.userId||''}">${escapeHtml(c.user)}${getInlineVerifiedBadge(c.userId)}</span><span class="comment-time">${escapeHtml(formatExactTime(c.createdAt || c.time))}</span></div>
+            <div class="comment-head"><span class="comment-user" data-uid="${c.userId||''}">${escapeHtml(displayUser)}${getInlineVerifiedBadge(c.userId)}</span><span class="comment-time">${escapeHtml(formatExactTime(c.createdAt || c.time))}</span></div>
             <div class="comment-text">${escapeHtml(c.text || '')}</div>
         </div>
     `;
@@ -1175,8 +1209,12 @@ function refreshDetailFromStore(){
     (detailPost.comments||[]).forEach(c => clist.appendChild(buildDetailComment(c, 0)));
 }
 function renderDetailPost(){
-    if (!detailPost) return; const p = detailPost, postInit = (p.user||'F').trim().charAt(0).toUpperCase();
-    const av = p.avatar ? `<img class="detail-avatar" src="${p.avatar}" data-uid="${p.userId||''}">` : `<div class="detail-avatar-initial" data-uid="${p.userId||''}">${postInit}</div>`;
+    if (!detailPost) return; const p = detailPost;
+    const dbUser = DB.getUserById(p.userId);
+    const displayUser = dbUser ? getFreshUserDisplayName(dbUser) : (p.user || 'Foydalanuvchi');
+    const displayAvatar = (dbUser && dbUser.photo_url) ? dbUser.photo_url : p.avatar;
+    const postInit = (displayUser||'F').trim().charAt(0).toUpperCase();
+    const av = displayAvatar ? `<img class="detail-avatar" src="${displayAvatar}" data-uid="${p.userId||''}">` : `<div class="detail-avatar-initial" data-uid="${p.userId||''}">${postInit}</div>`;
     let media = '';
     if (p.type === 'image' && p.image) media = `<img class="detail-image" src="${p.image}">`;
     else if (p.type === 'video' && p.image) media = `<video class="detail-video" src="${p.image}" controls playsinline></video>`;
@@ -1188,7 +1226,7 @@ function renderDetailPost(){
             </div>
             <div style="flex: 1; min-width: 0;">
                 <div class="detail-info" style="display: flex; flex-direction: row; align-items: baseline; gap: 6px; margin-bottom: 6px;">
-                    <div class="detail-user" data-uid="${p.userId||''}">${escapeHtml(p.user)}${getInlineVerifiedBadge(p.userId)}</div>
+                    <div class="detail-user" data-uid="${p.userId||''}">${escapeHtml(displayUser)}${getInlineVerifiedBadge(p.userId)}</div>
                     <div class="detail-time">${escapeHtml(formatExactTime(p.createdAt))}</div>
                 </div>
                 ${p.text ? `<div class="detail-text">${escapeHtml(p.text)}</div>` : ''}
@@ -1240,7 +1278,6 @@ detailSend.addEventListener('click', () => {
         replyTargetId = null; detailInput.value = ''; detailInput.style.height = 'auto'; detailSend.disabled = true; refreshDetailFromStore();
     }
 });
-
 
 /* ================= COMMENT DETAIL ================= */
 const commentDetailOverlay = document.getElementById('commentDetailOverlay');
