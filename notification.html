@@ -51,7 +51,7 @@
         .notif-item {
             display: flex; 
             align-items: flex-start;
-            gap: 12px; 
+            gap: 13px; 
             padding: 14px 16px;
             border-bottom: 1px solid #1c1c1e; 
             background: #000;
@@ -62,7 +62,7 @@
         .notif-item:active { background: rgba(255, 255, 255, 0.05); }
         .notif-item.unread { background: rgba(255, 255, 255, 0.06); }
 
-        /* Chap ustun: Avatar va uning burchagidagi Ikonka */
+        /* Chap ustun: Kattalashtirilgan Avatar (50px) va uning burchagidagi Ikonka */
         .notif-avatar-wrap {
             position: relative;
             flex-shrink: 0;
@@ -70,10 +70,10 @@
             align-items: center;
         }
         .notif-avatars { display: flex; align-items: center; }
-        .notif-avatars > * + * { margin-left: -14px; }
+        .notif-avatars > * + * { margin-left: -16px; }
         .notif-avatar, .notif-avatar-initial { 
-            width: 44px; 
-            height: 44px; 
+            width: 50px; 
+            height: 50px; 
             border-radius: 50%; 
             object-fit: cover; 
             border: 2px solid #000; 
@@ -85,7 +85,7 @@
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            font-size: 16px; 
+            font-size: 18px; 
             font-weight: 700; 
             color: #fff; 
         }
@@ -95,8 +95,8 @@
             position: absolute;
             right: -3px;
             bottom: -3px;
-            width: 22px;
-            height: 22px;
+            width: 24px;
+            height: 24px;
             border-radius: 50%;
             background: #1c1c1e;
             border: 2px solid #000;
@@ -106,20 +106,19 @@
             z-index: 3;
         }
         .notif-item.unread .notif-type-badge { border-color: #121212; }
-        .notif-type-badge svg { width: 12px; height: 12px; }
+        .notif-type-badge svg { width: 13px; height: 13px; }
         .icon-like { fill: #ff2d55; color: #ff2d55; }
         .icon-follow { fill: #8e8e93; color: #8e8e93; }
         .icon-comment, .icon-reply { fill: none; stroke: #8e8e93; stroke-width: 2.3; stroke-linecap: round; stroke-linejoin: round; }
 
         /* O'ng ustun: Ism + Tasdiqlash + Vaqt (yuqori qator) va Matn (pastda) */
-        .notif-body { flex: 1; display: flex; flex-direction: column; min-width: 0; padding-top: 1px; }
+        .notif-body { flex: 1; display: flex; flex-direction: column; min-width: 0; padding-top: 2px; }
         
         .notif-top-line {
             display: flex;
             align-items: center;
             gap: 5px;
             flex-wrap: wrap;
-            margin-bottom: 3px;
         }
         .notif-sender-name {
             font-size: 15px;
@@ -145,15 +144,16 @@
             font-size: 14px; 
             line-height: 1.4; 
             color: #e7e9ea; 
+            margin-top: 3px;
             word-break: break-word; 
         }
 
         /* Like / Comment / Reply matni (preview) */
         .notif-preview{
-            font-size:14px;
+            font-size:15px;
             line-height:1.4;
-            color:#8e8e93;
-            margin-top:5px;
+            color:#e7e9ea;
+            margin-top:4px;
             word-break:break-word;
             white-space:pre-wrap;
             display:-webkit-box;
@@ -264,7 +264,6 @@
         return getUsers().find(u => String(u.userId) === String(id)) || null;
     }
 
-    /* Real vaqtda foydalanuvchi rasmi va ismini bazadan olish */
     function getFreshSenderInfo(sender) {
         const users = getUsers();
         const freshUser = users.find(u => String(u.userId) === String(sender.id));
@@ -328,10 +327,11 @@
         reply: COMMENT_REPLY_SVG
     };
 
+    /* "postingizni yoqtirdi" va "postingizga izoh yozdi" olib tashlandi */
     const TEXT_MAP = {
-        like: "postingizni yoqtirdi",
+        like: "",
         follow: "sizga Obuna boʻldi",
-        comment: "postingizga izoh yozdi",
+        comment: "",
         reply: "izohingizga javob yozdi"
     };
 
@@ -364,7 +364,6 @@
         return '';
     }
 
-    
     /* ================= NOTIFICATION LOGIC ================= */
     const Store = {
         load: () => { try { return JSON.parse(localStorage.getItem(NOTIF_KEY)) || []; } catch { return []; } },
@@ -429,6 +428,7 @@
                 const item = document.createElement('div');
                 item.className = `notif-item ${g.unread ? 'unread' : ''}`;
                 
+                const actionText = TEXT_MAP[g.type] || '';
                 const preview = getPreviewText(n);
                 
                 item.innerHTML = `
@@ -443,7 +443,7 @@
                             ${othersCount > 0 ? `<span class="notif-others">va yana ${othersCount} kishi</span>` : ''}
                             <span class="notif-time">${formatExactTime(g.latest)}</span>
                         </div>
-                        <div class="notif-action-text">${TEXT_MAP[g.type] || ''}</div>
+                        ${actionText ? `<div class="notif-action-text">${actionText}</div>` : ''}
                         ${preview ? `<div class="notif-preview">${escapeHtml(preview)}</div>` : ''}
                     </div>
                 `;
@@ -491,7 +491,7 @@
         }
     });
 
-    /* Real-time Syncing (profil rasmi, ism, bildirishnomalar o'zgarganda) */
+    /* Real-time Syncing */
     window.addEventListener('pageshow', renderNotifications);
     window.addEventListener('focus', renderNotifications);
     window.addEventListener('storage', (e) => { 
