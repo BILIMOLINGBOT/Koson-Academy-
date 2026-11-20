@@ -191,7 +191,7 @@ body{display:flex;justify-content:center;align-items:flex-start;min-height:100vh
 .toast{position:fixed;left:50%;bottom:120px;transform:translateX(-50%) translateY(20px);background:rgba(28,28,30,0.9);backdrop-filter:blur(10px);color:#fff;padding:12px 24px;border-radius:16px;font-size:14px;font-weight:500;z-index:1000;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;box-shadow:0 8px 30px rgba(0,0,0,.6);border:1px solid rgba(255,255,255,0.1);max-width:80%;text-align:center}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-/* "ISLAND" PASTKI NAVIGATSIYA (O'z holida saqlangan) */
+/* "ISLAND" PASTKI NAVIGATSIYA */
 .bottom-nav{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:380px;background:rgba(28,28,30,0.85);backdrop-filter:blur(25px);-webkit-backdrop-filter:blur(25px);border:1px solid rgba(255,255,255,0.1);border-radius:40px;z-index:50;box-shadow:0 10px 40px rgba(0,0,0,0.6);padding:6px 12px}
 .bottom-nav-inner{display:flex;justify-content:space-between;align-items:center;width:100%}
 .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;text-decoration:none;color:#8e8e93;transition:color .2s,transform .2s}
@@ -212,7 +212,7 @@ body{display:flex;justify-content:center;align-items:flex-start;min-height:100vh
         </div>
     </div>
 
-    
+   
     <!-- Banner -->
     <div class="banner">
         <img class="banner-img" id="bannerImg" src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=900&q=80" alt="Banner foni">
@@ -344,6 +344,8 @@ body{display:flex;justify-content:center;align-items:flex-start;min-height:100vh
     </div>
 </div>
 
+
+
 <!-- COMMENT DETAIL VIEW -->
 <div class="comment-detail-overlay" id="commentDetailOverlay">
     <div class="comment-detail-header">
@@ -370,7 +372,7 @@ body{display:flex;justify-content:center;align-items:flex-start;min-height:100vh
 
 <div class="toast" id="toast"></div>
 
-<!-- OROLCHA NAVIGATSIYA (O'z holicha saqlangan) -->
+<!-- OROLCHA NAVIGATSIYA -->
 <nav class="bottom-nav">
     <div class="bottom-nav-inner">
         <a href="index.html" class="nav-btn nav-inactive"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span class="nav-label">Uy</span></a>
@@ -384,6 +386,7 @@ body{display:flex;justify-content:center;align-items:flex-start;min-height:100vh
 /* ================= KONSTANTALAR ================= */
 const MAX_VIDEO_SIZE = 5 * 1024 * 1024;
 const REPLIES_KEY = 'luz_my_replies_v1';
+const SAVED_POSTS_KEY = 'luz_saved_posts_v1';
 const VERIFIED_KEY = 'luz_verified_badge';
 
 const VERIFIED_BADGE_MAIN_SVG = `<svg width="21" height="21" viewBox="0 0 24 24" aria-label="Tasdiqlangan"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" fill="#ffffff" stroke="none"></path><path d="m9 12 2 2 4-4" fill="none" stroke="#000000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>`;
@@ -703,14 +706,6 @@ window.addEventListener('popstate', () => {
     else goBack();
 });
 
-/* ================= ACTION TUGMALAR ================= */
-document.getElementById('editBtn')?.addEventListener('click', () => { location.href = 'tahrirlash.html'; });
-document.getElementById('settingsBtn')?.addEventListener('click', () => { location.href = 'setting.html'; });
-document.getElementById('subscribeBtn')?.addEventListener('click', () => {
-    const b = document.getElementById('subscribeBtn'); b.innerHTML = `<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Obuna bo'lindi`; b.style.opacity = '.7'; b.disabled = true;
-});
-document.getElementById('messageBtn')?.addEventListener('click', () => { location.href = `xabar.html?chat=${encodeURIComponent(profileUserId)}`; });
-
 
 /* ================= POST VA TABS ================= */
 const emptyIcons = {
@@ -721,6 +716,18 @@ const emptyIcons = {
 };
 const texts = { posts: "Hali post yo'q", video: "Hali video yo'q", answers: "Hali javob yo'q", saved: "Hali saqlangan post yo'q" };
 let posts = [], savedPosts = new Set(), myReplies = [];
+
+/* TUZATISH 3: Saqlangan postlarni localStorage bilan sinxronlash */
+function loadSavedPosts(){
+    try {
+        const raw = localStorage.getItem(SAVED_POSTS_KEY);
+        const arr = raw ? JSON.parse(raw) : [];
+        savedPosts = new Set(Array.isArray(arr) ? arr : []);
+    } catch { savedPosts = new Set(); }
+}
+function saveSavedPosts(){
+    try { localStorage.setItem(SAVED_POSTS_KEY, JSON.stringify([...savedPosts])); } catch {}
+}
 
 function loadMyReplies(){ try { const raw = localStorage.getItem(REPLIES_KEY); myReplies = raw ? JSON.parse(raw) : []; } catch { myReplies = []; } }
 function saveMyReplies(){ try { localStorage.setItem(REPLIES_KEY, JSON.stringify(myReplies)); } catch {} }
@@ -757,6 +764,7 @@ function buildPostActions(p){
         e.stopPropagation();
         if (savedPosts.has(p.id)) { savedPosts.delete(p.id); saveBtn.classList.remove('saved'); showToast("Olib tashlandi"); }
         else { savedPosts.add(p.id); saveBtn.classList.add('saved'); showToast("Saqlandi"); }
+        saveSavedPosts();
         if (currentTab === 'saved') renderSaved();
     });
     const shareBtn = createBtn(ICONS.share, null, '', (e)=>{ e.stopPropagation(); handleShare(p); });
@@ -817,7 +825,10 @@ function renderList(list, key){
 }
 function renderPosts(){ renderList(posts, 'posts'); }
 function renderVideos(){ renderList(posts.filter(p => p.type === 'video'), 'video'); }
-function renderSaved(){ renderList(posts.filter(p => savedPosts.has(p.id)), 'saved'); }
+function renderSaved(){
+    const allSaved = PostStore.all().filter(p => savedPosts.has(p.id));
+    renderList(allSaved, 'saved');
+}
 function renderReplies(){
     const area = document.getElementById('contentArea');
     if (myReplies.length === 0) { area.innerHTML = `<div class="empty-state"><div class="empty-icon">${emptyIcons.answers}</div><p>${texts.answers}</p></div>`; return; }
@@ -837,6 +848,10 @@ function renderReplies(){
                 <div class="post-text">${escapeHtml(r.text)}</div>
                 <div style="font-size:12px;color:#71767b;margin-top:8px;padding:8px;background:rgba(255,255,255,0.05);border-radius:8px">Javob berildi: "${escapeHtml(r.postText || 'post')}"</div>
             </div>`;
+        item.addEventListener('click', () => {
+            const p = PostStore.get(r.postId);
+            if (p) openPostDetail(p);
+        });
         document.getElementById('feed').appendChild(item);
     });
 }
@@ -858,13 +873,13 @@ function updateDetailReplyModeUI(){
     if (found) { document.getElementById('replyModeText').textContent = `↩ ${found.comment.user} ga javob`; bar.style.display = 'flex'; island.classList.add('reply-mode'); }
     else { bar.style.display = 'none'; island.classList.remove('reply-mode'); }
 }
-document.getElementById('replyModeCancel').addEventListener('click', () => { replyTargetId = null; detailInput.value = ''; updateDetailReplyModeUI(); });
+document.getElementById('replyModeCancel').addEventListener('click', () => { replyTargetId = null; detailInput.value = ''; detailInput.style.height = 'auto'; updateDetailReplyModeUI(); });
 
-function buildDetailComment(c, depth = 0){
+function buildDetailComment(c, depth = 0, inCommentDetail = false){
     const thread = document.createElement('div'); thread.className = 'comment-thread' + (depth > 0 ? ' thread-nested' : ''); thread.dataset.cid = c.id;
     const init = (c.user || 'F').trim().charAt(0).toUpperCase();
     const av = c.avatar ? `<img class="comment-avatar" src="${c.avatar}">` : `<div class="comment-avatar-initial">${init}</div>`;
-    const hasReplies = c.replies && c.replies.length > 0;
+    const hasReplies = !inCommentDetail && c.replies && c.replies.length > 0;
 
     const row = document.createElement('div'); row.className = 'comment-row';
     row.innerHTML = `
@@ -879,9 +894,27 @@ function buildDetailComment(c, depth = 0){
     `;
     const actions = document.createElement('div'); actions.className = 'comment-actions';
     const likeBtn = document.createElement('button'); likeBtn.className = 'comment-act' + (c.liked?' liked':''); likeBtn.innerHTML = `${ICONS.like}<span>${c.likes||0}</span>`;
-    likeBtn.addEventListener('click', (e) => { e.stopPropagation(); c.liked = !c.liked; c.likes = Math.max(0, (c.likes||0) + (c.liked?1:-1)); PostStore.update(detailPost.id, {comments:detailPost.comments}); refreshDetailFromStore(); });
+    likeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        c.liked = !c.liked;
+        c.likes = Math.max(0, (c.likes||0) + (c.liked?1:-1));
+        PostStore.update(detailPost.id, {comments:detailPost.comments});
+        refreshDetailFromStore();
+        if (inCommentDetail && activeCommentId) refreshCommentDetailFromStore();
+    });
     const commBtn = document.createElement('button'); commBtn.className = 'comment-act'; commBtn.innerHTML = `${ICONS.comment}<span>${(c.replies||[]).length||''}</span>`;
-    commBtn.addEventListener('click', (e) => { e.stopPropagation(); replyTargetId = c.id; detailInput.focus(); updateDetailReplyModeUI(); });
+    commBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (inCommentDetail) {
+            cdReplyTargetId = c.id;
+            cdInput.focus();
+            updateCdReplyModeUI();
+        } else {
+            replyTargetId = c.id;
+            detailInput.focus();
+            updateDetailReplyModeUI();
+        }
+    });
     const viewBtn = document.createElement('button'); viewBtn.className = 'comment-act'; viewBtn.innerHTML = `${ICONS.view}`; viewBtn.style.cursor = 'default';
     viewBtn.addEventListener('click', (e) => e.stopPropagation());
     const saveBtn = document.createElement('button'); saveBtn.className = 'comment-act'; saveBtn.innerHTML = `${ICONS.bookmark}`;
@@ -891,12 +924,16 @@ function buildDetailComment(c, depth = 0){
 
     actions.append(likeBtn, commBtn, viewBtn, saveBtn, shareBtn);
     row.querySelector('.comment-content').appendChild(actions);
-    row.addEventListener('click', (e) => { if (!e.target.closest('.comment-act')) openCommentDetail(c.id); });
+    row.addEventListener('click', (e) => {
+        if (!e.target.closest('.comment-act') && (!inCommentDetail || c.id !== activeCommentId)) {
+            openCommentDetail(c.id);
+        }
+    });
     thread.appendChild(row);
 
     if (hasReplies) {
         const repBox = document.createElement('div'); repBox.className = 'comment-replies';
-        c.replies.forEach(r => repBox.appendChild(buildDetailComment(r, depth + 1)));
+        c.replies.forEach(r => repBox.appendChild(buildDetailComment(r, depth + 1, false)));
         thread.appendChild(repBox);
     }
     return thread;
@@ -907,7 +944,7 @@ function refreshDetailFromStore(){
     const fresh = PostStore.get(detailPost.id); if (fresh) detailPost = fresh; renderDetailPost();
     const clist = document.getElementById('detailCommentsList'); clist.innerHTML = '';
     document.getElementById('detailCommTitle').textContent = (detailPost.comments||[]).length ? `Izohlar (${countComments(detailPost)})` : 'Izohlar';
-    (detailPost.comments||[]).forEach(c => clist.appendChild(buildDetailComment(c, 0)));
+    (detailPost.comments||[]).forEach(c => clist.appendChild(buildDetailComment(c, 0, false)));
 }
 
 function renderDetailPost(){
@@ -955,10 +992,114 @@ detailSend.addEventListener('click', () => {
     const newC = makeCommentObj(raw, replyTargetId);
     if (addCommentToPost(detailPost.id, newC, replyTargetId)) {
         pushMyReply({ id: newC.id, postId: detailPost.id, userId: currentUser?.userId || '', user: newC.user, avatar: newC.avatar, text: newC.text, createdAt: newC.createdAt, postText: detailPost.text });
-        replyTargetId = null; detailInput.value = ''; detailSend.disabled = true; refreshDetailFromStore();
+        replyTargetId = null; detailInput.value = ''; detailInput.style.height = 'auto'; detailSend.disabled = true;
+        updateDetailReplyModeUI();
+        refreshDetailFromStore();
     }
 });
 
+/* ================= TUZATISH 1 & 2: COMMENT DETAIL TO'LIQ LOGIKASI ================= */
+const commentDetailOverlay = document.getElementById('commentDetailOverlay');
+const cdInput = document.getElementById('commentDetailInput');
+const cdSend = document.getElementById('commentDetailSend');
+let activeCommentId = null, cdReplyTargetId = null;
+
+function updateCdReplyModeUI(){
+    const bar = document.getElementById('cdReplyModeBar'), island = document.getElementById('commentDetailIsland');
+    if (!cdReplyTargetId || !detailPost || cdReplyTargetId === activeCommentId) {
+        bar.style.display = 'none';
+        island.classList.remove('reply-mode');
+        return;
+    }
+    const found = findComment(detailPost.comments || [], cdReplyTargetId);
+    if (found) {
+        document.getElementById('cdReplyModeText').textContent = `↩ ${found.comment.user} ga javob`;
+        bar.style.display = 'flex';
+        island.classList.add('reply-mode');
+    } else {
+        bar.style.display = 'none';
+        island.classList.remove('reply-mode');
+    }
+}
+
+document.getElementById('cdReplyModeCancel').addEventListener('click', () => {
+    cdReplyTargetId = activeCommentId;
+    cdInput.value = '';
+    cdInput.style.height = 'auto';
+    updateCdReplyModeUI();
+});
+
+function refreshCommentDetailFromStore(){
+    if (!detailPost || !activeCommentId) return;
+    const fresh = PostStore.get(detailPost.id); if (fresh) detailPost = fresh;
+    const found = findComment(detailPost.comments || [], activeCommentId);
+    if (!found) { closeCommentDetail(); return; }
+
+    const mainBox = document.getElementById('commentDetailMain');
+    mainBox.innerHTML = '';
+    mainBox.appendChild(buildDetailComment(found.comment, 0, true));
+
+    const reps = document.getElementById('commentDetailReplies');
+    reps.innerHTML = '';
+    (found.comment.replies || []).forEach(r => {
+        reps.appendChild(buildDetailComment(r, 0, true));
+    });
+}
+
+function openCommentDetail(cid){
+    if (!detailPost) return;
+    const fresh = PostStore.get(detailPost.id); if (!fresh) return;
+    detailPost = fresh;
+    const found = findComment(detailPost.comments || [], cid); if (!found) return;
+
+    activeCommentId = cid;
+    cdReplyTargetId = cid;
+    cdInput.value = '';
+    cdInput.style.height = 'auto';
+    cdSend.disabled = true;
+    updateCdReplyModeUI();
+    refreshCommentDetailFromStore();
+
+    commentDetailOverlay.classList.add('show');
+    document.getElementById('commentDetailScroll').scrollTop = 0;
+    if (isTelegram) { try { tg.BackButton.onClick(closeCommentDetail); } catch {} }
+}
+
+function closeCommentDetail(){
+    commentDetailOverlay.classList.remove('show');
+    activeCommentId = null;
+    cdReplyTargetId = null;
+    refreshDetailFromStore();
+    if (isTelegram) {
+        try {
+            if (detailOverlay.classList.contains('show')) tg.BackButton.onClick(closePostDetail);
+            else tg.BackButton.onClick(goBack);
+        } catch {}
+    }
+}
+
+cdInput.addEventListener('input', () => {
+    cdInput.style.height = 'auto';
+    cdInput.style.height = Math.min(cdInput.scrollHeight, 90) + 'px';
+    cdSend.disabled = cdInput.value.trim().length === 0;
+});
+
+cdSend.addEventListener('click', () => {
+    const raw = cdInput.value.trim();
+    if (!raw || !detailPost || !activeCommentId) return;
+    const target = cdReplyTargetId || activeCommentId;
+    const newC = makeCommentObj(raw, target);
+    if (addCommentToPost(detailPost.id, newC, target)) {
+        pushMyReply({ id: newC.id, postId: detailPost.id, userId: currentUser?.userId || '', user: newC.user, avatar: newC.avatar, text: newC.text, createdAt: newC.createdAt, postText: detailPost.text });
+        cdReplyTargetId = activeCommentId;
+        cdInput.value = '';
+        cdInput.style.height = 'auto';
+        cdSend.disabled = true;
+        updateCdReplyModeUI();
+        refreshCommentDetailFromStore();
+        refreshDetailFromStore();
+    }
+});
 
 /* ================= COMPOSER ================= */
 const composer = document.getElementById('composer'), compOverlay = document.getElementById('composerOverlay'), compInput = document.getElementById('composerInput'), compSubmit = document.getElementById('composerSubmit');
@@ -977,8 +1118,11 @@ compInput.addEventListener('input', () => {
     compSubmit.disabled = !(compInput.value.trim().length > 0 || currentMedia);
 });
 
+/* TUZATISH 4: Fayl qayta tanlanishi uchun input qiymatini tozalash */
 document.getElementById('fileInput').addEventListener('change', async e => {
-    const file = e.target.files[0]; if (!file) return;
+    const file = e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
     try {
         const data = await compressImage(file); currentMedia = { data, type: 'image' };
         document.getElementById('previewImg').src = data; document.getElementById('previewImg').style.display = 'block';
@@ -987,7 +1131,9 @@ document.getElementById('fileInput').addEventListener('change', async e => {
     } catch {}
 });
 document.getElementById('videoInput').addEventListener('change', e => {
-    const file = e.target.files[0]; if (!file) return;
+    const file = e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
     if (file.size > MAX_VIDEO_SIZE) { showToast("Video juda katta (Maksimum 5MB)"); return; }
     const reader = new FileReader();
     reader.onload = ev => {
@@ -998,9 +1144,14 @@ document.getElementById('videoInput').addEventListener('change', e => {
     }; reader.readAsDataURL(file);
 });
 document.getElementById('removeImg').addEventListener('click', () => {
-    currentMedia = null; document.getElementById('composerPreview').classList.remove('show'); compSubmit.disabled = compInput.value.trim().length === 0;
+    currentMedia = null;
+    document.getElementById('previewImg').src = '';
+    document.getElementById('previewVid').src = '';
+    document.getElementById('composerPreview').classList.remove('show');
+    compSubmit.disabled = compInput.value.trim().length === 0;
 });
 
+/* TUZATISH 5: Post yuborilgandan keyin textarea balandligini va tugmani tiklash */
 compSubmit.addEventListener('click', () => {
     const text = compInput.value.trim(); if (!text && !currentMedia) return;
     PostStore.add({
@@ -1009,12 +1160,19 @@ compSubmit.addEventListener('click', () => {
         createdAt: new Date().toISOString(), text, image: currentMedia ? currentMedia.data : null,
         type: currentMedia ? currentMedia.type : 'text', likes: 0, liked: false, views: 0, comments: []
     });
-    compInput.value = ''; currentMedia = null; document.getElementById('composerPreview').classList.remove('show');
+    compInput.value = '';
+    compInput.style.height = 'auto';
+    compSubmit.disabled = true;
+    currentMedia = null;
+    document.getElementById('previewImg').src = '';
+    document.getElementById('previewVid').src = '';
+    document.getElementById('composerPreview').classList.remove('show');
     closeComposer(); loadMyPosts(); switchTab('posts');
 });
 
 /* ================= SYNC VERIFIED BADGE ================= */
 window.addEventListener('pageshow', () => {
+    loadSavedPosts();
     renderProfileHeader();
     switchTab(currentTab);
 });
@@ -1023,10 +1181,14 @@ window.addEventListener('storage', (e) => {
         renderProfileHeader();
         switchTab(currentTab);
     }
+    if (e.key === SAVED_POSTS_KEY) {
+        loadSavedPosts();
+        if (currentTab === 'saved') renderSaved();
+    }
 });
 
 /* INIT */
-loadMyReplies(); loadMyPosts(); switchTab('posts');
+loadSavedPosts(); loadMyReplies(); loadMyPosts(); switchTab('posts');
 </script>
 </body>
 </html>
