@@ -2,7 +2,7 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Uy - L.uz</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
@@ -13,7 +13,7 @@
         
         .mobile-container{width:100%;max-width:420px;padding:0 0 140px 0;display:flex;flex-direction:column}
         
-        /* Yuqori qism (iOS shaffof header + 90px pastda) */
+        /* Yuqori qism (safe-area-inset-top + iOS shaffof header) */
         .modern-header {
             position: sticky;
             top: 0;
@@ -21,7 +21,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 90px 20px 14px 20px;
+            padding: calc(env(safe-area-inset-top, 0px) + 54px) 20px 14px 20px;
             background: rgba(18, 18, 20, 0.45);
             backdrop-filter: blur(24px) saturate(180%);
             -webkit-backdrop-filter: blur(24px) saturate(180%);
@@ -47,14 +47,13 @@
         .post-item:active{background:rgba(255,255,255,0.03)}
         @keyframes postIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
         
-        .post-head{display:flex;align-items:center;gap:12px;margin-bottom:12px}
         .post-avatar,.post-avatar-initial{width:42px;height:42px;border-radius:50%;flex-shrink:0;cursor:pointer}
         .post-avatar{object-fit:cover;background:#1c1c1e}
         .post-avatar-initial{background:linear-gradient(135deg,#3a3a3c 0%,#1c1c1e 100%);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;color:#fff;text-transform:uppercase}
-        .post-head-info{display:flex;flex-direction:column;min-width:0;flex:1}
+        .post-head-info{display:flex;flex-direction:row;align-items:baseline;gap:6px;margin-bottom:2px;min-width:0;flex:1}
         .post-user{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;display:inline-flex;align-items:center}
         .post-user:active{opacity:.7}
-        .post-time{font-size:13px;color:#8e8e93;margin-top:1px}
+        .post-time{font-size:13px;color:#8e8e93;flex-shrink:0}
         .post-text{font-size:15px;line-height:1.45;color:#f2f2f7;white-space:pre-wrap;word-break:break-word;margin-bottom:12px}
         
         .post-image, .post-video, .detail-image, .detail-video{
@@ -119,117 +118,33 @@
         .feed-loader{display:none;flex-direction:column;width:100%}
         .feed-loader.active{display:flex}
 
-        .sk-card{
-            display:flex;
-            gap:12px;
-            padding:16px 20px;
-            border-bottom:1px solid rgba(255,255,255,0.05);
-            background:transparent;
-        }
+        .sk-card{display:flex;gap:12px;padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.05);background:transparent}
         .sk-shimmer{
             background:#161618;
-            background-image:linear-gradient(
-                110deg,
-                #161618 0%,
-                #161618 35%,
-                #26262b 50%,
-                #161618 65%,
-                #161618 100%
-            );
+            background-image:linear-gradient(110deg,#161618 0%,#161618 35%,#26262b 50%,#161618 65%,#161618 100%);
             background-size:250% 100%;
             animation:skWave 1.35s cubic-bezier(0.4,0,0.2,1) infinite;
         }
-        @keyframes skWave{
-            0%{background-position:100% 0}
-            100%{background-position:-100% 0}
-        }
-        .sk-avatar{
-            width:42px;
-            height:42px;
-            border-radius:50%;
-            flex-shrink:0;
-            border:0.5px solid rgba(255,255,255,0.06);
-        }
-        .sk-main{
-            flex:1;
-            min-width:0;
-            display:flex;
-            flex-direction:column;
-            gap:10px;
-            padding-top:2px;
-        }
-        .sk-head{
-            display:flex;
-            align-items:center;
-            gap:8px;
-        }
-        .sk-name{
-            width:112px;
-            height:13px;
-            border-radius:7px;
-        }
-        .sk-time{
-            width:52px;
-            height:11px;
-            border-radius:6px;
-            opacity:0.75;
-        }
-        .sk-lines{
-            display:flex;
-            flex-direction:column;
-            gap:7px;
-        }
-        .sk-line{
-            height:12px;
-            border-radius:6px;
-        }
+        @keyframes skWave{0%{background-position:100% 0}100%{background-position:-100% 0}}
+        .sk-avatar{width:42px;height:42px;border-radius:50%;flex-shrink:0;border:0.5px solid rgba(255,255,255,0.06)}
+        .sk-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px;padding-top:2px}
+        .sk-head{display:flex;align-items:center;gap:8px}
+        .sk-name{width:112px;height:13px;border-radius:7px}
+        .sk-time{width:52px;height:11px;border-radius:6px;opacity:0.75}
+        .sk-lines{display:flex;flex-direction:column;gap:7px}
+        .sk-line{height:12px;border-radius:6px}
         .sk-line.w-95{width:95%}
         .sk-line.w-80{width:80%}
         .sk-line.w-55{width:55%}
-        .sk-media{
-            width:100%;
-            height:168px;
-            border-radius:16px;
-            border:0.5px solid rgba(255,255,255,0.08);
-            margin-top:2px;
-        }
-        .sk-actions{
-            display:flex;
-            align-items:center;
-            justify-content:space-between;
-            padding-top:6px;
-            padding-right:8px;
-        }
-        .sk-act-pill{
-            width:30px;
-            height:14px;
-            border-radius:7px;
-            opacity:0.75;
-        }
+        .sk-media{width:100%;height:168px;border-radius:16px;border:0.5px solid rgba(255,255,255,0.08);margin-top:2px}
+        .sk-actions{display:flex;align-items:center;justify-content:space-between;padding-top:6px;padding-right:8px}
+        .sk-act-pill{width:30px;height:14px;border-radius:7px;opacity:0.75}
         .sk-status-pill{
-            margin:16px auto 22px;
-            display:inline-flex;
-            align-items:center;
-            gap:8px;
-            padding:7px 15px;
-            border-radius:20px;
-            background:rgba(28,28,30,0.8);
-            border:1px solid rgba(255,255,255,0.08);
-            backdrop-filter:blur(12px);
-            -webkit-backdrop-filter:blur(12px);
-            color:#8e8e93;
-            font-size:12px;
-            font-weight:500;
+            margin:16px auto 22px;display:inline-flex;align-items:center;gap:8px;padding:7px 15px;border-radius:20px;
+            background:rgba(28,28,30,0.8);border:1px solid rgba(255,255,255,0.08);backdrop-filter:blur(12px);
+            -webkit-backdrop-filter:blur(12px);color:#8e8e93;font-size:12px;font-weight:500;
         }
-        .sk-spinner{
-            width:14px;
-            height:14px;
-            border:2px solid rgba(255,255,255,0.16);
-            border-top-color:#fff;
-            border-radius:50%;
-            animation:spinLoader .7s linear infinite;
-            flex-shrink:0;
-        }
+        .sk-spinner{width:14px;height:14px;border:2px solid rgba(255,255,255,0.16);border-top-color:#fff;border-radius:50%;animation:spinLoader .7s linear infinite;flex-shrink:0}
         @keyframes spinLoader{to{transform:rotate(360deg)}}
 
         /* "ISLAND" PASTKI NAVIGATSIYA */
@@ -251,13 +166,12 @@
         .detail-overlay.show, .comment-detail-overlay.show{display:flex}
         @keyframes detailIn{from{opacity:0;transform:translateY(100%)}to{opacity:1;transform:translateY(0)}}
         
-        /* iOS shaffof header + "Post" / "Izoh" 90px pastga tushirilgan */
         .detail-header, .comment-detail-header{
             display:flex;
             align-items:center;
             justify-content:center;
             gap:12px;
-            padding:90px 16px 14px;
+            padding:calc(env(safe-area-inset-top, 0px) + 54px) 16px 14px;
             border-bottom:0.5px solid rgba(255,255,255,0.12);
             background:rgba(18,18,20,0.45);
             backdrop-filter:blur(24px) saturate(180%);
@@ -272,21 +186,19 @@
         }
         .detail-title, .comment-detail-title{font-size:17px;font-weight:600;text-align:center;}
         
-        .detail-scroll, .comment-detail-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-top:126px;padding-bottom:20px;max-width:420px;width:100%;margin:0 auto}
+        .detail-scroll, .comment-detail-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-top:calc(env(safe-area-inset-top, 0px) + 104px);padding-bottom:20px;max-width:420px;width:100%;margin:0 auto}
         .detail-post{padding:16px;border-bottom:10px solid #0a0a0a}
-        .detail-post-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
         .detail-avatar,.detail-avatar-initial{width:46px;height:46px;border-radius:50%;flex-shrink:0}
         .detail-avatar{object-fit:cover;background:#1c1c1e}
         .detail-avatar-initial{background:linear-gradient(135deg,#3a3a3c 0%,#1c1c1e 100%);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;text-transform:uppercase}
-        .detail-info{display:flex;flex-direction:column;min-width:0;flex:1}
+        .detail-info{display:flex;flex-direction:row;align-items:baseline;gap:6px;margin-bottom:6px;min-width:0;flex:1}
         .detail-user{font-size:16px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:inline-flex;align-items:center}
-        .detail-time{font-size:13px;color:#8e8e93;margin-top:2px}
+        .detail-time{font-size:13px;color:#8e8e93;flex-shrink:0}
         .detail-text{font-size:16px;line-height:1.5;color:#f2f2f7;white-space:pre-wrap;word-break:break-word;margin-bottom:16px}
         .detail-actions{display:flex;align-items:center;justify-content:space-between;gap:4px;padding-top:8px}
         
         .detail-comments-title{padding:20px 16px 12px;font-size:14px;font-weight:600;color:#fff;letter-spacing:0.3px}
         .detail-comments-list{padding:0 16px;display:flex;flex-direction:column;gap:12px}
-        .detail-empty{text-align:center;color:#5a5a5e;font-size:15px;padding:40px 0}
 
         /* ===== IZOH THREAD (UZLUKSIZ CHIZIQ) ===== */
         .comment-thread{display:flex;flex-direction:column;animation:postIn .3s ease both;position:relative}
@@ -315,11 +227,10 @@
         .comment-act.saved{color:#fff}
         .comment-act.saved svg{fill:#fff;stroke:#fff}
 
-        
-  /* ===== JAVOBLAR (NESTED) ===== */
         .comment-replies{display:flex;flex-direction:column;position:relative;margin-left:0;padding-left:0;padding-bottom:4px}
         .thread-nested{position:relative}
 
+       
         /* ===== REPLY MODE BAR ===== */
         .reply-mode-bar{display:flex;align-items:center;gap:8px;padding:10px 16px;background:rgba(255,255,255,.06);border-top:1px solid rgba(255,255,255,.08);font-size:13px;color:#fff;font-weight:600;max-width:420px;width:100%;margin:0 auto}
         .reply-mode-bar span{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -424,7 +335,7 @@
     </div>
     <div class="detail-input-bar">
         <div class="detail-island" id="detailIsland">
-            <textarea class="detail-input" id="detailInput" placeholder="Javob yozish..." rows="1"></textarea>
+            <textarea class="detail-input" id="detailInput" placeholder="Izoh yozish..." rows="1"></textarea>
             <button class="detail-send" id="detailSend" disabled>
                 <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
             </button>
@@ -444,7 +355,7 @@
     </div>
     <div class="reply-mode-bar" id="cdReplyModeBar" style="display:none">
         <span id="cdReplyModeText"></span>
-        <button id="cdReplyModeCancel">Bekor qilish</button>
+        <button id="cdReplyModeCancel" style="display:none">Bekor qilish</button>
     </div>
     <div class="detail-input-bar">
         <div class="detail-island" id="commentDetailIsland">
@@ -463,7 +374,7 @@
 const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
 if (tg) {
     try {
-        tg.ready(); 
+        tg.ready();
         tg.expand();
         if (tg.requestFullscreen) tg.requestFullscreen();
         if (tg.setHeaderColor) tg.setHeaderColor('#000000');
@@ -472,110 +383,303 @@ if (tg) {
 }
 
 /* ================= KONSTANTALAR ================= */
-const MAX_VIDEO_SIZE = 5 * 1024 * 1024;
-const MAX_VISIBLE_DEPTH = 2;
+// Xato #3: localStorage 5MB limit bo'lgani uchun base64 video hajmini xavfsiz chegaralaymiz
+const MAX_VIDEO_SIZE = 1.5 * 1024 * 1024;
 const REPLIES_KEY = 'luz_my_replies_v1';
-const NOTIF_KEY = 'notifications';
-const VERIFIED_KEY = 'luz_verified_badge';
+const NOTIF_KEY = 'luz_notifications_v1'; // Xato #18: Umumiy 'notifications' o'rniga prefiksli kalit
 const FEED_BATCH_SIZE = 15;
 
+// Xato #12: Tasdiqlangan akkauntlar ro'yxati endi client flagdan emas, faqat DB obyektidagi server/admin holatidan o'qiladi
 const VERIFIED_BADGE_SM_SVG = `<svg class="verified-badge-sm" viewBox="0 0 24 24" aria-label="Tasdiqlangan"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" fill="#ffffff" stroke="none"></path><path d="m9 12 2 2 4-4" fill="none" stroke="#000000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>`;
 
-/* ================= DB ================= */
+/* ================= XAVFSIZLIK VA YORDAMCHI FUNKSIYALAR ================= */
+// Xato #13: XSS oldini olish uchun barcha atribut va matnlar escape qilinadi
+function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, m => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    }[m]));
+}
+
+function sanitizeMediaUrl(url) {
+    if (!url || typeof url !== 'string') return '';
+    const trimmed = url.trim();
+    if (
+        trimmed.startsWith('data:image/') ||
+        trimmed.startsWith('data:video/') ||
+        trimmed.startsWith('https://') ||
+        trimmed.startsWith('http://')
+    ) {
+        return escapeHtml(trimmed);
+    }
+    return '';
+}
+
+/* ================= DB (YAGONALASHTIRILGAN) ================= */
 const DB = {
-    _K: 'luz_users', _S: 'luz_current_user',
-    _getUsers(){ try { return JSON.parse(localStorage.getItem(this._K)) || []; } catch { return []; } },
-    getCurrentUser(){
-        const id = localStorage.getItem(this._S); if (!id) return null;
+    _K: 'luz_users',
+    _S: 'luz_current_user',
+    _getUsers() {
+        try {
+            const arr = JSON.parse(localStorage.getItem(this._K));
+            return Array.isArray(arr) ? arr : [];
+        } catch { return []; }
+    },
+    _saveUsers(users) {
+        const map = new Map();
+        users.forEach(u => {
+            if (!u || !u.userId) return;
+            const idStr = String(u.userId);
+            if (idStr === 'me' || idStr === 'undefined' || idStr === 'null') return;
+            map.set(idStr, { ...u, userId: idStr });
+        });
+        const clean = Array.from(map.values());
+        try {
+            localStorage.setItem(this._K, JSON.stringify(clean));
+        } catch {}
+        return clean;
+    },
+    getCurrentUser() {
+        const id = localStorage.getItem(this._S);
+        if (!id) return null;
         return this._getUsers().find(u => String(u.userId) === String(id)) || null;
     },
-    getUserById(id){ return this._getUsers().find(u => String(u.userId) === String(id)) || null; }
+    getUserById(id) {
+        if (!id) return null;
+        return this._getUsers().find(u => String(u.userId) === String(id)) || null;
+    }
 };
 
 /* ================= SESSION & TELEGRAM AUTO-LOGIN ================= */
 let currentUser = null;
-if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
-    const tU = tg.initDataUnsafe.user;
-    const tgUser = {
-        userId: String(tU.id),
-        firstName: tU.first_name || '',
-        lastName: tU.last_name || '',
-        username: tU.username || '',
-        photo_url: tU.photo_url || null
-    };
+
+(function initSession() {
     let users = DB._getUsers();
-    let idx = users.findIndex(u => String(u.userId) === String(tgUser.userId));
-    if (idx >= 0) {
-        const stored = users[idx];
-        if (stored.isEdited) {
-            currentUser = { ...stored, userId: String(tgUser.userId) };
-            if (!currentUser.firstName) currentUser.firstName = tgUser.firstName;
-            if (!currentUser.lastName) currentUser.lastName = tgUser.lastName;
-            if (!currentUser.username) currentUser.username = tgUser.username;
-            if (!currentUser.photo_url) currentUser.photo_url = tgUser.photo_url;
+
+    if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+        const tU = tg.initDataUnsafe.user;
+        const realId = String(tU.id);
+
+        users = users.filter(u => !String(u.userId).startsWith('mehmon_') && String(u.userId) !== 'me');
+
+        const existing = users.find(u => String(u.userId) === realId);
+        if (existing) {
+            if (existing.isEdited) {
+                currentUser = {
+                    ...existing,
+                    userId: realId,
+                    firstName: existing.firstName || tU.first_name || '',
+                    lastName: existing.lastName !== undefined ? existing.lastName : (tU.last_name || ''),
+                    username: existing.username || tU.username || '',
+                    photo_url: existing.photo_url || tU.photo_url || null,
+                    verified: !!existing.verified
+                };
+            } else {
+                currentUser = {
+                    ...existing,
+                    userId: realId,
+                    firstName: tU.first_name || '',
+                    lastName: tU.last_name || '',
+                    username: tU.username || '',
+                    photo_url: tU.photo_url || existing.photo_url || null,
+                    isEdited: false,
+                    verified: !!existing.verified
+                };
+            }
         } else {
             currentUser = {
-                ...tgUser,
+                userId: realId,
+                firstName: tU.first_name || '',
+                lastName: tU.last_name || '',
+                username: tU.username || '',
+                photo_url: tU.photo_url || null,
                 isEdited: false,
-                verified: !!stored.verified,
-                isVerified: !!stored.isVerified
+                verified: false
             };
         }
-        users[idx] = currentUser;
-    } else {
-        const isLocalVerified = localStorage.getItem(VERIFIED_KEY) === '1';
-        currentUser = { ...tgUser, isEdited: false, verified: isLocalVerified, isVerified: isLocalVerified };
+
+        users = users.filter(u => String(u.userId) !== realId);
         users.push(currentUser);
+        DB._saveUsers(users);
+        localStorage.setItem(DB._S, realId);
+    } else {
+        currentUser = DB.getCurrentUser();
+        if (!currentUser && users.length > 0) {
+            currentUser = users.find(u => !String(u.userId).startsWith('mehmon_')) || users[0];
+            localStorage.setItem(DB._S, String(currentUser.userId));
+        }
+        if (!currentUser) {
+            const guestId = 'mehmon_default';
+            currentUser = {
+                userId: guestId,
+                firstName: 'Mehmon',
+                lastName: '',
+                username: 'mehmon',
+                photo_url: null,
+                isEdited: false,
+                verified: false
+            };
+            users.push(currentUser);
+            DB._saveUsers(users);
+            localStorage.setItem(DB._S, guestId);
+        }
     }
-    localStorage.setItem(DB._K, JSON.stringify(users));
-    localStorage.setItem(DB._S, String(currentUser.userId));
-} else {
-    currentUser = DB.getCurrentUser();
-    if (!currentUser) {
-        const isLocalVerified = localStorage.getItem(VERIFIED_KEY) === '1';
-        currentUser = { userId: 'mehmon_' + Date.now(), firstName: 'Mehmon', lastName: '', username: 'mehmon', isEdited: false, verified: isLocalVerified, isVerified: isLocalVerified };
-        localStorage.setItem(DB._S, String(currentUser.userId));
-        localStorage.setItem(DB._K, JSON.stringify([currentUser]));
+})();
+
+function resolveAuthorInfo(uid, fallbackName, fallbackAvatar) {
+    const idStr = String(uid || '');
+    const effectiveId = (idStr === 'me' || idStr.startsWith('mehmon_')) ? String(currentUser.userId) : idStr;
+    const userObj = (effectiveId === String(currentUser.userId)) ? currentUser : DB.getUserById(effectiveId);
+
+    if (userObj) {
+        const fullName = [userObj.firstName, userObj.lastName].filter(Boolean).join(' ').trim();
+        return {
+            userId: String(userObj.userId),
+            name: fullName || fallbackName || 'Foydalanuvchi',
+            avatar: userObj.photo_url || fallbackAvatar || null
+        };
     }
+    return {
+        userId: effectiveId,
+        name: fallbackName || 'Foydalanuvchi',
+        avatar: fallbackAvatar || null
+    };
 }
 
-/* ================= VERIFIED BADGE HELPER ================= */
 function isUserVerified(uid, fallbackUser) {
-    if (String(uid) === String(currentUser?.userId)) {
-        const saved = localStorage.getItem(VERIFIED_KEY);
-        if (saved !== null) return saved === '1';
-    }
-    const u = fallbackUser || DB.getUserById(uid);
-    return Boolean(u && (u.verified || u.isVerified));
+    const resolved = resolveAuthorInfo(uid);
+    const u = fallbackUser || DB.getUserById(resolved.userId);
+    return Boolean(u && u.verified === true);
 }
 
 function getInlineVerifiedBadge(uid) {
     return isUserVerified(uid) ? VERIFIED_BADGE_SM_SVG : '';
 }
 
-/* ================= POST STORE ================= */
+
+/* ================= XATO #2 & #15: FOYDALANUVCHIGA BOG'LANGAN LAYK VA SAQLANGANLAR ================= */
+function getLikedUsersList(entity) {
+    if (!entity) return [];
+    if (Array.isArray(entity.likedBy)) return entity.likedBy.map(String);
+    return [];
+}
+
+function isLikedByCurrentUser(entity) {
+    if (!currentUser?.userId) return false;
+    return getLikedUsersList(entity).includes(String(currentUser.userId));
+}
+
+function getLikeCount(entity) {
+    if (!entity) return 0;
+    if (Array.isArray(entity.likedBy)) return entity.likedBy.length;
+    return Math.max(0, Number(entity.likes) || 0);
+}
+
+function toggleEntityLike(entity) {
+    const uid = String(currentUser.userId);
+    let likedBy = getLikedUsersList(entity);
+    const alreadyLiked = likedBy.includes(uid);
+
+    if (alreadyLiked) {
+        likedBy = likedBy.filter(id => id !== uid);
+    } else {
+        likedBy.push(uid);
+    }
+
+    entity.likedBy = likedBy;
+    entity.likes = likedBy.length;
+    delete entity.liked;
+    return { liked: !alreadyLiked, likes: likedBy.length };
+}
+
+// Xato #15: Saqlangan postlar localStorage'da foydalanuvchi ID bilan saqlanadi
+function getSavedPostsKey() {
+    return `luz_saved_posts_${String(currentUser?.userId || 'guest')}`;
+}
+function loadSavedPostsSet() {
+    try {
+        const arr = JSON.parse(localStorage.getItem(getSavedPostsKey()));
+        return new Set(Array.isArray(arr) ? arr.map(String) : []);
+    } catch { return new Set(); }
+}
+function persistSavedPostsSet(setObj) {
+    try {
+        localStorage.setItem(getSavedPostsKey(), JSON.stringify(Array.from(setObj)));
+    } catch {}
+}
+let savedPosts = loadSavedPostsSet();
+
+function getSavedCommentsKey() {
+    return `luz_saved_comments_${String(currentUser?.userId || 'guest')}`;
+}
+function loadSavedCommentsSet() {
+    try {
+        const arr = JSON.parse(localStorage.getItem(getSavedCommentsKey()));
+        return new Set(Array.isArray(arr) ? arr.map(String) : []);
+    } catch { return new Set(); }
+}
+function persistSavedCommentsSet(setObj) {
+    try {
+        localStorage.setItem(getSavedCommentsKey(), JSON.stringify(Array.from(setObj)));
+    } catch {}
+}
+let savedComments = loadSavedCommentsSet();
+
+/* ================= XATO #3: XAVFSIZ POST STORE (XOTIRA TO'LSA ROLLBACK) ================= */
 const POST_STORE_KEY = 'tg_feed_posts_v1';
 const PostStore = {
     _cache: null,
-    _load(){
+    _load() {
         if (this._cache !== null) return this._cache;
-        try { const raw = localStorage.getItem(POST_STORE_KEY); this._cache = raw ? JSON.parse(raw) : []; if (!Array.isArray(this._cache)) this._cache = []; } catch { this._cache = []; }
+        try {
+            const raw = localStorage.getItem(POST_STORE_KEY);
+            this._cache = raw ? JSON.parse(raw) : [];
+            if (!Array.isArray(this._cache)) this._cache = [];
+        } catch { this._cache = []; }
         return this._cache;
     },
-    _save(){ try { localStorage.setItem(POST_STORE_KEY, JSON.stringify(this._cache || [])); return true; } catch { showToast('Saqlashda xatolik'); return false; } },
-    all(){ return this._load().slice(); },
-    get(id){ return this._load().find(p => String(p.id) === String(id)) || null; },
-    add(post){ const list = this._load(); list.unshift(post); this._cache = list; return this._save() ? post : null; },
-    update(id, patch){
-        const list = this._load(); const i = list.findIndex(p => String(p.id) === String(id)); if (i < 0) return null;
-        list[i] = Object.assign({}, list[i], patch); this._cache = list; this._save(); return list[i];
+    _save(candidateList) {
+        const target = candidateList || this._cache || [];
+        try {
+            localStorage.setItem(POST_STORE_KEY, JSON.stringify(target));
+            this._cache = target;
+            return true;
+        } catch (err) {
+            return false;
+        }
+    },
+    all() { return this._load().slice(); },
+    get(id) { return this._load().find(p => String(p.id) === String(id)) || null; },
+    add(post) {
+        const current = this._load().slice();
+        const nextList = [post, ...current];
+        if (!this._save(nextList)) {
+            showToast("Xotira to'lgan! Rasm/video hajmini kichraytiring yoki eski postlarni tozalang.");
+            return null;
+        }
+        return post;
+    },
+    update(id, patch) {
+        const list = this._load().slice();
+        const i = list.findIndex(p => String(p.id) === String(id));
+        if (i < 0) return null;
+        list[i] = Object.assign({}, list[i], patch);
+        if (!this._save(list)) {
+            showToast("Saqlashda xatolik: qurilma xotirasi to'lgan.");
+            return null;
+        }
+        return list[i];
     }
 };
-
 
 /* ================= NOTIFICATION HELPER ================= */
 function sendNotification(type, recipientId, postId, commentId = null) {
     if (!currentUser || !currentUser.userId || !recipientId) return;
+    const targetId = resolveAuthorInfo(recipientId).userId;
+    if (String(targetId) === String(currentUser.userId)) return;
     try {
         let notifs = JSON.parse(localStorage.getItem(NOTIF_KEY)) || [];
         if (type === 'like') {
@@ -589,7 +693,7 @@ function sendNotification(type, recipientId, postId, commentId = null) {
         const newNotif = {
             id: 'n_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
             type: type,
-            recipientId: String(recipientId),
+            recipientId: String(targetId),
             senderId: String(currentUser.userId),
             senderName: [currentUser.firstName, currentUser.lastName].filter(Boolean).join(' ') || 'Foydalanuvchi',
             senderAvatar: currentUser.photo_url || null,
@@ -639,21 +743,33 @@ function updateNotificationBadgeLocal() {
     } catch(e){}
 }
 
-function syncVerifiedStateUI() {
+function syncUserStateUI() {
+    const freshUser = DB.getCurrentUser();
+    if (freshUser) currentUser = freshUser;
+    savedPosts = loadSavedPostsSet();
+    savedComments = loadSavedCommentsSet();
+    renderUserAvatars();
     renderFeed(true);
     if (detailOverlay?.classList.contains('show') && detailPost) {
         refreshDetailFromStore();
     }
 }
 
-window.addEventListener('pageshow', () => {
-    syncVerifiedStateUI();
+/* ================= XATO #6: DASTLABKI YUKLASHDA IKKI MARTA CHIZISHNI OLDINI OLISH ================= */
+let isInitialPageLoad = true;
+window.addEventListener('pageshow', (e) => {
     updateNotificationBadgeLocal();
+    if (isInitialPageLoad && !e.persisted) {
+        isInitialPageLoad = false;
+        return;
+    }
+    syncUserStateUI();
 });
+
 window.addEventListener('storage', (e) => {
     if (e.key === NOTIF_KEY) updateNotificationBadgeLocal();
     if (e.key === POST_STORE_KEY) { PostStore._cache = null; renderFeed(true); }
-    if (e.key === VERIFIED_KEY || e.key === DB._K) syncVerifiedStateUI();
+    if (e.key === DB._K || e.key === DB._S) syncUserStateUI();
 });
 
 /* ================= VIEW TRACKER ================= */
@@ -675,21 +791,28 @@ const ViewTracker = {
 };
 
 /* ================= AVATARS (NAV & COMPOSER) ================= */
-const navAvatarSlot = document.getElementById('navAvatarSlot');
-const composerAvatarSlot = document.getElementById('composerAvatarSlot');
-const cuName = [currentUser.firstName, currentUser.lastName].filter(Boolean).join(' ') || 'Foydalanuvchi';
-const cuInit = cuName.trim().charAt(0).toUpperCase() || 'F';
-
-if (currentUser.photo_url) {
-    navAvatarSlot.innerHTML = `<img class="nav-avatar" src="${currentUser.photo_url}" alt="${cuInit}">`;
-    composerAvatarSlot.innerHTML = `<img class="composer-avatar" src="${currentUser.photo_url}" alt="${cuInit}">`;
-} else {
-    navAvatarSlot.innerHTML = `<div class="nav-avatar-initial">${cuInit}</div>`;
-    composerAvatarSlot.innerHTML = `<div class="composer-avatar-initial">${cuInit}</div>`;
+function getCurrentUserName() {
+    return [currentUser?.firstName, currentUser?.lastName].filter(Boolean).join(' ').trim() || 'Foydalanuvchi';
 }
 
+function renderUserAvatars() {
+    const navAvatarSlot = document.getElementById('navAvatarSlot');
+    const composerAvatarSlot = document.getElementById('composerAvatarSlot');
+    const cuName = getCurrentUserName();
+    const cuInit = escapeHtml(cuName.charAt(0).toUpperCase() || 'F');
+    const safePhoto = sanitizeMediaUrl(currentUser?.photo_url);
+
+    if (safePhoto) {
+        navAvatarSlot.innerHTML = `<img class="nav-avatar" src="${safePhoto}" alt="${cuInit}">`;
+        composerAvatarSlot.innerHTML = `<img class="composer-avatar" src="${safePhoto}" alt="${cuInit}">`;
+    } else {
+        navAvatarSlot.innerHTML = `<div class="nav-avatar-initial">${cuInit}</div>`;
+        composerAvatarSlot.innerHTML = `<div class="composer-avatar-initial">${cuInit}</div>`;
+    }
+}
+renderUserAvatars();
+
 /* ================= HELPERS ================= */
-function escapeHtml(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 function formatExactTime(dateInput){
     const d = dateInput instanceof Date ? dateInput : new Date(dateInput); if (isNaN(d.getTime())) return '';
     const diffSec = Math.floor((new Date() - d) / 1000);
@@ -701,16 +824,20 @@ function formatExactTime(dateInput){
 }
 function goToProfile(uid){
     if (!uid) return;
-    if (String(uid) === String(currentUser?.userId)) window.location.href = 'profil.html';
-    else window.location.href = `profil.html?id=${encodeURIComponent(uid)}`;
+    const resolvedId = resolveAuthorInfo(uid).userId;
+    if (String(resolvedId) === String(currentUser?.userId)) {
+        window.location.href = 'profil.html';
+    } else {
+        window.location.href = `profil.html?id=${encodeURIComponent(resolvedId)}`;
+    }
 }
 let toastTimer;
 function showToast(msg){
     const t = document.getElementById('toast'); if (!t) return;
     t.textContent = msg; t.classList.add('show');
-    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
 }
-function compressImage(file, maxW = 1080, quality = 0.85){
+function compressImage(file, maxW = 960, quality = 0.78){
     return new Promise((resolve, reject) => {
         const img = new Image(); const url = URL.createObjectURL(file);
         img.onload = () => {
@@ -774,6 +901,38 @@ function initLoaderMarkup(){
 }
 initLoaderMarkup();
 
+/* ================= XATO #4 & #10: TELEGRAM BACKBUTTON VA HISTORY BOSHQARUVI ================= */
+let activeBackHandler = null;
+
+function setTelegramBackHandler(fn) {
+    if (!tg || !tg.BackButton) return;
+    try {
+        if (activeBackHandler) {
+            tg.BackButton.offClick(activeBackHandler);
+            activeBackHandler = null;
+        }
+        if (typeof fn === 'function') {
+            activeBackHandler = fn;
+            tg.BackButton.onClick(activeBackHandler);
+            tg.BackButton.show();
+        } else {
+            tg.BackButton.hide();
+        }
+    } catch {}
+}
+
+function syncNavigationBackState() {
+    if (commentDetailOverlay?.classList.contains('show')) {
+        setTelegramBackHandler(closeCommentDetail);
+    } else if (detailOverlay?.classList.contains('show')) {
+        setTelegramBackHandler(closePostDetail);
+    } else if (composer?.classList.contains('show')) {
+        setTelegramBackHandler(closeComposer);
+    } else {
+        setTelegramBackHandler(null);
+    }
+}
+
 /* ================= COMPOSER (POST YARATISH OYNASI) ================= */
 const composer = document.getElementById('composer');
 const compOverlay = document.getElementById('composerOverlay');
@@ -786,17 +945,24 @@ let currentMedia = null;
 function openComposer(){
     compOverlay.classList.add('show');
     composer.classList.add('show');
+    window.history.pushState({ modal: 'composer' }, '');
+    syncNavigationBackState();
     setTimeout(() => compInput.focus(), 300);
 }
-function closeComposer(){
+function closeComposer(fromPopstate = false){
+    if (!composer.classList.contains('show')) return;
     compOverlay.classList.remove('show');
     composer.classList.remove('show');
     compInput.blur();
+    syncNavigationBackState();
+    if (!fromPopstate && window.history.state?.modal === 'composer') {
+        window.history.back();
+    }
 }
 
 document.getElementById('postBtn').addEventListener('click', openComposer);
-document.getElementById('composerClose').addEventListener('click', closeComposer);
-compOverlay.addEventListener('click', closeComposer);
+document.getElementById('composerClose').addEventListener('click', () => closeComposer(false));
+compOverlay.addEventListener('click', () => closeComposer(false));
 
 document.getElementById('attachBtn').addEventListener('click', () => fileInput.click());
 document.getElementById('attachVideoBtn').addEventListener('click', () => videoInput.click());
@@ -817,12 +983,18 @@ fileInput.addEventListener('change', async e => {
         document.getElementById('previewVid').style.display = 'none';
         document.getElementById('composerPreview').classList.add('show');
         compSubmit.disabled = false;
-    } catch {}
+    } catch {
+        showToast("Rasmni qayta ishlashda xatolik");
+    }
 });
 
 videoInput.addEventListener('change', e => {
     const file = e.target.files[0]; if (!file) return;
-    if (file.size > MAX_VIDEO_SIZE) { showToast("Video juda katta (Maksimum 5MB)"); videoInput.value = ''; return; }
+    if (file.size > MAX_VIDEO_SIZE) {
+        showToast("Video juda katta (Maksimum 1.5MB)");
+        videoInput.value = '';
+        return;
+    }
     const reader = new FileReader();
     reader.onload = ev => {
         currentMedia = { data: ev.target.result, type: 'video' };
@@ -849,20 +1021,23 @@ compSubmit.addEventListener('click', () => {
     const text = compInput.value.trim();
     if (!text && !currentMedia) return;
 
-    PostStore.add({
+    // Xato #3: Avval saqlab ko'ramiz, muvaffaqiyatli bo'lsagina UI tozalanadi va "Post joylandi" chiqadi
+    const saved = PostStore.add({
         id: 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-        userId: String(currentUser?.userId || 'me'),
-        user: cuName,
+        userId: String(currentUser.userId),
+        user: getCurrentUserName(),
         avatar: currentUser?.photo_url || null,
         createdAt: new Date().toISOString(),
         text,
         image: currentMedia ? currentMedia.data : null,
         type: currentMedia ? currentMedia.type : 'text',
+        likedBy: [],
         likes: 0,
-        liked: false,
         views: 0,
         comments: []
     });
+
+    if (!saved) return;
 
     compInput.value = '';
     compInput.style.height = 'auto';
@@ -874,7 +1049,7 @@ compSubmit.addEventListener('click', () => {
     document.getElementById('composerPreview').classList.remove('show');
     compSubmit.disabled = true;
 
-    closeComposer();
+    closeComposer(false);
     mountFeedBatch(Math.max(FEED_BATCH_SIZE, renderedPostCount + 1));
     window.scrollTo({ top: 0, behavior: 'smooth' });
     showToast('Post joylandi');
@@ -902,95 +1077,169 @@ function findInReplies(parent, id, root){
 function makeCommentObj(text, parentId){
     return {
         id: 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
-        userId: String(currentUser?.userId || ''), user: cuName, avatar: currentUser.photo_url || null,
-        text, createdAt: new Date().toISOString(), likes: 0, liked: false, replies: [], parentId: parentId || null
+        userId: String(currentUser.userId),
+        user: getCurrentUserName(),
+        avatar: currentUser.photo_url || null,
+        text,
+        createdAt: new Date().toISOString(),
+        likedBy: [],
+        likes: 0,
+        replies: [],
+        parentId: parentId || null
     };
 }
 function addCommentToPost(postId, newComment, replyToId){
     const post = PostStore.get(postId); if (!post) return null;
-    if (!post.comments) post.comments = [];
+    const comments = Array.isArray(post.comments) ? post.comments : [];
     if (!replyToId) {
-        newComment.parentId = null; post.comments.push(newComment);
-        PostStore.update(postId, { comments: post.comments }); return { post, comment: newComment, parent: null };
+        newComment.parentId = null;
+        comments.push(newComment);
+        if (!PostStore.update(postId, { comments })) return null;
+        return { post, comment: newComment, parent: null };
     }
-    const found = findComment(post.comments, replyToId); if (!found) return null;
-    newComment.parentId = replyToId; if (!found.comment.replies) found.comment.replies = [];
-    found.comment.replies.push(newComment); PostStore.update(postId, { comments: post.comments });
+    const found = findComment(comments, replyToId); if (!found) return null;
+    newComment.parentId = replyToId;
+    if (!found.comment.replies) found.comment.replies = [];
+    found.comment.replies.push(newComment);
+    if (!PostStore.update(postId, { comments })) return null;
     return { post, comment: newComment, parent: found.comment };
-}
-function countRepliesDeep(c){
-    let n = (c.replies || []).length; (c.replies || []).forEach(r => { n += countRepliesDeep(r); }); return n;
 }
 
 /* ================= POST RENDER & INFINITE SCROLL ================= */
-const savedPosts = new Set();
 let allFeedPosts = [];
 let renderedPostCount = 0;
 let isLoadingMorePosts = false;
 let feedScrollObserver = null;
+// Xato #11: Barcha post IntersectionObserver'larini kuzatib, qayta chizilganda disconnect qilish
+let activePostObservers = [];
+
+function clearPostObservers() {
+    activePostObservers.forEach(obs => {
+        try { obs.disconnect(); } catch {}
+    });
+    activePostObservers = [];
+}
 
 function countComments(p){
-    let n = (p.comments || []).length; const walk = (arr) => arr.forEach(c => { n += (c.replies || []).length; if (c.replies) walk(c.replies); }); walk(p.comments || []); return n;
+    let n = (p.comments || []).length;
+    const walk = (arr) => arr.forEach(c => {
+        n += (c.replies || []).length;
+        if (c.replies) walk(c.replies);
+    });
+    walk(p.comments || []);
+    return n;
 }
-function handleShare(entity){
-    const link = location.origin + location.pathname + '?post=' + encodeURIComponent(entity.id);
-    if (navigator.share) navigator.share({ title: 'Post', url: link }).catch(() => {});
-    else { try { navigator.clipboard?.writeText(link); } catch {} showToast('Havola nusxalandi'); }
+
+// Xato #5: Izoh ulashilganda postId va commentId birga yuboriladi
+function handleShare(entity, parentPostId = null){
+    let link = location.origin + location.pathname;
+    if (parentPostId) {
+        link += `?post=${encodeURIComponent(parentPostId)}&comment=${encodeURIComponent(entity.id)}`;
+    } else {
+        link += `?post=${encodeURIComponent(entity.id)}`;
+    }
+    if (navigator.share) {
+        navigator.share({ title: 'L.uz', url: link }).catch(() => {});
+    } else {
+        try { navigator.clipboard?.writeText(link); } catch {}
+        showToast('Havola nusxalandi');
+    }
 }
 
 function buildPostActions(p){
     const actions = document.createElement('div'); actions.className = 'post-actions';
     const createBtn = (icon, count, cls, clk) => {
         const b = document.createElement('button'); b.className = 'act-btn ' + cls;
-        b.innerHTML = `${icon}<span class="act-count">${count!==null?count:''}</span>`;
-        if (clk) b.addEventListener('click', clk); return b;
+        b.innerHTML = `${icon}<span class="act-count">${count !== null ? count : ''}</span>`;
+        if (clk) b.addEventListener('click', clk);
+        return b;
     };
-    
-    const likeBtn = createBtn(ICONS.like, p.likes||0, p.liked?'liked':'', (e)=>{
-        e.stopPropagation(); const fresh = PostStore.get(p.id) || p; const liked = !fresh.liked;
-        const likes = Math.max(0, (fresh.likes || 0) + (liked ? 1 : -1));
-        PostStore.update(p.id, { liked, likes }); p.liked = liked; p.likes = likes;
-        likeBtn.classList.toggle('liked', liked); likeBtn.querySelector('.act-count').textContent = likes;
-        
+
+    const initialLiked = isLikedByCurrentUser(p);
+    const initialLikes = getLikeCount(p);
+
+    const likeBtn = createBtn(ICONS.like, initialLikes, initialLiked ? 'liked' : '', (e) => {
+        e.stopPropagation();
+        const fresh = PostStore.get(p.id) || p;
+        const { liked, likes } = toggleEntityLike(fresh);
+        if (!PostStore.update(p.id, { likedBy: fresh.likedBy, likes })) return;
+
+        p.likedBy = fresh.likedBy;
+        p.likes = likes;
+        likeBtn.classList.toggle('liked', liked);
+        likeBtn.querySelector('.act-count').textContent = likes;
+
+        // Lenta va detail orasidagi sinxronlik
+        syncSinglePostCard(p.id);
+
         if (liked) {
             sendNotification('like', fresh.userId, fresh.id);
         } else {
             removeNotification('like', fresh.id);
         }
     });
-    
-    const commBtn = createBtn(ICONS.comment, countComments(p), '', (e)=>{ e.stopPropagation(); openPostDetail(p); });
-    const viewBtn = createBtn(ICONS.view, p.views||0, '', (e)=>{ e.stopPropagation(); }); viewBtn.style.cursor='default';
-    const saveBtn = createBtn(ICONS.bookmark, null, savedPosts.has(p.id)?'saved':'', (e)=>{
-        e.stopPropagation();
-        if (savedPosts.has(p.id)) { savedPosts.delete(p.id); saveBtn.classList.remove('saved'); showToast("Olib tashlandi"); }
-        else { savedPosts.add(p.id); saveBtn.classList.add('saved'); showToast("Saqlandi"); }
-    });
-    const shareBtn = createBtn(ICONS.share, null, '', (e)=>{ e.stopPropagation(); handleShare(p); });
 
-    actions.append(likeBtn, commBtn, viewBtn, saveBtn, shareBtn); return actions;
+    const commBtn = createBtn(ICONS.comment, countComments(p), '', (e) => { e.stopPropagation(); openPostDetail(p); });
+    const viewBtn = createBtn(ICONS.view, p.views || 0, '', (e) => { e.stopPropagation(); }); viewBtn.style.cursor = 'default';
+    const saveBtn = createBtn(ICONS.bookmark, null, savedPosts.has(String(p.id)) ? 'saved' : '', (e) => {
+        e.stopPropagation();
+        const pidStr = String(p.id);
+        if (savedPosts.has(pidStr)) {
+            savedPosts.delete(pidStr);
+            saveBtn.classList.remove('saved');
+            showToast("Saqlanganlardan olib tashlandi");
+        } else {
+            savedPosts.add(pidStr);
+            saveBtn.classList.add('saved');
+            showToast("Saqlandi");
+        }
+        persistSavedPostsSet(savedPosts);
+        syncSinglePostCard(p.id);
+    });
+    const shareBtn = createBtn(ICONS.share, null, '', (e) => { e.stopPropagation(); handleShare(p); });
+
+    actions.append(likeBtn, commBtn, viewBtn, saveBtn, shareBtn);
+    return actions;
+}
+
+// Xato #7: Post yopilganda butun lentani emas, faqat o'sha postning tugmalarini yangilash
+function syncSinglePostCard(postId) {
+    const fresh = PostStore.get(postId);
+    if (!fresh) return;
+    const card = document.querySelector(`.post-item[data-id="${CSS.escape(String(postId))}"]`);
+    if (!card) return;
+    const slot = card.querySelector('.post-actions-slot');
+    if (slot) {
+        slot.innerHTML = '';
+        slot.appendChild(buildPostActions(fresh));
+    }
 }
 
 function buildPostItem(p){
-    const item = document.createElement('div'); item.className = 'post-item'; item.dataset.id = p.id;
+    const item = document.createElement('div'); item.className = 'post-item'; item.dataset.id = String(p.id);
     item.style.display = 'flex';
     item.style.gap = '10px';
     item.style.alignItems = 'flex-start';
 
-    const postInit = (p.user || 'F').trim().charAt(0).toUpperCase();
-    const av = p.avatar ? `<img class="post-avatar" src="${p.avatar}" alt="" loading="lazy">` : `<div class="post-avatar-initial">${postInit}</div>`;
-    
+    const author = resolveAuthorInfo(p.userId, p.user, p.avatar);
+    const postInit = escapeHtml(author.name.charAt(0).toUpperCase() || 'F');
+    const safeAv = sanitizeMediaUrl(author.avatar);
+    const av = safeAv
+        ? `<img class="post-avatar" src="${safeAv}" alt="" loading="lazy">`
+        : `<div class="post-avatar-initial">${postInit}</div>`;
+
+    const safeMedia = sanitizeMediaUrl(p.image);
     let media = '';
-    if (p.type === 'image' && p.image) media = `<img class="post-image" src="${p.image}" alt="" loading="lazy">`;
-    else if (p.type === 'video' && p.image) media = `<video class="post-video" src="${p.image}" controls playsinline preload="metadata"></video>`;
+    if (p.type === 'image' && safeMedia) media = `<img class="post-image" src="${safeMedia}" alt="" loading="lazy">`;
+    else if (p.type === 'video' && safeMedia) media = `<video class="post-video" src="${safeMedia}" controls playsinline preload="metadata"></video>`;
 
     item.innerHTML = `
         <div style="flex-shrink: 0;" class="post-avatar-wrapper">
             ${av}
         </div>
         <div style="flex: 1; min-width: 0;">
-            <div class="post-head-info" style="display: flex; flex-direction: row; align-items: baseline; gap: 6px; margin-bottom: 2px;">
-                <div class="post-user">${escapeHtml(p.user)}${getInlineVerifiedBadge(p.userId)}</div>
+            <div class="post-head-info">
+                <div class="post-user">${escapeHtml(author.name)}${getInlineVerifiedBadge(author.userId)}</div>
                 <div class="post-time">${escapeHtml(formatExactTime(p.createdAt || p.time))}</div>
             </div>
             ${p.text ? `<div class="post-text">${escapeHtml(p.text)}</div>` : ''}
@@ -1000,9 +1249,9 @@ function buildPostItem(p){
     `;
 
     item.querySelector('.post-actions-slot').appendChild(buildPostActions(p));
-    
-    item.querySelector('.post-avatar-wrapper').addEventListener('click', (e) => { e.stopPropagation(); goToProfile(p.userId); });
-    item.querySelector('.post-user').addEventListener('click', (e) => { e.stopPropagation(); goToProfile(p.userId); });
+
+    item.querySelector('.post-avatar-wrapper').addEventListener('click', (e) => { e.stopPropagation(); goToProfile(author.userId); });
+    item.querySelector('.post-user').addEventListener('click', (e) => { e.stopPropagation(); goToProfile(author.userId); });
     item.addEventListener('click', (e) => { if (e.target.closest('.act-btn') || e.target.tagName === 'VIDEO') return; openPostDetail(p); });
 
     const io = new IntersectionObserver(entries => {
@@ -1012,13 +1261,17 @@ function buildPostItem(p){
                 if (ViewTracker.record(currentUser?.userId, p.id)) {
                     const fresh = PostStore.get(p.id);
                     if (fresh) {
-                        p.views = (fresh.views || 0) + 1; PostStore.update(p.id, { views: p.views });
-                        item.querySelectorAll('.act-btn')[2].querySelector('.act-count').textContent = p.views;
+                        p.views = (fresh.views || 0) + 1;
+                        PostStore.update(p.id, { views: p.views });
+                        const viewCountEl = item.querySelectorAll('.act-btn')[2]?.querySelector('.act-count');
+                        if (viewCountEl) viewCountEl.textContent = p.views;
                     }
                 }
             }
         });
-    }, { threshold: 0.5 }); io.observe(item);
+    }, { threshold: 0.5 });
+    io.observe(item);
+    activePostObservers.push(io);
 
     return item;
 }
@@ -1065,7 +1318,7 @@ function initInfiniteScrollObserver(){
             setTimeout(() => {
                 appendNextFeedBatch();
                 isLoadingMorePosts = false;
-            }, 450);
+            }, 350);
         }
     }, {
         root: null,
@@ -1080,6 +1333,7 @@ function mountFeedBatch(targetCount){
     const feed = document.getElementById('feed');
     const loader = document.getElementById('feedLoader');
 
+    clearPostObservers();
     allFeedPosts = PostStore.all();
     feed.innerHTML = '';
     renderedPostCount = 0;
@@ -1110,88 +1364,220 @@ function renderFeed(preserveCount = false){
         return;
     }
 
+    clearPostObservers();
     loader.classList.remove('active');
     feed.innerHTML = buildSkeletonCardHTML(false) + buildSkeletonCardHTML(true) + buildSkeletonCardHTML(false);
 
     setTimeout(() => {
         mountFeedBatch(targetCount);
-    }, 360);
+    }, 300);
 }
+
 
 /* ================= POST DETAIL VIEW ================= */
-const detailOverlay = document.getElementById('detailOverlay'), detailInput = document.getElementById('detailInput'), detailSend = document.getElementById('detailSend');
-let detailPost = null, replyTargetId = null;
+const detailOverlay = document.getElementById('detailOverlay');
+const detailInput = document.getElementById('detailInput');
+const detailSend = document.getElementById('detailSend');
+let detailPost = null;
+let replyTargetId = null;
 
 function updateDetailReplyModeUI(){
-    const bar = document.getElementById('replyModeBar'), island = document.getElementById('detailIsland');
-    if (!replyTargetId || !detailPost) { bar.style.display = 'none'; island.classList.remove('reply-mode'); return; }
+    const bar = document.getElementById('replyModeBar');
+    const island = document.getElementById('detailIsland');
+    if (!replyTargetId || !detailPost) {
+        bar.style.display = 'none';
+        island.classList.remove('reply-mode');
+        detailInput.placeholder = 'Izoh yozish...';
+        return;
+    }
     const found = findComment(detailPost.comments || [], replyTargetId);
-    if (found) { document.getElementById('replyModeText').textContent = `↩ ${found.comment.user} ga javob`; bar.style.display = 'flex'; island.classList.add('reply-mode'); }
-    else { bar.style.display = 'none'; island.classList.remove('reply-mode'); }
+    if (found) {
+        const author = resolveAuthorInfo(found.comment.userId, found.comment.user, found.comment.avatar);
+        document.getElementById('replyModeText').textContent = `↩ ${author.name} ga javob`;
+        bar.style.display = 'flex';
+        island.classList.add('reply-mode');
+        detailInput.placeholder = `${author.name} ga javob yozish...`;
+    } else {
+        bar.style.display = 'none';
+        island.classList.remove('reply-mode');
+        detailInput.placeholder = 'Izoh yozish...';
+    }
 }
-document.getElementById('replyModeCancel').addEventListener('click', () => { replyTargetId = null; detailInput.value = ''; updateDetailReplyModeUI(); });
 
-function buildDetailComment(c, depth = 0){
-    const thread = document.createElement('div'); thread.className = 'comment-thread' + (depth > 0 ? ' thread-nested' : ''); thread.dataset.cid = c.id;
-    const init = (c.user || 'F').trim().charAt(0).toUpperCase();
-    const av = c.avatar ? `<img class="comment-avatar" src="${c.avatar}">` : `<div class="comment-avatar-initial">${init}</div>`;
-    const hasReplies = c.replies && c.replies.length > 0;
+document.getElementById('replyModeCancel').addEventListener('click', () => {
+    replyTargetId = null;
+    updateDetailReplyModeUI();
+});
 
-    const row = document.createElement('div'); row.className = 'comment-row';
+// Yagona interaktiv izoh qatori yasovchi (Xato #1: cloneNode o'rniga to'liq bog'langan element)
+function createCommentRowElement(c, hasReplies, onReplyClick, onRowOpenClick) {
+    const author = resolveAuthorInfo(c.userId, c.user, c.avatar);
+    const init = escapeHtml(author.name.charAt(0).toUpperCase() || 'F');
+    const safeAv = sanitizeMediaUrl(author.avatar);
+    const av = safeAv
+        ? `<img class="comment-avatar" src="${safeAv}" alt="">`
+        : `<div class="comment-avatar-initial">${init}</div>`;
+
+    const row = document.createElement('div');
+    row.className = 'comment-row';
     row.innerHTML = `
-        <div class="comment-avatar-col">
+        <div class="comment-avatar-col" data-uid="${escapeHtml(author.userId)}">
             ${av}
             ${hasReplies ? '<div class="thread-line-down"></div>' : ''}
         </div>
         <div class="comment-content">
-            <div class="comment-head"><span class="comment-user" data-uid="${c.userId||''}">${escapeHtml(c.user)}${getInlineVerifiedBadge(c.userId)}</span><span class="comment-time">${escapeHtml(formatExactTime(c.createdAt || c.time))}</span></div>
+            <div class="comment-head">
+                <span class="comment-user" data-uid="${escapeHtml(author.userId)}">${escapeHtml(author.name)}${getInlineVerifiedBadge(author.userId)}</span>
+                <span class="comment-time">${escapeHtml(formatExactTime(c.createdAt || c.time))}</span>
+            </div>
             <div class="comment-text">${escapeHtml(c.text || '')}</div>
         </div>
     `;
-    
-    const actions = document.createElement('div'); actions.className = 'comment-actions';
-    const likeBtn = document.createElement('button'); likeBtn.className = 'comment-act' + (c.liked?' liked':''); likeBtn.innerHTML = `${ICONS.like}<span class="comment-act-count">${c.likes||0}</span>`;
-    likeBtn.addEventListener('click', (e) => { e.stopPropagation(); c.liked = !c.liked; c.likes = Math.max(0, (c.likes||0) + (c.liked?1:-1)); PostStore.update(detailPost.id, {comments:detailPost.comments}); refreshDetailFromStore(); });
-    
-    const commBtn = document.createElement('button'); commBtn.className = 'comment-act'; commBtn.innerHTML = `${ICONS.comment}<span class="comment-act-count">${(c.replies||[]).length||''}</span>`;
-    commBtn.addEventListener('click', (e) => { e.stopPropagation(); replyTargetId = c.id; detailInput.focus(); updateDetailReplyModeUI(); });
 
-    const viewBtn = document.createElement('button'); viewBtn.className = 'comment-act'; viewBtn.innerHTML = `${ICONS.view}<span class="comment-act-count"></span>`; viewBtn.style.cursor = 'default';
+    const actions = document.createElement('div');
+    actions.className = 'comment-actions';
+
+    const liked = isLikedByCurrentUser(c);
+    const likes = getLikeCount(c);
+
+    const likeBtn = document.createElement('button');
+    likeBtn.className = 'comment-act' + (liked ? ' liked' : '');
+    likeBtn.innerHTML = `${ICONS.like}<span class="comment-act-count">${likes}</span>`;
+    likeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!detailPost) return;
+        const freshPost = PostStore.get(detailPost.id);
+        if (!freshPost) return;
+        const found = findComment(freshPost.comments || [], c.id);
+        if (!found) return;
+
+        const res = toggleEntityLike(found.comment);
+        if (!PostStore.update(freshPost.id, { comments: freshPost.comments })) return;
+
+        detailPost = freshPost;
+        refreshDetailFromStore();
+        if (commentDetailOverlay.classList.contains('show') && activeCommentId) {
+            renderCommentDetailContent(activeCommentId);
+        }
+    });
+
+    const commBtn = document.createElement('button');
+    commBtn.className = 'comment-act';
+    commBtn.innerHTML = `${ICONS.comment}<span class="comment-act-count">${(c.replies || []).length || ''}</span>`;
+    commBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (typeof onReplyClick === 'function') onReplyClick(c);
+    });
+
+    const viewBtn = document.createElement('button');
+    viewBtn.className = 'comment-act';
+    viewBtn.innerHTML = `${ICONS.view}<span class="comment-act-count"></span>`;
+    viewBtn.style.cursor = 'default';
     viewBtn.addEventListener('click', (e) => e.stopPropagation());
 
-    const saveBtn = document.createElement('button'); saveBtn.className = 'comment-act'; saveBtn.innerHTML = `${ICONS.bookmark}`;
-    saveBtn.addEventListener('click', (e) => { e.stopPropagation(); saveBtn.classList.toggle('saved'); showToast(saveBtn.classList.contains('saved')?'Saqlandi':'Olib tashlandi'); });
+    const cidStr = String(c.id);
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'comment-act' + (savedComments.has(cidStr) ? ' saved' : '');
+    saveBtn.innerHTML = `${ICONS.bookmark}`;
+    saveBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (savedComments.has(cidStr)) {
+            savedComments.delete(cidStr);
+            saveBtn.classList.remove('saved');
+            showToast('Saqlanganlardan olib tashlandi');
+        } else {
+            savedComments.add(cidStr);
+            saveBtn.classList.add('saved');
+            showToast('Saqlandi');
+        }
+        persistSavedCommentsSet(savedComments);
+    });
 
-    const shareBtn = document.createElement('button'); shareBtn.className = 'comment-act'; shareBtn.innerHTML = `${ICONS.share}`;
-    shareBtn.addEventListener('click', (e) => { e.stopPropagation(); handleShare(c); });
+    const shareBtn = document.createElement('button');
+    shareBtn.className = 'comment-act';
+    shareBtn.innerHTML = `${ICONS.share}`;
+    shareBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        handleShare(c, detailPost?.id);
+    });
 
     actions.append(likeBtn, commBtn, viewBtn, saveBtn, shareBtn);
     row.querySelector('.comment-content').appendChild(actions);
 
-    row.querySelectorAll('[data-uid]').forEach(el => { el.addEventListener('click', (e) => { e.stopPropagation(); goToProfile(el.getAttribute('data-uid')); }); });
-    row.addEventListener('click', (e) => { if (!e.target.closest('.comment-act')) openCommentDetail(c.id); });
+    row.querySelectorAll('[data-uid]').forEach(el => {
+        el.addEventListener('click', (e) => {
+            e.stopPropagation();
+            goToProfile(el.getAttribute('data-uid'));
+        });
+    });
+
+    if (typeof onRowOpenClick === 'function') {
+        row.addEventListener('click', (e) => {
+            if (!e.target.closest('.comment-act') && !e.target.closest('[data-uid]')) {
+                onRowOpenClick(c.id);
+            }
+        });
+    }
+
+    return row;
+}
+
+function buildDetailComment(c, depth = 0){
+    const thread = document.createElement('div');
+    thread.className = 'comment-thread' + (depth > 0 ? ' thread-nested' : '');
+    thread.dataset.cid = String(c.id);
+    const hasReplies = Array.isArray(c.replies) && c.replies.length > 0;
+
+    const row = createCommentRowElement(
+        c,
+        hasReplies,
+        (targetComment) => {
+            replyTargetId = targetComment.id;
+            updateDetailReplyModeUI();
+            detailInput.focus();
+        },
+        (commentId) => openCommentDetail(commentId)
+    );
+
     thread.appendChild(row);
 
     if (hasReplies) {
-        const repBox = document.createElement('div'); repBox.className = 'comment-replies';
+        const repBox = document.createElement('div');
+        repBox.className = 'comment-replies';
         c.replies.forEach(r => repBox.appendChild(buildDetailComment(r, depth + 1)));
         thread.appendChild(repBox);
     }
     return thread;
 }
+
 function refreshDetailFromStore(){
     if (!detailPost) return;
-    const fresh = PostStore.get(detailPost.id); if (fresh) detailPost = fresh; renderDetailPost();
-    const clist = document.getElementById('detailCommentsList'); clist.innerHTML = '';
-    document.getElementById('detailCommTitle').textContent = (detailPost.comments||[]).length ? `Izohlar (${countComments(detailPost)})` : 'Izohlar';
-    (detailPost.comments||[]).forEach(c => clist.appendChild(buildDetailComment(c, 0)));
+    const fresh = PostStore.get(detailPost.id);
+    if (fresh) detailPost = fresh;
+    renderDetailPost();
+    const clist = document.getElementById('detailCommentsList');
+    clist.innerHTML = '';
+    document.getElementById('detailCommTitle').textContent = (detailPost.comments || []).length
+        ? `Izohlar (${countComments(detailPost)})`
+        : 'Izohlar';
+    (detailPost.comments || []).forEach(c => clist.appendChild(buildDetailComment(c, 0)));
 }
+
 function renderDetailPost(){
-    if (!detailPost) return; const p = detailPost, postInit = (p.user||'F').trim().charAt(0).toUpperCase();
-    const av = p.avatar ? `<img class="detail-avatar" src="${p.avatar}" data-uid="${p.userId||''}">` : `<div class="detail-avatar-initial" data-uid="${p.userId||''}">${postInit}</div>`;
+    if (!detailPost) return;
+    const p = detailPost;
+    const author = resolveAuthorInfo(p.userId, p.user, p.avatar);
+    const postInit = escapeHtml(author.name.charAt(0).toUpperCase() || 'F');
+    const safeAv = sanitizeMediaUrl(author.avatar);
+    const safeUid = escapeHtml(author.userId);
+    const av = safeAv
+        ? `<img class="detail-avatar" src="${safeAv}" data-uid="${safeUid}" alt="">`
+        : `<div class="detail-avatar-initial" data-uid="${safeUid}">${postInit}</div>`;
+
+    const safeMedia = sanitizeMediaUrl(p.image);
     let media = '';
-    if (p.type === 'image' && p.image) media = `<img class="detail-image" src="${p.image}">`;
-    else if (p.type === 'video' && p.image) media = `<video class="detail-video" src="${p.image}" controls playsinline></video>`;
+    if (p.type === 'image' && safeMedia) media = `<img class="detail-image" src="${safeMedia}" alt="">`;
+    else if (p.type === 'video' && safeMedia) media = `<video class="detail-video" src="${safeMedia}" controls playsinline></video>`;
 
     document.getElementById('detailPostBox').innerHTML = `
         <div class="detail-post" style="display: flex; gap: 10px; align-items: flex-start;">
@@ -1199,8 +1585,8 @@ function renderDetailPost(){
                 ${av}
             </div>
             <div style="flex: 1; min-width: 0;">
-                <div class="detail-info" style="display: flex; flex-direction: row; align-items: baseline; gap: 6px; margin-bottom: 6px;">
-                    <div class="detail-user" data-uid="${p.userId||''}">${escapeHtml(p.user)}${getInlineVerifiedBadge(p.userId)}</div>
+                <div class="detail-info">
+                    <div class="detail-user" data-uid="${safeUid}">${escapeHtml(author.name)}${getInlineVerifiedBadge(author.userId)}</div>
                     <div class="detail-time">${escapeHtml(formatExactTime(p.createdAt))}</div>
                 </div>
                 ${p.text ? `<div class="detail-text">${escapeHtml(p.text)}</div>` : ''}
@@ -1209,126 +1595,267 @@ function renderDetailPost(){
             </div>
         </div>
     `;
-    
-    document.getElementById('detailPostBox').querySelectorAll('[data-uid]').forEach(el => { el.style.cursor='pointer'; el.addEventListener('click', (e)=>{ e.stopPropagation(); goToProfile(el.getAttribute('data-uid')); }); });
+
+    document.getElementById('detailPostBox').querySelectorAll('[data-uid]').forEach(el => {
+        el.style.cursor = 'pointer';
+        el.addEventListener('click', (e) => {
+            e.stopPropagation();
+            goToProfile(el.getAttribute('data-uid'));
+        });
+    });
     document.getElementById('detailActionsBar').appendChild(buildPostActions(p));
 }
 
 function openPostDetail(p){
-    detailPost = PostStore.get(p.id) || p; if (!detailPost.comments) detailPost.comments = [];
-    replyTargetId = null; refreshDetailFromStore(); updateDetailReplyModeUI();
-    detailOverlay.classList.add('show'); document.getElementById('detailScroll').scrollTop = 0;
-    if (tg?.BackButton) { try { tg.BackButton.onClick(closePostDetail); tg.BackButton.show(); } catch {} }
+    detailPost = PostStore.get(p.id) || p;
+    if (!detailPost.comments) detailPost.comments = [];
+    replyTargetId = null;
+    refreshDetailFromStore();
+    updateDetailReplyModeUI();
+    detailOverlay.classList.add('show');
+    document.getElementById('detailScroll').scrollTop = 0;
+    window.history.pushState({ modal: 'post', postId: detailPost.id }, '');
+    syncNavigationBackState();
 }
-function closePostDetail(){
-    detailOverlay.classList.remove('show'); detailPost = null; replyTargetId = null;
-    renderFeed(true);
-    if (tg?.BackButton) { try { tg.BackButton.onClick(goHome); } catch {} }
+
+function closePostDetail(fromPopstate = false){
+    if (!detailOverlay.classList.contains('show')) return;
+    const closedPostId = detailPost?.id;
+    detailOverlay.classList.remove('show');
+    detailPost = null;
+    replyTargetId = null;
+
+    // Xato #7: Butun lentani qayta chizmasdan faqat yopilgan post kartasini yangilash
+    if (closedPostId) syncSinglePostCard(closedPostId);
+
+    syncNavigationBackState();
+    if (!fromPopstate && window.history.state?.modal === 'post') {
+        window.history.back();
+    }
 }
 
 detailInput.addEventListener('input', () => {
-    detailInput.style.height = 'auto'; detailInput.style.height = Math.min(detailInput.scrollHeight, 90) + 'px';
+    detailInput.style.height = 'auto';
+    detailInput.style.height = Math.min(detailInput.scrollHeight, 90) + 'px';
     detailSend.disabled = detailInput.value.trim().length === 0;
 });
 
 detailSend.addEventListener('click', () => {
-    const raw = detailInput.value.trim(); if (!raw || !detailPost) return;
-    let cleanText = raw; if (replyTargetId) cleanText = raw.replace(/^@\S+\s*/, '').trim();
-    if (!cleanText) { showToast('Javob matni bo\'sh'); return; }
+    // Xato #8: Foydalanuvchi yozgan @belgini o'chirib tashlamaymiz, matn to'liq saqlanadi
+    const cleanText = detailInput.value.trim();
+    if (!cleanText || !detailPost) return;
 
     const newC = makeCommentObj(cleanText, replyTargetId);
-    if (addCommentToPost(detailPost.id, newC, replyTargetId)) {
-        pushMyReply({ id: newC.id, postId: detailPost.id, userId: newC.userId, user: newC.user, avatar: newC.avatar, text: newC.text, createdAt: newC.createdAt, postText: detailPost.text });
-        
+    const added = addCommentToPost(detailPost.id, newC, replyTargetId);
+    if (added) {
+        pushMyReply({
+            id: newC.id,
+            postId: detailPost.id,
+            userId: newC.userId,
+            user: newC.user,
+            avatar: newC.avatar,
+            text: newC.text,
+            createdAt: newC.createdAt,
+            postText: detailPost.text
+        });
+
         if (replyTargetId) {
-            const parentFound = findComment(detailPost.comments, replyTargetId);
+            const parentFound = findComment(added.post.comments, replyTargetId);
             if (parentFound && parentFound.comment) {
                 sendNotification('reply', parentFound.comment.userId, detailPost.id, newC.id);
             }
         } else {
             sendNotification('comment', detailPost.userId, detailPost.id, newC.id);
         }
-        
-        replyTargetId = null; detailInput.value = ''; detailInput.style.height = 'auto'; detailSend.disabled = true; refreshDetailFromStore();
+
+        replyTargetId = null;
+        detailInput.value = '';
+        detailInput.style.height = 'auto';
+        detailSend.disabled = true;
+        updateDetailReplyModeUI();
+        refreshDetailFromStore();
     }
 });
 
 
-/* ================= COMMENT DETAIL ================= */
+
+/* ================= COMMENT DETAIL VIEW (XATO #1 & #9 TUZATILGAN) ================= */
 const commentDetailOverlay = document.getElementById('commentDetailOverlay');
+const cdReplyModeCancel = document.getElementById('cdReplyModeCancel');
+const commentDetailInput = document.getElementById('commentDetailInput');
+const commentDetailSend = document.getElementById('commentDetailSend');
 let activeCommentId = null;
-function openCommentDetail(cid){
-    if (!detailPost) return; const fresh = PostStore.get(detailPost.id); if (!fresh) return; detailPost = fresh;
-    const found = findComment(detailPost.comments || [], cid); if (!found) return;
-    activeCommentId = cid;
-    document.getElementById('commentDetailMain').innerHTML = '';
-    document.getElementById('commentDetailMain').appendChild(buildDetailComment(found.comment, 0).querySelector('.comment-row').cloneNode(true));
-    const reps = document.getElementById('commentDetailReplies'); reps.innerHTML = '';
-    (found.comment.replies || []).forEach(r => reps.appendChild(buildDetailComment(r, 0).querySelector('.comment-row').cloneNode(true)));
-    
-    commentDetailOverlay.classList.add('show'); document.getElementById('commentDetailScroll').scrollTop = 0; updateCdReplyModeUI();
-    if (tg?.BackButton) { try { tg.BackButton.onClick(closeCommentDetail); } catch {} }
-}
-function closeCommentDetail(){
-    commentDetailOverlay.classList.remove('show'); activeCommentId = null;
-    if (tg?.BackButton) { try { if (detailOverlay.classList.contains('show')) tg.BackButton.onClick(closePostDetail); else tg.BackButton.onClick(goHome); } catch {} }
+let cdReplyTargetId = null;
+
+function updateCdReplyModeUI(){
+    const bar = document.getElementById('cdReplyModeBar');
+    const island = document.getElementById('commentDetailIsland');
+    if (!detailPost || !activeCommentId) {
+        bar.style.display = 'none';
+        island.classList.remove('reply-mode');
+        return;
+    }
+    const targetId = cdReplyTargetId || activeCommentId;
+    const found = findComment(detailPost.comments || [], targetId);
+    if (found) {
+        const author = resolveAuthorInfo(found.comment.userId, found.comment.user, found.comment.avatar);
+        document.getElementById('cdReplyModeText').textContent = `↩ ${author.name} ga javob`;
+        bar.style.display = 'flex';
+        island.classList.add('reply-mode');
+        commentDetailInput.placeholder = `${author.name} ga javob yozish...`;
+        // Xato #9: "Bekor qilish" faqat ichki javob tanlangan bo'lsa ko'rinadi va oynani yopmaydi
+        cdReplyModeCancel.style.display = (cdReplyTargetId && String(cdReplyTargetId) !== String(activeCommentId)) ? 'inline-block' : 'none';
+    } else {
+        bar.style.display = 'none';
+        island.classList.remove('reply-mode');
+    }
 }
 
-const cdReplyModeCancel = document.getElementById('cdReplyModeCancel'), commentDetailInput = document.getElementById('commentDetailInput'), commentDetailSend = document.getElementById('commentDetailSend');
-function updateCdReplyModeUI(){
-    if (!detailPost) { document.getElementById('cdReplyModeBar').style.display = 'none'; document.getElementById('commentDetailIsland').classList.remove('reply-mode'); return; }
-    const found = activeCommentId ? findComment(detailPost.comments || [], activeCommentId) : null;
-    if (found) { document.getElementById('cdReplyModeText').textContent = `↩ ${found.comment.user} ga javob`; document.getElementById('cdReplyModeBar').style.display = 'flex'; document.getElementById('commentDetailIsland').classList.add('reply-mode'); }
-    else { document.getElementById('cdReplyModeBar').style.display = 'none'; document.getElementById('commentDetailIsland').classList.remove('reply-mode'); }
+cdReplyModeCancel.addEventListener('click', () => {
+    cdReplyTargetId = null;
+    updateCdReplyModeUI();
+});
+
+function renderCommentDetailContent(cid) {
+    if (!detailPost) return false;
+    const fresh = PostStore.get(detailPost.id);
+    if (!fresh) return false;
+    detailPost = fresh;
+
+    const found = findComment(detailPost.comments || [], cid);
+    if (!found) return false;
+
+    const mainBox = document.getElementById('commentDetailMain');
+    mainBox.innerHTML = '';
+    const mainRow = createCommentRowElement(
+        found.comment,
+        false,
+        () => {
+            cdReplyTargetId = null;
+            updateCdReplyModeUI();
+            commentDetailInput.focus();
+        },
+        null
+    );
+    mainBox.appendChild(mainRow);
+
+    const repsBox = document.getElementById('commentDetailReplies');
+    repsBox.innerHTML = '';
+    (found.comment.replies || []).forEach(r => {
+        const repRow = createCommentRowElement(
+            r,
+            false,
+            (subComment) => {
+                cdReplyTargetId = subComment.id;
+                updateCdReplyModeUI();
+                commentDetailInput.focus();
+            },
+            (subId) => openCommentDetail(subId)
+        );
+        repsBox.appendChild(repRow);
+    });
+
+    updateCdReplyModeUI();
+    return true;
 }
-cdReplyModeCancel.addEventListener('click', closeCommentDetail);
+
+function openCommentDetail(cid){
+    if (!detailPost) return;
+    activeCommentId = cid;
+    cdReplyTargetId = null;
+    if (!renderCommentDetailContent(cid)) return;
+
+    commentDetailOverlay.classList.add('show');
+    document.getElementById('commentDetailScroll').scrollTop = 0;
+    window.history.pushState({ modal: 'comment', postId: detailPost.id, commentId: cid }, '');
+    syncNavigationBackState();
+}
+
+function closeCommentDetail(fromPopstate = false){
+    if (!commentDetailOverlay.classList.contains('show')) return;
+    commentDetailOverlay.classList.remove('show');
+    activeCommentId = null;
+    cdReplyTargetId = null;
+    syncNavigationBackState();
+    if (!fromPopstate && window.history.state?.modal === 'comment') {
+        window.history.back();
+    }
+}
+
 commentDetailInput.addEventListener('input', () => {
-    commentDetailInput.style.height = 'auto'; commentDetailInput.style.height = Math.min(commentDetailInput.scrollHeight, 90) + 'px';
+    commentDetailInput.style.height = 'auto';
+    commentDetailInput.style.height = Math.min(commentDetailInput.scrollHeight, 90) + 'px';
     commentDetailSend.disabled = commentDetailInput.value.trim().length === 0;
 });
 
 commentDetailSend.addEventListener('click', () => {
-    const txt = commentDetailInput.value.trim(); if (!txt || !detailPost || !activeCommentId) return;
-    const newReply = makeCommentObj(txt, activeCommentId);
-    if (addCommentToPost(detailPost.id, newReply, activeCommentId)) {
-        pushMyReply({ id: newReply.id, postId: detailPost.id, userId: newReply.userId, user: newReply.user, avatar: newReply.avatar, text: newReply.text, createdAt: newReply.createdAt, postText: detailPost.text });
-        
-        const parentFound = findComment(detailPost.comments, activeCommentId);
+    const txt = commentDetailInput.value.trim();
+    if (!txt || !detailPost || !activeCommentId) return;
+
+    const targetReplyParentId = cdReplyTargetId || activeCommentId;
+    const newReply = makeCommentObj(txt, targetReplyParentId);
+    const added = addCommentToPost(detailPost.id, newReply, targetReplyParentId);
+
+    if (added) {
+        pushMyReply({
+            id: newReply.id,
+            postId: detailPost.id,
+            userId: newReply.userId,
+            user: newReply.user,
+            avatar: newReply.avatar,
+            text: newReply.text,
+            createdAt: newReply.createdAt,
+            postText: detailPost.text
+        });
+
+        const parentFound = findComment(added.post.comments, targetReplyParentId);
         if (parentFound && parentFound.comment) {
             sendNotification('reply', parentFound.comment.userId, detailPost.id, newReply.id);
         }
 
-        commentDetailInput.value = ''; commentDetailInput.style.height = 'auto'; commentDetailSend.disabled = true; refreshDetailFromStore();
-        
-        const found = findComment(detailPost.comments || [], activeCommentId);
-        if (found) {
-            document.getElementById('commentDetailMain').innerHTML = ''; document.getElementById('commentDetailMain').appendChild(buildDetailComment(found.comment, 0).querySelector('.comment-row').cloneNode(true));
-            const reps = document.getElementById('commentDetailReplies'); reps.innerHTML = '';
-            (found.comment.replies || []).forEach(r => reps.appendChild(buildDetailComment(r, 0).querySelector('.comment-row').cloneNode(true)));
-        }
-        updateCdReplyModeUI(); showToast('Javob qo\'shildi');
+        commentDetailInput.value = '';
+        commentDetailInput.style.height = 'auto';
+        commentDetailSend.disabled = true;
+        cdReplyTargetId = null;
+
+        refreshDetailFromStore();
+        renderCommentDetailContent(activeCommentId);
+        showToast("Javob qo'shildi");
     }
 });
 
-/* ================= INIT & NAVIGATION ================= */
+/* ================= INIT & DEEP LINKING ================= */
 loadMyReplies();
 renderFeed();
 updateNotificationBadgeLocal();
+syncNavigationBackState();
 
-const urlPostId = new URLSearchParams(window.location.search).get('post');
-if (urlPostId) {
-    const targetPost = PostStore.get(urlPostId);
-    if (targetPost) openPostDetail(targetPost);
-}
+// Xato #5: ?post=... va ?comment=... havolalari ikkalasi ham ishlaydi
+(function handleDeepLinkParams() {
+    const params = new URLSearchParams(window.location.search);
+    const urlPostId = params.get('post');
+    const urlCommentId = params.get('comment');
 
-function goHome(){ window.location.href = 'index.html'; }
+    if (urlPostId) {
+        const targetPost = PostStore.get(urlPostId);
+        if (targetPost) {
+            openPostDetail(targetPost);
+            if (urlCommentId) {
+                openCommentDetail(urlCommentId);
+            }
+        }
+    }
+})();
 
-window.history.pushState({ page: 'uy' }, 'Uy', '');
+// Xato #10: Bosh sahifada popstate foydalanuvchini chiqib ketishdan to'smaydi, faqat ochiq modal oynalarni yopadi
 window.addEventListener('popstate', () => {
-    if (commentDetailOverlay?.classList.contains('show')) { closeCommentDetail(); window.history.pushState({ page: 'uy' }, 'Uy', ''); }
-    else if (detailOverlay?.classList.contains('show')) { closePostDetail(); window.history.pushState({ page: 'uy' }, 'Uy', ''); }
-    else if (composer?.classList.contains('show')) { closeComposer(); window.history.pushState({ page: 'uy' }, 'Uy', ''); }
-    else goHome();
+    if (commentDetailOverlay?.classList.contains('show')) {
+        closeCommentDetail(true);
+    } else if (detailOverlay?.classList.contains('show')) {
+        closePostDetail(true);
+    } else if (composer?.classList.contains('show')) {
+        closeComposer(true);
+    }
 });
 </script>
 </body>
