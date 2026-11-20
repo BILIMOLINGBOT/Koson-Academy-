@@ -316,7 +316,7 @@
         .comment-act.saved svg{fill:#fff;stroke:#fff}
 
         
-        /* ===== JAVOBLAR (NESTED) ===== */
+  /* ===== JAVOBLAR (NESTED) ===== */
         .comment-replies{display:flex;flex-direction:column;position:relative;margin-left:0;padding-left:0;padding-bottom:4px}
         .thread-nested{position:relative}
 
@@ -432,7 +432,6 @@
     </div>
 </div>
 
-
 <!-- COMMENT DETAIL VIEW -->
 <div class="comment-detail-overlay" id="commentDetailOverlay">
     <div class="comment-detail-header">
@@ -488,7 +487,7 @@ const DB = {
     _getUsers(){ try { return JSON.parse(localStorage.getItem(this._K)) || []; } catch { return []; } },
     getCurrentUser(){
         const id = localStorage.getItem(this._S); if (!id) return null;
-        return this._getUsers().find(u => u.userId === id) || null;
+        return this._getUsers().find(u => String(u.userId) === String(id)) || null;
     },
     getUserById(id){ return this._getUsers().find(u => String(u.userId) === String(id)) || null; }
 };
@@ -509,7 +508,7 @@ if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
     if (idx >= 0) {
         const stored = users[idx];
         if (stored.isEdited) {
-            currentUser = { ...stored, userId: tgUser.userId };
+            currentUser = { ...stored, userId: String(tgUser.userId) };
             if (!currentUser.firstName) currentUser.firstName = tgUser.firstName;
             if (!currentUser.lastName) currentUser.lastName = tgUser.lastName;
             if (!currentUser.username) currentUser.username = tgUser.username;
@@ -529,13 +528,13 @@ if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
         users.push(currentUser);
     }
     localStorage.setItem(DB._K, JSON.stringify(users));
-    localStorage.setItem(DB._S, currentUser.userId);
+    localStorage.setItem(DB._S, String(currentUser.userId));
 } else {
     currentUser = DB.getCurrentUser();
     if (!currentUser) {
         const isLocalVerified = localStorage.getItem(VERIFIED_KEY) === '1';
         currentUser = { userId: 'mehmon_' + Date.now(), firstName: 'Mehmon', lastName: '', username: 'mehmon', isEdited: false, verified: isLocalVerified, isVerified: isLocalVerified };
-        localStorage.setItem(DB._S, currentUser.userId);
+        localStorage.setItem(DB._S, String(currentUser.userId));
         localStorage.setItem(DB._K, JSON.stringify([currentUser]));
     }
 }
@@ -565,32 +564,37 @@ const PostStore = {
     },
     _save(){ try { localStorage.setItem(POST_STORE_KEY, JSON.stringify(this._cache || [])); return true; } catch { showToast('Saqlashda xatolik'); return false; } },
     all(){ return this._load().slice(); },
-    get(id){ return this._load().find(p => p.id === id) || null; },
+    get(id){ return this._load().find(p => String(p.id) === String(id)) || null; },
     add(post){ const list = this._load(); list.unshift(post); this._cache = list; return this._save() ? post : null; },
     update(id, patch){
-        const list = this._load(); const i = list.findIndex(p => p.id === id); if (i < 0) return null;
+        const list = this._load(); const i = list.findIndex(p => String(p.id) === String(id)); if (i < 0) return null;
         list[i] = Object.assign({}, list[i], patch); this._cache = list; this._save(); return list[i];
     }
 };
 
+
 /* ================= NOTIFICATION HELPER ================= */
 function sendNotification(type, recipientId, postId, commentId = null) {
-    if (!currentUser || !currentUser.userId || String(currentUser.userId) === String(recipientId)) return;
+    if (!currentUser || !currentUser.userId || !recipientId) return;
     try {
         let notifs = JSON.parse(localStorage.getItem(NOTIF_KEY)) || [];
         if (type === 'like') {
-            const exists = notifs.some(n => n.type === 'like' && n.postId === postId && n.senderId === currentUser.userId);
+            const exists = notifs.some(n =>
+                n.type === 'like' &&
+                String(n.postId) === String(postId) &&
+                String(n.senderId) === String(currentUser.userId)
+            );
             if (exists) return;
         }
         const newNotif = {
             id: 'n_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
             type: type,
             recipientId: String(recipientId),
-            senderId: currentUser.userId,
+            senderId: String(currentUser.userId),
             senderName: [currentUser.firstName, currentUser.lastName].filter(Boolean).join(' ') || 'Foydalanuvchi',
             senderAvatar: currentUser.photo_url || null,
-            postId: postId,
-            commentId: commentId,
+            postId: String(postId),
+            commentId: commentId ? String(commentId) : null,
             createdAt: new Date().toISOString(),
             isRead: false
         };
@@ -605,7 +609,11 @@ function removeNotification(type, postId) {
     if (!currentUser || !currentUser.userId) return;
     try {
         let notifs = JSON.parse(localStorage.getItem(NOTIF_KEY)) || [];
-        notifs = notifs.filter(n => !(n.type === type && n.postId === postId && n.senderId === currentUser.userId));
+        notifs = notifs.filter(n => !(
+            n.type === type &&
+            String(n.postId) === String(postId) &&
+            String(n.senderId) === String(currentUser.userId)
+        ));
         localStorage.setItem(NOTIF_KEY, JSON.stringify(notifs));
         window.dispatchEvent(new Event('luz_notifs_updated'));
         updateNotificationBadgeLocal();
@@ -616,7 +624,7 @@ function updateNotificationBadgeLocal() {
     const btn = document.getElementById('navNotifBtn'); if (!btn) return;
     try {
         const notifs = JSON.parse(localStorage.getItem(NOTIF_KEY)) || [];
-        const unreadCount = notifs.filter(n => n.recipientId === currentUser?.userId && !n.isRead).length;
+        const unreadCount = notifs.filter(n => String(n.recipientId) === String(currentUser?.userId) && !n.isRead).length;
         let badge = btn.querySelector('.nav-badge');
         if (unreadCount > 0) {
             if (!badge) {
@@ -638,7 +646,10 @@ function syncVerifiedStateUI() {
     }
 }
 
-window.addEventListener('pageshow', syncVerifiedStateUI);
+window.addEventListener('pageshow', () => {
+    syncVerifiedStateUI();
+    updateNotificationBadgeLocal();
+});
 window.addEventListener('storage', (e) => {
     if (e.key === NOTIF_KEY) updateNotificationBadgeLocal();
     if (e.key === POST_STORE_KEY) { PostStore._cache = null; renderFeed(true); }
@@ -711,7 +722,6 @@ function compressImage(file, maxW = 1080, quality = 0.85){
         }; img.onerror = reject; img.src = url;
     });
 }
-
 
 /* ================= ICONS ================= */
 const ICONS = {
@@ -841,7 +851,7 @@ compSubmit.addEventListener('click', () => {
 
     PostStore.add({
         id: 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-        userId: currentUser?.userId || 'me',
+        userId: String(currentUser?.userId || 'me'),
         user: cuName,
         avatar: currentUser?.photo_url || null,
         createdAt: new Date().toISOString(),
@@ -870,6 +880,7 @@ compSubmit.addEventListener('click', () => {
     showToast('Post joylandi');
 });
 
+
 /* ================= MY REPLIES & HELPERS ================= */
 let myReplies = [];
 function loadMyReplies(){ try { const raw = localStorage.getItem(REPLIES_KEY); myReplies = raw ? JSON.parse(raw) : []; } catch { myReplies = []; } }
@@ -878,20 +889,20 @@ function pushMyReply(entry){ myReplies.unshift(entry); saveMyReplies(); }
 
 function findComment(comments, id){
     for (const c of (comments || [])) {
-        if (c.id === id) return { comment: c, parent: null, isReply: false, root: c };
+        if (String(c.id) === String(id)) return { comment: c, parent: null, isReply: false, root: c };
         const found = findInReplies(c, id, c); if (found) return found;
     } return null;
 }
 function findInReplies(parent, id, root){
     for (const r of (parent.replies || [])) {
-        if (r.id === id) return { comment: r, parent, isReply: true, root };
+        if (String(r.id) === String(id)) return { comment: r, parent, isReply: true, root };
         const found = findInReplies(r, id, root); if (found) return found;
     } return null;
 }
 function makeCommentObj(text, parentId){
     return {
         id: 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
-        userId: currentUser?.userId || '', user: cuName, avatar: currentUser.photo_url || null,
+        userId: String(currentUser?.userId || ''), user: cuName, avatar: currentUser.photo_url || null,
         text, createdAt: new Date().toISOString(), likes: 0, liked: false, replies: [], parentId: parentId || null
     };
 }
@@ -1107,7 +1118,6 @@ function renderFeed(preserveCount = false){
     }, 360);
 }
 
-
 /* ================= POST DETAIL VIEW ================= */
 const detailOverlay = document.getElementById('detailOverlay'), detailInput = document.getElementById('detailInput'), detailSend = document.getElementById('detailSend');
 let detailPost = null, replyTargetId = null;
@@ -1242,6 +1252,7 @@ detailSend.addEventListener('click', () => {
         replyTargetId = null; detailInput.value = ''; detailInput.style.height = 'auto'; detailSend.disabled = true; refreshDetailFromStore();
     }
 });
+
 
 /* ================= COMMENT DETAIL ================= */
 const commentDetailOverlay = document.getElementById('commentDetailOverlay');
