@@ -212,7 +212,7 @@ body{display:flex;justify-content:center;align-items:flex-start;min-height:100vh
         </div>
     </div>
 
-   
+    
     <!-- Banner -->
     <div class="banner">
         <img class="banner-img" id="bannerImg" src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=900&q=80" alt="Banner foni">
@@ -344,8 +344,6 @@ body{display:flex;justify-content:center;align-items:flex-start;min-height:100vh
     </div>
 </div>
 
-
-
 <!-- COMMENT DETAIL VIEW -->
 <div class="comment-detail-overlay" id="commentDetailOverlay">
     <div class="comment-detail-header">
@@ -409,7 +407,7 @@ const DB = {
     _getUsers(){ try { return JSON.parse(localStorage.getItem(this._K)) || []; } catch { return []; } },
     getCurrentUser(){
         const id = localStorage.getItem(this._S); if (!id) return null;
-        return this._getUsers().find(u => u.userId === id) || null;
+        return this._getUsers().find(u => String(u.userId) === String(id)) || null;
     },
     getUserById(id){ return this._getUsers().find(u => String(u.userId) === String(id)) || null; }
 };
@@ -427,48 +425,98 @@ const DB = {
     localStorage.setItem(MIGRATION_KEY, '1');
 })();
 
-/* ================= SESSION & TELEGRAM AUTO-LOGIN ================= */
-let currentUser = null;
-if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
-    const tU = tg.initDataUnsafe.user;
-    const tgUser = {
-        userId: String(tU.id),
-        firstName: tU.first_name || '',
-        lastName: tU.last_name || '',
-        username: tU.username || '',
-        photo_url: tU.photo_url || null
-    };
+/* ================= SESSION & TELEGRAM AUTO-LOGIN (SINGLE SOURCE OF TRUTH) ================= */
+function resolveCurrentUser() {
     let users = DB._getUsers();
-    let idx = users.findIndex(u => String(u.userId) === String(tgUser.userId));
+    const isLocalVerified = localStorage.getItem(VERIFIED_KEY) === '1';
 
-    if (idx >= 0) {
-        const stored = users[idx];
-        if (stored.isEdited) {
-            currentUser = { ...stored, userId: tgUser.userId };
-            if (!currentUser.firstName) currentUser.firstName = tgUser.firstName;
-            if (!currentUser.lastName) currentUser.lastName = tgUser.lastName;
-            if (!currentUser.username) currentUser.username = tgUser.username;
-            if (!currentUser.photo_url) currentUser.photo_url = tgUser.photo_url;
+    // 1. Telegram WebApp orqali kirilganda
+    if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+        const tU = tg.initDataUnsafe.user;
+        const realId = String(tU.id);
+        let idx = users.findIndex(u => String(u.userId) === realId);
+        let userObj = null;
+
+        if (idx >= 0) {
+            const stored = users[idx];
+            userObj = stored.isEdited
+                ? {
+                    ...stored,
+                    userId: realId,
+                    firstName: stored.firstName || tU.first_name || '',
+                    lastName: stored.lastName || tU.last_name || '',
+                    username: stored.username || tU.username || '',
+                    photo_url: stored.photo_url || tU.photo_url || null
+                }
+                : {
+                    userId: realId,
+                    firstName: tU.first_name || '',
+                    lastName: tU.last_name || '',
+                    username: tU.username || '',
+                    photo_url: tU.photo_url || null,
+                    bio: stored.bio || '',
+                    banner_url: stored.banner_url || null,
+                    isEdited: false,
+                    verified: !!stored.verified || isLocalVerified,
+                    isVerified: !!stored.isVerified || isLocalVerified
+                };
+            users[idx] = userObj;
         } else {
-            currentUser = { ...tgUser, isEdited: false, verified: !!stored.verified, isVerified: !!stored.isVerified };
+            // Agar oldin test profili tahrirlangan bo'lsa, bio va bannerni ko'chirib olamiz
+            const legacyUser = users.find(u => u.userId === 'local_dev_user' || String(u.userId).startsWith('mehmon_'));
+            userObj = {
+                userId: realId,
+                firstName: tU.first_name || '',
+                lastName: tU.last_name || '',
+                username: tU.username || '',
+                photo_url: tU.photo_url || null,
+                bio: legacyUser?.bio || '',
+                banner_url: legacyUser?.banner_url || null,
+                isEdited: false,
+                verified: isLocalVerified,
+                isVerified: isLocalVerified
+            };
+            users.push(userObj);
         }
-        users[idx] = currentUser;
-    } else {
-        const isLocalVerified = localStorage.getItem(VERIFIED_KEY) === '1';
-        currentUser = { ...tgUser, isEdited: false, verified: isLocalVerified, isVerified: isLocalVerified };
-        users.push(currentUser);
+
+        // Eski vaqtinchalik/dublikat profillarni bazadan tozalash
+        users = users.filter(u => u.userId !== 'local_dev_user' && !String(u.userId).startsWith('mehmon_'));
+        localStorage.setItem(DB._K, JSON.stringify(users));
+        localStorage.setItem(DB._S, realId);
+        return userObj;
     }
-    localStorage.setItem(DB._K, JSON.stringify(users));
-    localStorage.setItem(DB._S, currentUser.userId);
-} else {
-    currentUser = DB.getCurrentUser();
-    if (!currentUser) {
-        const isLocalVerified = localStorage.getItem(VERIFIED_KEY) === '1';
-        currentUser = { userId: 'mehmon_' + Date.now(), firstName: 'Javlonbek', lastName: '', username: 'javlonbek', bio: 'Kutmagan odamlarimdan kutilmagan zarbalar oldim', isEdited: false, verified: isLocalVerified, isVerified: isLocalVerified };
-        localStorage.setItem(DB._S, currentUser.userId);
-        localStorage.setItem(DB._K, JSON.stringify([currentUser]));
+
+    // 2. Brauzerda ochilganda: oxirgi kirgan foydalanuvchini tekshirish
+    const savedId = localStorage.getItem(DB._S);
+    if (savedId) {
+        const found = users.find(u => String(u.userId) === String(savedId));
+        if (found) return found;
     }
+
+    // 3. Bazada birorta haqiqiy foydalanuvchi bo'lsa, o'shani olish
+    const firstRealUser = users.find(u => u.userId !== 'local_dev_user' && !String(u.userId).startsWith('mehmon_'));
+    if (firstRealUser) {
+        localStorage.setItem(DB._S, firstRealUser.userId);
+        return firstRealUser;
+    }
+
+    // 4. Umuman profil bo'lmasa (faqat lokal test uchun yagona qat'iy ID)
+    const fallbackUser = {
+        userId: 'local_dev_user',
+        firstName: 'Javlonbek',
+        lastName: '',
+        username: 'javlonbek',
+        bio: 'Kutmagan odamlarimdan kutilmagan zarbalar oldim',
+        isEdited: false,
+        verified: isLocalVerified,
+        isVerified: isLocalVerified
+    };
+    localStorage.setItem(DB._K, JSON.stringify([fallbackUser]));
+    localStorage.setItem(DB._S, fallbackUser.userId);
+    return fallbackUser;
 }
+
+let currentUser = resolveCurrentUser();
 
 const profileUserId = new URLSearchParams(location.search).get('id');
 const isOwn = !profileUserId || String(profileUserId) === String(currentUser?.userId);
@@ -489,6 +537,7 @@ function isUserVerified(uid, fallbackUser) {
 function getInlineVerifiedBadge(uid) {
     return isUserVerified(uid) ? VERIFIED_BADGE_SM_SVG : '';
 }
+
 
 /* ================= SCROLL ANIMATION (BANNER & AVATAR) ================= */
 (function initScrollEffects(){
@@ -706,6 +755,14 @@ window.addEventListener('popstate', () => {
     else goBack();
 });
 
+/* ================= ACTION TUGMALAR ================= */
+document.getElementById('editBtn')?.addEventListener('click', () => { location.href = 'tahrirlash.html'; });
+document.getElementById('settingsBtn')?.addEventListener('click', () => { location.href = 'setting.html'; });
+document.getElementById('subscribeBtn')?.addEventListener('click', () => {
+    const b = document.getElementById('subscribeBtn'); b.innerHTML = `<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Obuna bo'lindi`; b.style.opacity = '.7'; b.disabled = true;
+});
+document.getElementById('messageBtn')?.addEventListener('click', () => { location.href = `xabar.html?chat=${encodeURIComponent(profileUserId)}`; });
+
 
 /* ================= POST VA TABS ================= */
 const emptyIcons = {
@@ -717,7 +774,6 @@ const emptyIcons = {
 const texts = { posts: "Hali post yo'q", video: "Hali video yo'q", answers: "Hali javob yo'q", saved: "Hali saqlangan post yo'q" };
 let posts = [], savedPosts = new Set(), myReplies = [];
 
-/* TUZATISH 3: Saqlangan postlarni localStorage bilan sinxronlash */
 function loadSavedPosts(){
     try {
         const raw = localStorage.getItem(SAVED_POSTS_KEY);
@@ -731,11 +787,20 @@ function saveSavedPosts(){
 
 function loadMyReplies(){ try { const raw = localStorage.getItem(REPLIES_KEY); myReplies = raw ? JSON.parse(raw) : []; } catch { myReplies = []; } }
 function saveMyReplies(){ try { localStorage.setItem(REPLIES_KEY, JSON.stringify(myReplies)); } catch {} }
+
 function loadMyPosts(){
-    if (profileUserId) posts = PostStore.byUser(profileUserId);
-    else { posts = PostStore.byUser(currentUser.userId); if (posts.length === 0) posts = PostStore.all().filter(p => p.user === displayName); }
+    if (profileUserId && !isOwn) {
+        posts = PostStore.byUser(profileUserId);
+    } else {
+        posts = PostStore.all().filter(p =>
+            String(p.userId) === String(currentUser.userId) ||
+            String(p.userId) === 'local_dev_user' ||
+            String(p.userId).startsWith('mehmon_')
+        );
+    }
     document.getElementById('postsCount').textContent = posts.length;
 }
+
 function countComments(p){
     let n = (p.comments || []).length; const walk = (arr) => arr.forEach(c => { n += (c.replies || []).length; if (c.replies) walk(c.replies); }); walk(p.comments || []); return n;
 }
@@ -861,6 +926,7 @@ function switchTab(k){
     if (k === 'posts') renderPosts(); else if (k === 'video') renderVideos(); else if (k === 'answers') renderReplies(); else if (k === 'saved') renderSaved();
 }
 document.getElementById('tabsContainer').addEventListener('click', e => { const tab = e.target.closest('.tab-item'); if (tab) switchTab(tab.dataset.tab); });
+
 
 /* ================= COMMENTS & POST DETAIL ================= */
 const detailOverlay = document.getElementById('detailOverlay'), detailInput = document.getElementById('detailInput'), detailSend = document.getElementById('detailSend');
@@ -998,7 +1064,7 @@ detailSend.addEventListener('click', () => {
     }
 });
 
-/* ================= TUZATISH 1 & 2: COMMENT DETAIL TO'LIQ LOGIKASI ================= */
+/* ================= COMMENT DETAIL ================= */
 const commentDetailOverlay = document.getElementById('commentDetailOverlay');
 const cdInput = document.getElementById('commentDetailInput');
 const cdSend = document.getElementById('commentDetailSend');
@@ -1118,7 +1184,6 @@ compInput.addEventListener('input', () => {
     compSubmit.disabled = !(compInput.value.trim().length > 0 || currentMedia);
 });
 
-/* TUZATISH 4: Fayl qayta tanlanishi uchun input qiymatini tozalash */
 document.getElementById('fileInput').addEventListener('change', async e => {
     const file = e.target.files[0];
     e.target.value = '';
@@ -1151,12 +1216,11 @@ document.getElementById('removeImg').addEventListener('click', () => {
     compSubmit.disabled = compInput.value.trim().length === 0;
 });
 
-/* TUZATISH 5: Post yuborilgandan keyin textarea balandligini va tugmani tiklash */
 compSubmit.addEventListener('click', () => {
     const text = compInput.value.trim(); if (!text && !currentMedia) return;
     PostStore.add({
         id: 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-        userId: currentUser?.userId || 'me', user: displayName, avatar: profileOwner?.photo_url || null,
+        userId: currentUser?.userId || 'local_dev_user', user: displayName, avatar: profileOwner?.photo_url || null,
         createdAt: new Date().toISOString(), text, image: currentMedia ? currentMedia.data : null,
         type: currentMedia ? currentMedia.type : 'text', likes: 0, liked: false, views: 0, comments: []
     });
