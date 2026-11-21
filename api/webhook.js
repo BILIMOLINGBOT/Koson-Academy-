@@ -1,20 +1,20 @@
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (req.method === 'POST') {
     const { message } = req.body;
 
     // Foydalanuvchi /start bosganini tekshirish
-    if (message && message.text === '/start') {
+    if (message && message.text && message.text.startsWith('/start')) {
       const chatId = message.chat.id;
       const firstName = message.from.first_name || "Foydalanuvchi";
-      const BOT_TOKEN = process.env.BOT_TOKEN;
+      const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 
       // Mini App va Kanal havolalari
-      const MINI_APP_URL = "https://SIZNING-VERCEL-DOMENINGIZ.vercel.app"; // L.uz Mini App manzili
-      const CHANNEL_URL = "https://t.me/SIZNING_KANALINGIZ"; // L.uz Telegram kanali
+      const MINI_APP_URL = "https://koson-academy.vercel.app";
+      const CHANNEL_URL = "https://t.me/davlat_20140106";
 
       const payload = {
         chat_id: chatId,
-        text: `Assalomu alaykum, ${firstName}! 👋\n\n**L.uz** platformasiga xush kelibsiz. Davom etish uchun quyidagi tugmalardan foydalaning:`,
+        text: `Assalomu alaykum, ${firstName}! 👋\n\n*L.uz* platformasiga xush kelibsiz. Davom etish uchun quyidagi tugmalardan foydalaning:`,
         parse_mode: "Markdown",
         reply_markup: {
           inline_keyboard: [
@@ -45,9 +45,8 @@ export default async function handler(req, res) {
       }
     }
 
-    // Telegram serveriga javob qaytarish (qayta-qayta yubormasligi uchun shart)
     return res.status(200).json({ ok: true });
   }
 
   return res.status(200).send('L.uz Bot Webhook faol!');
-}
+};
