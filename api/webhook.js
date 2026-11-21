@@ -52,7 +52,7 @@ export default async function handler(req, res) {
           }
         };
 
-        await fetch(`https://api.telegram.org/bot${8691875803:AAEslHiwnPRmJaJKo2Lrs_K21wlr5yBKA1I}/sendPhoto`, {
+        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
