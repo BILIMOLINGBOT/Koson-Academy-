@@ -8,8 +8,9 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
+  // Brauzerdan GET so'rov bilan tekshirganda ishlashini ko'rsatadi
   if (req.method === 'GET') {
-    return res.status(200).json({ ok: true, message: 'U Bot Webhook faol!' });
+    return res.status(200).json({ ok: true, message: 'L.uz Bot Webhook faol!' });
   }
 
   if (req.method === 'POST') {
@@ -19,17 +20,16 @@ export default async function handler(req, res) {
 
       if (message && message.text && message.text.startsWith('/start')) {
         const chatId = message.chat.id;
+        const firstName = message.from?.first_name || "Foydalanuvchi";
         const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 
-        const PHOTO_FILE_ID = "AgACAgIAAxkBAAEkyxhrAUoHERIxphG9D9dVnFl5yHJeZgAC-BxrGz3aCEgYdeJw6-hR2AEAAwIAA3kAAz0E";
         const MINI_APP_URL = "https://koson-academy.vercel.app";
         const CHANNEL_URL = "https://t.me/davlat_20140106";
-        const SUPPORT_URL = "https://t.me/Okkkkklllla";
 
         const payload = {
           chat_id: chatId,
-          photo: PHOTO_FILE_ID,
-          caption: "U — foydalanuvchilarga oʻz fikrlarini erkin ifoda etish, matnli postlar yozish, rasm va videolar joylashtirish imkonini beruvchi ijtimoiy platforma",
+          text: `Assalomu alaykum, ${firstName}! 👋\n\n<b>L.uz</b> platformasiga xush kelibsiz. Davom etish uchun quyidagi tugmalardan foydalaning:`,
+          parse_mode: "HTML",
           reply_markup: {
             inline_keyboard: [
               [
@@ -42,17 +42,13 @@ export default async function handler(req, res) {
                 {
                   text: "Kanalga aʼzo boʻlish",
                   url: CHANNEL_URL
-                },
-                {
-                  text: "Yordam",
-                  url: SUPPORT_URL
                 }
               ]
             ]
           }
         };
 
-        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
+        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
