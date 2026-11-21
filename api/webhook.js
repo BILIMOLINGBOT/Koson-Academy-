@@ -10,7 +10,7 @@ export default async function handler(req, res) {
 
   // Brauzerdan GET so'rov bilan tekshirganda ishlashini ko'rsatadi
   if (req.method === 'GET') {
-    return res.status(200).json({ ok: true, message: 'L.uz Bot Webhook faol!' });
+    return res.status(200).json({ ok: true, message: 'U Bot Webhook faol!' });
   }
 
   if (req.method === 'POST') {
@@ -25,10 +25,13 @@ export default async function handler(req, res) {
 
         const MINI_APP_URL = "https://koson-academy.vercel.app";
         const CHANNEL_URL = "https://t.me/davlat_20140106";
+        const SUPPORT_URL = "https://t.me/Okkkkklllla";
+        const BANNER_PHOTO_ID = "AgACAgIAAxkBAAEkyxhrAUoHERIxphG9D9dVnFl5yHJeZgAC-BxrGz3aCEgYdeJw6-hR2AEAAwIAA3kAAz0E";
 
         const payload = {
           chat_id: chatId,
-          text: `Assalomu alaykum, ${firstName}! 👋\n\n<b>L.uz</b> platformasiga xush kelibsiz. Davom etish uchun quyidagi tugmalardan foydalaning:`,
+          photo: BANNER_PHOTO_ID,
+          caption: `Assalomu alaykum, ${firstName}! 👋\n\n<b>U</b> — foydalanuvchilarga oʻz fikrlarini erkin ifoda etish, matnli postlar yozish, rasm va videolar joylashtirish imkonini beruvchi ijtimoiy platforma.`,
           parse_mode: "HTML",
           reply_markup: {
             inline_keyboard: [
@@ -42,13 +45,17 @@ export default async function handler(req, res) {
                 {
                   text: "Kanalga aʼzo boʻlish",
                   url: CHANNEL_URL
+                },
+                {
+                  text: "Yordam",
+                  url: SUPPORT_URL
                 }
               ]
             ]
           }
         };
 
-        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
