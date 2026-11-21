@@ -21,12 +21,9 @@ export default async function handler(req, res) {
         const chatId = message.chat.id;
         const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 
-        if (!BOT_TOKEN) {
-          console.error("TELEGRAM_BOT_TOKEN topilmadi!");
-          return res.status(200).json({ ok: false, error: "Bot token sozlanmagan" });
-        }
-
-        const PHOTO_FILE_ID = "AgACAgIAAxkBAAEkyxhrAUoHERIxphG9D9dVnFl5yHJeZgAC-BxrGz3aCEgYdeJw6-hR2AEAAwIAA3kAAz0E";
+        // @JsonDumpBot dan olingan file_id ni shu yerga qo'ying:
+        const PHOTO_FILE_ID = "SHU_YERGA_FILE_ID_NI_QOYING";
+        
         const MINI_APP_URL = "https://koson-academy.vercel.app";
         const CHANNEL_URL = "https://t.me/davlat_20140106";
         const SUPPORT_URL = "https://t.me/Okkkkklllla";
@@ -57,16 +54,11 @@ export default async function handler(req, res) {
           }
         };
 
-        const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
+        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
-
-        const data = await response.json();
-        if (!data.ok) {
-          console.error("Telegram API xatosi:", data);
-        }
       }
 
       return res.status(200).json({ ok: true });
