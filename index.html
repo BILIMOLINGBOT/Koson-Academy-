@@ -155,6 +155,7 @@
         .nav-avatar-initial{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:linear-gradient(135deg,#3a3a3c 0%,#1c1c1e 100%);color:#fff}
         .nav-badge{position:absolute;top:2px;right:25%;background:#ff2d55;color:#fff;font-size:10px;font-weight:700;border-radius:10px;padding:2px 5px;min-width:16px;text-align:center;line-height:1;border:2px solid #1c1c1e;z-index:10}
 
+        
         /* ============ DETAIL (POST & COMMENT) ============ */
         .detail-overlay, .comment-detail-overlay{position:fixed;inset:0;background:#000;z-index:500;display:none;flex-direction:column;animation:detailIn .3s cubic-bezier(.34,1.2,.64,1) both}
         .detail-overlay.show, .comment-detail-overlay.show{display:flex}
@@ -370,6 +371,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const POSTS_COLLECTION = "luz_posts";
+const USERS_COLLECTION = "luz_users";
 
 /* ================= TELEGRAM FULLSCREEN ================= */
 const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
@@ -384,8 +386,7 @@ if (tg) {
 }
 
 /* ================= KONSTANTALAR ================= */
-// Firestore hujjat limiti 1MB bo'lgani uchun base64 video hajmi ~700KB gacha cheklandi
-const MAX_VIDEO_SIZE = 700 * 1024; 
+const MAX_VIDEO_SIZE = 700 * 1024; // Firestore 1MB limiti uchun
 const REPLIES_KEY = 'luz_my_replies_v1';
 const NOTIF_KEY = 'notifications';
 const VERIFIED_KEY = 'luz_verified_badge';
@@ -394,10 +395,12 @@ const FEED_BATCH_SIZE = 15;
 
 const VERIFIED_BADGE_SM_SVG = `<svg class="verified-badge-sm" viewBox="0 0 24 24" aria-label="Tasdiqlangan"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" fill="#ffffff" stroke="none"></path><path d="m9 12 2 2 4-4" fill="none" stroke="#000000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>`;
 
-/* ================= DB (USERS) ================= */
+/* ================= DB (USERS - FIRESTORE + LOCAL) ================= */
 const DB = {
     _K: 'luz_users',
     _S: 'luz_current_user',
+    _remoteUsers: {},
+
     _getUsers() {
         try {
             const arr = JSON.parse(localStorage.getItem(this._K));
@@ -423,7 +426,23 @@ const DB = {
     },
     getUserById(id) {
         if (!id) return null;
-        return this._getUsers().find(u => String(u.userId) === String(id)) || null;
+        const idStr = String(id);
+        if (this._remoteUsers[idStr]) return this._remoteUsers[idStr];
+        return this._getUsers().find(u => String(u.userId) === idStr) || null;
+    },
+    initUsersRealtime() {
+        onSnapshot(collection(db, USERS_COLLECTION), (snapshot) => {
+            snapshot.forEach((docSnap) => {
+                const data = docSnap.data();
+                if (data && data.userId) {
+                    this._remoteUsers[String(data.userId)] = data;
+                }
+            });
+            if (PostStore._isLoaded) renderFeed(true);
+            if (detailOverlay?.classList.contains('show') && detailPost) {
+                refreshAll();
+            }
+        });
     }
 };
 
@@ -507,24 +526,25 @@ let currentUser = null;
         }
     }
 
-    // Foydalanuvchi ma'lumotlarini Firestore'ga ham saqlab qo'yamiz (boshqa akkauntlar ko'rishi uchun)
+    // Joriy foydalanuvchini Firestore'ga saqlash (boshqa akkauntlar profilini ko'ra olishi uchun)
     try {
-        setDoc(doc(db, "luz_users", String(currentUser.userId)), {
+        setDoc(doc(db, USERS_COLLECTION, String(currentUser.userId)), {
             userId: String(currentUser.userId),
             firstName: currentUser.firstName || '',
             lastName: currentUser.lastName || '',
             username: currentUser.username || '',
             photo_url: currentUser.photo_url || null,
-            verified: !!currentUser.verified
+            bio: currentUser.bio || '',
+            verified: !!currentUser.verified,
+            isVerified: !!currentUser.isVerified
         }, { merge: true });
     } catch {}
 })();
 
-
 /* ================= PROFIL MA'LUMOTLARINI OLISH ================= */
 function resolveAuthorInfo(uid, fallbackName, fallbackAvatar) {
     const idStr = String(uid || '');
-    const effectiveId = (idStr === 'me' || idStr.startsWith('mehmon_')) ? String(currentUser.userId) : idStr;
+    const effectiveId = (idStr === 'me') ? String(currentUser.userId) : idStr;
     const userObj = (effectiveId === String(currentUser.userId)) ? currentUser : DB.getUserById(effectiveId);
 
     if (userObj) {
@@ -557,6 +577,7 @@ function getInlineVerifiedBadge(uid, postObj = null) {
     return isUserVerified(uid, postObj) ? VERIFIED_BADGE_SM_SVG : '';
 }
 
+
 /* ================= HELPERS ================= */
 function escapeHtml(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 function formatExactTime(dateInput){
@@ -583,7 +604,6 @@ function showToast(msg){
     t.textContent = msg; t.classList.add('show');
     clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
 }
-// Firestore 1MB hujjat chekloviga tushmasligi uchun rasm hajmi 800px va 0.72 sifatga moslandi
 function compressImage(file, maxW = 800, quality = 0.72){
     return new Promise((resolve, reject) => {
         const img = new Image(); const url = URL.createObjectURL(file);
@@ -630,10 +650,8 @@ const PostStore = {
             this._cache = posts;
             this._isLoaded = true;
 
-            // Lenta oynasini avtomatik yangilash (2-akkauntda ham darhol ko'rinadi)
             renderFeed(true);
 
-            // Agar Post Detail yoki Comment Detail ochiq bo'lsa, uni ham real-vaqtda yangilash
             if (detailOverlay?.classList.contains('show') && detailPost) {
                 const updatedPost = this.get(detailPost.id);
                 if (updatedPost) {
@@ -642,7 +660,6 @@ const PostStore = {
                 }
             }
 
-            // URL orqali post ochilgan bo'lsa (birinchi yuklanganda)
             checkUrlParamsOnce();
         }, (error) => {
             console.error("Firestore xatosi:", error);
@@ -657,7 +674,6 @@ const PostStore = {
 
     async add(post) {
         try {
-            // Firestore hujjat hajmini tekshirish (~950KB dan katta bo'lmasligi kerak)
             const approxSize = JSON.stringify(post).length;
             if (approxSize > 950000) {
                 showToast("Fayl hajmi juda katta! Kichikroq rasm tanlang.");
@@ -674,7 +690,6 @@ const PostStore = {
     },
 
     async update(id, patch) {
-        // Optimistik UI yangilash (ekranda darhol o'zgarishi uchun)
         const i = this._cache.findIndex(p => String(p.id) === String(id));
         if (i >= 0) {
             this._cache[i] = Object.assign({}, this._cache[i], patch);
@@ -763,7 +778,6 @@ const viewIO = new IntersectionObserver(entries => {
             const fresh = PostStore.get(pid);
             if (fresh) {
                 const v = (fresh.views || 0) + 1;
-                // Firestore'da ko'rishlar sonini atomik oshirish
                 updateDoc(doc(db, POSTS_COLLECTION, String(pid)), { views: increment(1) }).catch(() => {});
                 const cnt = el.querySelectorAll('.act-btn')[2]?.querySelector('.act-count');
                 if (cnt) cnt.textContent = v;
@@ -793,7 +807,6 @@ function renderUserAvatars() {
     }
 }
 renderUserAvatars();
-
 
 /* ================= ICONS ================= */
 const ICONS = {
@@ -863,6 +876,7 @@ function handleBack(){
     return false;
 }
 if (tg?.BackButton) { try { tg.BackButton.onClick(handleBack); tg.BackButton.hide(); } catch {} }
+
 
 /* ================= COMPOSER (POST YARATISH OYNASI) ================= */
 const composer = document.getElementById('composer');
@@ -1042,7 +1056,6 @@ async function addCommentToPost(postId, newComment, replyToId){
     await PostStore.update(postId, { comments: commentsCopy });
     return { post, comment: newComment, parent: found.comment };
 }
-
 
 /* ================= POST RENDER & INFINITE SCROLL ================= */
 const savedPosts = new Set((() => {
@@ -1232,6 +1245,7 @@ function renderFeed(preserveCount = false){
     mountFeedBatch(targetCount);
     if (preserveCount) window.scrollTo(0, y);
 }
+
 
 /* ================= POST DETAIL VIEW ================= */
 const detailOverlay = document.getElementById('detailOverlay'), detailInput = document.getElementById('detailInput'), detailSend = document.getElementById('detailSend');
@@ -1502,8 +1516,9 @@ function checkUrlParamsOnce() {
 }
 
 loadMyReplies();
-renderFeed(); // Dastlab skeleton ko'rsatadi
-PostStore.initRealtime(); // Firestore'dan real-vaqtda postlarni yuklaydi
+renderFeed();
+DB.initUsersRealtime(); // Foydalanuvchilar ro'yxatini Firestore'dan real-vaqtda yuklash
+PostStore.initRealtime(); // Postlarni Firestore'dan real-vaqtda yuklash
 updateNotificationBadgeLocal();
 updateBackButton();
 
