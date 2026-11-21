@@ -193,7 +193,6 @@ body{display:flex;justify-content:center;align-items:flex-start;min-height:100vh
 .detail-comments-list,.comment-detail-replies{padding:0 16px;display:flex;flex-direction:column;gap:12px}
 .comment-detail-main{padding:16px;border-bottom:1px solid rgba(255,255,255,0.06)}
 
-
 /* Telegram ID orqali tezkor kirish oynasi (agar brauzerda ochilsa) */
 .tg-id-gate{position:fixed;inset:0;background:#000000;z-index:900;display:none;align-items:center;justify-content:center;padding:24px}
 .tg-id-gate.show{display:flex}
@@ -204,6 +203,7 @@ body{display:flex;justify-content:center;align-items:flex-start;min-height:100vh
 .tg-id-input:focus{border-color:#ffffff}
 .tg-id-btn{width:100%;height:48px;background:#ffffff;color:#000000;border:none;border-radius:9999px;font-size:16px;font-weight:700;cursor:pointer}
 .tg-id-btn:active{transform:scale(.98)}
+
 
 /* Obunachilar / Obunalar ro'yxati */
 .follow-user-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.06);cursor:pointer}
@@ -256,7 +256,7 @@ body{display:flex;justify-content:center;align-items:flex-start;min-height:100vh
         <!-- Ism, tasdiqlash belgisi va @username bloki -->
         <div class="profile-name-block">
             <div class="profile-name-row" id="profileNameRow">
-                <h1 class="user-title" id="userName"></h1>
+                <h1 class="user-title" id="userName">Yuklanmoqda...</h1>
                 <span class="verified-badge-icon" id="mainBadgeSlot" style="display:none"></span>
             </div>
             <div class="user-handle" id="userStatus"></div>
@@ -403,7 +403,7 @@ body{display:flex;justify-content:center;align-items:flex-start;min-height:100vh
     <div class="detail-scroll" id="followsListContainer"></div>
 </div>
 
-<!-- TELEGRAM ID KIRISH OYNASI (Faqat Telegram tashqarisida ID topilmaganda ochiladi) -->
+<!-- TELEGRAM ID KIRISH OYNASI -->
 <div class="tg-id-gate" id="tgIdGate">
     <div class="tg-id-card">
         <div class="tg-id-title">Telegram ID orqali kirish</div>
@@ -415,6 +415,7 @@ body{display:flex;justify-content:center;align-items:flex-start;min-height:100vh
 
 <div class="toast" id="toast"></div>
 
+
 <!-- OROLCHA NAVIGATSIYA -->
 <nav class="bottom-nav">
     <div class="bottom-nav-inner">
@@ -425,9 +426,33 @@ body{display:flex;justify-content:center;align-items:flex-start;min-height:100vh
     </div>
 </nav>
 
-<script>
+<script type="module">
+/* ================= FIREBASE SDK IMPORT & INIT ================= */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+    getFirestore, collection, doc, getDoc, setDoc, updateDoc, deleteDoc,
+    onSnapshot, query, orderBy, increment
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyD0gBUJNcrgvvntcrfKK7Ky8t6_9Qb96Io",
+    authDomain: "bilimilova-64833.firebaseapp.com",
+    databaseURL: "https://bilimilova-64833-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "bilimilova-64833",
+    storageBucket: "bilimilova-64833.firebasestorage.app",
+    messagingSenderId: "890689414502",
+    appId: "1:890689414502:web:8141d7aab413495c0c14a7",
+    measurementId: "G-ZBC8X1VVMZ"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const POSTS_COLLECTION = "luz_posts";
+const USERS_COLLECTION = "luz_users";
+const FOLLOWS_COLLECTION = "luz_follows";
+
 /* ================= KONSTANTALAR ================= */
-const MAX_VIDEO_SIZE = 5 * 1024 * 1024;
+const MAX_VIDEO_SIZE = 700 * 1024; // Firestore 1MB limiti uchun
 const REPLIES_KEY = 'luz_my_replies_v1';
 const SAVED_POSTS_KEY = 'luz_saved_posts_v1';
 const VERIFIED_KEY = 'luz_verified_badge';
@@ -445,36 +470,69 @@ if (tg) {
     try {
         tg.ready();
         tg.expand();
-        if (typeof tg.requestFullscreen === 'function') {
-            tg.requestFullscreen();
-        }
-        if (typeof tg.disableVerticalSwipes === 'function') {
-            tg.disableVerticalSwipes();
-        }
+        if (typeof tg.requestFullscreen === 'function') tg.requestFullscreen();
+        if (typeof tg.disableVerticalSwipes === 'function') tg.disableVerticalSwipes();
         if (tg.setHeaderColor) tg.setHeaderColor('#000000');
         if (tg.setBackgroundColor) tg.setBackgroundColor('#000000');
     } catch {}
 }
 
-/* ================= DB ================= */
+/* ================= DB (USERS - FIRESTORE + LOCAL) ================= */
 const DB = {
-    _K: 'luz_users', _S: 'luz_current_user',
+    _K: 'luz_users',
+    _S: 'luz_current_user',
+    _remoteUsers: {},
+
     _getUsers(){ try { return JSON.parse(localStorage.getItem(this._K)) || []; } catch { return []; } },
     _saveUsers(list){ try { localStorage.setItem(this._K, JSON.stringify(list)); } catch {} },
     getCurrentUser(){
         const id = localStorage.getItem(this._S); if (!id) return null;
-        return this._getUsers().find(u => String(u.userId) === String(id)) || null;
+        return this._remoteUsers[String(id)] || this._getUsers().find(u => String(u.userId) === String(id)) || null;
     },
-    getUserById(id){ return this._getUsers().find(u => String(u.userId) === String(id)) || null; }
+    getUserById(id){
+        if (!id) return null;
+        const idStr = String(id);
+        return this._remoteUsers[idStr] || this._getUsers().find(u => String(u.userId) === idStr) || null;
+    },
+    async fetchUserFromCloud(id) {
+        if (!id) return null;
+        try {
+            const snap = await getDoc(doc(db, USERS_COLLECTION, String(id)));
+            if (snap.exists()) {
+                const data = snap.data();
+                this._remoteUsers[String(id)] = data;
+                return data;
+            }
+        } catch (e) { console.error("User fetch xatosi:", e); }
+        return null;
+    },
+    initUsersRealtime() {
+        onSnapshot(collection(db, USERS_COLLECTION), (snapshot) => {
+            snapshot.forEach((docSnap) => {
+                const data = docSnap.data();
+                if (data && data.userId) {
+                    this._remoteUsers[String(data.userId)] = data;
+                }
+            });
+            if (!isOwn && profileUserId && this._remoteUsers[String(profileUserId)]) {
+                profileOwner = this._remoteUsers[String(profileUserId)];
+            }
+            if (currentUser) {
+                renderProfileHeader();
+                if (PostStore._isLoaded) {
+                    loadMyPosts();
+                    switchTab(currentTab);
+                }
+            }
+        });
+    }
 };
 
-/* ================= TELEGRAM ID ORQALI KIRISH (HECH QACHON AUTHORIZATION.HTML GA OTMAYDI) ================= */
+/* ================= TELEGRAM ID ORQALI KIRISH ================= */
 function extractTelegramUser() {
-    // 1. To'g'ridan-to'g'ri initDataUnsafe.user dan olish
     if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
         return tg.initDataUnsafe.user;
     }
-    // 2. Xom tg.initData satridan parslab olish
     if (tg && typeof tg.initData === 'string' && tg.initData.includes('user=')) {
         try {
             const params = new URLSearchParams(tg.initData);
@@ -485,7 +543,6 @@ function extractTelegramUser() {
             }
         } catch {}
     }
-    // 3. URL hash (#tgWebAppData=...) ichidan olish
     if (location.hash && location.hash.includes('tgWebAppData=')) {
         try {
             const hashParams = new URLSearchParams(location.hash.slice(1));
@@ -500,7 +557,6 @@ function extractTelegramUser() {
             }
         } catch {}
     }
-    // 4. URL query (?tg_id=123456789) orqali berilgan bo'lsa
     const urlTgId = new URLSearchParams(location.search).get('tg_id');
     if (urlTgId && /^\d+$/.test(urlTgId.trim())) {
         return { id: urlTgId.trim() };
@@ -559,17 +615,29 @@ function loginWithTelegramId(tU) {
 
     DB._saveUsers(users);
     localStorage.setItem(DB._S, realId);
+
+    // Joriy foydalanuvchini Firestore'ga sinxronlash
+    setDoc(doc(db, USERS_COLLECTION, realId), {
+        userId: realId,
+        firstName: userObj.firstName || '',
+        lastName: userObj.lastName || '',
+        username: userObj.username || '',
+        photo_url: userObj.photo_url || null,
+        bio: userObj.bio || '',
+        banner_url: userObj.banner_url || null,
+        verified: !!userObj.verified,
+        isVerified: !!userObj.isVerified
+    }, { merge: true }).catch(() => {});
+
     return userObj;
 }
 
 function resolveCurrentUser() {
-    // 1-navbat: Telegram API / initData / URL dan Telegram ID olish
     const tgUser = extractTelegramUser();
     if (tgUser && tgUser.id) {
         return loginWithTelegramId(tgUser);
     }
 
-    // 2-navbat: Oldin saqlangan haqiqiy Telegram ID sessiyasi
     let users = DB._getUsers().filter(u =>
         u && u.userId && u.userId !== 'local_dev_user' && !String(u.userId).startsWith('mehmon_')
     );
@@ -599,12 +667,7 @@ function getFullName(u) {
 
 const profileUserId = new URLSearchParams(location.search).get('id');
 let isOwn = !profileUserId || (currentUser && String(profileUserId) === String(currentUser.userId));
-let profileOwner = isOwn ? currentUser : DB.getUserById(profileUserId);
-
-if (!profileOwner && !isOwn) {
-    isOwn = true;
-    profileOwner = currentUser;
-}
+let profileOwner = isOwn ? currentUser : (DB.getUserById(profileUserId) || { userId: profileUserId, firstName: 'Foydalanuvchi', lastName: '' });
 
 function isUserVerified(uid, fallbackUser) {
     if (currentUser && String(uid) === String(currentUser.userId)) {
@@ -619,49 +682,57 @@ function getInlineVerifiedBadge(uid) {
     return isUserVerified(uid) ? VERIFIED_BADGE_SM_SVG : '';
 }
 
-/* ================= REAL FOLLOW SYSTEM ================= */
+/* ================= REAL FOLLOW SYSTEM (FIRESTORE) ================= */
 const FollowStore = {
-    _load(){
-        try {
-            const raw = localStorage.getItem(FOLLOWS_KEY);
-            const arr = raw ? JSON.parse(raw) : [];
-            return Array.isArray(arr) ? arr : [];
-        } catch { return []; }
-    },
-    _save(list){
-        try { localStorage.setItem(FOLLOWS_KEY, JSON.stringify(list)); } catch {}
+    _cache: [],
+    initRealtime() {
+        onSnapshot(collection(db, FOLLOWS_COLLECTION), (snapshot) => {
+            const arr = [];
+            snapshot.forEach(docSnap => arr.push({ id: docSnap.id, ...docSnap.data() }));
+            this._cache = arr;
+            updateFollowStatsUI();
+        });
     },
     isFollowing(followerId, targetId){
         if (!followerId || !targetId) return false;
-        return this._load().some(f => String(f.followerId) === String(followerId) && String(f.targetId) === String(targetId));
+        return this._cache.some(f => String(f.followerId) === String(followerId) && String(f.targetId) === String(targetId));
     },
     getFollowers(userId){
-        return this._load()
+        return this._cache
             .filter(f => String(f.targetId) === String(userId))
             .map(f => String(f.followerId));
     },
     getFollowing(userId){
-        return this._load()
+        return this._cache
             .filter(f => String(f.followerId) === String(userId))
             .map(f => String(f.targetId));
     },
-    toggle(followerId, targetId){
+    async toggle(followerId, targetId){
         if (!followerId || !targetId || String(followerId) === String(targetId)) return false;
-        const list = this._load();
-        const idx = list.findIndex(f => String(f.followerId) === String(followerId) && String(f.targetId) === String(targetId));
-        if (idx >= 0) {
-            list.splice(idx, 1);
-            this._save(list);
+        const docId = `${String(followerId)}_${String(targetId)}`;
+        const active = this.isFollowing(followerId, targetId);
+
+        if (active) {
+            this._cache = this._cache.filter(f => f.id !== docId);
+            updateFollowStatsUI();
+            await deleteDoc(doc(db, FOLLOWS_COLLECTION, docId)).catch(() => {});
             return false;
         } else {
-            list.unshift({ followerId: String(followerId), targetId: String(targetId), createdAt: new Date().toISOString() });
-            this._save(list);
+            const entry = {
+                id: docId,
+                followerId: String(followerId),
+                targetId: String(targetId),
+                createdAt: new Date().toISOString()
+            };
+            this._cache.unshift(entry);
+            updateFollowStatsUI();
+            await setDoc(doc(db, FOLLOWS_COLLECTION, docId), entry).catch(() => {});
             pushNotification({
                 type: 'follow',
-                toUserId: String(targetId),
-                fromUserId: String(followerId),
-                fromUser: getFullName(currentUser),
-                fromAvatar: currentUser?.photo_url || null
+                recipientId: String(targetId),
+                senderId: String(followerId),
+                senderName: getFullName(currentUser),
+                senderAvatar: currentUser?.photo_url || null
             });
             return true;
         }
@@ -669,18 +740,16 @@ const FollowStore = {
 };
 
 function pushNotification(notif){
-    if (!notif.toUserId || String(notif.toUserId) === String(notif.fromUserId)) return;
-    try {
-        const raw = localStorage.getItem(NOTIFS_KEY);
-        const list = raw ? JSON.parse(raw) : [];
-        list.unshift({
-            id: 'n_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
-            createdAt: new Date().toISOString(),
-            read: false,
-            ...notif
-        });
-        localStorage.setItem(NOTIFS_KEY, JSON.stringify(list.slice(0, 200)));
-    } catch {}
+    const targetId = notif.recipientId || notif.toUserId;
+    const senderId = notif.senderId || notif.fromUserId;
+    if (!targetId || String(targetId) === String(senderId)) return;
+    const notifId = 'n_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+    setDoc(doc(db, "luz_notifications", notifId), {
+        id: notifId,
+        createdAt: new Date().toISOString(),
+        isRead: false,
+        ...notif
+    }).catch(() => {});
 }
 
 function updateFollowStatsUI(){
@@ -703,6 +772,7 @@ function updateFollowStatsUI(){
         }
     }
 }
+
 
 /* ================= SCROLL ANIMATION (BANNER & AVATAR) ================= */
 (function initScrollEffects(){
@@ -738,33 +808,66 @@ function updateFollowStatsUI(){
     requestAnimationFrame(updateProgress);
 })();
 
-
-/* ================= POST STORE ================= */
-const POST_STORE_KEY = 'tg_feed_posts_v1';
+/* ================= FIRESTORE POST STORE ================= */
 const PostStore = {
-    _cache: null,
-    _load(){
-        if (this._cache !== null) return this._cache;
+    _cache: [],
+    _isLoaded: false,
+
+    initRealtime() {
+        const q = query(collection(db, POSTS_COLLECTION), orderBy("createdAt", "desc"));
+        onSnapshot(q, (snapshot) => {
+            const list = [];
+            snapshot.forEach(docSnap => list.push({ id: docSnap.id, ...docSnap.data() }));
+            this._cache = list;
+            this._isLoaded = true;
+
+            if (currentUser) {
+                loadMyPosts();
+                switchTab(currentTab);
+            }
+            if (detailOverlay?.classList.contains('show') && detailPost) {
+                refreshDetailFromStore();
+                if (commentDetailOverlay?.classList.contains('show')) refreshCommentDetailFromStore();
+            }
+        });
+    },
+
+    all(){ return this._cache.slice(); },
+    byUser(uid){ if (!uid) return []; return this._cache.filter(p => String(p.userId) === String(uid)); },
+    get(id){ return this._cache.find(p => String(p.id) === String(id)) || null; },
+
+    async add(post){
         try {
-            const raw = localStorage.getItem(POST_STORE_KEY);
-            this._cache = raw ? JSON.parse(raw) : [];
-            if (!Array.isArray(this._cache)) this._cache = [];
-        } catch { this._cache = []; }
-        return this._cache;
+            if (JSON.stringify(post).length > 950000) {
+                showToast("Fayl hajmi juda katta! Kichikroq rasm tanlang.");
+                return null;
+            }
+            await setDoc(doc(db, POSTS_COLLECTION, String(post.id)), post);
+            return post;
+        } catch {
+            showToast('Saqlashda xatolik');
+            return null;
+        }
     },
-    _save(){ try { localStorage.setItem(POST_STORE_KEY, JSON.stringify(this._cache || [])); return true; } catch { showToast('Saqlashda xatolik'); return false; } },
-    all(){ return this._load().slice(); },
-    byUser(uid){ if (!uid) return []; return this._load().filter(p => String(p.userId) === String(uid)); },
-    get(id){ return this._load().find(p => p.id === id) || null; },
-    add(post){ const list = this._load(); list.unshift(post); this._cache = list; return this._save() ? post : null; },
-    remove(id){
-        const list = this._load().filter(p => p.id !== id);
-        this._cache = list;
-        return this._save();
+    async remove(id){
+        this._cache = this._cache.filter(p => String(p.id) !== String(id));
+        try {
+            await deleteDoc(doc(db, POSTS_COLLECTION, String(id)));
+            return true;
+        } catch {
+            showToast("O'chirishda xatolik");
+            return false;
+        }
     },
-    update(id, patch){
-        const list = this._load(); const i = list.findIndex(p => p.id === id); if (i < 0) return null;
-        list[i] = Object.assign({}, list[i], patch); this._cache = list; return this._save() ? list[i] : null;
+    async update(id, patch){
+        const i = this._cache.findIndex(p => String(p.id) === String(id));
+        if (i >= 0) this._cache[i] = Object.assign({}, this._cache[i], patch);
+        try {
+            await updateDoc(doc(db, POSTS_COLLECTION, String(id)), patch);
+            return this._cache[i] || null;
+        } catch {
+            return null;
+        }
     }
 };
 
@@ -819,7 +922,7 @@ function showToast(msg){
     t.textContent = msg; t.classList.add('show');
     clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
 }
-function compressImage(file, maxW = 1080, quality = 0.85){
+function compressImage(file, maxW = 800, quality = 0.72){
     return new Promise((resolve, reject) => {
         const img = new Image(); const url = URL.createObjectURL(file);
         img.onload = () => {
@@ -830,6 +933,22 @@ function compressImage(file, maxW = 1080, quality = 0.85){
             try { resolve(canvas.toDataURL('image/jpeg', quality)); } catch (e) { reject(e); }
         }; img.onerror = reject; img.src = url;
     });
+}
+
+/* ================= LAYK ================= */
+function isLiked(o){
+    if (!o || !currentUser) return false;
+    if (Array.isArray(o.likedBy)) return o.likedBy.includes(String(currentUser.userId));
+    return !!o.liked;
+}
+function toggleLikeObj(o){
+    const uid = String(currentUser.userId);
+    if (!Array.isArray(o.likedBy)) o.likedBy = [];
+    const i = o.likedBy.indexOf(uid);
+    if (i >= 0) o.likedBy.splice(i, 1); else o.likedBy.push(uid);
+    const now = o.likedBy.includes(uid);
+    o.likes = o.likedBy.length;
+    return now;
 }
 
 /* ================= IZOHLAR YORDAMCHISI ================= */
@@ -850,37 +969,38 @@ function makeCommentObj(text, parentId){
     return {
         id: 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
         userId: String(me.userId), user: getFullName(me), avatar: me.photo_url || null,
-        text, createdAt: new Date().toISOString(), likes: 0, liked: false, replies: [], parentId: parentId || null
+        text, createdAt: new Date().toISOString(), likes: 0, likedBy: [], replies: [], parentId: parentId || null
     };
 }
-function addCommentToPost(postId, newComment, replyToId){
+async function addCommentToPost(postId, newComment, replyToId){
     const post = PostStore.get(postId); if (!post) return null;
-    if (!post.comments) post.comments = [];
+    const commentsCopy = JSON.parse(JSON.stringify(post.comments || []));
     if (!replyToId) {
-        newComment.parentId = null; post.comments.push(newComment);
-        PostStore.update(postId, { comments: post.comments });
+        newComment.parentId = null; commentsCopy.push(newComment);
+        await PostStore.update(postId, { comments: commentsCopy });
         pushNotification({
             type: 'comment',
-            toUserId: String(post.userId),
-            fromUserId: String(currentUser.userId),
-            fromUser: getFullName(currentUser),
-            fromAvatar: currentUser.photo_url || null,
+            recipientId: String(post.userId),
+            senderId: String(currentUser.userId),
+            senderName: getFullName(currentUser),
+            senderAvatar: currentUser.photo_url || null,
             postId: post.id,
-            text: newComment.text
+            commentId: newComment.id
         });
         return { post, comment: newComment, parent: null };
     }
-    const found = findComment(post.comments, replyToId); if (!found) return null;
+    const found = findComment(commentsCopy, replyToId); if (!found) return null;
     newComment.parentId = replyToId; if (!found.comment.replies) found.comment.replies = [];
-    found.comment.replies.push(newComment); PostStore.update(postId, { comments: post.comments });
+    found.comment.replies.push(newComment);
+    await PostStore.update(postId, { comments: commentsCopy });
     pushNotification({
-        type: 'comment',
-        toUserId: String(found.comment.userId || post.userId),
-        fromUserId: String(currentUser.userId),
-        fromUser: getFullName(currentUser),
-        fromAvatar: currentUser.photo_url || null,
+        type: 'reply',
+        recipientId: String(found.comment.userId || post.userId),
+        senderId: String(currentUser.userId),
+        senderName: getFullName(currentUser),
+        senderAvatar: currentUser.photo_url || null,
         postId: post.id,
-        text: newComment.text
+        commentId: newComment.id
     });
     return { post, comment: newComment, parent: found.comment };
 }
@@ -921,8 +1041,27 @@ function applyBanner(bannerUrl) {
 
 function renderProfileHeader(){
     if (!currentUser) return;
-    const latestOwner = isOwn ? (DB.getCurrentUser() || currentUser) : (DB.getUserById(profileUserId) || profileOwner);
+    let latestOwner = null;
+    if (isOwn) {
+        latestOwner = DB.getCurrentUser() || currentUser;
+    } else {
+        latestOwner = DB.getUserById(profileUserId) || profileOwner;
+        // Agar cloud'da ham bo'lmasa, postlari ichidan ism va avatarini olamiz
+        if (!latestOwner || latestOwner.firstName === 'Foydalanuvchi') {
+            const theirPost = PostStore.byUser(profileUserId)[0];
+            if (theirPost) {
+                latestOwner = {
+                    userId: profileUserId,
+                    firstName: theirPost.user || 'Foydalanuvchi',
+                    lastName: '',
+                    photo_url: theirPost.avatar || null,
+                    verified: !!theirPost.verified
+                };
+            }
+        }
+    }
     if (!latestOwner) return;
+    profileOwner = latestOwner;
 
     const verified = isUserVerified(latestOwner.userId, latestOwner);
     const name = getFullName(latestOwner);
@@ -983,11 +1122,21 @@ function renderProfileHeader(){
     updateFollowStatsUI();
 }
 
-function bootAppWithUser(user) {
+async function bootAppWithUser(user) {
     currentUser = user;
     isOwn = !profileUserId || String(profileUserId) === String(currentUser.userId);
-    profileOwner = isOwn ? currentUser : (DB.getUserById(profileUserId) || currentUser);
-    if (!DB.getUserById(profileUserId)) isOwn = true;
+
+    if (isOwn) {
+        profileOwner = currentUser;
+    } else {
+        // Boshqa foydalanuvchi profilini darhol Firestore'dan yuklab olamiz
+        const cloudUser = await DB.fetchUserFromCloud(profileUserId);
+        profileOwner = cloudUser || DB.getUserById(profileUserId) || {
+            userId: String(profileUserId),
+            firstName: 'Foydalanuvchi',
+            lastName: ''
+        };
+    }
 
     document.getElementById('tgIdGate').classList.remove('show');
     renderProfileHeader();
@@ -995,6 +1144,10 @@ function bootAppWithUser(user) {
     loadMyReplies();
     loadMyPosts();
     switchTab('posts');
+
+    DB.initUsersRealtime();
+    PostStore.initRealtime();
+    FollowStore.initRealtime();
 }
 
 document.getElementById('avatarContainer').addEventListener('click', () => { if (!isOwn) goToProfile(profileOwner?.userId); });
@@ -1053,10 +1206,9 @@ window.addEventListener('popstate', () => {
 /* ================= ACTION TUGMALAR ================= */
 document.getElementById('editBtn')?.addEventListener('click', () => { location.href = 'tahrirlash.html'; });
 document.getElementById('settingsBtn')?.addEventListener('click', () => { location.href = 'setting.html'; });
-document.getElementById('subscribeBtn')?.addEventListener('click', () => {
+document.getElementById('subscribeBtn')?.addEventListener('click', async () => {
     if (!profileOwner || isOwn || !currentUser) return;
-    const subscribed = FollowStore.toggle(currentUser.userId, profileOwner.userId);
-    updateFollowStatsUI();
+    const subscribed = await FollowStore.toggle(currentUser.userId, profileOwner.userId);
     showToast(subscribed ? "Obuna bo'ldingiz" : "Obuna bekor qilindi");
 });
 document.getElementById('messageBtn')?.addEventListener('click', () => {
@@ -1079,7 +1231,7 @@ function loadSavedPosts(){
     try {
         const raw = localStorage.getItem(SAVED_POSTS_KEY);
         const arr = raw ? JSON.parse(raw) : [];
-        savedPosts = new Set(Array.isArray(arr) ? arr : []);
+        savedPosts = new Set(Array.isArray(arr) ? arr.map(String) : []);
     } catch { savedPosts = new Set(); }
 }
 function saveSavedPosts(){
@@ -1108,7 +1260,7 @@ function saveMyReplies(){
 
 function loadMyPosts(){
     if (!currentUser) return;
-    const targetId = profileOwner?.userId || currentUser.userId;
+    const targetId = isOwn ? currentUser.userId : profileUserId;
     posts = PostStore.byUser(targetId);
     document.getElementById('postsCount').textContent = posts.length;
 }
@@ -1129,28 +1281,34 @@ function buildPostActions(p){
         b.innerHTML = `${icon}<span class="act-count">${count!==null?count:''}</span>`;
         if (clk) b.addEventListener('click', clk); return b;
     };
-    const likeBtn = createBtn(ICONS.like, p.likes||0, p.liked?'liked':'', (e)=>{
-        e.stopPropagation(); const fresh = PostStore.get(p.id) || p; const liked = !fresh.liked;
-        const likes = Math.max(0, (fresh.likes || 0) + (liked ? 1 : -1));
-        PostStore.update(p.id, { liked, likes }); p.liked = liked; p.likes = likes;
-        likeBtn.classList.toggle('liked', liked); likeBtn.querySelector('.act-count').textContent = likes;
+    const likeBtn = createBtn(ICONS.like, p.likes||0, isLiked(p)?'liked':'', async (e)=>{
+        e.stopPropagation();
+        const fresh = PostStore.get(p.id) || p;
+        const copy = { ...fresh, likedBy: [...(fresh.likedBy || [])] };
+        const liked = toggleLikeObj(copy);
+
+        likeBtn.classList.toggle('liked', liked);
+        likeBtn.querySelector('.act-count').textContent = copy.likes;
+
+        await PostStore.update(p.id, { likedBy: copy.likedBy, likes: copy.likes });
         if (liked && currentUser) {
             pushNotification({
                 type: 'like',
-                toUserId: String(p.userId),
-                fromUserId: String(currentUser.userId),
-                fromUser: getFullName(currentUser),
-                fromAvatar: currentUser.photo_url || null,
+                recipientId: String(p.userId),
+                senderId: String(currentUser.userId),
+                senderName: getFullName(currentUser),
+                senderAvatar: currentUser.photo_url || null,
                 postId: p.id
             });
         }
     });
     const commBtn = createBtn(ICONS.comment, countComments(p), '', (e)=>{ e.stopPropagation(); openPostDetail(p); });
     const viewBtn = createBtn(ICONS.view, p.views||0, '', (e)=>{ e.stopPropagation(); }); viewBtn.style.cursor='default';
-    const saveBtn = createBtn(ICONS.bookmark, null, savedPosts.has(p.id)?'saved':'', (e)=>{
+    const saveBtn = createBtn(ICONS.bookmark, null, savedPosts.has(String(p.id))?'saved':'', (e)=>{
         e.stopPropagation();
-        if (savedPosts.has(p.id)) { savedPosts.delete(p.id); saveBtn.classList.remove('saved'); showToast("Olib tashlandi"); }
-        else { savedPosts.add(p.id); saveBtn.classList.add('saved'); showToast("Saqlandi"); }
+        const key = String(p.id);
+        if (savedPosts.has(key)) { savedPosts.delete(key); saveBtn.classList.remove('saved'); showToast("Olib tashlandi"); }
+        else { savedPosts.add(key); saveBtn.classList.add('saved'); showToast("Saqlandi"); }
         saveSavedPosts();
         if (currentTab === 'saved') renderSaved();
     });
@@ -1194,9 +1352,9 @@ function buildPostItem(p){
     item.querySelector('.post-actions-slot').appendChild(buildPostActions(p));
 
     if (canDelete) {
-        item.querySelector('.post-del-btn')?.addEventListener('click', (e) => {
+        item.querySelector('.post-del-btn')?.addEventListener('click', async (e) => {
             e.stopPropagation();
-            PostStore.remove(p.id);
+            await PostStore.remove(p.id);
             loadMyPosts();
             switchTab(currentTab);
             showToast("Post o'chirildi");
@@ -1212,8 +1370,9 @@ function buildPostItem(p){
                 if (ViewTracker.record(currentUser?.userId, p.id)) {
                     const fresh = PostStore.get(p.id);
                     if (fresh) {
-                        p.views = (fresh.views || 0) + 1; PostStore.update(p.id, { views: p.views });
-                        item.querySelectorAll('.act-btn')[2].querySelector('.act-count').textContent = p.views;
+                        const v = (fresh.views || 0) + 1;
+                        updateDoc(doc(db, POSTS_COLLECTION, String(p.id)), { views: increment(1) }).catch(() => {});
+                        item.querySelectorAll('.act-btn')[2].querySelector('.act-count').textContent = v;
                     }
                 }
             }
@@ -1232,7 +1391,7 @@ function renderList(list, key){
 function renderPosts(){ renderList(posts, 'posts'); }
 function renderVideos(){ renderList(posts.filter(p => p.type === 'video'), 'video'); }
 function renderSaved(){
-    const allSaved = PostStore.all().filter(p => savedPosts.has(p.id));
+    const allSaved = PostStore.all().filter(p => savedPosts.has(String(p.id)));
     renderList(allSaved, 'saved');
 }
 function renderReplies(){
@@ -1271,6 +1430,7 @@ function switchTab(k){
 }
 document.getElementById('tabsContainer').addEventListener('click', e => { const tab = e.target.closest('.tab-item'); if (tab) switchTab(tab.dataset.tab); });
 
+
 /* ================= COMMENTS & POST DETAIL ================= */
 const detailOverlay = document.getElementById('detailOverlay'), detailInput = document.getElementById('detailInput'), detailSend = document.getElementById('detailSend');
 let detailPost = null, replyTargetId = null;
@@ -1305,14 +1465,13 @@ function buildDetailComment(c, depth = 0, inCommentDetail = false){
         </div>
     `;
     const actions = document.createElement('div'); actions.className = 'comment-actions';
-    const likeBtn = document.createElement('button'); likeBtn.className = 'comment-act' + (c.liked?' liked':''); likeBtn.innerHTML = `${ICONS.like}<span>${c.likes||0}</span>`;
-    likeBtn.addEventListener('click', (e) => {
+    const likeBtn = document.createElement('button'); likeBtn.className = 'comment-act' + (isLiked(c)?' liked':''); likeBtn.innerHTML = `${ICONS.like}<span>${c.likes||0}</span>`;
+    likeBtn.addEventListener('click', async (e) => {
         e.stopPropagation();
-        c.liked = !c.liked;
-        c.likes = Math.max(0, (c.likes||0) + (c.liked?1:-1));
-        PostStore.update(detailPost.id, {comments:detailPost.comments});
+        toggleLikeObj(c);
         refreshDetailFromStore();
         if (inCommentDetail && activeCommentId) refreshCommentDetailFromStore();
+        await PostStore.update(detailPost.id, { comments: detailPost.comments });
     });
     const commBtn = document.createElement('button'); commBtn.className = 'comment-act'; commBtn.innerHTML = `${ICONS.comment}<span>${(c.replies||[]).length||''}</span>`;
     commBtn.addEventListener('click', (e) => {
@@ -1403,17 +1562,20 @@ detailInput.addEventListener('input', () => {
     detailInput.style.height = 'auto'; detailInput.style.height = Math.min(detailInput.scrollHeight, 90) + 'px';
     detailSend.disabled = detailInput.value.trim().length === 0;
 });
-detailSend.addEventListener('click', () => {
+detailSend.addEventListener('click', async () => {
     const raw = detailInput.value.trim(); if (!raw || !detailPost || !currentUser) return;
+    detailSend.disabled = true;
     const newC = makeCommentObj(raw, replyTargetId);
-    if (addCommentToPost(detailPost.id, newC, replyTargetId)) {
+    const res = await addCommentToPost(detailPost.id, newC, replyTargetId);
+    if (res) {
         pushMyReply({ id: newC.id, postId: detailPost.id, userId: String(currentUser.userId), user: newC.user, avatar: newC.avatar, text: newC.text, createdAt: newC.createdAt, postText: detailPost.text });
-        replyTargetId = null; detailInput.value = ''; detailInput.style.height = 'auto'; detailSend.disabled = true;
+        replyTargetId = null; detailInput.value = ''; detailInput.style.height = 'auto';
         updateDetailReplyModeUI();
         refreshDetailFromStore();
+    } else {
+        detailSend.disabled = false;
     }
 });
-
 
 /* ================= COMMENT DETAIL ================= */
 const commentDetailOverlay = document.getElementById('commentDetailOverlay');
@@ -1501,26 +1663,30 @@ cdInput.addEventListener('input', () => {
     cdSend.disabled = cdInput.value.trim().length === 0;
 });
 
-cdSend.addEventListener('click', () => {
+cdSend.addEventListener('click', async () => {
     const raw = cdInput.value.trim();
     if (!raw || !detailPost || !activeCommentId || !currentUser) return;
+    cdSend.disabled = true;
     const target = cdReplyTargetId || activeCommentId;
     const newC = makeCommentObj(raw, target);
-    if (addCommentToPost(detailPost.id, newC, target)) {
+    const res = await addCommentToPost(detailPost.id, newC, target);
+    if (res) {
         pushMyReply({ id: newC.id, postId: detailPost.id, userId: String(currentUser.userId), user: newC.user, avatar: newC.avatar, text: newC.text, createdAt: newC.createdAt, postText: detailPost.text });
         cdReplyTargetId = activeCommentId;
         cdInput.value = '';
         cdInput.style.height = 'auto';
-        cdSend.disabled = true;
         updateCdReplyModeUI();
         refreshCommentDetailFromStore();
         refreshDetailFromStore();
+    } else {
+        cdSend.disabled = false;
     }
 });
 
 /* ================= COMPOSER ================= */
 const composer = document.getElementById('composer'), compOverlay = document.getElementById('composerOverlay'), compInput = document.getElementById('composerInput'), compSubmit = document.getElementById('composerSubmit');
 let currentMedia = null;
+let isSubmittingPost = false;
 
 function openComposer(){ compOverlay.classList.add('show'); composer.classList.add('show'); setTimeout(() => compInput.focus(), 300); }
 function closeComposer(){ compOverlay.classList.remove('show'); composer.classList.remove('show'); compInput.blur(); }
@@ -1550,7 +1716,7 @@ document.getElementById('videoInput').addEventListener('change', e => {
     const file = e.target.files[0];
     e.target.value = '';
     if (!file) return;
-    if (file.size > MAX_VIDEO_SIZE) { showToast("Video juda katta (Maksimum 5MB)"); return; }
+    if (file.size > MAX_VIDEO_SIZE) { showToast("Video juda katta (Maksimum 700KB)"); return; }
     const reader = new FileReader();
     reader.onload = ev => {
         currentMedia = { data: ev.target.result, type: 'video' };
@@ -1567,15 +1733,31 @@ document.getElementById('removeImg').addEventListener('click', () => {
     compSubmit.disabled = compInput.value.trim().length === 0;
 });
 
-compSubmit.addEventListener('click', () => {
+compSubmit.addEventListener('click', async () => {
+    if (isSubmittingPost) return;
     const text = compInput.value.trim(); if ((!text && !currentMedia) || !currentUser) return;
+
+    isSubmittingPost = true;
+    compSubmit.disabled = true;
+    compSubmit.textContent = 'Yuklanmoqda...';
+
     const me = DB.getCurrentUser() || currentUser;
-    PostStore.add({
+    const added = await PostStore.add({
         id: 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
         userId: String(me.userId), user: getFullName(me), avatar: me.photo_url || null,
+        verified: isUserVerified(me.userId),
         createdAt: new Date().toISOString(), text, image: currentMedia ? currentMedia.data : null,
-        type: currentMedia ? currentMedia.type : 'text', likes: 0, liked: false, views: 0, comments: []
+        type: currentMedia ? currentMedia.type : 'text', likes: 0, likedBy: [], views: 0, comments: []
     });
+
+    isSubmittingPost = false;
+    compSubmit.textContent = 'Yuborish';
+
+    if (!added) {
+        compSubmit.disabled = false;
+        return;
+    }
+
     compInput.value = '';
     compInput.style.height = 'auto';
     compSubmit.disabled = true;
@@ -1584,6 +1766,7 @@ compSubmit.addEventListener('click', () => {
     document.getElementById('previewVid').src = '';
     document.getElementById('composerPreview').classList.remove('show');
     closeComposer(); loadMyPosts(); switchTab('posts');
+    showToast('Post joylandi');
 });
 
 /* ================= QO'LDA TELEGRAM ID KIRITISH ================= */
@@ -1607,7 +1790,7 @@ window.addEventListener('pageshow', () => {
 });
 window.addEventListener('storage', (e) => {
     if (!currentUser) return;
-    if (e.key === VERIFIED_KEY || e.key === DB._K || e.key === FOLLOWS_KEY) {
+    if (e.key === VERIFIED_KEY || e.key === DB._K) {
         renderProfileHeader();
         switchTab(currentTab);
     }
