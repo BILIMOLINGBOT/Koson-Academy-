@@ -21,16 +21,14 @@ export default async function handler(req, res) {
         const chatId = message.chat.id;
         const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 
-        // @JsonDumpBot dan olingan file_id ni shu yerga qo'ying:
-        const PHOTO_FILE_ID = "SHU_YERGA_FILE_ID_NI_QOYING";
-        
+        const LOGO_URL = "https://koson-academy.vercel.app/2324.png";
         const MINI_APP_URL = "https://koson-academy.vercel.app";
         const CHANNEL_URL = "https://t.me/davlat_20140106";
         const SUPPORT_URL = "https://t.me/Okkkkklllla";
 
         const payload = {
           chat_id: chatId,
-          photo: PHOTO_FILE_ID,
+          photo: LOGO_URL,
           caption: "U — foydalanuvchilarga oʻz fikrlarini erkin ifoda etish, matnli postlar yozish, rasm va videolar joylashtirish imkonini beruvchi ijtimoiy platforma",
           reply_markup: {
             inline_keyboard: [
