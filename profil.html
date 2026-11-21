@@ -193,7 +193,7 @@ body{display:flex;justify-content:center;align-items:flex-start;min-height:100vh
 .detail-comments-list,.comment-detail-replies{padding:0 16px;display:flex;flex-direction:column;gap:12px}
 .comment-detail-main{padding:16px;border-bottom:1px solid rgba(255,255,255,0.06)}
 
-/* Telegram ID orqali tezkor kirish oynasi (agar brauzerda ochilsa) */
+/* Telegram ID orqali tezkor kirish oynasi */
 .tg-id-gate{position:fixed;inset:0;background:#000000;z-index:900;display:none;align-items:center;justify-content:center;padding:24px}
 .tg-id-gate.show{display:flex}
 .tg-id-card{width:100%;max-width:380px;background:#141415;border:1px solid #2c2c2e;border-radius:28px;padding:28px 22px;text-align:center}
@@ -283,10 +283,9 @@ body{display:flex;justify-content:center;align-items:flex-start;min-height:100vh
             </button>
         </div>
 
-        <!-- Tugmalar: Boshqa foydalanuvchi profili uchun (Obuna bo'lish + Xabar) -->
+        <!-- Tugmalar: Boshqa foydalanuvchi profili uchun (Obuna bo'lish) -->
         <div class="action-buttons" id="otherProfileActions" style="display:none">
             <button class="btn-edit primary" id="subscribeBtn">Obuna bo'lish</button>
-            <button class="btn-edit" id="messageBtn">Xabar</button>
         </div>
     </div>
 
@@ -415,7 +414,6 @@ body{display:flex;justify-content:center;align-items:flex-start;min-height:100vh
 
 <div class="toast" id="toast"></div>
 
-
 <!-- OROLCHA NAVIGATSIYA -->
 <nav class="bottom-nav">
     <div class="bottom-nav-inner">
@@ -452,12 +450,10 @@ const USERS_COLLECTION = "luz_users";
 const FOLLOWS_COLLECTION = "luz_follows";
 
 /* ================= KONSTANTALAR ================= */
-const MAX_VIDEO_SIZE = 700 * 1024; // Firestore 1MB limiti uchun
+const MAX_VIDEO_SIZE = 700 * 1024;
 const REPLIES_KEY = 'luz_my_replies_v1';
 const SAVED_POSTS_KEY = 'luz_saved_posts_v1';
 const VERIFIED_KEY = 'luz_verified_badge';
-const FOLLOWS_KEY = 'luz_follows_v1';
-const NOTIFS_KEY = 'luz_notifications_v1';
 
 const VERIFIED_BADGE_MAIN_SVG = `<svg width="21" height="21" viewBox="0 0 24 24" aria-label="Tasdiqlangan"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" fill="#ffffff" stroke="none"></path><path d="m9 12 2 2 4-4" fill="none" stroke="#000000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>`;
 const VERIFIED_BADGE_STICKY_SVG = `<svg width="16" height="16" viewBox="0 0 24 24" aria-label="Tasdiqlangan"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" fill="#ffffff" stroke="none"></path><path d="m9 12 2 2 4-4" fill="none" stroke="#000000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>`;
@@ -616,7 +612,6 @@ function loginWithTelegramId(tU) {
     DB._saveUsers(users);
     localStorage.setItem(DB._S, realId);
 
-    // Joriy foydalanuvchini Firestore'ga sinxronlash
     setDoc(doc(db, USERS_COLLECTION, realId), {
         userId: realId,
         firstName: userObj.firstName || '',
@@ -1046,7 +1041,6 @@ function renderProfileHeader(){
         latestOwner = DB.getCurrentUser() || currentUser;
     } else {
         latestOwner = DB.getUserById(profileUserId) || profileOwner;
-        // Agar cloud'da ham bo'lmasa, postlari ichidan ism va avatarini olamiz
         if (!latestOwner || latestOwner.firstName === 'Foydalanuvchi') {
             const theirPost = PostStore.byUser(profileUserId)[0];
             if (theirPost) {
@@ -1129,7 +1123,6 @@ async function bootAppWithUser(user) {
     if (isOwn) {
         profileOwner = currentUser;
     } else {
-        // Boshqa foydalanuvchi profilini darhol Firestore'dan yuklab olamiz
         const cloudUser = await DB.fetchUserFromCloud(profileUserId);
         profileOwner = cloudUser || DB.getUserById(profileUserId) || {
             userId: String(profileUserId),
@@ -1210,10 +1203,6 @@ document.getElementById('subscribeBtn')?.addEventListener('click', async () => {
     if (!profileOwner || isOwn || !currentUser) return;
     const subscribed = await FollowStore.toggle(currentUser.userId, profileOwner.userId);
     showToast(subscribed ? "Obuna bo'ldingiz" : "Obuna bekor qilindi");
-});
-document.getElementById('messageBtn')?.addEventListener('click', () => {
-    if (!profileOwner) return;
-    location.href = `xabar.html?chat=${encodeURIComponent(profileOwner.userId)}`;
 });
 
 
@@ -1576,6 +1565,7 @@ detailSend.addEventListener('click', async () => {
         detailSend.disabled = false;
     }
 });
+
 
 /* ================= COMMENT DETAIL ================= */
 const commentDetailOverlay = document.getElementById('commentDetailOverlay');
