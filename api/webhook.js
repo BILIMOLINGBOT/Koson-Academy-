@@ -1,7 +1,7 @@
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
-    return res.status(200).send("L.uz Bot Webhook faol!");
+    return res.status(200).send("U Bot Webhook faol!");
   }
 
   const { message } = req.body || {};
@@ -18,29 +18,29 @@ export default async function handler(req, res) {
 
     const payload = {
       chat_id: chatId,
-      text:
-        `Assalomu alaykum, ${firstName}! 👋\n\n` +
-        `*L.uz* platformasiga xush kelibsiz!\n\n` +
-        `L.uz — foydalanuvchilarga o‘z fikrlarini erkin ifoda etish, matnli postlar yozish, rasm va videolar joylashtirish imkonini beruvchi ijtimoiy platforma.\n\n` +
-        `Platformadan foydalanishni boshlash uchun quyidagi tugmani bosing:`,
-      parse_mode: "Markdown",
+      photo: "https://cdn.phototourl.com/anon/2026-11-22-cf460928-9c19-4a19-bdd4-2a43241b0694.png",
+      caption:
+        `Assalomu alaykum, ${firstName}!\n\n` +
+        `U platformasiga xush kelibsiz.\n\n` +
+        `U — foydalanuvchilarga o‘z fikrlarini erkin ifoda etish, matnli postlar yozish, rasm va videolar joylashtirish imkonini beruvchi ijtimoiy platforma.\n\n` +
+        `Platformadan foydalanishni boshlash uchun quyidagi tugmalardan foydalaning.`,
       reply_markup: {
         inline_keyboard: [
           [
             {
-              text: "🚀 Ochish",
+              text: "Ochish",
               web_app: { url: MINI_APP_URL }
             }
           ],
           [
             {
-              text: "📢 Kanalga aʼzo boʻlish",
+              text: "Kanalga aʼzo boʻlish",
               url: CHANNEL_URL
             }
           ],
           [
             {
-              text: "💬 Yordam",
+              text: "Yordam",
               url: SUPPORT_URL
             }
           ]
@@ -54,7 +54,7 @@ export default async function handler(req, res) {
       }
 
       const response = await fetch(
-        `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,
+        `https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`,
         {
           method: "POST",
           headers: {
