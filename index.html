@@ -103,6 +103,7 @@ body{display:flex;justify-content:center;min-height:100vh;-webkit-font-smoothing
 .sk-line.w-95{width:95%}
 .sk-line.w-80{width:80%}
 .sk-line.w-55{width:55%}
+
 .sk-media{width:100%;height:168px;border-radius:16px;border:0.5px solid rgba(255,255,255,0.08);margin-top:2px}
 .sk-actions{display:flex;align-items:center;justify-content:space-between;padding-top:6px;padding-right:8px}
 .sk-act-pill{width:30px;height:14px;border-radius:7px;opacity:0.75}
@@ -281,11 +282,12 @@ body{display:flex;justify-content:center;min-height:100vh;-webkit-font-smoothing
 <script type="module">
 /* ================= FIREBASE ================= */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, deleteDoc,
+import { initializeFirestore, collection, doc, setDoc, getDoc, updateDoc, deleteDoc,
   onSnapshot, query, orderBy, limit, where, increment, arrayUnion, arrayRemove,
   runTransaction, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 import { getAuth, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyD0gBUJNcrgvvntcrfKK7Ky8t6_9Qb96Io",
@@ -297,16 +299,25 @@ const firebaseConfig = {
     appId: "1:890689414502:web:8141d7aab413495c0c14a7",
     measurementId: "G-ZBC8X1VVMZ"
 };
+
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const db = initializeFirestore(app, { experimentalAutoDetectLongPolling: true });
 const storage = getStorage(app);
 const auth = getAuth(app);
+const functions = getFunctions(app);
 const POSTS_COLLECTION = "luz_posts";
 const USERS_COLLECTION = "luz_users";
-const AUTH_URL = "https://REGION-bilimilova-64833.cloudfunctions.net/tgAuth";
 
-function withTimeout(p, ms = 8000){
+function withTimeout(p, ms = 15000){
     return Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
+}
+function getFirebaseErrorText(err, fallback) {
+    if (!navigator.onLine) return "Internet aloqasi yo'q";
+    if (err?.code === 'permission-denied') return "Ruxsat yo'q: Telegram orqali qayta kiring";
+    if (err?.code === 'unauthenticated') return "Autentifikatsiya talab qilinadi";
+    if (err?.code === 'functions/not-found') return "tgAuth funksiyasi serverda topilmadi";
+    if (err?.message === 'timeout') return "Server javobi kechikdi, qayta urinib ko'ring";
+    return fallback + (err?.code ? ` (${err.code})` : '');
 }
 function likeCount(o){ return Array.isArray(o?.likedBy) ? o.likedBy.length : (o?.likes || 0); }
 
@@ -321,35 +332,44 @@ if (tg) {
     } catch {}
 }
 
-/* 3-BAND: Autentifikatsiya UI'ni bloklamaydi, 8s timeout + AbortController */
-const AuthState = { status: 'idle', verifiedServer: false };
 
-async function ensureAuth(){
-    if (!tg?.initData || AUTH_URL.includes('REGION')) {
-        AuthState.status = tg?.initData ? 'tg_local' : 'guest';
-        return;
-    }
-    AuthState.status = 'loading';
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 8000);
-    try {
-        const r = await fetch(AUTH_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ initData: tg.initData }),
-            signal: controller.signal
-        });
-        clearTimeout(timer);
-        if (!r.ok) throw new Error('Auth HTTP ' + r.status);
-        const { token } = await r.json();
-        await withTimeout(signInWithCustomToken(auth, token), 8000);
+/* ================= HttpsCallable ORQALI AUTENTIFIKATSIYA ================= */
+const AuthState = { status: 'idle', verifiedServer: false };
+let authPromise = null;
+
+async function ensureAuth(forceRetry = false){
+    if (auth.currentUser && !forceRetry) {
         AuthState.status = 'authenticated';
         AuthState.verifiedServer = true;
-    } catch (e) {
-        clearTimeout(timer);
-        AuthState.status = 'error';
-        console.warn('Auth xatosi (ilova ishlashda davom etadi):', e);
+        return true;
     }
+    if (!tg?.initData) {
+        AuthState.status = 'guest';
+        return false;
+    }
+    if (authPromise && !forceRetry) return authPromise;
+
+    AuthState.status = 'loading';
+    authPromise = (async () => {
+        try {
+            const tgAuthFn = httpsCallable(functions, 'tgAuth');
+            const result = await withTimeout(tgAuthFn({ initData: tg.initData }), 15000);
+            const token = result?.data?.token;
+            if (!token) throw new Error('Token qaytmadi');
+            await withTimeout(signInWithCustomToken(auth, token), 15000);
+            AuthState.status = 'authenticated';
+            AuthState.verifiedServer = true;
+            return true;
+        } catch (e) {
+            AuthState.status = 'error';
+            console.warn('Auth xatosi:', e);
+            return false;
+        } finally {
+            authPromise = null;
+        }
+    })();
+
+    return authPromise;
 }
 
 function isGuestUser(){
@@ -359,15 +379,20 @@ function isGuestUser(){
 
 function requireAuthenticatedAction(){
     if (!isGuestUser()) return true;
-    if (!tg) {
-        showToast("Davom etish uchun ilovani Telegram orqali oching");
-    } else if (AuthState.status === 'error') {
-        showToast("Autentifikatsiya xatosi. Qayta urinib ko'ring");
-        ensureAuth();
-    } else {
-        showToast("Amalni bajarish uchun Telegram orqali kiring");
-    }
+    if (!tg) showToast("Davom etish uchun ilovani Telegram orqali oching");
+    else showToast("Amalni bajarish uchun Telegram orqali kiring");
     return false;
+}
+
+async function ensureSignedInBeforeWrite(){
+    if (!requireAuthenticatedAction()) return false;
+    if (auth.currentUser) return true;
+    const ok = await ensureAuth(true);
+    if (!ok || !auth.currentUser) {
+        showToast("Server bilan autentifikatsiya amalga oshmadi");
+        return false;
+    }
+    return true;
 }
 
 /* ================= KONSTANTALAR ================= */
@@ -376,16 +401,16 @@ const REPLIES_KEY = 'luz_my_replies_v1';
 const VERIFIED_KEY = 'luz_verified_badge';
 const SAVED_KEY = 'luz_saved_posts_v1';
 const SAVED_COMMENTS_KEY = 'luz_saved_comments_v1';
-const FEED_BATCH_SIZE = 20; // 4.5-band: Dastlab 20 ta post
+const FEED_BATCH_SIZE = 20;
 
 const VERIFIED_BADGE_SM_SVG = `<svg class="verified-badge-sm" viewBox="0 0 24 24" aria-label="Tasdiqlangan"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" fill="#ffffff" stroke="none"></path><path d="m9 12 2 2 4-4" fill="none" stroke="#000000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>`;
 
-/* ================= 4-BAND: USER CACHE & REQUEST DEDUPLICATION ================= */
+/* ================= USER CACHE & REQUEST DEDUPLICATION ================= */
 const DB = {
     _K: 'luz_users',
     _S: 'luz_current_user',
     _remoteUsers: {},
-    _inFlight: new Map(), // Request deduplication
+    _inFlight: new Map(),
 
     _getUsers() {
         try { const arr = JSON.parse(localStorage.getItem(this._K)); return Array.isArray(arr) ? arr : []; } catch { return []; }
@@ -413,7 +438,6 @@ const DB = {
         if (this._remoteUsers[idStr]) return this._remoteUsers[idStr];
         return this._getUsers().find(u => String(u.userId) === idStr) || null;
     },
-    /* Faqat kerakli muallif profilini UID orqali keshlab yuklaydi (maxfiy maydonlarsiz) */
     fetchUser(uid) {
         if (!uid) return Promise.resolve(null);
         const idStr = String(uid);
@@ -421,11 +445,10 @@ const DB = {
         if (this._remoteUsers[idStr]) return Promise.resolve(this._remoteUsers[idStr]);
         if (this._inFlight.has(idStr)) return this._inFlight.get(idStr);
 
-        const req = withTimeout(getDoc(doc(db, USERS_COLLECTION, idStr)), 8000)
+        const req = withTimeout(getDoc(doc(db, USERS_COLLECTION, idStr)), 12000)
             .then(snap => {
                 if (snap.exists()) {
                     const d = snap.data();
-                    // 4.9-band: Telefon raqami va maxfiy maydonlarni keshga olmaslik
                     this._remoteUsers[idStr] = {
                         userId: idStr,
                         firstName: d.firstName || '',
@@ -454,7 +477,6 @@ const DB = {
         if (detailOverlay?.classList.contains('show') && detailPost) refreshAll();
     }
 };
-
 
 /* ================= SESSION ================= */
 let currentUser = null;
@@ -520,16 +542,18 @@ let currentUser = null;
     }
 })();
 
-function syncMyUserDoc(){
-    if (isGuestUser()) return Promise.resolve();
-    return withTimeout(setDoc(doc(db, USERS_COLLECTION, String(currentUser.userId)), {
-        userId: String(currentUser.userId),
-        firstName: currentUser.firstName || '',
-        lastName: currentUser.lastName || '',
-        username: currentUser.username || '',
-        photo_url: currentUser.photo_url || null,
-        bio: currentUser.bio || ''
-    }, { merge: true }), 8000).catch(e => console.warn(e));
+async function syncMyUserDoc(){
+    if (isGuestUser() || !auth.currentUser) return;
+    try {
+        await setDoc(doc(db, USERS_COLLECTION, String(auth.currentUser.uid)), {
+            userId: String(auth.currentUser.uid),
+            firstName: currentUser.firstName || '',
+            lastName: currentUser.lastName || '',
+            username: currentUser.username || '',
+            photo_url: currentUser.photo_url || null,
+            bio: currentUser.bio || ''
+        }, { merge: true });
+    } catch (e) { console.warn(e); }
 }
 
 /* ================= PROFIL MA'LUMOTLARI ================= */
@@ -558,6 +582,7 @@ function isUserVerified(uid, postObj = null) {
 function getInlineVerifiedBadge(uid, postObj = null) {
     return isUserVerified(uid, postObj) ? VERIFIED_BADGE_SM_SVG : '';
 }
+
 
 /* ================= HELPERS ================= */
 function escapeHtml(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
@@ -617,16 +642,15 @@ function toggleLikeObj(o){
     return o.likedBy.includes(uid);
 }
 
-
-/* ================= 10-BAND: FEED STATUS & POST STORE ================= */
+/* ================= FEED STATUS & POST STORE ================= */
 const FeedState = {
-    status: 'loading', // 'loading' | 'success' | 'empty' | 'error' | 'retrying'
+    status: 'loading',
     errorMessage: ''
 };
 
 const PostStore = {
     _cache: [],
-    _extraPosts: new Map(), // 9-band: URL orqali ochilgan eski postlar keshda saqlanadi
+    _extraPosts: new Map(),
     _isLoaded: false,
     _unsubscribe: null,
     _limit: FEED_BATCH_SIZE,
@@ -654,14 +678,12 @@ const PostStore = {
             this._loadingMore = false;
             FeedState.status = posts.length > 0 ? 'success' : 'empty';
 
-            // Faqat lentadagi mualliflarni yuklash (4.2-band)
             DB.hydrateAuthors(posts.map(p => p.userId));
 
-            // 6.5-band: Agar foydalanuvchi tepada bo'lmasa va yangi postlar kelsa tugma ko'rsatish
             if (incomingNew.length > 0 && window.scrollY > 140 && !wasLoadingMore) {
                 this._pendingNewPosts = incomingNew;
                 showNewPostsPill(incomingNew.length);
-                patchFeed(true); // Mavjud postlarni saqlab turish
+                patchFeed(true);
             } else {
                 hideNewPostsPill();
                 patchFeed(false);
@@ -685,9 +707,9 @@ const PostStore = {
             console.error("Firestore xatosi:", error);
             this._loadingMore = false;
             FeedState.status = 'error';
-            FeedState.errorMessage = "Ma'lumotlarni yuklashda xatolik. Qayta urinib ko'ring";
+            FeedState.errorMessage = getFirebaseErrorText(error, "Ma'lumotlarni yuklashda xatolik");
             if (!this._cache.length) renderFeedStateUI();
-            else showToast("Server bilan aloqa uzildi");
+            else showToast(FeedState.errorMessage);
             checkUrlParamsOnce();
         });
     },
@@ -719,11 +741,11 @@ const PostStore = {
     },
     async add(post) {
         try {
-            await withTimeout(setDoc(doc(db, POSTS_COLLECTION, String(post.id)), post), 8000);
+            await setDoc(doc(db, POSTS_COLLECTION, String(post.id)), post);
             return post;
         } catch (err) {
             console.error("Post saqlashda xatolik:", err);
-            showToast("Postni saqlab bo'lmadi: internetni tekshiring");
+            showToast(getFirebaseErrorText(err, "Postni saqlab bo'lmadi"));
             return null;
         }
     },
@@ -731,17 +753,16 @@ const PostStore = {
         const prev = this.get(id);
         this._patchLocal(id, patch);
         try {
-            await withTimeout(updateDoc(doc(db, POSTS_COLLECTION, String(id)), patch), 8000);
+            await updateDoc(doc(db, POSTS_COLLECTION, String(id)), patch);
             return this.get(id);
         } catch (err) {
             console.error("Yangilashda xatolik:", err);
             if (prev) this._patchLocal(id, prev);
-            showToast("Saqlanmadi: internetni tekshiring");
+            showToast(getFirebaseErrorText(err, "Saqlanmadi"));
             patchFeed();
             return null;
         }
     },
-    /* 9.4-band: Post lentada bo'lmasa ham post ID orqali to'g'ridan-to'g'ri serverga yuboriladi */
     async likePost(id, uid, like) {
         const idStr = String(id);
         const prev = this.get(idStr);
@@ -751,10 +772,10 @@ const PostStore = {
             this._patchLocal(idStr, { likedBy: arr, likes: arr.length });
         }
         try {
-            await withTimeout(updateDoc(doc(db, POSTS_COLLECTION, idStr), {
+            await updateDoc(doc(db, POSTS_COLLECTION, idStr), {
                 likedBy: like ? arrayUnion(uid) : arrayRemove(uid),
                 likes: increment(like ? 1 : -1)
-            }), 8000);
+            });
             return true;
         } catch (err) {
             if (prev) this._patchLocal(idStr, { likedBy: prev.likedBy || [], likes: prev.likes || 0 });
@@ -767,11 +788,11 @@ const PostStore = {
         this._cache = this._cache.filter(p => String(p.id) !== idStr);
         this._extraPosts.delete(idStr);
         try {
-            await withTimeout(deleteDoc(doc(db, POSTS_COLLECTION, idStr)), 8000);
+            await deleteDoc(doc(db, POSTS_COLLECTION, idStr));
             return true;
         } catch (err) {
             if (prev) this._cache.push(prev);
-            showToast("O'chirishda xatolik yuz berdi");
+            showToast(getFirebaseErrorText(err, "O'chirishda xatolik yuz berdi"));
             return false;
         }
     }
@@ -799,10 +820,10 @@ window.addEventListener('scroll', () => {
     }
 }, { passive: true });
 
-/* ================= 5-BAND: ALOHIDA IZOHLAR VA JAVOBLAR STORE ================= */
+/* ================= IZOHLAR VA JAVOBLAR STORE ================= */
 const CommentStore = {
-    _byPost: new Map(),      // postId -> Map(commentId -> commentObj)
-    _unsubs: new Map(),      // postId -> unsubscribe fn
+    _byPost: new Map(),
+    _unsubs: new Map(),
     _loadedPosts: new Set(),
 
     subscribe(postId, onUpdate) {
@@ -835,14 +856,11 @@ const CommentStore = {
         if (unsub) { unsub(); this._unsubs.delete(pid); }
     },
 
-    /* Eski post.comments massivi bilan yangi subcollection ma'lumotlarini xavfsiz birlashtiradi */
     getTree(post) {
         if (!post) return [];
         const pid = String(post.id);
         const merged = new Map();
 
-        
-        // 1. Eski massivdagi izohlarni tekislab olish (migratsiya mosligi)
         const flattenLegacy = (arr, parentId = null) => {
             (arr || []).forEach(c => {
                 if (!c || !c.id) return;
@@ -861,7 +879,6 @@ const CommentStore = {
         };
         flattenLegacy(post.comments || []);
 
-        // 2. Yangi subcollection hujjatlarini ustun qo'yish
         const subMap = this._byPost.get(pid);
         if (subMap) {
             subMap.forEach((docData, cid) => {
@@ -869,7 +886,6 @@ const CommentStore = {
             });
         }
 
-        // 3. Daraxt (tree) tuzilmasini yig'ish
         const roots = [];
         merged.forEach(node => {
             if (node.parentId && merged.has(String(node.parentId))) {
@@ -900,11 +916,11 @@ const CommentStore = {
             const batch = writeBatch(db);
             batch.set(doc(db, POSTS_COLLECTION, pid, 'comments', cid), payload);
             batch.update(doc(db, POSTS_COLLECTION, pid), { commentsCount: increment(1) });
-            await withTimeout(batch.commit(), 8000);
+            await batch.commit();
             return payload;
         } catch (e) {
             console.error('Izoh saqlanmadi:', e);
-            showToast("Saqlanmadi: internetni tekshiring");
+            showToast(getFirebaseErrorText(e, "Izoh saqlanmadi"));
             return null;
         }
     },
@@ -915,16 +931,15 @@ const CommentStore = {
         const ref = doc(db, POSTS_COLLECTION, pid, 'comments', cid);
         try {
             if (commentObj._legacy) {
-                // Eski massivdan yangi subcollection'ga migratsiya
                 const { replies, _legacy, ...clean } = commentObj;
-                await withTimeout(setDoc(ref, { ...clean, postId: pid, text: newText, editedAt: new Date().toISOString() }), 8000);
+                await setDoc(ref, { ...clean, postId: pid, text: newText, editedAt: new Date().toISOString() });
             } else {
-                await withTimeout(updateDoc(ref, { text: newText, editedAt: new Date().toISOString() }), 8000);
+                await updateDoc(ref, { text: newText, editedAt: new Date().toISOString() });
             }
             return true;
         } catch (e) {
             console.error(e);
-            showToast("Saqlanmadi: internetni tekshiring");
+            showToast(getFirebaseErrorText(e, "Saqlanmadi"));
             return false;
         }
     },
@@ -934,9 +949,8 @@ const CommentStore = {
         const cid = String(commentId);
         const post = PostStore.get(pid);
         try {
-            await withTimeout(deleteDoc(doc(db, POSTS_COLLECTION, pid, 'comments', cid)), 8000);
+            await deleteDoc(doc(db, POSTS_COLLECTION, pid, 'comments', cid));
             await updateDoc(doc(db, POSTS_COLLECTION, pid), { commentsCount: increment(-1) }).catch(() => {});
-            // Agar eski massivda ham bo'lsa, undan ham olib tashlash
             if (post && Array.isArray(post.comments) && findComment(post.comments, cid)) {
                 const copy = JSON.parse(JSON.stringify(post.comments));
                 removeCommentRecursive(copy, cid);
@@ -946,7 +960,7 @@ const CommentStore = {
             return true;
         } catch (e) {
             console.error(e);
-            showToast("O'chirishda xatolik yuz berdi");
+            showToast(getFirebaseErrorText(e, "O'chirishda xatolik yuz berdi"));
             return false;
         }
     },
@@ -960,12 +974,12 @@ const CommentStore = {
                 const { replies, _legacy, ...clean } = commentObj;
                 const arr = (clean.likedBy || []).filter(x => x !== uid);
                 if (nowLiked) arr.push(uid);
-                await withTimeout(setDoc(ref, { ...clean, postId: pid, likedBy: arr, likes: arr.length }), 8000);
+                await setDoc(ref, { ...clean, postId: pid, likedBy: arr, likes: arr.length });
             } else {
-                await withTimeout(updateDoc(ref, {
+                await updateDoc(ref, {
                     likedBy: nowLiked ? arrayUnion(uid) : arrayRemove(uid),
                     likes: increment(nowLiked ? 1 : -1)
-                }), 8000);
+                });
             }
             return true;
         } catch (e) {
@@ -982,22 +996,22 @@ function notifDocId(type, postId, commentId){
     return ['n', type, currentUser.userId, postId, commentId || 'post'].join('_');
 }
 async function sendNotification(type, recipientId, postId, commentId = null) {
-    if (isGuestUser() || !recipientId) return;
+    if (isGuestUser() || !recipientId || !auth.currentUser) return;
     const targetId = resolveAuthorInfo(recipientId).userId;
     if (String(targetId) === String(currentUser.userId)) return;
     const id = notifDocId(type, postId, commentId);
     try {
-        await withTimeout(setDoc(doc(db, "luz_notifications", id), {
+        await setDoc(doc(db, "luz_notifications", id), {
             id, type, recipientId: String(targetId), senderId: String(currentUser.userId),
             senderName: getCurrentUserName(), senderAvatar: currentUser.photo_url || null,
             postId: String(postId), commentId: commentId ? String(commentId) : null,
             createdAt: new Date().toISOString(), isRead: false
-        }), 8000);
+        });
     } catch {}
 }
 async function removeNotification(type, _recipient, postId, commentId = null) {
-    if (isGuestUser()) return;
-    try { await withTimeout(deleteDoc(doc(db, "luz_notifications", notifDocId(type, postId, commentId))), 8000); } catch {}
+    if (isGuestUser() || !auth.currentUser) return;
+    try { await deleteDoc(doc(db, "luz_notifications", notifDocId(type, postId, commentId))); } catch {}
 }
 function setNotificationBadge(n){
     const btn = document.getElementById('navNotifBtn'); if (!btn) return;
@@ -1009,14 +1023,15 @@ function setNotificationBadge(n){
 }
 function initNotificationBadge(){
     if (notifUnsubscribe) { notifUnsubscribe(); notifUnsubscribe = null; }
-    if (isGuestUser()) return;
-    const uid = String(currentUser.userId);
+    if (isGuestUser() || !auth.currentUser) return;
+    const uid = String(auth.currentUser.uid);
     notifUnsubscribe = onSnapshot(
         query(collection(db, "luz_notifications"), where("recipientId", "==", uid), where("isRead", "==", false)),
         snap => setNotificationBadge(snap.size),
         () => {}
     );
 }
+
 
 /* ================= KO'RISHLAR ================= */
 const VIEW_LOG_KEY = 'luz_view_log_v1';
@@ -1043,29 +1058,29 @@ const ViewTracker = makeTracker(VIEW_LOG_KEY);
 const CommentViewTracker = makeTracker(COMMENT_VIEW_LOG_KEY);
 
 async function registerPostView(pid, uid){
-    if (isGuestUser()) return;
-    const vRef = doc(db, POSTS_COLLECTION, String(pid), 'views', String(uid));
+    if (isGuestUser() || !auth.currentUser) return;
+    const vRef = doc(db, POSTS_COLLECTION, String(pid), 'views', String(auth.currentUser.uid));
     const pRef = doc(db, POSTS_COLLECTION, String(pid));
     try {
-        await withTimeout(runTransaction(db, async tx => {
+        await runTransaction(db, async tx => {
             if ((await tx.get(vRef)).exists()) return;
             tx.set(vRef, { at: Date.now() });
             tx.update(pRef, { views: increment(1) });
-        }), 8000);
+        });
     } catch {}
 }
 async function registerCommentView(pid, cid, uid){
-    if (isGuestUser()) return;
-    const vRef = doc(db, POSTS_COLLECTION, String(pid), 'comments', String(cid), 'views', String(uid));
+    if (isGuestUser() || !auth.currentUser) return;
+    const vRef = doc(db, POSTS_COLLECTION, String(pid), 'comments', String(cid), 'views', String(auth.currentUser.uid));
     const cRef = doc(db, POSTS_COLLECTION, String(pid), 'comments', String(cid));
     try {
-        await withTimeout(runTransaction(db, async tx => {
+        await runTransaction(db, async tx => {
             if ((await tx.get(vRef)).exists()) return;
             const cSnap = await tx.get(cRef);
             if (!cSnap.exists()) return;
             tx.set(vRef, { at: Date.now() });
             tx.update(cRef, { views: increment(1) });
-        }), 8000);
+        });
     } catch {}
 }
 
@@ -1151,7 +1166,6 @@ function initLoaderMarkup(){
 }
 initLoaderMarkup();
 
-
 /* ================= BACK BUTTON ================= */
 function anyOverlayOpen(){
     return !!(document.getElementById('actionSheetOverlay')?.classList.contains('show') ||
@@ -1206,6 +1220,7 @@ document.getElementById('asEditBtn').addEventListener('click', () => {
 
 document.getElementById('asDeleteBtn').addEventListener('click', async () => {
     const ctx = sheetContext; closeActionSheet(); if (!ctx) return;
+    if (!(await ensureSignedInBeforeWrite())) return;
     if (ctx.kind === 'post') {
         const ok = await PostStore.remove(ctx.postId);
         if (ok) {
@@ -1224,6 +1239,7 @@ document.getElementById('asDeleteBtn').addEventListener('click', async () => {
         }
     }
 });
+
 
 /* ================= COMPOSER ================= */
 const composer = document.getElementById('composer');
@@ -1358,17 +1374,18 @@ async function prepareMedia(m){
         const r = sRef(storage, `luz_media/${currentUser.userId}/${Date.now()}_${Math.random().toString(36).slice(2,6)}.${ext}`);
         await withTimeout(uploadBytes(r, blob, { contentType: blob.type }), 60000);
         return { image: await getDownloadURL(r), type: m.type };
-    } catch (e) { console.error(e); showToast("Faylni yuklab bo'lmadi"); return null; }
+    } catch (e) { console.error(e); showToast(getFirebaseErrorText(e, "Faylni yuklab bo'lmadi")); return null; }
 }
 
 compSubmit.addEventListener('click', async () => {
-    if (isSubmittingPost || !requireAuthenticatedAction()) return;
+    if (isSubmittingPost) return;
     const text = compInput.value.trim();
 
     if (editTarget) {
         if (editTarget.kind === 'post') {
             if (!text && !currentMedia) return;
             isSubmittingPost = true; compSubmit.disabled = true; compSubmit.textContent = 'Saqlanmoqda...';
+            if (!(await ensureSignedInBeforeWrite())) { isSubmittingPost = false; compSubmit.disabled = false; compSubmit.textContent = 'Saqlash'; return; }
             const media = await prepareMedia(currentMedia);
             if (!media) { isSubmittingPost = false; compSubmit.disabled = false; compSubmit.textContent = 'Saqlash'; return; }
             const patch = { text, image: media.image, type: media.type, editedAt: new Date().toISOString() };
@@ -1386,6 +1403,7 @@ compSubmit.addEventListener('click', async () => {
         if (editTarget.kind === 'comment') {
             if (!text) return;
             isSubmittingPost = true; compSubmit.disabled = true; compSubmit.textContent = 'Saqlanmoqda...';
+            if (!(await ensureSignedInBeforeWrite())) { isSubmittingPost = false; compSubmit.disabled = false; compSubmit.textContent = 'Saqlash'; return; }
             const ok = await CommentStore.edit(editTarget.postId, editTarget.commentObj, text);
             isSubmittingPost = false; compSubmit.textContent = 'Saqlash';
             if (!ok) { compSubmit.disabled = false; return; }
@@ -1401,15 +1419,21 @@ compSubmit.addEventListener('click', async () => {
     if (!text && !currentMedia) return;
     isSubmittingPost = true; compSubmit.disabled = true; compSubmit.textContent = 'Yuklanmoqda...';
 
+    if (!(await ensureSignedInBeforeWrite())) {
+        isSubmittingPost = false; compSubmit.disabled = false; compSubmit.textContent = 'Yuborish';
+        return;
+    }
+
     const media = await prepareMedia(currentMedia);
     if (!media) { isSubmittingPost = false; compSubmit.disabled = false; compSubmit.textContent = 'Yuborish'; return; }
 
+    const authedUid = String(auth.currentUser.uid);
     const newPost = {
         id: 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-        userId: String(currentUser.userId),
+        userId: authedUid,
         user: getCurrentUserName(),
         avatar: currentUser?.photo_url || null,
-        verified: isUserVerified(currentUser.userId),
+        verified: isUserVerified(authedUid),
         createdAt: new Date().toISOString(),
         text,
         image: media.image,
@@ -1425,14 +1449,351 @@ compSubmit.addEventListener('click', async () => {
     showToast('Post joylandi');
 });
 
+/* ================= MY REPLIES & COMMENT TREE HELPERS ================= */
+let myReplies = [];
+function loadMyReplies(){ try { const raw = localStorage.getItem(REPLIES_KEY); myReplies = raw ? JSON.parse(raw) : []; } catch { myReplies = []; } }
+function saveMyReplies(){ try { localStorage.setItem(REPLIES_KEY, JSON.stringify(myReplies)); } catch {} }
+function pushMyReply(entry){ myReplies.unshift(entry); saveMyReplies(); }
+function removeMyReplyById(cid){ myReplies = myReplies.filter(r => String(r.id) !== String(cid)); saveMyReplies(); }
+function updateMyReplyText(cid, newText){
+    const item = myReplies.find(r => String(r.id) === String(cid));
+    if (item) { item.text = newText; saveMyReplies(); }
+}
+function findComment(comments, id){
+    for (const c of (comments || [])) {
+        if (String(c.id) === String(id)) return { comment: c, parent: null, isReply: false, root: c };
+        const found = findInReplies(c, id, c); if (found) return found;
+    } return null;
+}
+function findInReplies(parent, id, root){
+    for (const r of (parent.replies || [])) {
+        if (String(r.id) === String(id)) return { comment: r, parent, isReply: true, root };
+        const found = findInReplies(r, id, root); if (found) return found;
+    } return null;
+}
+function removeCommentRecursive(arr, id){
+    if (!Array.isArray(arr)) return false;
+    const idx = arr.findIndex(item => String(item.id) === String(id));
+    if (idx >= 0) { arr.splice(idx, 1); return true; }
+    for (const item of arr) { if (item.replies && removeCommentRecursive(item.replies, id)) return true; }
+    return false;
+}
+function countNestedReplies(c){
+    let total = 0;
+    const walk = (arr) => { (arr || []).forEach(r => { total += 1; if (r.replies && r.replies.length) walk(r.replies); }); };
+    walk(c.replies || []);
+    return total;
+}
+function makeCommentObj(text, parentId){
+    const uid = auth.currentUser ? String(auth.currentUser.uid) : String(currentUser.userId);
+    return {
+        id: 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+        userId: uid, user: getCurrentUserName(),
+        avatar: currentUser.photo_url || null, verified: isUserVerified(uid),
+        text, createdAt: new Date().toISOString(),
+        likes: 0, likedBy: [], views: 0, parentId: parentId || null
+    };
+}
 
-/* ================= POST DETAIL & 8-BAND: PER-POST DRAFT STATE ================= */
+
+/* ================= FEED RENDER ================= */
+const savedPosts = new Set((() => {
+    try { const a = JSON.parse(localStorage.getItem(SAVED_KEY)); return Array.isArray(a) ? a.map(String) : []; } catch { return []; }
+})());
+function persistSaved(){ try { localStorage.setItem(SAVED_KEY, JSON.stringify([...savedPosts])); } catch {} }
+const savedComments = new Set((() => {
+    try { const a = JSON.parse(localStorage.getItem(SAVED_COMMENTS_KEY)); return Array.isArray(a) ? a.map(String) : []; } catch { return []; }
+})());
+function persistSavedComments(){ try { localStorage.setItem(SAVED_COMMENTS_KEY, JSON.stringify([...savedComments])); } catch {} }
+
+let allFeedPosts = [];
+let renderedPostCount = 0;
+let isLoadingMorePosts = false;
+let feedScrollObserver = null;
+
+function countComments(p){
+    if (typeof p.commentsCount === 'number' && p.commentsCount >= 0) {
+        const treeCount = countTreeNodes(CommentStore.getTree(p));
+        return Math.max(p.commentsCount, treeCount);
+    }
+    return countTreeNodes(CommentStore.getTree(p));
+}
+function countTreeNodes(arr){
+    let n = 0;
+    (arr || []).forEach(c => { n += 1 + countTreeNodes(c.replies || []); });
+    return n;
+}
+
+async function handleShare(entity, postId, commentId){
+    let link = location.origin + location.pathname + '?post=' + encodeURIComponent(postId || entity.id);
+    if (commentId) link += '&comment=' + encodeURIComponent(commentId);
+    if (navigator.share) {
+        try { await navigator.share({ title: 'L.uz', url: link }); } catch {}
+        return;
+    }
+    try {
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(link);
+            showToast('Havola nusxalandi');
+        } else {
+            const ta = document.createElement('textarea');
+            ta.value = link;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            const ok = document.execCommand('copy');
+            ta.remove();
+            if (ok) showToast('Havola nusxalandi');
+            else showToast('Nusxalab bo\'lmadi: ' + link);
+        }
+    } catch {
+        showToast('Nusxalash xatosi. Havola: ' + link);
+    }
+}
+
+function buildPostActions(p){
+    const actions = document.createElement('div'); actions.className = 'post-actions';
+    const createBtn = (icon, count, cls, clk) => {
+        const b = document.createElement('button'); b.className = 'act-btn ' + cls;
+        b.innerHTML = `${icon}<span class="act-count">${count!==null?count:''}</span>`;
+        if (clk) b.addEventListener('click', clk); return b;
+    };
+
+    const likeBtn = createBtn(ICONS.like, likeCount(p), isLiked(p)?'liked':'', async (e)=>{
+        e.stopPropagation();
+        if (!(await ensureSignedInBeforeWrite())) return;
+        const fresh = PostStore.get(p.id) || p;
+        const nowLiked = !isLiked(fresh);
+        const cnt = likeBtn.querySelector('.act-count');
+        likeBtn.classList.toggle('liked', nowLiked);
+        cnt.textContent = Math.max(0, likeCount(fresh) + (nowLiked ? 1 : -1));
+        const ok = await PostStore.likePost(p.id, String(auth.currentUser.uid), nowLiked);
+        if (!ok) {
+            likeBtn.classList.toggle('liked', !nowLiked);
+            cnt.textContent = likeCount(PostStore.get(p.id) || fresh);
+            showToast('Saqlanmadi'); return;
+        }
+        if (nowLiked) sendNotification('like', fresh.userId, fresh.id);
+        else removeNotification('like', null, fresh.id);
+    });
+
+    const commBtn = createBtn(ICONS.comment, countComments(p), '', (e)=>{ e.stopPropagation(); openPostDetail(p); });
+    const viewBtn = createBtn(ICONS.view, p.views||0, '', (e)=>{ e.stopPropagation(); }); viewBtn.style.cursor='default';
+    const saveBtn = createBtn(ICONS.bookmark, null, savedPosts.has(String(p.id))?'saved':'', (e)=>{
+        e.stopPropagation();
+        const key = String(p.id);
+        if (savedPosts.has(key)) { savedPosts.delete(key); saveBtn.classList.remove('saved'); showToast("Olib tashlandi"); }
+        else { savedPosts.add(key); saveBtn.classList.add('saved'); showToast("Saqlandi"); }
+        persistSaved();
+    });
+    const shareBtn = createBtn(ICONS.share, null, '', (e)=>{ e.stopPropagation(); handleShare(p); });
+
+    actions.append(likeBtn, commBtn, viewBtn, saveBtn, shareBtn); return actions;
+}
+
+function postSig(p){
+    const a = resolveAuthorInfo(p.userId, p.user, p.avatar);
+    return [a.name, a.avatar, isUserVerified(a.userId, p), p.text, p.type, p.image||'', p.editedAt||''].join('|');
+}
+function updateItemCounters(el, p){
+    const b = el.querySelectorAll('.act-btn'); if (b.length < 3) return;
+    b[0].classList.toggle('liked', isLiked(p));
+    b[0].querySelector('.act-count').textContent = likeCount(p);
+    b[1].querySelector('.act-count').textContent = countComments(p);
+    b[2].querySelector('.act-count').textContent = p.views || 0;
+}
+
+function renderFeedStateUI(){
+    const feed = document.getElementById('feed');
+    const loader = document.getElementById('feedLoader');
+    if (FeedState.status === 'loading' || FeedState.status === 'retrying') {
+        loader.classList.remove('active');
+        feed.innerHTML = buildSkeletonCardHTML(false) + buildSkeletonCardHTML(true) + buildSkeletonCardHTML(false);
+        return;
+    }
+    if (FeedState.status === 'error') {
+        loader.classList.remove('active');
+        feed.innerHTML = `
+            <div class="empty">
+                <div>${escapeHtml(FeedState.errorMessage || "Ma'lumotlarni yuklashda xatolik. Qayta urinib ko'ring")}</div>
+                <button class="retry-btn" id="feedRetryBtn">Qayta urinish</button>
+            </div>`;
+        document.getElementById('feedRetryBtn')?.addEventListener('click', () => PostStore.initRealtime(true));
+        return;
+    }
+    if (FeedState.status === 'empty') {
+        loader.classList.remove('active');
+        feed.innerHTML = '<div class="empty">Hali post yo\'q.<br>Pastdagi "+ Post" tugmasi orqali birinchi postni yarating.</div>';
+    }
+}
+
+function patchFeed(keepScrollAnchor = false){
+    const feed = document.getElementById('feed');
+    const posts = PostStore.all();
+    allFeedPosts = posts;
+
+    if (!PostStore._isLoaded || posts.length === 0) {
+        renderedPostCount = 0;
+        renderFeedStateUI();
+        return;
+    }
+
+    if (!feed.querySelector(':scope > .post-item')) {
+        feed.innerHTML = '';
+        renderedPostCount = 0;
+    }
+
+    const existingMap = new Map();
+    feed.querySelectorAll(':scope > .post-item').forEach(el => {
+        existingMap.set(String(el.dataset.id), el);
+    });
+
+    const targetCount = Math.min(posts.length, Math.max(FEED_BATCH_SIZE, renderedPostCount || FEED_BATCH_SIZE));
+    const targetPosts = posts.slice(0, targetCount);
+    const targetIds = new Set(targetPosts.map(p => String(p.id)));
+
+    const anchorEl = keepScrollAnchor ? [...existingMap.values()].find(el => el.getBoundingClientRect().top >= 0) : null;
+    const anchorTopBefore = anchorEl ? anchorEl.getBoundingClientRect().top : 0;
+
+    existingMap.forEach((el, id) => {
+        if (!targetIds.has(id)) {
+            viewIO.unobserve(el);
+            el.remove();
+            existingMap.delete(id);
+        }
+    });
+
+    let cursor = feed.firstElementChild;
+    targetPosts.forEach((p) => {
+        const idStr = String(p.id);
+        let el = existingMap.get(idStr);
+
+        if (el) {
+            if (el.dataset.sig !== postSig(p)) {
+                const videoEl = el.querySelector('video');
+                const wasPlaying = videoEl && !videoEl.paused;
+                const videoTime = videoEl ? videoEl.currentTime : 0;
+                const replacement = buildPostItem(p);
+                viewIO.unobserve(el);
+                el.replaceWith(replacement);
+                el = replacement;
+                if (videoEl) {
+                    const newVid = el.querySelector('video');
+                    if (newVid) {
+                        newVid.currentTime = videoTime;
+                        if (wasPlaying) newVid.play().catch(() => {});
+                    }
+                }
+            } else {
+                updateItemCounters(el, p);
+            }
+        } else {
+            el = buildPostItem(p);
+        }
+
+        if (el !== cursor) {
+            feed.insertBefore(el, cursor || null);
+        } else {
+            cursor = cursor.nextElementSibling;
+        }
+    });
+
+    renderedPostCount = targetPosts.length;
+
+    if (anchorEl && document.body.contains(anchorEl)) {
+        const delta = anchorEl.getBoundingClientRect().top - anchorTopBefore;
+        if (Math.abs(delta) > 1) window.scrollBy(0, delta);
+    }
+
+    initInfiniteScrollObserver();
+}
+
+function detailSig(p){
+    return JSON.stringify([p.text, p.editedAt, p.type, p.image||'', p.likedBy, p.commentsCount]);
+}
+
+function buildPostItem(p){
+    const item = document.createElement('div'); item.className = 'post-item'; item.dataset.id = p.id;
+    item.style.display = 'flex'; item.style.gap = '10px'; item.style.alignItems = 'flex-start';
+
+    const author = resolveAuthorInfo(p.userId, p.user, p.avatar);
+    const postInit = escapeHtml(author.name.charAt(0).toUpperCase());
+    const av = author.avatar ? `<img class="post-avatar" src="${escapeHtml(author.avatar)}" alt="" loading="lazy">` : `<div class="post-avatar-initial">${postInit}</div>`;
+    const ownPost = isOwner(p.userId);
+    const editedMark = p.editedAt ? `<span class="edited-tag">(tahrirlangan)</span>` : '';
+
+    let media = '';
+    if (p.type === 'image' && p.image) media = `<img class="post-image" src="${escapeHtml(p.image)}" alt="" loading="lazy">`;
+    else if (p.type === 'video' && p.image) media = `<video class="post-video" src="${escapeHtml(p.image)}" controls playsinline preload="metadata"></video>`;
+
+    item.innerHTML = `
+        <div style="flex-shrink: 0;" class="post-avatar-wrapper">${av}</div>
+        <div style="flex: 1; min-width: 0;">
+            <div class="post-head-info" style="display: flex; flex-direction: row; align-items: center; gap: 6px; margin-bottom: 2px;">
+                <div class="post-user">${escapeHtml(author.name)}${getInlineVerifiedBadge(author.userId, p)}</div>
+                <div class="post-time" data-ts="${escapeHtml(p.createdAt || p.time || '')}">${escapeHtml(formatExactTime(p.createdAt || p.time))}${editedMark}</div>
+                ${ownPost ? `<button class="more-btn post-more-btn" aria-label="Boshqarish">${ICONS.more}</button>` : ''}
+            </div>
+            ${p.text ? `<div class="post-text">${escapeHtml(p.text)}</div>` : ''}
+            ${media}
+            <div class="post-actions-slot"></div>
+        </div>`;
+
+    item.querySelector('.post-actions-slot').appendChild(buildPostActions(p));
+
+    const moreBtn = item.querySelector('.post-more-btn');
+    if (moreBtn) moreBtn.addEventListener('click', (e) => { e.stopPropagation(); openActionSheet({ kind: 'post', postId: p.id }); });
+
+    item.querySelector('.post-avatar-wrapper').addEventListener('click', (e) => { e.stopPropagation(); goToProfile(author.userId); });
+    item.querySelector('.post-user').addEventListener('click', (e) => { e.stopPropagation(); goToProfile(author.userId); });
+    item.addEventListener('click', (e) => { if (e.target.closest('.act-btn') || e.target.closest('.more-btn') || e.target.tagName === 'VIDEO') return; openPostDetail(p); });
+
+    item.dataset.sig = postSig(p);
+    viewIO.observe(item);
+    return item;
+}
+
+function appendNextFeedBatch(){
+    const feed = document.getElementById('feed');
+    const loader = document.getElementById('feedLoader');
+    const nextBatch = allFeedPosts.slice(renderedPostCount, renderedPostCount + FEED_BATCH_SIZE);
+    if (nextBatch.length > 0) {
+        const fragment = document.createDocumentFragment();
+        nextBatch.forEach(p => fragment.appendChild(buildPostItem(p)));
+        feed.appendChild(fragment);
+        renderedPostCount += nextBatch.length;
+    }
+    if (renderedPostCount >= allFeedPosts.length && !PostStore._hasMore) {
+        loader.classList.remove('active');
+        if (feedScrollObserver) { feedScrollObserver.disconnect(); feedScrollObserver = null; }
+    } else loader.classList.add('active');
+}
+
+function initInfiniteScrollObserver(){
+    if (feedScrollObserver) { feedScrollObserver.disconnect(); feedScrollObserver = null; }
+    const loader = document.getElementById('feedLoader');
+    if (renderedPostCount >= allFeedPosts.length && !PostStore._hasMore) { loader.classList.remove('active'); return; }
+    loader.classList.add('active');
+    feedScrollObserver = new IntersectionObserver((entries) => {
+        const entry = entries[0];
+        if (!entry || !entry.isIntersecting || isLoadingMorePosts) return;
+        if (renderedPostCount < allFeedPosts.length) {
+            isLoadingMorePosts = true;
+            setTimeout(() => { appendNextFeedBatch(); isLoadingMorePosts = false; }, 200);
+        } else PostStore.loadMore();
+    }, { root: null, rootMargin: '150px', threshold: 0.05 });
+    feedScrollObserver.observe(loader);
+}
+
+
+/* ================= POST DETAIL & PER-POST DRAFT STATE ================= */
 const detailOverlay = document.getElementById('detailOverlay'), detailInput = document.getElementById('detailInput'), detailSend = document.getElementById('detailSend');
 const commentDetailOverlay = document.getElementById('commentDetailOverlay');
 let detailPost = null, replyTargetId = null;
 let activeCommentId = null, cdReplyTargetId = null;
 let isSendingDetailComment = false, isSendingCdReply = false;
-const postDrafts = new Map(); // postId -> { text, replyTargetId }
+const postDrafts = new Map();
 
 function saveCurrentPostDraft(){
     if (!detailPost) return;
@@ -1509,8 +1870,8 @@ function buildCommentRow(c, mode){
     likeBtn.innerHTML = `${ICONS.like}<span class="comment-act-count">${likeCount(c)}</span>`;
     likeBtn.addEventListener('click', async (e) => {
         e.stopPropagation();
-        if (!requireAuthenticatedAction()) return;
-        const uid = String(currentUser.userId), pid = detailPost.id;
+        if (!(await ensureSignedInBeforeWrite())) return;
+        const uid = String(auth.currentUser.uid), pid = detailPost.id;
         const nowLiked = toggleLikeObj(c);
         const cnt = likeBtn.querySelector('.comment-act-count');
         likeBtn.classList.toggle('liked', nowLiked);
@@ -1596,7 +1957,6 @@ function buildDetailComment(c, depth = 0){
     return thread;
 }
 
-/* 7-band: Post detail oynasida faqat like soni/holati va yangi izohlar yangilanadi, <video> qayta yaratilmaydi */
 function patchDetailPostUI(p){
     const box = document.getElementById('detailPostBox');
     const card = box.querySelector('.detail-post');
@@ -1711,7 +2071,6 @@ function openPostDetail(p){
     detailPost = PostStore.get(p.id) || p;
     DB.hydrateAuthors([detailPost.userId]);
 
-    // 8-band: Shu postga tegishli draftni tiklash (boshqa post matni o'tmaydi)
     restorePostDraft(detailPost.id);
 
     renderDetailPost();
@@ -1741,7 +2100,6 @@ function closePostDetail(){
     detailOverlay.classList.remove('show');
     detailPost = null;
     replyTargetId = null;
-    // 8-band: Oyna yopilganda maydonni tozalash
     detailInput.value = '';
     detailInput.style.height = 'auto';
     detailSend.disabled = true;
@@ -1758,16 +2116,21 @@ detailInput.addEventListener('input', () => {
 });
 
 detailSend.addEventListener('click', async () => {
-    if (isSendingDetailComment || !requireAuthenticatedAction()) return;
+    if (isSendingDetailComment) return;
     const cleanText = detailInput.value.trim();
     if (!cleanText || !detailPost) return;
 
-    // 8.4-band: Yuborish vaqtida post ID va comment ID ni qayd etish
     const targetPostId = String(detailPost.id);
     const targetReplyId = replyTargetId ? String(replyTargetId) : null;
 
     isSendingDetailComment = true;
     detailSend.disabled = true;
+
+    if (!(await ensureSignedInBeforeWrite())) {
+        isSendingDetailComment = false;
+        detailSend.disabled = detailInput.value.trim().length === 0;
+        return;
+    }
 
     const newC = makeCommentObj(cleanText, targetReplyId);
     const saved = await CommentStore.add(targetPostId, newC, targetReplyId);
@@ -1862,7 +2225,7 @@ commentDetailInput.addEventListener('input', () => {
 });
 
 commentDetailSend.addEventListener('click', async () => {
-    if (isSendingCdReply || !requireAuthenticatedAction()) return;
+    if (isSendingCdReply) return;
     const txt = commentDetailInput.value.trim();
     if (!txt || !detailPost || !activeCommentId) return;
 
@@ -1871,6 +2234,12 @@ commentDetailSend.addEventListener('click', async () => {
 
     isSendingCdReply = true;
     commentDetailSend.disabled = true;
+
+    if (!(await ensureSignedInBeforeWrite())) {
+        isSendingCdReply = false;
+        commentDetailSend.disabled = commentDetailInput.value.trim().length === 0;
+        return;
+    }
 
     const newReply = makeCommentObj(txt, targetId);
     const saved = await CommentStore.add(targetPostId, newReply, targetId);
@@ -1893,7 +2262,7 @@ commentDetailSend.addEventListener('click', async () => {
     }
 });
 
-/* ================= 9 & 11-BAND: HAVOLA ORQALI POST OCHISH ================= */
+/* ================= HAVOLA ORQALI POST OCHISH ================= */
 let urlChecked = false;
 async function checkUrlParamsOnce() {
     if (urlChecked) return;
@@ -1905,7 +2274,7 @@ async function checkUrlParamsOnce() {
     let post = PostStore.get(pid);
     if (!post) {
         try {
-            const s = await withTimeout(getDoc(doc(db, POSTS_COLLECTION, pid)), 8000);
+            const s = await withTimeout(getDoc(doc(db, POSTS_COLLECTION, pid)), 12000);
             if (s.exists()) {
                 post = { id: s.id, ...s.data() };
                 PostStore.registerExtra(post);
@@ -1928,7 +2297,6 @@ async function checkUrlParamsOnce() {
     }
 }
 
-/* Sahifadan chiqishda listenerlarni tozalash (4.8-band) */
 window.addEventListener('pagehide', () => {
     if (PostStore._unsubscribe) PostStore._unsubscribe();
     if (notifUnsubscribe) notifUnsubscribe();
@@ -1936,17 +2304,18 @@ window.addEventListener('pagehide', () => {
     CommentStore._unsubs.clear();
 });
 
-/* ================= INIT (3-BAND: NON-BLOCKING STARTUP) ================= */
+/* ================= INIT ================= */
 loadMyReplies();
 renderFeedStateUI();
 updateBackButton();
 
-// Interfeys va ma'lumotlar autentifikatsiyani kutmasdan darhol ishga tushadi
 PostStore.initRealtime();
-initNotificationBadge();
 
-ensureAuth().then(() => {
-    syncMyUserDoc();
+ensureAuth().then((ok) => {
+    if (ok) {
+        syncMyUserDoc();
+        initNotificationBadge();
+    }
 });
 
 window.history.pushState({ page: 'uy' }, 'Uy', '');
