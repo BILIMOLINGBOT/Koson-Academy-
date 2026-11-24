@@ -6,14 +6,13 @@
     <title>Uy - L.uz</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* iOS Design System Fonts & Resets */
         *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-tap-highlight-color:transparent}
         html,body{background:#000!important;color:#fff;overscroll-behavior-y:none}
         body{display:flex;justify-content:center;min-height:100vh;-webkit-font-smoothing:antialiased}
 
         .mobile-container{width:100%;max-width:420px;padding:0 0 140px 0;display:flex;flex-direction:column}
 
-        /* Yuqori qism (iOS shaffof header + 90px pastda) */
+        /* Header */
         .modern-header {
             position: sticky;
             top: 0;
@@ -22,7 +21,7 @@
             justify-content: space-between;
             align-items: center;
             padding: 90px 20px 14px 20px;
-            background: rgba(18, 18, 20, 0.45);
+            background: rgba(18, 18, 20, 0.55);
             backdrop-filter: blur(24px) saturate(180%);
             -webkit-backdrop-filter: blur(24px) saturate(180%);
             border-bottom: 0.5px solid rgba(255, 255, 255, 0.12);
@@ -38,22 +37,46 @@
             margin: 0;
         }
 
+        .admin-trigger-btn {
+            display: none;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 7px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.15s, background 0.15s;
+        }
+        .admin-trigger-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.2); }
+
         .verified-badge-sm{width:15px;height:15px;flex-shrink:0;display:inline-block;vertical-align:middle;margin-left:4px}
 
         .feed{width:100%;display:flex;flex-direction:column;padding-bottom:8px;gap:0}
 
         /* POST STILI */
-        .post-item{width:100%;padding:16px 20px;text-align:left;animation:postIn .4s cubic-bezier(.34,1.2,.64,1) both;cursor:pointer;transition:background .15s ease;background:transparent;border-radius:0;border:none;border-bottom:1px solid rgba(255,255,255,0.05)}
+        .post-item{width:100%;padding:16px 20px;text-align:left;cursor:pointer;transition:background .15s ease;background:transparent;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;gap:10px;align-items:flex-start}
+        .post-item.animate-in{animation:postIn .35s cubic-bezier(.34,1.2,.64,1) both}
         .post-item:active{background:rgba(255,255,255,0.03)}
-        @keyframes postIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes postIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 
         .post-avatar,.post-avatar-initial{width:42px;height:42px;border-radius:50%;flex-shrink:0;cursor:pointer}
         .post-avatar{object-fit:cover;background:#1c1c1e}
         .post-avatar-initial{background:linear-gradient(135deg,#3a3a3c 0%,#1c1c1e 100%);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;color:#fff;text-transform:uppercase}
-        .post-head-info{display:flex;flex-direction:column;min-width:0;flex:1}
+        .post-head-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:3px}
+        .post-head-info{display:flex;align-items:baseline;gap:6px;min-width:0;flex:1}
         .post-user{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;display:inline-flex;align-items:center}
         .post-user:active{opacity:.7}
-        .post-time{font-size:13px;color:#8e8e93;margin-top:1px}
+        .post-time{font-size:13px;color:#8e8e93;flex-shrink:0}
+        
+        /* ••• TUGMASI */
+        .post-more-btn{background:none;border:none;color:#8e8e93;padding:4px 8px;border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s,color .15s}
+        .post-more-btn:active{background:rgba(255,255,255,0.1);color:#fff}
+        .post-more-btn svg{width:18px;height:18px;fill:currentColor}
+
         .post-text{font-size:15px;line-height:1.45;color:#f2f2f7;white-space:pre-wrap;word-break:break-word;margin-bottom:12px}
 
         .post-image, .post-video, .detail-image, .detail-video{
@@ -68,7 +91,7 @@
         }
 
         .post-actions{display:flex;align-items:center;justify-content:space-between;gap:4px;padding-top:4px}
-        .act-btn{background:none;border:none;display:flex;align-items:center;gap:6px;color:#8e8e93;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;padding:12px 6px;transition:transform .15s ease,color .2s ease;flex:1;justify-content:center;border-radius:12px}
+        .act-btn{background:none;border:none;display:flex;align-items:center;gap:6px;color:#8e8e93;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;padding:10px 6px;transition:transform .15s ease,color .2s ease;flex:1;justify-content:center;border-radius:12px}
         .act-btn:active{transform:scale(.88);background:rgba(255,255,255,.05)}
         .act-btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:fill .2s ease,stroke .2s ease,transform .2s cubic-bezier(.34,1.56,.64,1);flex-shrink:0}
         .act-count{font-variant-numeric:tabular-nums;font-size:13px;min-width:14px;text-align:left}
@@ -78,160 +101,156 @@
         .act-btn.saved{color:#fff}
         .act-btn.saved svg{fill:#fff;stroke:#fff;animation:likePop .35s cubic-bezier(.34,1.56,.64,1)}
 
-        .empty{text-align:center;color:#5a5a5e;padding:60px 20px;font-size:15px;line-height:1.6}
+        .empty{text-align:center;color:#8e8e93;padding:60px 20px;font-size:15px;line-height:1.6}
 
         /* ===== POST TUGMASI VA COMPOSER ===== */
-        .post-btn{position:fixed;right:20px;bottom:calc(96px + env(safe-area-inset-bottom));z-index:40;display:inline-flex;align-items:center;gap:10px;padding:14px 26px;background:linear-gradient(135deg,#fff 0%,#e5e5e5 100%);color:#000;border:none;border-radius:100px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;user-select:none;box-shadow:0 8px 24px rgba(255,255,255,.15),0 2px 8px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.9);transition:transform .2s cubic-bezier(.34,1.56,.64,1),box-shadow .2s ease}
-        .post-btn:active{transform:scale(.94);box-shadow:0 4px 12px rgba(255,255,255,.1),0 1px 4px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.8)}
+        .post-btn{position:fixed;right:20px;bottom:calc(96px + env(safe-area-inset-bottom));z-index:40;display:inline-flex;align-items:center;gap:10px;padding:14px 26px;background:linear-gradient(135deg,#fff 0%,#e5e5e5 100%);color:#000;border:none;border-radius:100px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;user-select:none;box-shadow:0 8px 24px rgba(255,255,255,.15),0 2px 8px rgba(0,0,0,.4);transition:transform .2s}
+        .post-btn:active{transform:scale(.94)}
         .post-btn svg{width:18px;height:18px;stroke:#000;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
 
-        .composer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:200;opacity:0;pointer-events:none;transition:opacity .3s}
+        .composer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:600;opacity:0;pointer-events:none;transition:opacity .25s}
         .composer-overlay.show{opacity:1;pointer-events:auto}
-        .composer{position:fixed;left:50%;bottom:0;transform:translate(-50%,100%);width:100%;max-width:420px;background:#141415;border-radius:32px 32px 0 0;border:1px solid #2c2c2e;border-bottom:none;z-index:201;padding:24px 20px calc(24px + env(safe-area-inset-bottom));transition:transform .35s cubic-bezier(.34,1.2,.64,1);box-shadow:0 -10px 60px rgba(0,0,0,.9)}
+        .composer{position:fixed;left:50%;bottom:0;transform:translate(-50%,100%);width:100%;max-width:420px;background:#141415;border-radius:32px 32px 0 0;border:1px solid #2c2c2e;border-bottom:none;z-index:601;padding:24px 20px calc(24px + env(safe-area-inset-bottom));transition:transform .35s cubic-bezier(.34,1.2,.64,1);box-shadow:0 -10px 60px rgba(0,0,0,.9)}
         .composer.show{transform:translate(-50%,0)}
         .composer-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
         .composer-title{font-size:17px;font-weight:700}
-        .composer-close{background:#2c2c2e;border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#8e8e93;transition:transform .2s,background .2s}
-        .composer-close:active{transform:scale(.9);background:#3a3a3c}
-        .composer-close svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+        .composer-close{background:#2c2c2e;border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#8e8e93}
+        .composer-close svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5}
         .composer-body{display:flex;gap:12px;margin-bottom:16px}
         .composer-avatar,.composer-avatar-initial{width:40px;height:40px;border-radius:50%;flex-shrink:0}
         .composer-avatar{object-fit:cover;background:#1c1c1e}
-        .composer-avatar-initial{background:linear-gradient(135deg,#3a3a3c 0%,#1c1c1e 100%);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;text-transform:uppercase}
+        .composer-avatar-initial{background:linear-gradient(135deg,#3a3a3c 0%,#1c1c1e 100%);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff}
         .composer-input{flex:1;background:transparent;border:none;outline:none;color:#fff;font-size:16px;font-family:inherit;resize:none;min-height:44px;max-height:160px;line-height:1.4;padding-top:10px}
-        .composer-input::placeholder{color:#5a5a5e}
         .composer-preview{position:relative;width:100%;border-radius:16px;overflow:hidden;margin-bottom:16px;display:none;border:1px solid #2c2c2e}
         .composer-preview.show{display:block}
         .composer-preview img,.composer-preview video{width:100%;max-height:240px;object-fit:cover;display:block}
-        .composer-preview .remove-img{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.7);border:none;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer;backdrop-filter:blur(4px)}
-        .composer-preview .remove-img svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+        .composer-preview .remove-img{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.7);border:none;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer}
+        .composer-preview .remove-img svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.5}
         .composer-actions{display:flex;justify-content:space-between;align-items:center;gap:10px}
         .composer-attach-group{display:flex;gap:8px}
-        .composer-attach{background:#2c2c2e;border:none;border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;transition:background .2s,transform .2s}
-        .composer-attach:active{transform:scale(.92);background:#3a3a3c}
-        .composer-attach svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-        .composer-submit{background:linear-gradient(135deg,#fff 0%,#e5e5e5 100%);color:#000;border:none;border-radius:100px;padding:12px 28px;font-size:15px;font-weight:700;cursor:pointer;transition:transform .2s,opacity .2s}
-        .composer-submit:active{transform:scale(.95)}
+        .composer-attach{background:#2c2c2e;border:none;border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff}
+        .composer-attach svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2}
+        .composer-submit{background:linear-gradient(135deg,#fff 0%,#e5e5e5 100%);color:#000;border:none;border-radius:100px;padding:12px 28px;font-size:15px;font-weight:700;cursor:pointer}
         .composer-submit:disabled{opacity:.4;cursor:not-allowed}
 
-        /* ===== ZAMONAVIY LOADING (SKELETON) KARTALAR ===== */
+        /* ACTION SHEET (••• MENYU & TASDIQLASH) */
+        .sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);z-index:700;opacity:0;pointer-events:none;transition:opacity .2s}
+        .sheet-overlay.show{opacity:1;pointer-events:auto}
+        .action-sheet{position:fixed;left:50%;bottom:0;transform:translate(-50%,100%);width:100%;max-width:420px;background:#1c1c1e;border-radius:26px 26px 0 0;border:1px solid #2c2c2e;border-bottom:none;z-index:701;padding:16px 16px calc(24px + env(safe-area-inset-bottom));transition:transform .3s cubic-bezier(.34,1.2,.64,1);display:flex;flex-direction:column;gap:8px}
+        .action-sheet.show{transform:translate(-50%,0)}
+        .sheet-handle{width:36px;height:4px;background:#3a3a3c;border-radius:2px;margin:0 auto 8px}
+        .sheet-btn{width:100%;padding:15px 16px;background:#2c2c2e;border:none;border-radius:16px;color:#fff;font-size:15px;font-weight:600;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;transition:background .15s}
+        .sheet-btn:active{background:#3a3a3c}
+        .sheet-btn.danger{color:#ff453a}
+        .sheet-btn.cancel{justify-content:center;background:#141415;color:#8e8e93;margin-top:4px}
+        .sheet-btn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2}
+
+        /* SKELETON LOADER */
         .feed-loader{display:none;flex-direction:column;width:100%}
         .feed-loader.active{display:flex}
-
-        .sk-card{display:flex;gap:12px;padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.05);background:transparent}
-        .sk-shimmer{
-            background:#161618;
-            background-image:linear-gradient(110deg,#161618 0%,#161618 35%,#26262b 50%,#161618 65%,#161618 100%);
-            background-size:250% 100%;
-            animation:skWave 1.35s cubic-bezier(0.4,0,0.2,1) infinite;
-        }
+        .sk-card{display:flex;gap:12px;padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.05)}
+        .sk-shimmer{background:#161618;background-image:linear-gradient(110deg,#161618 0%,#161618 35%,#26262b 50%,#161618 65%,#161618 100%);background-size:250% 100%;animation:skWave 1.35s linear infinite}
         @keyframes skWave{0%{background-position:100% 0}100%{background-position:-100% 0}}
-        .sk-avatar{width:42px;height:42px;border-radius:50%;flex-shrink:0;border:0.5px solid rgba(255,255,255,0.06)}
-        .sk-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px;padding-top:2px}
-        .sk-head{display:flex;align-items:center;gap:8px}
+        .sk-avatar{width:42px;height:42px;border-radius:50%;flex-shrink:0}
+        .sk-main{flex:1;display:flex;flex-direction:column;gap:10px}
+        .sk-head{display:flex;gap:8px}
         .sk-name{width:112px;height:13px;border-radius:7px}
-        .sk-time{width:52px;height:11px;border-radius:6px;opacity:0.75}
-        .sk-lines{display:flex;flex-direction:column;gap:7px}
+        .sk-time{width:52px;height:11px;border-radius:6px}
         .sk-line{height:12px;border-radius:6px}
         .sk-line.w-95{width:95%}
         .sk-line.w-80{width:80%}
         .sk-line.w-55{width:55%}
-        .sk-media{width:100%;height:168px;border-radius:16px;border:0.5px solid rgba(255,255,255,0.08);margin-top:2px}
-        .sk-actions{display:flex;align-items:center;justify-content:space-between;padding-top:6px;padding-right:8px}
-        .sk-act-pill{width:30px;height:14px;border-radius:7px;opacity:0.75}
-        .sk-status-pill{margin:16px auto 22px;display:inline-flex;align-items:center;gap:8px;padding:7px 15px;border-radius:20px;background:rgba(28,28,30,0.8);border:1px solid rgba(255,255,255,0.08);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#8e8e93;font-size:12px;font-weight:500}
-        .sk-spinner{width:14px;height:14px;border:2px solid rgba(255,255,255,0.16);border-top-color:#fff;border-radius:50%;animation:spinLoader .7s linear infinite;flex-shrink:0}
+        .sk-media{width:100%;height:160px;border-radius:16px}
+        .sk-status-pill{margin:16px auto 22px;display:inline-flex;align-items:center;gap:8px;padding:7px 15px;border-radius:20px;background:rgba(28,28,30,0.8);border:1px solid rgba(255,255,255,0.08);color:#8e8e93;font-size:12px}
+        .sk-spinner{width:14px;height:14px;border:2px solid rgba(255,255,255,0.16);border-top-color:#fff;border-radius:50%;animation:spinLoader .7s linear infinite}
         @keyframes spinLoader{to{transform:rotate(360deg)}}
 
-        /* "ISLAND" PASTKI NAVIGATSIYA */
+        /* ISLAND NAVIGATSIYA */
         .bottom-nav{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:380px;background:rgba(28,28,30,0.85);backdrop-filter:blur(25px);-webkit-backdrop-filter:blur(25px);border:1px solid rgba(255,255,255,0.1);border-radius:40px;z-index:50;box-shadow:0 10px 40px rgba(0,0,0,0.6);padding:6px 12px}
         .bottom-nav-inner{display:flex;justify-content:space-between;align-items:center;width:100%}
-        .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;text-decoration:none;color:#8e8e93;transition:color .2s,transform .2s;position:relative}
-        .nav-btn:active{transform:scale(.92)}
-        .nav-btn svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+        .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;text-decoration:none;color:#8e8e93;position:relative}
+        .nav-btn svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2}
         .nav-active{color:#fff}
         .nav-label{font-size:10px;font-weight:600}
         .nav-avatar,.nav-avatar-initial{width:26px;height:26px;border-radius:50%;object-fit:cover}
-        .nav-avatar-initial{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:linear-gradient(135deg,#3a3a3c 0%,#1c1c1e 100%);color:#fff}
-        .nav-badge{position:absolute;top:2px;right:25%;background:#ff2d55;color:#fff;font-size:10px;font-weight:700;border-radius:10px;padding:2px 5px;min-width:16px;text-align:center;line-height:1;border:2px solid #1c1c1e;z-index:10}
+        .nav-avatar-initial{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:#2c2c2e;color:#fff}
+        .nav-badge{position:absolute;top:2px;right:25%;background:#ff2d55;color:#fff;font-size:10px;font-weight:700;border-radius:10px;padding:2px 5px;min-width:16px;text-align:center;border:2px solid #1c1c1e}
 
-        
-        /* ============ DETAIL (POST & COMMENT) ============ */
-        .detail-overlay, .comment-detail-overlay{position:fixed;inset:0;background:#000;z-index:500;display:none;flex-direction:column;animation:detailIn .3s cubic-bezier(.34,1.2,.64,1) both}
-        .detail-overlay.show, .comment-detail-overlay.show{display:flex}
-        @keyframes detailIn{from{opacity:0;transform:translateY(100%)}to{opacity:1;transform:translateY(0)}}
+        /* DETAIL & ADMIN OVERLAYS */
+        .detail-overlay, .comment-detail-overlay, .admin-overlay{position:fixed;inset:0;background:#000;z-index:500;display:none;flex-direction:column;animation:detailIn .28s cubic-bezier(.34,1.2,.64,1) both}
+        .detail-overlay.show, .comment-detail-overlay.show, .admin-overlay.show{display:flex}
+        .comment-detail-overlay{z-index:520}
+        .admin-overlay{z-index:550}
+        @keyframes detailIn{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
 
-        .detail-header, .comment-detail-header{
-            display:flex;align-items:center;justify-content:center;gap:12px;padding:90px 16px 14px;
-            border-bottom:0.5px solid rgba(255,255,255,0.12);background:rgba(18,18,20,0.45);
-            backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);
+        .detail-header, .comment-detail-header, .admin-header{
+            display:flex;align-items:center;justify-content:space-between;padding:90px 16px 14px;
+            border-bottom:0.5px solid rgba(255,255,255,0.12);background:rgba(18,18,20,0.65);
+            backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
             max-width:420px;width:100%;position:absolute;top:0;left:50%;transform:translateX(-50%);z-index:20;
         }
-        .detail-title, .comment-detail-title{font-size:17px;font-weight:600;text-align:center;}
+        .header-back-btn{background:rgba(255,255,255,0.1);border:none;color:#fff;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer}
+        .header-back-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2.5}
+        .detail-title, .comment-detail-title, .admin-title{font-size:17px;font-weight:700;text-align:center;flex:1}
 
-        .detail-scroll, .comment-detail-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-top:126px;padding-bottom:20px;max-width:420px;width:100%;margin:0 auto}
-        .detail-post{padding:16px;border-bottom:10px solid #0a0a0a}
-        .detail-avatar,.detail-avatar-initial{width:46px;height:46px;border-radius:50%;flex-shrink:0}
-        .detail-avatar{object-fit:cover;background:#1c1c1e}
-        .detail-avatar-initial{background:linear-gradient(135deg,#3a3a3c 0%,#1c1c1e 100%);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;text-transform:uppercase}
-        .detail-info{display:flex;flex-direction:column;min-width:0;flex:1}
-        .detail-user{font-size:16px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:inline-flex;align-items:center}
-        .detail-time{font-size:13px;color:#8e8e93;margin-top:2px}
+        .detail-scroll, .comment-detail-scroll, .admin-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-top:138px;padding-bottom:30px;max-width:420px;width:100%;margin:0 auto}
+        .detail-post{padding:16px 20px;border-bottom:8px solid #0d0d0f}
         .detail-text{font-size:16px;line-height:1.5;color:#f2f2f7;white-space:pre-wrap;word-break:break-word;margin-bottom:16px}
-        .detail-actions{display:flex;align-items:center;justify-content:space-between;gap:4px;padding-top:8px}
 
-        .detail-comments-title{padding:20px 16px 12px;font-size:14px;font-weight:600;color:#fff;letter-spacing:0.3px}
-        .detail-comments-list{padding:0 16px;display:flex;flex-direction:column;gap:12px}
+        .detail-comments-title{padding:18px 20px 12px;font-size:14px;font-weight:700;color:#fff}
+        .detail-comments-list, .comment-detail-replies{padding:0 20px;display:flex;flex-direction:column;gap:12px}
 
-        .comment-thread{display:flex;flex-direction:column;animation:postIn .3s ease both;position:relative}
-        .comment-row{display:flex;gap:10px;cursor:pointer;padding:4px 0;transition:opacity .15s ease;align-items:stretch}
-        .comment-row:active{opacity:.85}
-        .comment-avatar-col{display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:42px;position:relative}
-        .comment-avatar,.comment-avatar-initial{width:42px;height:42px;border-radius:50%;flex-shrink:0;cursor:pointer;position:relative;z-index:2;background:#000;border:2px solid #000}
-        .comment-avatar{object-fit:cover}
-        .comment-avatar-initial{background:linear-gradient(135deg,#3a3a3c 0%,#1c1c1e 100%);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;text-transform:uppercase}
-        .thread-line-down{width:2px;background:#3a3a3c;flex:1;margin-top:-2px;min-height:20px;border-radius:0;align-self:center;z-index:1}
-
-        .comment-content{flex:1;min-width:0;padding-bottom:10px;padding-top:2px}
-        .comment-head{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:2px}
-        .comment-user{font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:inline-flex;align-items:center}
-        .comment-user:active{opacity:.7}
+        /* IZOHLAR & JAVOBLAR */
+        .comment-thread{display:flex;flex-direction:column;position:relative}
+        .comment-row{display:flex;gap:10px;cursor:pointer;padding:6px 0;align-items:stretch}
+        .comment-avatar-col{display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:38px}
+        .comment-avatar,.comment-avatar-initial{width:38px;height:38px;border-radius:50%;flex-shrink:0;cursor:pointer;object-fit:cover;background:#1c1c1e}
+        .comment-avatar-initial{display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff}
+        .thread-line-down{width:2px;background:#2c2c2e;flex:1;margin-top:4px;min-height:16px}
+        .comment-content{flex:1;min-width:0;padding-bottom:6px}
+        .comment-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:2px}
+        .comment-user{font-size:14px;font-weight:600;display:inline-flex;align-items:center}
         .comment-time{font-size:12px;color:#8e8e93}
         .comment-text{font-size:14px;line-height:1.45;color:#e5e5ea;word-break:break-word;white-space:pre-wrap;margin-bottom:6px}
-
-        .comment-actions{display:flex;gap:2px;align-items:center;justify-content:space-between;padding-top:2px;max-width:100%;width:100%}
-        .comment-act{background:none;border:none;color:#8e8e93;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;padding:12px 6px;display:flex;align-items:center;gap:5px;flex:1;justify-content:center;border-radius:10px;transition:transform .15s,color .2s,background .15s}
-        .comment-act:active{transform:scale(.9);background:rgba(255,255,255,.06)}
-        .comment-act svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
-        .comment-act-count{font-variant-numeric:tabular-nums;font-size:12px;min-width:10px;text-align:left}
+        .comment-actions{display:flex;gap:4px;align-items:center}
+        .comment-act{background:none;border:none;color:#8e8e93;font-size:12px;font-weight:500;cursor:pointer;padding:6px 10px;display:inline-flex;align-items:center;gap:5px;border-radius:10px}
+        .comment-act:active{background:rgba(255,255,255,0.08)}
+        .comment-act svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2}
         .comment-act.liked{color:#ff2d55}
-        .comment-act.liked svg{fill:#ff2d55;stroke:#ff2d55;animation:likePop .35s cubic-bezier(.34,1.56,.64,1)}
-        .comment-act.saved{color:#fff}
-        .comment-act.saved svg{fill:#fff;stroke:#fff}
+        .comment-act.liked svg{fill:#ff2d55;stroke:#ff2d55}
+        .comment-replies{padding-left:16px;border-left:1.5px solid #2c2c2e;margin-left:18px;display:flex;flex-direction:column;gap:8px}
 
-        .comment-replies{display:flex;flex-direction:column;position:relative;margin-left:0;padding-left:0;padding-bottom:4px}
-        .thread-nested{position:relative}
-
-        .reply-mode-bar{display:flex;align-items:center;gap:8px;padding:10px 16px;background:rgba(255,255,255,.06);border-top:1px solid rgba(255,255,255,.08);font-size:13px;color:#fff;font-weight:600;max-width:420px;width:100%;margin:0 auto}
+        .reply-mode-bar{display:flex;align-items:center;gap:8px;padding:10px 16px;background:#1c1c1e;border-top:1px solid #2c2c2e;font-size:13px;color:#fff;font-weight:600;max-width:420px;width:100%;margin:0 auto}
         .reply-mode-bar span{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-        .reply-mode-bar button{background:none;border:none;color:#fff;font-size:13px;font-weight:600;cursor:pointer;padding:6px 12px;border-radius:14px;background:rgba(255,255,255,.1);font-family:inherit}
-        .reply-mode-bar button:active{background:rgba(255,255,255,.2)}
+        .reply-mode-bar button{background:rgba(255,255,255,.12);border:none;color:#fff;font-size:12px;font-weight:600;cursor:pointer;padding:6px 12px;border-radius:14px}
 
-        .detail-input-bar{padding:12px 16px calc(12px + env(safe-area-inset-bottom));flex-shrink:0;background:#000;max-width:420px;width:100%;margin:0 auto}
-        .detail-island{display:flex;gap:10px;align-items:flex-end;background:#1c1c1e;border-radius:26px;padding:6px 6px 6px 16px;border:1px solid #2c2c2e;transition:border-color .2s}
-        .detail-island:focus-within{border-color:#4a4a4e}
-        .detail-island.reply-mode{border-color:#fff;box-shadow:none}
+        .detail-input-bar{padding:10px 16px calc(12px + env(safe-area-inset-bottom));background:#000;max-width:420px;width:100%;margin:0 auto}
+        .detail-island{display:flex;gap:10px;align-items:flex-end;background:#1c1c1e;border-radius:26px;padding:6px 6px 6px 16px;border:1px solid #2c2c2e}
+        .detail-island.reply-mode{border-color:#fff}
         .detail-input{flex:1;background:transparent;border:none;color:#fff;font-size:15px;font-family:inherit;resize:none;outline:none;max-height:90px;line-height:1.4;padding:8px 0}
-        .detail-input::placeholder{color:#5a5a5e}
-        .detail-send{background:linear-gradient(135deg,#fff 0%,#e5e5e5 100%);color:#000;border:none;border-radius:50%;width:38px;height:38px;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .15s,opacity .2s}
-        .detail-send:active{transform:scale(.9)}
-        .detail-send:disabled{opacity:.4;cursor:not-allowed}
-        .detail-send svg{width:18px;height:18px;stroke:#000;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+        .detail-send{background:#fff;color:#000;border:none;border-radius:50%;width:36px;height:36px;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer}
+        .detail-send:disabled{opacity:.35;cursor:not-allowed}
+        .detail-send svg{width:17px;height:17px;stroke:#000;fill:none;stroke-width:2.5}
 
-        .comment-detail-main{padding:16px;border-bottom:1px solid rgba(255,255,255,0.05);background:transparent}
-        .comment-detail-replies{padding:0 16px;display:flex;flex-direction:column;gap:12px}
+        .comment-detail-main{padding:16px 20px;border-bottom:1px solid #1c1c1e}
 
-        .toast{position:fixed;left:50%;bottom:120px;transform:translateX(-50%) translateY(20px);background:rgba(28,28,30,0.9);backdrop-filter:blur(10px);color:#fff;padding:12px 24px;border-radius:16px;font-size:14px;font-weight:500;z-index:1000;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;box-shadow:0 8px 30px rgba(0,0,0,.6);border:1px solid rgba(255,255,255,0.1);max-width:80%;text-align:center}
+        
+        /* BOSH ADMINISTRATOR PANELI STILLARI */
+        .admin-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px 20px}
+        .admin-stat-card{background:#141415;border:1px solid #2c2c2e;border-radius:18px;padding:16px}
+        .admin-stat-val{font-size:24px;font-weight:800;color:#fff;margin-bottom:4px}
+        .admin-stat-lbl{font-size:12px;color:#8e8e93}
+        .admin-section-title{padding:12px 20px 8px;font-size:14px;font-weight:700;color:#8e8e93;text-transform:uppercase;letter-spacing:0.5px}
+        .admin-user-card{margin:0 20px 10px;background:#141415;border:1px solid #2c2c2e;border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:10px}
+        .admin-user-top{display:flex;align-items:center;gap:10px}
+        .admin-user-meta{font-size:12px;color:#8e8e93;line-height:1.5;background:#1c1c1e;padding:10px 12px;border-radius:12px}
+        .admin-user-actions{display:flex;gap:8px}
+        .admin-btn{flex:1;padding:9px 10px;border-radius:12px;border:none;font-size:12px;font-weight:600;cursor:pointer;text-align:center}
+        .admin-btn.verify{background:#fff;color:#000}
+        .admin-btn.unverify{background:#2c2c2e;color:#fff}
+        .admin-btn.del{background:rgba(255,69,58,0.16);color:#ff453a}
+
+        .toast{position:fixed;left:50%;bottom:120px;transform:translateX(-50%) translateY(20px);background:rgba(28,28,30,0.95);backdrop-filter:blur(10px);color:#fff;padding:12px 22px;border-radius:16px;font-size:14px;font-weight:500;z-index:1000;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;border:1px solid rgba(255,255,255,0.12);max-width:85%;text-align:center}
         .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
     </style>
 </head>
@@ -240,11 +259,13 @@
 <div class="mobile-container">
     <header class="modern-header">
         <h1 class="brand-title">Lenta</h1>
+        <button class="admin-trigger-btn" id="openAdminBtn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Admin
+        </button>
     </header>
 
     <div class="feed" id="feed"></div>
-
-    <!-- CHEKSIZ SCROLL UCHUN ZAMONAVIY LOADING KARTALAR -->
     <div class="feed-loader" id="feedLoader" aria-hidden="true"></div>
 </div>
 
@@ -253,18 +274,18 @@
     <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Post
 </button>
 
-<!-- POST COMPOSER OYNASI -->
+<!-- POST COMPOSER (YARATISH VA TAHRIRLASH) -->
 <div class="composer-overlay" id="composerOverlay"></div>
 <div class="composer" id="composer">
     <div class="composer-header">
-        <span class="composer-title">Yangi post</span>
+        <span class="composer-title" id="composerTitle">Yangi post</span>
         <button class="composer-close" id="composerClose" aria-label="Yopish">
             <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
     </div>
     <div class="composer-body">
         <div id="composerAvatarSlot"></div>
-        <textarea class="composer-input" id="composerInput" placeholder="Nima haqida o'ylayapsiz?" rows="1"></textarea>
+        <textarea class="composer-input" id="composerInput" placeholder="Nima haqida o'ylayapsiz?" rows="2"></textarea>
     </div>
     <div class="composer-preview" id="composerPreview">
         <img id="previewImg" src="" alt="Preview" style="display:none">
@@ -274,9 +295,9 @@
         </button>
     </div>
     <div class="composer-actions">
-        <div class="composer-attach-group">
-            <input type="file" id="fileInput" accept="image/*" hidden>
-            <input type="file" id="videoInput" accept="video/*" hidden>
+        <div class="composer-attach-group" id="composerAttachGroup">
+            <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
+            <input type="file" id="videoInput" accept="video/mp4,video/webm" hidden>
             <button class="composer-attach" id="attachBtn" aria-label="Rasm yuklash">
                 <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
             </button>
@@ -286,6 +307,14 @@
         </div>
         <button class="composer-submit" id="composerSubmit" disabled>Yuborish</button>
     </div>
+</div>
+
+<!-- ACTION SHEET (••• MENYU) -->
+<div class="sheet-overlay" id="sheetOverlay"></div>
+<div class="action-sheet" id="actionSheet">
+    <div class="sheet-handle"></div>
+    <div id="actionSheetButtons"></div>
+    <button class="sheet-btn cancel" id="sheetCancelBtn">Bekor qilish</button>
 </div>
 
 <!-- OROLCHA NAVIGATSIYA -->
@@ -301,7 +330,9 @@
 <!-- POST DETAIL VIEW -->
 <div class="detail-overlay" id="detailOverlay">
     <div class="detail-header">
+        <button class="header-back-btn" id="detailBackBtn" aria-label="Orqaga"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
         <span class="detail-title">Post</span>
+        <div style="width:34px"></div>
     </div>
     <div class="detail-scroll" id="detailScroll">
         <div id="detailPostBox"></div>
@@ -314,7 +345,7 @@
     </div>
     <div class="detail-input-bar">
         <div class="detail-island" id="detailIsland">
-            <textarea class="detail-input" id="detailInput" placeholder="Javob yozish..." rows="1"></textarea>
+            <textarea class="detail-input" id="detailInput" placeholder="Izoh yozish..." rows="1"></textarea>
             <button class="detail-send" id="detailSend" disabled>
                 <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
             </button>
@@ -325,7 +356,9 @@
 <!-- COMMENT DETAIL VIEW -->
 <div class="comment-detail-overlay" id="commentDetailOverlay">
     <div class="comment-detail-header">
+        <button class="header-back-btn" id="commentDetailBackBtn" aria-label="Orqaga"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
         <span class="comment-detail-title">Izoh</span>
+        <div style="width:34px"></div>
     </div>
     <div class="comment-detail-scroll" id="commentDetailScroll">
         <div class="comment-detail-main" id="commentDetailMain"></div>
@@ -346,13 +379,27 @@
     </div>
 </div>
 
+<!-- BOSH ADMINISTRATOR PANELI -->
+<div class="admin-overlay" id="adminOverlay">
+    <div class="admin-header">
+        <button class="header-back-btn" id="adminBackBtn" aria-label="Orqaga"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <span class="admin-title">Bosh Administrator</span>
+        <div style="width:34px"></div>
+    </div>
+    <div class="admin-scroll" id="adminScroll">
+        <div class="admin-stats-grid" id="adminStatsGrid"></div>
+        <div class="admin-section-title">Foydalanuvchilar va Kanallar</div>
+        <div id="adminUsersList"></div>
+    </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script type="module">
 /* ================= FIREBASE SDK IMPORT & INIT ================= */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { 
-    getFirestore, collection, doc, setDoc, updateDoc, 
+    getFirestore, collection, doc, setDoc, updateDoc, deleteDoc,
     onSnapshot, query, orderBy, increment 
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -372,6 +419,10 @@ const db = getFirestore(app);
 const POSTS_COLLECTION = "luz_posts";
 const USERS_COLLECTION = "luz_users";
 
+/* ================= BOSH ADMINISTRATOR SOZLAMASI ================= */
+// O'zingizning Telegram ID raqamingizni shu yerga kiriting:
+const SUPER_ADMIN_IDS = ["7051581070", "6746148071"]; 
+
 /* ================= TELEGRAM FULLSCREEN ================= */
 const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
 if (tg) {
@@ -385,10 +436,9 @@ if (tg) {
 }
 
 /* ================= KONSTANTALAR ================= */
-const MAX_VIDEO_SIZE = 700 * 1024; // Firestore 1MB limiti uchun
+const MAX_VIDEO_SIZE = 700 * 1024;
 const REPLIES_KEY = 'luz_my_replies_v1';
 const NOTIF_KEY = 'notifications';
-const VERIFIED_KEY = 'luz_verified_badge';
 const SAVED_KEY = 'luz_saved_posts_v1';
 const FEED_BATCH_SIZE = 15;
 
@@ -429,18 +479,24 @@ const DB = {
         if (this._remoteUsers[idStr]) return this._remoteUsers[idStr];
         return this._getUsers().find(u => String(u.userId) === idStr) || null;
     },
+    getAllRemoteUsers() {
+        return Object.values(this._remoteUsers);
+    },
     initUsersRealtime() {
         onSnapshot(collection(db, USERS_COLLECTION), (snapshot) => {
+            const updatedMap = {};
             snapshot.forEach((docSnap) => {
                 const data = docSnap.data();
                 if (data && data.userId) {
-                    this._remoteUsers[String(data.userId)] = data;
+                    updatedMap[String(data.userId)] = data;
                 }
             });
-            if (PostStore._isLoaded) renderFeed(true);
-            if (detailOverlay?.classList.contains('show') && detailPost) {
-                refreshAll();
+            this._remoteUsers = updatedMap;
+            if (currentUser && this._remoteUsers[String(currentUser.userId)]) {
+                currentUser.verified = !!this._remoteUsers[String(currentUser.userId)].verified;
+                currentUser.isVerified = currentUser.verified;
             }
+            if (adminOverlay?.classList.contains('show')) renderAdminPanel();
         });
     }
 };
@@ -449,54 +505,31 @@ const DB = {
 /* ================= SESSION & TELEGRAM AUTO-LOGIN ================= */
 let currentUser = null;
 
+function isSuperAdmin() {
+    if (!currentUser) return false;
+    return SUPER_ADMIN_IDS.includes(String(currentUser.userId)) || currentUser.role === 'admin';
+}
+
 (function initSession() {
     let users = DB._getUsers();
-    const isLocalVerified = localStorage.getItem(VERIFIED_KEY) === '1';
+    const nowIso = new Date().toISOString();
 
     if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
         const tU = tg.initDataUnsafe.user;
         const realId = String(tU.id);
-
         users = users.filter(u => !String(u.userId).startsWith('mehmon_') && String(u.userId) !== 'me');
 
         const existing = users.find(u => String(u.userId) === realId);
-        if (existing) {
-            if (existing.isEdited) {
-                currentUser = {
-                    ...existing,
-                    userId: realId,
-                    firstName: existing.firstName || tU.first_name || '',
-                    lastName: existing.lastName !== undefined ? existing.lastName : (tU.last_name || ''),
-                    username: existing.username || tU.username || '',
-                    photo_url: existing.photo_url || tU.photo_url || null,
-                    verified: isLocalVerified || !!existing.verified,
-                    isVerified: isLocalVerified || !!existing.isVerified
-                };
-            } else {
-                currentUser = {
-                    ...existing,
-                    userId: realId,
-                    firstName: tU.first_name || '',
-                    lastName: tU.last_name || '',
-                    username: tU.username || '',
-                    photo_url: tU.photo_url || existing.photo_url || null,
-                    isEdited: false,
-                    verified: isLocalVerified || !!existing.verified,
-                    isVerified: isLocalVerified || !!existing.isVerified
-                };
-            }
-        } else {
-            currentUser = {
-                userId: realId,
-                firstName: tU.first_name || '',
-                lastName: tU.last_name || '',
-                username: tU.username || '',
-                photo_url: tU.photo_url || null,
-                isEdited: false,
-                verified: isLocalVerified,
-                isVerified: isLocalVerified
-            };
-        }
+        currentUser = {
+            ...(existing || {}),
+            userId: realId,
+            firstName: (existing?.isEdited && existing?.firstName) ? existing.firstName : (tU.first_name || ''),
+            lastName: (existing?.isEdited && existing?.lastName !== undefined) ? existing.lastName : (tU.last_name || ''),
+            username: (existing?.isEdited && existing?.username) ? existing.username : (tU.username || ''),
+            photo_url: (existing?.isEdited && existing?.photo_url) ? existing.photo_url : (tU.photo_url || existing?.photo_url || null),
+            createdAt: existing?.createdAt || nowIso,
+            lastActiveAt: nowIso
+        };
 
         users = users.filter(u => String(u.userId) !== realId);
         users.push(currentUser);
@@ -516,9 +549,8 @@ let currentUser = null;
                 lastName: '',
                 username: 'mehmon',
                 photo_url: null,
-                isEdited: false,
-                verified: isLocalVerified,
-                isVerified: isLocalVerified
+                createdAt: nowIso,
+                lastActiveAt: nowIso
             };
             users.push(currentUser);
             DB._saveUsers(users);
@@ -526,26 +558,30 @@ let currentUser = null;
         }
     }
 
-    // Joriy foydalanuvchini Firestore'ga saqlash (boshqa akkauntlar profilini ko'ra olishi uchun)
+    if (isSuperAdmin()) {
+        document.getElementById('openAdminBtn').style.display = 'inline-flex';
+    }
+
     try {
-        setDoc(doc(db, USERS_COLLECTION, String(currentUser.userId)), {
+        const userPayload = {
             userId: String(currentUser.userId),
             firstName: currentUser.firstName || '',
             lastName: currentUser.lastName || '',
             username: currentUser.username || '',
             photo_url: currentUser.photo_url || null,
             bio: currentUser.bio || '',
-            verified: !!currentUser.verified,
-            isVerified: !!currentUser.isVerified
-        }, { merge: true });
+            lastActiveAt: nowIso
+        };
+        if (!currentUser.createdAt) userPayload.createdAt = nowIso;
+        setDoc(doc(db, USERS_COLLECTION, String(currentUser.userId)), userPayload, { merge: true });
     } catch {}
 })();
 
-/* ================= PROFIL MA'LUMOTLARINI OLISH ================= */
+/* ================= PROFIL & VERIFIED HELPERS ================= */
 function resolveAuthorInfo(uid, fallbackName, fallbackAvatar) {
     const idStr = String(uid || '');
     const effectiveId = (idStr === 'me') ? String(currentUser.userId) : idStr;
-    const userObj = (effectiveId === String(currentUser.userId)) ? currentUser : DB.getUserById(effectiveId);
+    const userObj = DB.getUserById(effectiveId) || ((effectiveId === String(currentUser.userId)) ? currentUser : null);
 
     if (userObj) {
         const fullName = [userObj.firstName, userObj.lastName].filter(Boolean).join(' ').trim();
@@ -562,15 +598,12 @@ function resolveAuthorInfo(uid, fallbackName, fallbackAvatar) {
     };
 }
 
+// #12: Tasdiqlash belgisi endi faqat server (Firestore) ma'lumotidan o'qiladi
 function isUserVerified(uid, postObj = null) {
-    if (postObj && postObj.verified) return true;
     const resolved = resolveAuthorInfo(uid);
-    if (String(resolved.userId) === String(currentUser?.userId)) {
-        const saved = localStorage.getItem(VERIFIED_KEY);
-        if (saved !== null) return saved === '1';
-    }
     const u = DB.getUserById(resolved.userId);
-    return Boolean(u && (u.verified || u.isVerified));
+    if (u) return Boolean(u.verified || u.isVerified);
+    return Boolean(postObj && postObj.verified);
 }
 
 function getInlineVerifiedBadge(uid, postObj = null) {
@@ -588,6 +621,19 @@ function formatExactTime(dateInput){
     const diffDay = Math.floor(diffHour / 24); if (diffDay < 7) return diffDay + ' kun oldin';
     const dd = String(d.getDate()).padStart(2,'0'), mm = String(d.getMonth()+1).padStart(2,'0'); return `${dd}.${mm}.${d.getFullYear()}`;
 }
+function formatDateFull(dateInput) {
+    if (!dateInput) return 'Noma\'lum';
+    const d = new Date(dateInput);
+    if (isNaN(d.getTime())) return 'Noma\'lum';
+    return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
+}
+function calcUsageDuration(createdAt) {
+    if (!createdAt) return 'Yangi';
+    const d = new Date(createdAt);
+    if (isNaN(d.getTime())) return 'Yangi';
+    const days = Math.max(1, Math.floor((Date.now() - d.getTime()) / (1000 * 60 * 60 * 24)));
+    return `${days} kun`;
+}
 function goToProfile(uid){
     if (!uid) return;
     const resolvedId = resolveAuthorInfo(uid).userId;
@@ -601,7 +647,7 @@ let toastTimer;
 function showToast(msg){
     const t = document.getElementById('toast'); if (!t) return;
     t.textContent = msg; t.classList.add('show');
-    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
 }
 function compressImage(file, maxW = 800, quality = 0.72){
     return new Promise((resolve, reject) => {
@@ -612,7 +658,9 @@ function compressImage(file, maxW = 800, quality = 0.72){
             const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
             canvas.getContext('2d').drawImage(img, 0, 0, width, height);
             try { resolve(canvas.toDataURL('image/jpeg', quality)); } catch (e) { reject(e); }
-        }; img.onerror = reject; img.src = url;
+        };
+        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Rasm formati qo'llab-quvvatlanmaydi (HEIC/buzilgan fayl)")); };
+        img.src = url;
     });
 }
 
@@ -636,6 +684,7 @@ function toggleLikeObj(o){
 const PostStore = {
     _cache: [],
     _isLoaded: false,
+    _hasError: false,
     _unsubscribe: null,
 
     initRealtime() {
@@ -646,25 +695,34 @@ const PostStore = {
             snapshot.forEach((docSnap) => {
                 posts.push({ id: docSnap.id, ...docSnap.data() });
             });
+            const wasLoaded = this._isLoaded;
             this._cache = posts;
             this._isLoaded = true;
+            this._hasError = false;
 
-            renderFeed(true);
+            if (!wasLoaded) {
+                renderFeed(false);
+            } else {
+                // #6: Real-vaqtda yangi post kelganda yoki o'zgarganda skroll sakramasligi uchun incremental yangilash
+                syncFeedIncremental();
+            }
 
             if (detailOverlay?.classList.contains('show') && detailPost) {
                 const updatedPost = this.get(detailPost.id);
                 if (updatedPost) {
                     detailPost = updatedPost;
-                    refreshAll();
+                    refreshDetailCommentsOnly();
+                } else {
+                    closePostDetail();
                 }
             }
 
             checkUrlParamsOnce();
         }, (error) => {
             console.error("Firestore xatosi:", error);
-            showToast("Server bilan bog'lanishda xatolik!");
             this._isLoaded = true;
-            renderFeed(true);
+            this._hasError = true;
+            renderFeed(false);
         });
     },
 
@@ -680,6 +738,7 @@ const PostStore = {
             }
             const postRef = doc(db, POSTS_COLLECTION, String(post.id));
             await setDoc(postRef, post);
+            updateDoc(doc(db, USERS_COLLECTION, String(post.userId)), { postsCount: increment(1) }).catch(() => {});
             return post;
         } catch (err) {
             console.error("Post saqlashda xatolik:", err);
@@ -699,10 +758,27 @@ const PostStore = {
             return this._cache[i] || null;
         } catch (err) {
             console.error("Yangilashda xatolik:", err);
+            showToast("Saqlanmadi: internet aloqasini tekshiring");
             return null;
+        }
+    },
+
+    async remove(id) {
+        const target = this.get(id);
+        try {
+            await deleteDoc(doc(db, POSTS_COLLECTION, String(id)));
+            if (target?.userId) {
+                updateDoc(doc(db, USERS_COLLECTION, String(target.userId)), { postsCount: increment(-1) }).catch(() => {});
+            }
+            return true;
+        } catch (err) {
+            console.error("O'chirishda xatolik:", err);
+            showToast("Postni o'chirib bo'lmadi");
+            return false;
         }
     }
 };
+
 
 /* ================= NOTIFICATION HELPER ================= */
 async function sendNotification(type, recipientId, postId, commentId = null) {
@@ -785,7 +861,6 @@ const viewIO = new IntersectionObserver(entries => {
     });
 }, { threshold: 0.5 });
 
-
 /* ================= AVATARS ================= */
 function getCurrentUserName() {
     return [currentUser?.firstName, currentUser?.lastName].filter(Boolean).join(' ').trim() || 'Foydalanuvchi';
@@ -814,7 +889,10 @@ const ICONS = {
     comment: `<svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>`,
     view: `<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`,
     bookmark: `<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`,
-    share: `<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>`
+    share: `<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>`,
+    more: `<svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>`,
+    edit: `<svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`,
+    trash: `<svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>`
 };
 
 /* ================= SKELETON LOADER ================= */
@@ -827,19 +905,9 @@ function buildSkeletonCardHTML(withMedia = false){
                     <div class="sk-name sk-shimmer"></div>
                     <div class="sk-time sk-shimmer"></div>
                 </div>
-                <div class="sk-lines">
-                    <div class="sk-line w-95 sk-shimmer"></div>
-                    <div class="sk-line ${withMedia ? 'w-55' : 'w-80'} sk-shimmer"></div>
-                    ${withMedia ? '' : '<div class="sk-line w-55 sk-shimmer"></div>'}
-                </div>
+                <div class="sk-line w-95 sk-shimmer"></div>
+                <div class="sk-line ${withMedia ? 'w-55' : 'w-80'} sk-shimmer"></div>
                 ${withMedia ? '<div class="sk-media sk-shimmer"></div>' : ''}
-                <div class="sk-actions">
-                    <div class="sk-act-pill sk-shimmer"></div>
-                    <div class="sk-act-pill sk-shimmer"></div>
-                    <div class="sk-act-pill sk-shimmer"></div>
-                    <div class="sk-act-pill sk-shimmer"></div>
-                    <div class="sk-act-pill sk-shimmer"></div>
-                </div>
             </div>
         </div>
     `;
@@ -859,17 +927,96 @@ function initLoaderMarkup(){
 }
 initLoaderMarkup();
 
+/* ================= ACTION SHEET (••• TAHRIRLASH / O'CHIRISH) ================= */
+const sheetOverlay = document.getElementById('sheetOverlay');
+const actionSheet = document.getElementById('actionSheet');
+const actionSheetButtons = document.getElementById('actionSheetButtons');
+
+function closeActionSheet() {
+    sheetOverlay.classList.remove('show');
+    actionSheet.classList.remove('show');
+    updateBackButton();
+}
+sheetOverlay.addEventListener('click', closeActionSheet);
+document.getElementById('sheetCancelBtn').addEventListener('click', closeActionSheet);
+
+function openPostMenu(post) {
+    const isOwner = String(post.userId) === String(currentUser?.userId);
+    const canDelete = isOwner || isSuperAdmin();
+    if (!isOwner && !canDelete) return;
+
+    actionSheetButtons.innerHTML = '';
+
+    if (isOwner) {
+        const editBtn = document.createElement('button');
+        editBtn.className = 'sheet-btn';
+        editBtn.innerHTML = `${ICONS.edit}<span>Postni tahrirlash</span>`;
+        editBtn.addEventListener('click', () => {
+            closeActionSheet();
+            openEditComposer(post);
+        });
+        actionSheetButtons.appendChild(editBtn);
+    }
+
+    if (canDelete) {
+        const delBtn = document.createElement('button');
+        delBtn.className = 'sheet-btn danger';
+        delBtn.innerHTML = `${ICONS.trash}<span>Postni o'chirish</span>`;
+        delBtn.addEventListener('click', () => {
+            closeActionSheet();
+            confirmDeletePost(post);
+        });
+        actionSheetButtons.appendChild(delBtn);
+    }
+
+    sheetOverlay.classList.add('show');
+    actionSheet.classList.add('show');
+    updateBackButton();
+}
+
+function confirmDeletePost(post) {
+    actionSheetButtons.innerHTML = '';
+    const title = document.createElement('div');
+    title.style.cssText = 'text-align:center;color:#8e8e93;font-size:13px;padding:6px 0 10px';
+    title.textContent = 'Ushbu postni butunlay o\'chirishni tasdiqlaysizmi?';
+    actionSheetButtons.appendChild(title);
+
+    const confirmBtn = document.createElement('button');
+    confirmBtn.className = 'sheet-btn danger';
+    confirmBtn.style.justifyContent = 'center';
+    confirmBtn.textContent = 'Ha, o\'chirilsin';
+    confirmBtn.addEventListener('click', async () => {
+        closeActionSheet();
+        const ok = await PostStore.remove(post.id);
+        if (ok) {
+            const card = document.querySelector(`.post-item[data-id="${CSS.escape(String(post.id))}"]`);
+            if (card) card.remove();
+            if (detailPost && String(detailPost.id) === String(post.id)) closePostDetail();
+            showToast('Post o\'chirildi');
+        }
+    });
+    actionSheetButtons.appendChild(confirmBtn);
+
+    sheetOverlay.classList.add('show');
+    actionSheet.classList.add('show');
+    updateBackButton();
+}
+
 /* ================= BACK BUTTON ================= */
 function anyOverlayOpen(){
-    return !!(document.getElementById('commentDetailOverlay')?.classList.contains('show') ||
-              document.getElementById('detailOverlay')?.classList.contains('show') ||
-              document.getElementById('composer')?.classList.contains('show'));
+    return !!(actionSheet.classList.contains('show') ||
+              adminOverlay.classList.contains('show') ||
+              commentDetailOverlay.classList.contains('show') ||
+              detailOverlay.classList.contains('show') ||
+              composer.classList.contains('show'));
 }
 function updateBackButton(){
     if (!tg?.BackButton) return;
     try { anyOverlayOpen() ? tg.BackButton.show() : tg.BackButton.hide(); } catch {}
 }
 function handleBack(){
+    if (actionSheet.classList.contains('show')) { closeActionSheet(); return true; }
+    if (adminOverlay.classList.contains('show')) { closeAdminPanel(); return true; }
     if (commentDetailOverlay.classList.contains('show')) { closeCommentDetail(); return true; }
     if (detailOverlay.classList.contains('show')) { closePostDetail(); return true; }
     if (composer.classList.contains('show')) { closeComposer(); return true; }
@@ -878,22 +1025,58 @@ function handleBack(){
 if (tg?.BackButton) { try { tg.BackButton.onClick(handleBack); tg.BackButton.hide(); } catch {} }
 
 
-/* ================= COMPOSER (POST YARATISH OYNASI) ================= */
+/* ================= COMPOSER (YARATISH & TAHRIRLASH) ================= */
 const composer = document.getElementById('composer');
 const compOverlay = document.getElementById('composerOverlay');
+const compTitle = document.getElementById('composerTitle');
 const compInput = document.getElementById('composerInput');
 const compSubmit = document.getElementById('composerSubmit');
 const fileInput = document.getElementById('fileInput');
 const videoInput = document.getElementById('videoInput');
 let currentMedia = null;
+let editingPostId = null;
 let isSubmittingPost = false;
 
+function resetComposerFields() {
+    editingPostId = null;
+    compTitle.textContent = 'Yangi post';
+    compSubmit.textContent = 'Yuborish';
+    compInput.value = '';
+    compInput.style.height = 'auto';
+    currentMedia = null;
+    fileInput.value = '';
+    videoInput.value = '';
+    document.getElementById('previewImg').src = '';
+    document.getElementById('previewVid').src = '';
+    document.getElementById('composerPreview').classList.remove('show');
+    document.getElementById('composerAttachGroup').style.display = 'flex';
+    compSubmit.disabled = true;
+}
+
 function openComposer(){
+    resetComposerFields();
     compOverlay.classList.add('show');
     composer.classList.add('show');
     updateBackButton();
     setTimeout(() => compInput.focus(), 300);
 }
+
+function openEditComposer(post) {
+    resetComposerFields();
+    editingPostId = post.id;
+    compTitle.textContent = 'Postni tahrirlash';
+    compSubmit.textContent = 'Saqlash';
+    compInput.value = post.text || '';
+    compInput.style.height = 'auto';
+    compInput.style.height = Math.min(compInput.scrollHeight, 160) + 'px';
+    document.getElementById('composerAttachGroup').style.display = 'none';
+    compSubmit.disabled = compInput.value.trim().length === 0 && !post.image;
+    compOverlay.classList.add('show');
+    composer.classList.add('show');
+    updateBackButton();
+    setTimeout(() => compInput.focus(), 300);
+}
+
 function closeComposer(){
     compOverlay.classList.remove('show');
     composer.classList.remove('show');
@@ -911,11 +1094,17 @@ document.getElementById('attachVideoBtn').addEventListener('click', () => videoI
 compInput.addEventListener('input', () => {
     compInput.style.height = 'auto';
     compInput.style.height = Math.min(compInput.scrollHeight, 160) + 'px';
-    compSubmit.disabled = !(compInput.value.trim().length > 0 || currentMedia);
+    const hasExistingMedia = editingPostId ? Boolean(PostStore.get(editingPostId)?.image) : false;
+    compSubmit.disabled = !(compInput.value.trim().length > 0 || currentMedia || hasExistingMedia);
 });
 
 fileInput.addEventListener('change', async e => {
     const file = e.target.files[0]; if (!file) return;
+    if (file.name.toLowerCase().endsWith('.heic') || file.type === 'image/heic') {
+        showToast("HEIC formati qo'llab-quvvatlanmaydi. JPG yoki PNG tanlang.");
+        fileInput.value = '';
+        return;
+    }
     try {
         const data = await compressImage(file);
         currentMedia = { data, type: 'image' };
@@ -924,7 +1113,10 @@ fileInput.addEventListener('change', async e => {
         document.getElementById('previewVid').style.display = 'none';
         document.getElementById('composerPreview').classList.add('show');
         compSubmit.disabled = false;
-    } catch {}
+    } catch (err) {
+        showToast(err.message || "Rasmni yuklab bo'lmadi");
+        fileInput.value = '';
+    }
 });
 
 videoInput.addEventListener('change', e => {
@@ -943,6 +1135,7 @@ videoInput.addEventListener('change', e => {
         document.getElementById('composerPreview').classList.add('show');
         compSubmit.disabled = false;
     };
+    reader.onerror = () => showToast("Videoni o'qishda xatolik");
     reader.readAsDataURL(file);
 });
 
@@ -959,8 +1152,35 @@ document.getElementById('removeImg').addEventListener('click', () => {
 compSubmit.addEventListener('click', async () => {
     if (isSubmittingPost) return;
     const text = compInput.value.trim();
-    if (!text && !currentMedia) return;
 
+    // Tahrirlash rejimi
+    if (editingPostId) {
+        const existing = PostStore.get(editingPostId);
+        if (!existing || (!text && !existing.image)) return;
+        isSubmittingPost = true;
+        compSubmit.disabled = true;
+        compSubmit.textContent = 'Saqlanmoqda...';
+
+        const updated = await PostStore.update(editingPostId, { text, editedAt: new Date().toISOString() });
+        isSubmittingPost = false;
+        if (updated) {
+            updateSinglePostCard(editingPostId);
+            if (detailPost && String(detailPost.id) === String(editingPostId)) {
+                detailPost = updated;
+                renderDetailHeaderPost();
+            }
+            closeComposer();
+            resetComposerFields();
+            showToast('Post yangilandi');
+        } else {
+            compSubmit.disabled = false;
+            compSubmit.textContent = 'Saqlash';
+        }
+        return;
+    }
+
+    // Yangi post rejimi
+    if (!text && !currentMedia) return;
     isSubmittingPost = true;
     compSubmit.disabled = true;
     compSubmit.textContent = 'Yuklanmoqda...';
@@ -982,7 +1202,6 @@ compSubmit.addEventListener('click', async () => {
     };
 
     const added = await PostStore.add(newPost);
-
     isSubmittingPost = false;
     compSubmit.textContent = 'Yuborish';
 
@@ -991,22 +1210,13 @@ compSubmit.addEventListener('click', async () => {
         return;
     }
 
-    compInput.value = '';
-    compInput.style.height = 'auto';
-    currentMedia = null;
-    fileInput.value = '';
-    videoInput.value = '';
-    document.getElementById('previewImg').src = '';
-    document.getElementById('previewVid').src = '';
-    document.getElementById('composerPreview').classList.remove('show');
-    compSubmit.disabled = true;
-
+    resetComposerFields();
     closeComposer();
     window.scrollTo({ top: 0, behavior: 'smooth' });
     showToast('Post joylandi');
 });
 
-/* ================= MY REPLIES & HELPERS ================= */
+/* ================= MY REPLIES & COMMENT HELPERS ================= */
 let myReplies = [];
 function loadMyReplies(){ try { const raw = localStorage.getItem(REPLIES_KEY); myReplies = raw ? JSON.parse(raw) : []; } catch { myReplies = []; } }
 function saveMyReplies(){ try { localStorage.setItem(REPLIES_KEY, JSON.stringify(myReplies)); } catch {} }
@@ -1046,18 +1256,19 @@ async function addCommentToPost(postId, newComment, replyToId){
     if (!replyToId) {
         newComment.parentId = null; 
         commentsCopy.push(newComment);
-        await PostStore.update(postId, { comments: commentsCopy }); 
-        return { post, comment: newComment, parent: null };
+        const ok = await PostStore.update(postId, { comments: commentsCopy });
+        return ok ? { post: ok, comment: newComment, parent: null } : null;
     }
     const found = findComment(commentsCopy, replyToId); if (!found) return null;
     newComment.parentId = replyToId; 
     if (!found.comment.replies) found.comment.replies = [];
     found.comment.replies.push(newComment); 
-    await PostStore.update(postId, { comments: commentsCopy });
-    return { post, comment: newComment, parent: found.comment };
+    const ok = await PostStore.update(postId, { comments: commentsCopy });
+    return ok ? { post: ok, comment: newComment, parent: found.comment } : null;
 }
 
-/* ================= POST RENDER & INFINITE SCROLL ================= */
+
+/* ================= POST RENDER & INCREMENTAL UPDATE ================= */
 const savedPosts = new Set((() => {
     try { const a = JSON.parse(localStorage.getItem(SAVED_KEY)); return Array.isArray(a) ? a.map(String) : []; } catch { return []; }
 })());
@@ -1069,13 +1280,25 @@ let isLoadingMorePosts = false;
 let feedScrollObserver = null;
 
 function countComments(p){
-    let n = (p.comments || []).length; const walk = (arr) => arr.forEach(c => { n += (c.replies || []).length; if (c.replies) walk(c.replies); }); walk(p.comments || []); return n;
+    let n = (p.comments || []).length;
+    const walk = (arr) => arr.forEach(c => { n += (c.replies || []).length; if (c.replies) walk(c.replies); });
+    walk(p.comments || []);
+    return n;
 }
+
+// #11: Nusxalash muvaffaqiyatli bo'lgandagina xabar chiqarish
 function handleShare(entity, postId, commentId){
     let link = location.origin + location.pathname + '?post=' + encodeURIComponent(postId || entity.id);
     if (commentId) link += '&comment=' + encodeURIComponent(commentId);
-    if (navigator.share) navigator.share({ title: 'Post', url: link }).catch(() => {});
-    else { try { navigator.clipboard?.writeText(link); } catch {} showToast('Havola nusxalandi'); }
+    if (navigator.share) {
+        navigator.share({ title: 'L.uz', url: link }).catch(() => {});
+    } else if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(link)
+            .then(() => showToast('Havola nusxalandi'))
+            .catch(() => showToast('Havolani nusxalab bo\'lmadi'));
+    } else {
+        showToast('Havolani nusxalab bo\'lmadi');
+    }
 }
 
 function buildPostActions(p){
@@ -1096,10 +1319,7 @@ function buildPostActions(p){
         likeBtn.querySelector('.act-count').textContent = copy.likes;
 
         await PostStore.update(p.id, { likes: copy.likes, likedBy: copy.likedBy });
-
-        if (liked) {
-            sendNotification('like', fresh.userId, fresh.id);
-        }
+        if (liked) sendNotification('like', fresh.userId, fresh.id);
     });
 
     const commBtn = createBtn(ICONS.comment, countComments(p), '', (e)=>{ e.stopPropagation(); openPostDetail(p); });
@@ -1116,11 +1336,10 @@ function buildPostActions(p){
     actions.append(likeBtn, commBtn, viewBtn, saveBtn, shareBtn); return actions;
 }
 
-function buildPostItem(p){
-    const item = document.createElement('div'); item.className = 'post-item'; item.dataset.id = p.id;
-    item.style.display = 'flex';
-    item.style.gap = '10px';
-    item.style.alignItems = 'flex-start';
+function buildPostItem(p, animate = false){
+    const item = document.createElement('div');
+    item.className = 'post-item' + (animate ? ' animate-in' : '');
+    item.dataset.id = p.id;
 
     const author = resolveAuthorInfo(p.userId, p.user, p.avatar);
     const postInit = escapeHtml(author.name.charAt(0).toUpperCase());
@@ -1130,14 +1349,18 @@ function buildPostItem(p){
     if (p.type === 'image' && p.image) media = `<img class="post-image" src="${escapeHtml(p.image)}" alt="" loading="lazy">`;
     else if (p.type === 'video' && p.image) media = `<video class="post-video" src="${escapeHtml(p.image)}" controls playsinline preload="metadata"></video>`;
 
+    const canManage = String(p.userId) === String(currentUser?.userId) || isSuperAdmin();
+    const moreBtnHtml = canManage ? `<button class="post-more-btn" aria-label="Boshqarish">${ICONS.more}</button>` : '';
+
     item.innerHTML = `
-        <div style="flex-shrink: 0;" class="post-avatar-wrapper">
-            ${av}
-        </div>
+        <div style="flex-shrink: 0;" class="post-avatar-wrapper">${av}</div>
         <div style="flex: 1; min-width: 0;">
-            <div class="post-head-info" style="display: flex; flex-direction: row; align-items: baseline; gap: 6px; margin-bottom: 2px;">
-                <div class="post-user">${escapeHtml(author.name)}${getInlineVerifiedBadge(author.userId, p)}</div>
-                <div class="post-time">${escapeHtml(formatExactTime(p.createdAt || p.time))}</div>
+            <div class="post-head-row">
+                <div class="post-head-info">
+                    <div class="post-user">${escapeHtml(author.name)}${getInlineVerifiedBadge(author.userId, p)}</div>
+                    <div class="post-time">${escapeHtml(formatExactTime(p.createdAt || p.time))}</div>
+                </div>
+                ${moreBtnHtml}
             </div>
             ${p.text ? `<div class="post-text">${escapeHtml(p.text)}</div>` : ''}
             ${media}
@@ -1149,11 +1372,78 @@ function buildPostItem(p){
 
     item.querySelector('.post-avatar-wrapper').addEventListener('click', (e) => { e.stopPropagation(); goToProfile(author.userId); });
     item.querySelector('.post-user').addEventListener('click', (e) => { e.stopPropagation(); goToProfile(author.userId); });
-    item.addEventListener('click', (e) => { if (e.target.closest('.act-btn') || e.target.tagName === 'VIDEO') return; openPostDetail(p); });
+    const moreBtn = item.querySelector('.post-more-btn');
+    if (moreBtn) {
+        moreBtn.addEventListener('click', (e) => { e.stopPropagation(); openPostMenu(p); });
+    }
+    item.addEventListener('click', (e) => { if (e.target.closest('.act-btn') || e.target.closest('.post-more-btn') || e.target.tagName === 'VIDEO') return; openPostDetail(p); });
 
     viewIO.observe(item);
-
     return item;
+}
+
+// #7: Butun lentani emas, faqat bitta post kartasini yangilash (video to'xtamaydi, skroll sakramaydi)
+function updateSinglePostCard(postId) {
+    const post = PostStore.get(postId);
+    const existingEl = document.querySelector(`.post-item[data-id="${CSS.escape(String(postId))}"]`);
+    if (!post || !existingEl) return;
+
+    const textEl = existingEl.querySelector('.post-text');
+    if (post.text) {
+        if (textEl) textEl.textContent = post.text;
+    } else if (textEl) {
+        textEl.remove();
+    }
+
+    const slot = existingEl.querySelector('.post-actions-slot');
+    if (slot) {
+        slot.innerHTML = '';
+        slot.appendChild(buildPostActions(post));
+    }
+}
+
+// #6: Real-vaqtda yangi post kelsa faqat tepaga qo'shish, mavjudlarini nuqtaviy yangilash
+function syncFeedIncremental() {
+    const feed = document.getElementById('feed');
+    if (!feed) return;
+    allFeedPosts = PostStore.all();
+
+    if (allFeedPosts.length === 0) {
+        feed.innerHTML = '<div class="empty">Hali post yo\'q.<br>Pastdagi "+ Post" tugmasi orqali birinchi postni yarating.</div>';
+        renderedPostCount = 0;
+        return;
+    }
+
+    if (feed.querySelector('.empty')) {
+        renderFeed(false);
+        return;
+    }
+
+    const existingMap = new Map();
+    feed.querySelectorAll('.post-item').forEach(el => existingMap.set(String(el.dataset.id), el));
+
+    // O'chirilgan postlarni olib tashlash
+    const currentIds = new Set(allFeedPosts.map(p => String(p.id)));
+    existingMap.forEach((el, id) => {
+        if (!currentIds.has(id)) {
+            el.remove();
+            renderedPostCount = Math.max(0, renderedPostCount - 1);
+        }
+    });
+
+    // Yangi postlarni tepaga qo'shish va mavjudlarini yangilash
+    const topPosts = allFeedPosts.slice(0, Math.max(FEED_BATCH_SIZE, renderedPostCount));
+    for (let i = topPosts.length - 1; i >= 0; i--) {
+        const p = topPosts[i];
+        const pid = String(p.id);
+        if (existingMap.has(pid)) {
+            updateSinglePostCard(pid);
+        } else {
+            const newNode = buildPostItem(p, true);
+            feed.insertBefore(newNode, feed.firstChild);
+            renderedPostCount++;
+        }
+    }
 }
 
 function appendNextFeedBatch(){
@@ -1163,27 +1453,21 @@ function appendNextFeedBatch(){
 
     if (nextBatch.length > 0) {
         const fragment = document.createDocumentFragment();
-        nextBatch.forEach(p => fragment.appendChild(buildPostItem(p)));
+        nextBatch.forEach(p => fragment.appendChild(buildPostItem(p, true)));
         feed.appendChild(fragment);
         renderedPostCount += nextBatch.length;
     }
 
     if (renderedPostCount >= allFeedPosts.length) {
         loader.classList.remove('active');
-        if (feedScrollObserver) {
-            feedScrollObserver.disconnect();
-            feedScrollObserver = null;
-        }
+        if (feedScrollObserver) { feedScrollObserver.disconnect(); feedScrollObserver = null; }
     } else {
         loader.classList.add('active');
     }
 }
 
 function initInfiniteScrollObserver(){
-    if (feedScrollObserver) {
-        feedScrollObserver.disconnect();
-        feedScrollObserver = null;
-    }
+    if (feedScrollObserver) { feedScrollObserver.disconnect(); feedScrollObserver = null; }
     const loader = document.getElementById('feedLoader');
     if (renderedPostCount >= allFeedPosts.length) {
         loader.classList.remove('active');
@@ -1198,18 +1482,14 @@ function initInfiniteScrollObserver(){
             setTimeout(() => {
                 appendNextFeedBatch();
                 isLoadingMorePosts = false;
-            }, 300);
+            }, 250);
         }
-    }, {
-        root: null,
-        rootMargin: '120px',
-        threshold: 0.05
-    });
+    }, { root: null, rootMargin: '120px', threshold: 0.05 });
 
     feedScrollObserver.observe(loader);
 }
 
-function mountFeedBatch(targetCount){
+function renderFeed(preserveCount = false){
     const feed = document.getElementById('feed');
     const loader = document.getElementById('feedLoader');
 
@@ -1217,6 +1497,15 @@ function mountFeedBatch(targetCount){
         feed.innerHTML = buildSkeletonCardHTML(false) + buildSkeletonCardHTML(true) + buildSkeletonCardHTML(false);
         return;
     }
+
+    if (PostStore._hasError) {
+        loader.classList.remove('active');
+        feed.innerHTML = '<div class="empty">Server bilan bog\'lanib bo\'lmadi.<br>Internet aloqasini tekshirib, sahifani yangilang.</div>';
+        return;
+    }
+
+    const targetCount = preserveCount ? Math.max(FEED_BATCH_SIZE, renderedPostCount) : FEED_BATCH_SIZE;
+    const y = window.scrollY;
 
     allFeedPosts = PostStore.all();
     viewIO.disconnect();
@@ -1232,200 +1521,282 @@ function mountFeedBatch(targetCount){
 
     const initialPosts = allFeedPosts.slice(0, targetCount);
     const fragment = document.createDocumentFragment();
-    initialPosts.forEach(p => fragment.appendChild(buildPostItem(p)));
+    initialPosts.forEach(p => fragment.appendChild(buildPostItem(p, !preserveCount)));
     feed.appendChild(fragment);
     renderedPostCount = initialPosts.length;
 
     initInfiniteScrollObserver();
-}
-
-function renderFeed(preserveCount = false){
-    const targetCount = preserveCount ? Math.max(FEED_BATCH_SIZE, renderedPostCount) : FEED_BATCH_SIZE;
-    const y = window.scrollY;
-    mountFeedBatch(targetCount);
     if (preserveCount) window.scrollTo(0, y);
 }
 
 
-/* ================= POST DETAIL VIEW ================= */
-const detailOverlay = document.getElementById('detailOverlay'), detailInput = document.getElementById('detailInput'), detailSend = document.getElementById('detailSend');
-const commentDetailOverlay = document.getElementById('commentDetailOverlay');
-let detailPost = null, replyTargetId = null;
-let activeCommentId = null, cdReplyTargetId = null;
+/* ================= POST DETAIL & COMMENTS (TO'LIQ TIKLANGAN) ================= */
+const detailOverlay = document.getElementById('detailOverlay');
+const detailInput = document.getElementById('detailInput');
+const detailSend = document.getElementById('detailSend');
+const replyModeBar = document.getElementById('replyModeBar');
+const replyModeCancel = document.getElementById('replyModeCancel');
 
-function updateDetailReplyModeUI(){
-    const bar = document.getElementById('replyModeBar'), island = document.getElementById('detailIsland');
-    if (!replyTargetId || !detailPost) { bar.style.display = 'none'; island.classList.remove('reply-mode'); return; }
-    const found = findComment(detailPost.comments || [], replyTargetId);
+let detailPost = null;
+let detailReplyTargetId = null;
+
+function updateDetailReplyUI() {
+    if (!detailPost || !detailReplyTargetId) {
+        replyModeBar.style.display = 'none';
+        document.getElementById('detailIsland').classList.remove('reply-mode');
+        detailInput.placeholder = 'Izoh yozish...';
+        return;
+    }
+    const found = findComment(detailPost.comments || [], detailReplyTargetId);
     if (found) {
         const author = resolveAuthorInfo(found.comment.userId, found.comment.user, found.comment.avatar);
         document.getElementById('replyModeText').textContent = `↩ ${author.name} ga javob`;
-        bar.style.display = 'flex';
-        island.classList.add('reply-mode');
+        replyModeBar.style.display = 'flex';
+        document.getElementById('detailIsland').classList.add('reply-mode');
+        detailInput.placeholder = `${author.name} ga javob...`;
     } else {
-        bar.style.display = 'none';
-        island.classList.remove('reply-mode');
+        detailReplyTargetId = null;
+        updateDetailReplyUI();
     }
 }
-document.getElementById('replyModeCancel').addEventListener('click', () => { replyTargetId = null; detailInput.value = ''; updateDetailReplyModeUI(); });
 
-function buildCommentRow(c, mode){
-    const author = resolveAuthorInfo(c.userId, c.user, c.avatar);
-    const init = escapeHtml(author.name.charAt(0).toUpperCase());
-    const uidAttr = escapeHtml(author.userId);
-    const av = author.avatar ? `<img class="comment-avatar" src="${escapeHtml(author.avatar)}">` : `<div class="comment-avatar-initial">${init}</div>`;
-    const hasReplies = c.replies && c.replies.length > 0;
-
-    const row = document.createElement('div'); row.className = 'comment-row';
-    row.innerHTML = `
-        <div class="comment-avatar-col">
-            ${av}
-            ${hasReplies ? '<div class="thread-line-down"></div>' : ''}
-        </div>
-        <div class="comment-content">
-            <div class="comment-head"><span class="comment-user" data-uid="${uidAttr}">${escapeHtml(author.name)}${getInlineVerifiedBadge(author.userId, c)}</span><span class="comment-time">${escapeHtml(formatExactTime(c.createdAt || c.time))}</span></div>
-            <div class="comment-text">${escapeHtml(c.text || '')}</div>
-        </div>
-    `;
-
-    const actions = document.createElement('div'); actions.className = 'comment-actions';
-    const likeBtn = document.createElement('button'); likeBtn.className = 'comment-act' + (isLiked(c)?' liked':''); likeBtn.innerHTML = `${ICONS.like}<span class="comment-act-count">${c.likes||0}</span>`;
-    likeBtn.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        toggleLikeObj(c);
-        refreshAll();
-        await PostStore.update(detailPost.id, { comments: detailPost.comments });
-    });
-
-    const commBtn = document.createElement('button'); commBtn.className = 'comment-act'; commBtn.innerHTML = `${ICONS.comment}<span class="comment-act-count">${(c.replies||[]).length||''}</span>`;
-    commBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (mode === 'thread') { replyTargetId = c.id; detailInput.focus(); updateDetailReplyModeUI(); }
-        else { cdReplyTargetId = (String(c.id) === String(activeCommentId)) ? null : c.id; commentDetailInput.focus(); updateCdReplyModeUI(); }
-    });
-
-    const viewBtn = document.createElement('button'); viewBtn.className = 'comment-act'; viewBtn.innerHTML = `${ICONS.view}<span class="comment-act-count"></span>`; viewBtn.style.cursor = 'default';
-    viewBtn.addEventListener('click', (e) => e.stopPropagation());
-
-    const saveBtn = document.createElement('button'); saveBtn.className = 'comment-act'; saveBtn.innerHTML = `${ICONS.bookmark}`;
-    saveBtn.addEventListener('click', (e) => { e.stopPropagation(); saveBtn.classList.toggle('saved'); showToast(saveBtn.classList.contains('saved')?'Saqlandi':'Olib tashlandi'); });
-
-    const shareBtn = document.createElement('button'); shareBtn.className = 'comment-act'; shareBtn.innerHTML = `${ICONS.share}`;
-    shareBtn.addEventListener('click', (e) => { e.stopPropagation(); handleShare(c, detailPost.id, c.id); });
-
-    actions.append(likeBtn, commBtn, viewBtn, saveBtn, shareBtn);
-    row.querySelector('.comment-content').appendChild(actions);
-
-    row.querySelectorAll('[data-uid]').forEach(el => { el.addEventListener('click', (e) => { e.stopPropagation(); goToProfile(el.getAttribute('data-uid')); }); });
-    row.addEventListener('click', (e) => {
-        if (e.target.closest('.comment-act')) return;
-        if (mode === 'cd-main') return;
-        openCommentDetail(c.id);
-    });
-    return row;
-}
-
-function buildDetailComment(c, depth = 0){
-    const thread = document.createElement('div'); thread.className = 'comment-thread' + (depth > 0 ? ' thread-nested' : ''); thread.dataset.cid = c.id;
-    thread.appendChild(buildCommentRow(c, 'thread'));
-
-    if (c.replies && c.replies.length > 0) {
-        const repBox = document.createElement('div'); repBox.className = 'comment-replies';
-        c.replies.forEach(r => repBox.appendChild(buildDetailComment(r, depth + 1)));
-        thread.appendChild(repBox);
-    }
-    return thread;
-}
-
-function refreshDetailFromStore(){
-    if (!detailPost) return;
-    const fresh = PostStore.get(detailPost.id); if (fresh) detailPost = fresh; renderDetailPost();
-    const clist = document.getElementById('detailCommentsList'); clist.innerHTML = '';
-    document.getElementById('detailCommTitle').textContent = (detailPost.comments||[]).length ? `Izohlar (${countComments(detailPost)})` : 'Izohlar';
-    (detailPost.comments||[]).forEach(c => clist.appendChild(buildDetailComment(c, 0)));
-}
-
-function refreshAll(){
-    refreshDetailFromStore();
-    if (commentDetailOverlay.classList.contains('show')) renderCommentDetail();
-}
-
-function renderDetailPost(){
-    if (!detailPost) return;
-    const p = detailPost;
-    const author = resolveAuthorInfo(p.userId, p.user, p.avatar);
-    const postInit = escapeHtml(author.name.charAt(0).toUpperCase());
-    const uidAttr = escapeHtml(author.userId);
-    const av = author.avatar ? `<img class="detail-avatar" src="${escapeHtml(author.avatar)}" data-uid="${uidAttr}">` : `<div class="detail-avatar-initial" data-uid="${uidAttr}">${postInit}</div>`;
-    let media = '';
-    if (p.type === 'image' && p.image) media = `<img class="detail-image" src="${escapeHtml(p.image)}">`;
-    else if (p.type === 'video' && p.image) media = `<video class="detail-video" src="${escapeHtml(p.image)}" controls playsinline></video>`;
-
-    document.getElementById('detailPostBox').innerHTML = `
-        <div class="detail-post" style="display: flex; gap: 10px; align-items: flex-start;">
-            <div style="flex-shrink: 0;" class="detail-avatar-wrapper">
-                ${av}
-            </div>
-            <div style="flex: 1; min-width: 0;">
-                <div class="detail-info" style="display: flex; flex-direction: row; align-items: baseline; gap: 6px; margin-bottom: 6px;">
-                    <div class="detail-user" data-uid="${uidAttr}">${escapeHtml(author.name)}${getInlineVerifiedBadge(author.userId, p)}</div>
-                    <div class="detail-time">${escapeHtml(formatExactTime(p.createdAt))}</div>
-                </div>
-                ${p.text ? `<div class="detail-text">${escapeHtml(p.text)}</div>` : ''}
-                ${media}
-                <div class="detail-actions" id="detailActionsBar"></div>
-            </div>
-        </div>
-    `;
-
-    document.getElementById('detailPostBox').querySelectorAll('[data-uid]').forEach(el => { el.style.cursor='pointer'; el.addEventListener('click', (e)=>{ e.stopPropagation(); goToProfile(el.getAttribute('data-uid')); }); });
-    document.getElementById('detailActionsBar').appendChild(buildPostActions(p));
-}
-
-function openPostDetail(p){
-    detailPost = PostStore.get(p.id) || p; if (!detailPost.comments) detailPost.comments = [];
-    replyTargetId = null; refreshDetailFromStore(); updateDetailReplyModeUI();
-    detailOverlay.classList.add('show'); document.getElementById('detailScroll').scrollTop = 0;
-    updateBackButton();
-}
-function closePostDetail(){
-    detailOverlay.classList.remove('show'); detailPost = null; replyTargetId = null;
-    renderFeed(true);
-    updateBackButton();
-}
+replyModeCancel.addEventListener('click', () => {
+    detailReplyTargetId = null;
+    updateDetailReplyUI();
+});
 
 detailInput.addEventListener('input', () => {
-    detailInput.style.height = 'auto'; detailInput.style.height = Math.min(detailInput.scrollHeight, 90) + 'px';
+    detailInput.style.height = 'auto';
+    detailInput.style.height = Math.min(detailInput.scrollHeight, 90) + 'px';
     detailSend.disabled = detailInput.value.trim().length === 0;
 });
 
 detailSend.addEventListener('click', async () => {
-    const cleanText = detailInput.value.trim(); if (!cleanText || !detailPost) return;
+    const txt = detailInput.value.trim();
+    if (!txt || !detailPost) return;
     detailSend.disabled = true;
 
-    const newC = makeCommentObj(cleanText, replyTargetId);
-    const res = await addCommentToPost(detailPost.id, newC, replyTargetId);
-    if (res) {
-        pushMyReply({ id: newC.id, postId: detailPost.id, userId: newC.userId, user: newC.user, avatar: newC.avatar, text: newC.text, createdAt: newC.createdAt, postText: detailPost.text });
+    const newComm = makeCommentObj(txt, detailReplyTargetId);
+    const res = await addCommentToPost(detailPost.id, newComm, detailReplyTargetId);
 
-        if (replyTargetId) {
-            const parentFound = findComment(detailPost.comments, replyTargetId);
-            if (parentFound && parentFound.comment) {
-                sendNotification('reply', parentFound.comment.userId, detailPost.id, newC.id);
-            }
+    if (res) {
+        detailPost = res.post;
+        if (detailReplyTargetId && res.parent) {
+            pushMyReply({ id: newComm.id, postId: detailPost.id, userId: newComm.userId, user: newComm.user, avatar: newComm.avatar, text: newComm.text, createdAt: newComm.createdAt, postText: detailPost.text });
+            sendNotification('reply', res.parent.userId, detailPost.id, newComm.id);
         } else {
-            sendNotification('comment', detailPost.userId, detailPost.id, newC.id);
+            sendNotification('comment', detailPost.userId, detailPost.id, newComm.id);
         }
 
-        replyTargetId = null; detailInput.value = ''; detailInput.style.height = 'auto'; 
-        refreshDetailFromStore(); updateDetailReplyModeUI();
+        detailInput.value = '';
+        detailInput.style.height = 'auto';
+        detailReplyTargetId = null;
+        updateDetailReplyUI();
+        refreshDetailCommentsOnly();
+        updateSinglePostCard(detailPost.id);
+        showToast(newComm.parentId ? 'Javob qo\'shildi' : 'Izoh qo\'shildi');
     } else {
         detailSend.disabled = false;
     }
 });
 
+// #1: cloneNode(true) o'rniga har bir izoh qatori o'zining barcha hodisalari bilan quriladi
+function buildCommentRow(c, mode = 'detail') {
+    const row = document.createElement('div');
+    row.className = 'comment-row';
+
+    const author = resolveAuthorInfo(c.userId, c.user, c.avatar);
+    const init = escapeHtml(author.name.charAt(0).toUpperCase());
+    const avHtml = author.avatar
+        ? `<img class="comment-avatar" src="${escapeHtml(author.avatar)}" alt="">`
+        : `<div class="comment-avatar-initial">${init}</div>`;
+
+    const hasReplies = Array.isArray(c.replies) && c.replies.length > 0 && mode === 'detail';
+
+    row.innerHTML = `
+        <div class="comment-avatar-col">
+            <div class="c-av-trigger">${avHtml}</div>
+            ${hasReplies ? '<div class="thread-line-down"></div>' : ''}
+        </div>
+        <div class="comment-content">
+            <div class="comment-head">
+                <span class="comment-user">${escapeHtml(author.name)}${getInlineVerifiedBadge(author.userId, c)}</span>
+                <span class="comment-time">${escapeHtml(formatExactTime(c.createdAt))}</span>
+            </div>
+            <div class="comment-text">${escapeHtml(c.text)}</div>
+            <div class="comment-actions">
+                <button class="comment-act c-like-btn ${isLiked(c) ? 'liked' : ''}">${ICONS.like}<span>${c.likes || 0}</span></button>
+                <button class="comment-act c-reply-btn">${ICONS.comment}<span>${(c.replies || []).length || ''}</span></button>
+                <button class="comment-act c-share-btn">${ICONS.share}</button>
+            </div>
+        </div>
+    `;
+
+    // Profilga o'tish
+    row.querySelector('.c-av-trigger').addEventListener('click', (e) => { e.stopPropagation(); goToProfile(author.userId); });
+    row.querySelector('.comment-user').addEventListener('click', (e) => { e.stopPropagation(); goToProfile(author.userId); });
+
+    // Izohga layk bosish
+    const likeBtn = row.querySelector('.c-like-btn');
+    likeBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        if (!detailPost) return;
+        const fresh = PostStore.get(detailPost.id);
+        if (!fresh) return;
+        const commentsCopy = JSON.parse(JSON.stringify(fresh.comments || []));
+        const found = findComment(commentsCopy, c.id);
+        if (!found) return;
+
+        const liked = toggleLikeObj(found.comment);
+        likeBtn.classList.toggle('liked', liked);
+        likeBtn.querySelector('span').textContent = found.comment.likes;
+
+        await PostStore.update(detailPost.id, { comments: commentsCopy });
+        if (liked) sendNotification('like', found.comment.userId, detailPost.id, found.comment.id);
+    });
+
+    // Izohga javob yozish
+    row.querySelector('.c-reply-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (mode === 'cd-main' || mode === 'cd-reply') {
+            cdReplyTargetId = c.id;
+            updateCdReplyModeUI();
+            commentDetailInput.focus();
+        } else {
+            detailReplyTargetId = c.id;
+            updateDetailReplyUI();
+            detailInput.focus();
+        }
+    });
+
+    // Izohni ulashish (?post=ID&comment=ID)
+    row.querySelector('.c-share-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (detailPost) handleShare(c, detailPost.id, c.id);
+    });
+
+    // Izoh ustiga bosilganda izoh oynasini ochish
+    row.addEventListener('click', (e) => {
+        if (e.target.closest('button') || e.target.closest('.c-av-trigger') || e.target.closest('.comment-user')) return;
+        if (mode === 'detail') {
+            openCommentDetail(c.id);
+        } else if (mode === 'cd-reply') {
+            openCommentDetail(c.id);
+        }
+    });
+
+    return row;
+}
+
+function renderCommentThread(c) {
+    const thread = document.createElement('div');
+    thread.className = 'comment-thread';
+    thread.appendChild(buildCommentRow(c, 'detail'));
+
+    if (Array.isArray(c.replies) && c.replies.length > 0) {
+        const repBox = document.createElement('div');
+        repBox.className = 'comment-replies';
+        c.replies.forEach(r => repBox.appendChild(renderCommentThread(r)));
+        thread.appendChild(repBox);
+    }
+    return thread;
+}
+
+function renderDetailHeaderPost() {
+    if (!detailPost) return;
+    const box = document.getElementById('detailPostBox');
+    const author = resolveAuthorInfo(detailPost.userId, detailPost.user, detailPost.avatar);
+    const init = escapeHtml(author.name.charAt(0).toUpperCase());
+    const av = author.avatar ? `<img class="post-avatar" src="${escapeHtml(author.avatar)}" alt="">` : `<div class="post-avatar-initial">${init}</div>`;
+
+    let media = '';
+    if (detailPost.type === 'image' && detailPost.image) media = `<img class="detail-image" src="${escapeHtml(detailPost.image)}" alt="">`;
+    else if (detailPost.type === 'video' && detailPost.image) media = `<video class="detail-video" src="${escapeHtml(detailPost.image)}" controls playsinline></video>`;
+
+    box.innerHTML = `
+        <div class="detail-post">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+                <div class="d-av-link">${av}</div>
+                <div class="post-head-info">
+                    <div class="post-user d-user-link">${escapeHtml(author.name)}${getInlineVerifiedBadge(author.userId, detailPost)}</div>
+                    <div class="post-time">${escapeHtml(formatExactTime(detailPost.createdAt))}</div>
+                </div>
+            </div>
+            ${detailPost.text ? `<div class="detail-text">${escapeHtml(detailPost.text)}</div>` : ''}
+            ${media}
+            <div id="detailActionsSlot"></div>
+        </div>
+    `;
+    box.querySelector('.d-av-link').addEventListener('click', () => goToProfile(author.userId));
+    box.querySelector('.d-user-link').addEventListener('click', () => goToProfile(author.userId));
+    box.querySelector('#detailActionsSlot').appendChild(buildPostActions(detailPost));
+}
+
+// #7: Post ichida layk yoki izoh bo'lganda video qayta yuklanmasligi uchun faqat izohlar ro'yxatini yangilash
+function refreshDetailCommentsOnly() {
+    if (!detailPost) return;
+    const list = document.getElementById('detailCommentsList');
+    const title = document.getElementById('detailCommTitle');
+    const comments = detailPost.comments || [];
+    title.textContent = `Izohlar (${countComments(detailPost)})`;
+    list.innerHTML = '';
+
+    if (comments.length === 0) {
+        list.innerHTML = '<div style="color:#8e8e93;font-size:14px;padding:12px 0">Hali izohlar yo\'q. Birinchi bo\'lib fikr bildiring.</div>';
+    } else {
+        comments.forEach(c => list.appendChild(renderCommentThread(c)));
+    }
+
+    const slot = document.getElementById('detailActionsSlot');
+    if (slot) {
+        slot.innerHTML = '';
+        slot.appendChild(buildPostActions(detailPost));
+    }
+
+    if (commentDetailOverlay.classList.contains('show') && activeCommentId) {
+        renderCommentDetail();
+    }
+}
+
+function openPostDetail(p) {
+    detailPost = PostStore.get(p.id) || p;
+    detailReplyTargetId = null;
+    detailInput.value = '';
+    detailInput.style.height = 'auto';
+    detailSend.disabled = true;
+
+    renderDetailHeaderPost();
+    refreshDetailCommentsOnly();
+    updateDetailReplyUI();
+
+    detailOverlay.classList.add('show');
+    document.getElementById('detailScroll').scrollTop = 0;
+    updateBackButton();
+}
+
+// #7 & #8: Post yopilganda butun lenta qayta chizilmaydi, input tozalanadi
+function closePostDetail() {
+    const closedId = detailPost?.id;
+    detailOverlay.classList.remove('show');
+    detailInput.value = '';
+    detailInput.style.height = 'auto';
+    detailReplyTargetId = null;
+    detailPost = null;
+    if (closedId) updateSinglePostCard(closedId);
+    updateBackButton();
+}
+
+document.getElementById('detailBackBtn').addEventListener('click', closePostDetail);
+
 
 /* ================= COMMENT DETAIL ================= */
+const commentDetailOverlay = document.getElementById('commentDetailOverlay');
+const cdReplyModeCancel = document.getElementById('cdReplyModeCancel');
+const commentDetailInput = document.getElementById('commentDetailInput');
+const commentDetailSend = document.getElementById('commentDetailSend');
+let activeCommentId = null;
+let cdReplyTargetId = null;
+
 function renderCommentDetail(){
     if (!detailPost || !activeCommentId) return;
     const fresh = PostStore.get(detailPost.id); if (fresh) detailPost = fresh;
@@ -1439,20 +1810,35 @@ function renderCommentDetail(){
 }
 
 function openCommentDetail(cid){
-    if (!detailPost) return; const fresh = PostStore.get(detailPost.id); if (!fresh) return; detailPost = fresh;
+    if (!detailPost) return;
+    const fresh = PostStore.get(detailPost.id); if (!fresh) return;
+    detailPost = fresh;
     const found = findComment(detailPost.comments || [], cid); if (!found) return;
-    activeCommentId = cid; cdReplyTargetId = null;
+    activeCommentId = cid;
+    cdReplyTargetId = null;
+    commentDetailInput.value = '';
+    commentDetailInput.style.height = 'auto';
+    commentDetailSend.disabled = true;
+
     renderCommentDetail();
-    commentDetailOverlay.classList.add('show'); document.getElementById('commentDetailScroll').scrollTop = 0; updateCdReplyModeUI();
-    updateBackButton();
-}
-function closeCommentDetail(){
-    commentDetailOverlay.classList.remove('show'); activeCommentId = null; cdReplyTargetId = null;
-    if (detailPost) refreshDetailFromStore();
+    commentDetailOverlay.classList.add('show');
+    document.getElementById('commentDetailScroll').scrollTop = 0;
+    updateCdReplyModeUI();
     updateBackButton();
 }
 
-const cdReplyModeCancel = document.getElementById('cdReplyModeCancel'), commentDetailInput = document.getElementById('commentDetailInput'), commentDetailSend = document.getElementById('commentDetailSend');
+function closeCommentDetail(){
+    commentDetailOverlay.classList.remove('show');
+    commentDetailInput.value = '';
+    commentDetailInput.style.height = 'auto';
+    activeCommentId = null;
+    cdReplyTargetId = null;
+    if (detailPost) refreshDetailCommentsOnly();
+    updateBackButton();
+}
+
+document.getElementById('commentDetailBackBtn').addEventListener('click', closeCommentDetail);
+
 function updateCdReplyModeUI(){
     if (!detailPost) { document.getElementById('cdReplyModeBar').style.display = 'none'; document.getElementById('commentDetailIsland').classList.remove('reply-mode'); return; }
     const targetId = cdReplyTargetId || activeCommentId;
@@ -1483,6 +1869,7 @@ commentDetailSend.addEventListener('click', async () => {
     const newReply = makeCommentObj(txt, targetId);
     const res = await addCommentToPost(detailPost.id, newReply, targetId);
     if (res) {
+        detailPost = res.post;
         pushMyReply({ id: newReply.id, postId: detailPost.id, userId: newReply.userId, user: newReply.user, avatar: newReply.avatar, text: newReply.text, createdAt: newReply.createdAt, postText: detailPost.text });
 
         const parentFound = findComment(detailPost.comments, targetId);
@@ -1492,12 +1879,121 @@ commentDetailSend.addEventListener('click', async () => {
 
         commentDetailInput.value = ''; commentDetailInput.style.height = 'auto';
         cdReplyTargetId = null;
-        refreshAll();
-        updateCdReplyModeUI(); showToast('Javob qo\'shildi');
+        renderCommentDetail();
+        refreshDetailCommentsOnly();
+        updateSinglePostCard(detailPost.id);
+        updateCdReplyModeUI();
+        showToast('Javob qo\'shildi');
     } else {
         commentDetailSend.disabled = false;
     }
 });
+
+/* ================= BOSH ADMINISTRATOR PANELI ================= */
+const adminOverlay = document.getElementById('adminOverlay');
+
+function openAdminPanel() {
+    if (!isSuperAdmin()) return;
+    renderAdminPanel();
+    adminOverlay.classList.add('show');
+    updateBackButton();
+}
+function closeAdminPanel() {
+    adminOverlay.classList.remove('show');
+    updateBackButton();
+}
+
+document.getElementById('openAdminBtn').addEventListener('click', openAdminPanel);
+document.getElementById('adminBackBtn').addEventListener('click', closeAdminPanel);
+
+function renderAdminPanel() {
+    if (!isSuperAdmin()) return;
+    const users = DB.getAllRemoteUsers();
+    const posts = PostStore.all();
+
+    const statsGrid = document.getElementById('adminStatsGrid');
+    statsGrid.innerHTML = `
+        <div class="admin-stat-card">
+            <div class="admin-stat-val">${users.length}</div>
+            <div class="admin-stat-lbl">Jami foydalanuvchilar</div>
+        </div>
+        <div class="admin-stat-card">
+            <div class="admin-stat-val">${posts.length}</div>
+            <div class="admin-stat-lbl">Jami postlar</div>
+        </div>
+    `;
+
+    const list = document.getElementById('adminUsersList');
+    list.innerHTML = '';
+
+    // Har bir foydalanuvchining postlari sonini aniq hisoblash
+    const postCountByUser = {};
+    posts.forEach(p => {
+        const uid = String(p.userId);
+        postCountByUser[uid] = (postCountByUser[uid] || 0) + 1;
+    });
+
+    users.forEach(u => {
+        const uid = String(u.userId);
+        const fullName = [u.firstName, u.lastName].filter(Boolean).join(' ').trim() || 'Foydalanuvchi';
+        const verified = Boolean(u.verified || u.isVerified);
+        const userPostsCount = postCountByUser[uid] || 0;
+        const regDate = formatDateFull(u.createdAt);
+        const usageDays = calcUsageDuration(u.createdAt);
+
+        const card = document.createElement('div');
+        card.className = 'admin-user-card';
+        card.innerHTML = `
+            <div class="admin-user-top">
+                <div style="flex:1;min-width:0">
+                    <div class="post-user">${escapeHtml(fullName)}${verified ? VERIFIED_BADGE_SM_SVG : ''}</div>
+                    <div class="post-time">ID: ${escapeHtml(uid)} ${u.username ? '• @' + escapeHtml(u.username) : ''}</div>
+                </div>
+            </div>
+            <div class="admin-user-meta">
+                <div>Ro'yxatdan o'tgan sana: <b>${escapeHtml(regDate)}</b></div>
+                <div>Foydalanish muddati: <b>${escapeHtml(usageDays)}</b></div>
+                <div>Yozgan postlari soni: <b>${userPostsCount} ta</b></div>
+            </div>
+            <div class="admin-user-actions">
+                <button class="admin-btn ${verified ? 'unverify' : 'verify'}" data-act="toggle-verify">
+                    ${verified ? 'Tasdiqni olib tashlash' : 'Tasdiqlash belgisi berish'}
+                </button>
+                <button class="admin-btn del" data-act="delete-user">Kanalni o'chirish</button>
+            </div>
+        `;
+
+        card.querySelector('[data-act="toggle-verify"]').addEventListener('click', async () => {
+            const nextState = !verified;
+            try {
+                await updateDoc(doc(db, USERS_COLLECTION, uid), { verified: nextState, isVerified: nextState });
+                showToast(nextState ? 'Tasdiqlash belgisi berildi' : 'Tasdiqlash belgisi olib tashlandi');
+            } catch {
+                showToast('Xatolik yuz berdi');
+            }
+        });
+
+        card.querySelector('[data-act="delete-user"]').addEventListener('click', async () => {
+            if (uid === String(currentUser.userId)) {
+                showToast('O\'zingizni o\'chira olmaysiz');
+                return;
+            }
+            try {
+                // Foydalanuvchining barcha postlarini ham o'chirish
+                const userPosts = posts.filter(p => String(p.userId) === uid);
+                for (const up of userPosts) {
+                    await deleteDoc(doc(db, POSTS_COLLECTION, String(up.id)));
+                }
+                await deleteDoc(doc(db, USERS_COLLECTION, uid));
+                showToast('Kanal va uning barcha postlari o\'chirildi');
+            } catch {
+                showToast('O\'chirishda xatolik yuz berdi');
+            }
+        });
+
+        list.appendChild(card);
+    });
+}
 
 /* ================= INIT & NAVIGATION ================= */
 let urlChecked = false;
@@ -1511,24 +2007,24 @@ function checkUrlParamsOnce() {
         const targetPost = PostStore.get(urlPostId);
         if (targetPost) {
             openPostDetail(targetPost);
-            if (urlCommentId && findComment(detailPost.comments || [], urlCommentId)) openCommentDetail(urlCommentId);
+            if (urlCommentId && findComment(detailPost.comments || [], urlCommentId)) {
+                openCommentDetail(urlCommentId);
+            }
         }
     }
 }
 
 loadMyReplies();
 renderFeed();
-DB.initUsersRealtime(); // Foydalanuvchilar ro'yxatini Firestore'dan real-vaqtda yuklash
-PostStore.initRealtime(); // Postlarni Firestore'dan real-vaqtda yuklash
+DB.initUsersRealtime();
+PostStore.initRealtime();
 updateNotificationBadgeLocal();
 updateBackButton();
 
-window.history.pushState({ page: 'uy' }, 'Uy', '');
+// #10: Bosh sahifada orqaga bosilganda sahifa qayta yuklanmaydi va Telegram ilovasidan chiqish to'silmaydi
 window.addEventListener('popstate', () => {
-    if (handleBack()) {
-        window.history.pushState({ page: 'uy' }, 'Uy', '');
-    } else {
-        window.history.back();
+    if (anyOverlayOpen()) {
+        handleBack();
     }
 });
 </script>
