@@ -77,6 +77,18 @@ body{display:flex;justify-content:center;align-items:flex-start;min-height:100vh
 .empty-icon{width:58px;height:58px;margin:0 auto 14px;border:1.5px solid #333639;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#71767b}
 .empty-icon svg{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
+/* Skeleton Loader */
+.tab-loader{display:none;flex-direction:column;width:100%;padding:8px 0}
+.tab-loader.active{display:flex}
+.sk-post{display:flex;gap:10px;padding:16px 0;border-bottom:1px solid rgba(255,255,255,0.06)}
+.sk-shimmer{background:#161618;background-image:linear-gradient(110deg,#161618 0%,#161618 35%,#26262b 50%,#161618 65%,#161618 100%);background-size:250% 100%;animation:skWave 1.35s linear infinite}
+@keyframes skWave{0%{background-position:100% 0}100%{background-position:-100% 0}}
+.sk-av{width:42px;height:42px;border-radius:50%;flex-shrink:0}
+.sk-col{flex:1;display:flex;flex-direction:column;gap:8px;padding-top:4px}
+.sk-l1{width:45%;height:13px;border-radius:6px}
+.sk-l2{width:90%;height:12px;border-radius:6px}
+.sk-l3{width:65%;height:12px;border-radius:6px}
+
 /* Floating Post tugmasi */
 .post-btn{position:fixed;right:20px;bottom:calc(100px + env(safe-area-inset-bottom));z-index:40;display:inline-flex;align-items:center;gap:10px;padding:14px 26px;background:linear-gradient(135deg,#fff 0%,#e5e5e5 100%);color:#000;border:none;border-radius:100px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;user-select:none;box-shadow:0 8px 24px rgba(255,255,255,.15),0 2px 8px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.9);transition:transform .2s cubic-bezier(.34,1.56,.64,1),box-shadow .2s ease}
 .post-btn:active{transform:scale(.94)}
@@ -193,6 +205,7 @@ body{display:flex;justify-content:center;align-items:flex-start;min-height:100vh
 .detail-comments-list,.comment-detail-replies{padding:0 16px;display:flex;flex-direction:column;gap:12px}
 .comment-detail-main{padding:16px;border-bottom:1px solid rgba(255,255,255,0.06)}
 
+
 /* Telegram ID orqali tezkor kirish oynasi */
 .tg-id-gate{position:fixed;inset:0;background:#000000;z-index:900;display:none;align-items:center;justify-content:center;padding:24px}
 .tg-id-gate.show{display:flex}
@@ -203,7 +216,6 @@ body{display:flex;justify-content:center;align-items:flex-start;min-height:100vh
 .tg-id-input:focus{border-color:#ffffff}
 .tg-id-btn{width:100%;height:48px;background:#ffffff;color:#000000;border:none;border-radius:9999px;font-size:16px;font-weight:700;cursor:pointer}
 .tg-id-btn:active{transform:scale(.98)}
-
 
 /* Obunachilar / Obunalar ro'yxati */
 .follow-user-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.06);cursor:pointer}
@@ -221,11 +233,12 @@ body{display:flex;justify-content:center;align-items:flex-start;min-height:100vh
 /* "ISLAND" PASTKI NAVIGATSIYA */
 .bottom-nav{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:380px;background:rgba(28,28,30,0.85);backdrop-filter:blur(25px);-webkit-backdrop-filter:blur(25px);border:1px solid rgba(255,255,255,0.1);border-radius:40px;z-index:50;box-shadow:0 10px 40px rgba(0,0,0,0.6);padding:6px 12px}
 .bottom-nav-inner{display:flex;justify-content:space-between;align-items:center;width:100%}
-.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;text-decoration:none;color:#8e8e93;transition:color .2s,transform .2s}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;text-decoration:none;color:#8e8e93;transition:color .2s,transform .2s;position:relative}
 .nav-btn:active{transform:scale(.92)}
 .nav-btn svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .nav-active{color:#fff}
 .nav-label{font-size:10px;font-weight:600}
+.nav-badge{position:absolute;top:2px;right:25%;background:#ff2d55;color:#fff;font-size:10px;font-weight:700;border-radius:10px;padding:2px 5px;min-width:16px;text-align:center;line-height:1;border:2px solid #1c1c1e;z-index:10}
 </style>
 </head>
 <body>
@@ -322,6 +335,7 @@ body{display:flex;justify-content:center;align-items:flex-start;min-height:100vh
 
     <!-- Kontent maydoni -->
     <div class="content-area" id="contentArea"></div>
+    <div class="tab-loader" id="tabLoader" aria-hidden="true"></div>
 </div>
 
 <!-- Yangi post yozish tugmasi -->
@@ -418,18 +432,19 @@ body{display:flex;justify-content:center;align-items:flex-start;min-height:100vh
 <nav class="bottom-nav">
     <div class="bottom-nav-inner">
         <a href="index.html" class="nav-btn nav-inactive"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span class="nav-label">Uy</span></a>
-        <a href="notification.html" class="nav-btn nav-inactive"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg><span class="nav-label">Bildirishnoma</span></a>
+        <a href="notification.html" class="nav-btn nav-inactive" id="navNotifBtn"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg><span class="nav-label">Bildirishnoma</span></a>
         <a href="qidiruv.html" class="nav-btn nav-inactive"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span class="nav-label">Qidiruv</span></a>
         <a href="profil.html" class="nav-btn nav-active" id="navProfileLink"><span id="navAvatarSlot"></span><span class="nav-label">Profil</span></a>
     </div>
 </nav>
 
 <script type="module">
-/* ================= FIREBASE SDK IMPORT & INIT ================= */
+/* ================= FIREBASE SDK IMPORT & INIT (INDEX & NOTIFICATION BILAN BIR XIL) ================= */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-    getFirestore, collection, doc, getDoc, setDoc, updateDoc, deleteDoc,
-    onSnapshot, query, orderBy, increment
+    getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc,
+    onSnapshot, query, orderBy, where, limit, startAfter, increment,
+    arrayUnion, arrayRemove, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -448,12 +463,11 @@ const db = getFirestore(app);
 const POSTS_COLLECTION = "luz_posts";
 const USERS_COLLECTION = "luz_users";
 const FOLLOWS_COLLECTION = "luz_follows";
+const NOTIFS_COLLECTION = "luz_notifications";
+const REPLIES_COLLECTION = "luz_replies";
 
-/* ================= KONSTANTALAR ================= */
 const MAX_VIDEO_SIZE = 700 * 1024;
-const REPLIES_KEY = 'luz_my_replies_v1';
-const SAVED_POSTS_KEY = 'luz_saved_posts_v1';
-const VERIFIED_KEY = 'luz_verified_badge';
+const BATCH_SIZE = 20;
 
 const VERIFIED_BADGE_MAIN_SVG = `<svg width="21" height="21" viewBox="0 0 24 24" aria-label="Tasdiqlangan"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" fill="#ffffff" stroke="none"></path><path d="m9 12 2 2 4-4" fill="none" stroke="#000000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>`;
 const VERIFIED_BADGE_STICKY_SVG = `<svg width="16" height="16" viewBox="0 0 24 24" aria-label="Tasdiqlangan"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" fill="#ffffff" stroke="none"></path><path d="m9 12 2 2 4-4" fill="none" stroke="#000000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>`;
@@ -473,58 +487,39 @@ if (tg) {
     } catch {}
 }
 
-/* ================= DB (USERS - FIRESTORE + LOCAL) ================= */
-const DB = {
-    _K: 'luz_users',
-    _S: 'luz_current_user',
-    _remoteUsers: {},
-
-    _getUsers(){ try { return JSON.parse(localStorage.getItem(this._K)) || []; } catch { return []; } },
-    _saveUsers(list){ try { localStorage.setItem(this._K, JSON.stringify(list)); } catch {} },
-    getCurrentUser(){
-        const id = localStorage.getItem(this._S); if (!id) return null;
-        return this._remoteUsers[String(id)] || this._getUsers().find(u => String(u.userId) === String(id)) || null;
+/* ================= LAZY USER CACHE ================= */
+const UserCache = {
+    _map: new Map(),
+    _pending: new Map(),
+    get(uid) { return this._map.get(String(uid)) || null; },
+    set(uid, data) { if (uid && data) this._map.set(String(uid), data); },
+    async fetchOne(uid) {
+        const idStr = String(uid || '');
+        if (!idStr) return null;
+        if (this._map.has(idStr)) return this._map.get(idStr);
+        if (this._pending.has(idStr)) return this._pending.get(idStr);
+        const p = getDoc(doc(db, USERS_COLLECTION, idStr))
+            .then(s => {
+                this._pending.delete(idStr);
+                if (s.exists()) { this._map.set(idStr, s.data()); return s.data(); }
+                return null;
+            })
+            .catch(() => { this._pending.delete(idStr); return null; });
+        this._pending.set(idStr, p);
+        return p;
     },
-    getUserById(id){
-        if (!id) return null;
-        const idStr = String(id);
-        return this._remoteUsers[idStr] || this._getUsers().find(u => String(u.userId) === idStr) || null;
-    },
-    async fetchUserFromCloud(id) {
-        if (!id) return null;
-        try {
-            const snap = await getDoc(doc(db, USERS_COLLECTION, String(id)));
-            if (snap.exists()) {
-                const data = snap.data();
-                this._remoteUsers[String(id)] = data;
-                return data;
-            }
-        } catch (e) { console.error("User fetch xatosi:", e); }
-        return null;
-    },
-    initUsersRealtime() {
-        onSnapshot(collection(db, USERS_COLLECTION), (snapshot) => {
-            snapshot.forEach((docSnap) => {
-                const data = docSnap.data();
-                if (data && data.userId) {
-                    this._remoteUsers[String(data.userId)] = data;
-                }
-            });
-            if (!isOwn && profileUserId && this._remoteUsers[String(profileUserId)]) {
-                profileOwner = this._remoteUsers[String(profileUserId)];
-            }
-            if (currentUser) {
-                renderProfileHeader();
-                if (PostStore._isLoaded) {
-                    loadMyPosts();
-                    switchTab(currentTab);
-                }
-            }
-        });
+    async prefetch(uids) {
+        const unique = [...new Set(uids.map(String).filter(id => id && !this._map.has(id)))];
+        if (unique.length) await Promise.all(unique.map(id => this.fetchOne(id)));
     }
 };
 
-/* ================= TELEGRAM ID ORQALI KIRISH ================= */
+
+/* ================= IN-MEMORY SESSION (NO LOCALSTORAGE FOR DATA) ================= */
+let currentUser = null;
+let savedPosts = new Set();
+let viewedPostIds = new Set();
+
 function extractTelegramUser() {
     if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
         return tg.initDataUnsafe.user;
@@ -560,100 +555,43 @@ function extractTelegramUser() {
     return null;
 }
 
-function loginWithTelegramId(tU) {
-    let users = DB._getUsers().filter(u =>
-        u && u.userId && u.userId !== 'local_dev_user' && !String(u.userId).startsWith('mehmon_')
-    );
-    const isLocalVerified = localStorage.getItem(VERIFIED_KEY) === '1';
+async function loginWithTelegramId(tU) {
     const realId = String(tU.id);
-    const idx = users.findIndex(u => String(u.userId) === realId);
-    let userObj = null;
+    const nowIso = new Date().toISOString();
 
-    if (idx >= 0) {
-        const stored = users[idx];
-        userObj = stored.isEdited
-            ? {
-                ...stored,
-                userId: realId,
-                firstName: stored.firstName || tU.first_name || '',
-                lastName: stored.lastName || tU.last_name || '',
-                username: stored.username || tU.username || '',
-                photo_url: stored.photo_url || tU.photo_url || null
-            }
-            : {
-                userId: realId,
-                firstName: tU.first_name || stored.firstName || '',
-                lastName: tU.last_name || stored.lastName || '',
-                username: tU.username || stored.username || '',
-                photo_url: tU.photo_url || stored.photo_url || null,
-                bio: stored.bio || '',
-                banner_url: stored.banner_url || null,
-                isEdited: false,
-                verified: !!stored.verified || isLocalVerified,
-                isVerified: !!stored.isVerified || isLocalVerified
-            };
-        users[idx] = userObj;
-    } else {
-        userObj = {
+    try {
+        const snap = await getDoc(doc(db, USERS_COLLECTION, realId));
+        const existing = snap.exists() ? snap.data() : null;
+
+        const merged = {
+            ...(existing || {}),
+            userId: realId,
+            firstName: (existing?.isEdited && existing?.firstName) ? existing.firstName : (tU.first_name || existing?.firstName || 'Foydalanuvchi'),
+            lastName: (existing?.isEdited && existing?.lastName !== undefined) ? existing.lastName : (tU.last_name || existing?.lastName || ''),
+            username: (existing?.isEdited && existing?.username) ? existing.username : (tU.username || existing?.username || ''),
+            photo_url: (existing?.isEdited && existing?.photo_url) ? existing.photo_url : (tU.photo_url || existing?.photo_url || null),
+            bio: existing?.bio || '',
+            banner_url: existing?.banner_url || null,
+            verified: Boolean(existing?.verified || existing?.isVerified),
+            isVerified: Boolean(existing?.verified || existing?.isVerified),
+            lastActiveAt: nowIso
+        };
+
+        await setDoc(doc(db, USERS_COLLECTION, realId), merged, { merge: true });
+        UserCache.set(realId, merged);
+        return merged;
+    } catch {
+        const fallback = {
             userId: realId,
             firstName: tU.first_name || 'Foydalanuvchi',
             lastName: tU.last_name || '',
             username: tU.username || '',
-            photo_url: tU.photo_url || null,
-            bio: '',
-            banner_url: null,
-            isEdited: false,
-            verified: isLocalVerified,
-            isVerified: isLocalVerified
+            photo_url: tU.photo_url || null
         };
-        users.push(userObj);
+        UserCache.set(realId, fallback);
+        return fallback;
     }
-
-    DB._saveUsers(users);
-    localStorage.setItem(DB._S, realId);
-
-    setDoc(doc(db, USERS_COLLECTION, realId), {
-        userId: realId,
-        firstName: userObj.firstName || '',
-        lastName: userObj.lastName || '',
-        username: userObj.username || '',
-        photo_url: userObj.photo_url || null,
-        bio: userObj.bio || '',
-        banner_url: userObj.banner_url || null,
-        verified: !!userObj.verified,
-        isVerified: !!userObj.isVerified
-    }, { merge: true }).catch(() => {});
-
-    return userObj;
 }
-
-function resolveCurrentUser() {
-    const tgUser = extractTelegramUser();
-    if (tgUser && tgUser.id) {
-        return loginWithTelegramId(tgUser);
-    }
-
-    let users = DB._getUsers().filter(u =>
-        u && u.userId && u.userId !== 'local_dev_user' && !String(u.userId).startsWith('mehmon_')
-    );
-    DB._saveUsers(users);
-
-    const savedId = localStorage.getItem(DB._S);
-    if (savedId && /^\d+$/.test(String(savedId))) {
-        const found = users.find(u => String(u.userId) === String(savedId));
-        if (found) return found;
-        return loginWithTelegramId({ id: savedId });
-    }
-
-    if (users.length > 0) {
-        localStorage.setItem(DB._S, String(users[0].userId));
-        return users[0];
-    }
-
-    return null;
-}
-
-let currentUser = resolveCurrentUser();
 
 function getFullName(u) {
     if (!u) return '';
@@ -661,15 +599,12 @@ function getFullName(u) {
 }
 
 const profileUserId = new URLSearchParams(location.search).get('id');
-let isOwn = !profileUserId || (currentUser && String(profileUserId) === String(currentUser.userId));
-let profileOwner = isOwn ? currentUser : (DB.getUserById(profileUserId) || { userId: profileUserId, firstName: 'Foydalanuvchi', lastName: '' });
+let isOwn = true;
+let profileOwner = null;
 
 function isUserVerified(uid, fallbackUser) {
-    if (currentUser && String(uid) === String(currentUser.userId)) {
-        const saved = localStorage.getItem(VERIFIED_KEY);
-        if (saved !== null) return saved === '1';
-    }
-    const u = fallbackUser || DB.getUserById(uid);
+    if (!uid) return false;
+    const u = fallbackUser || UserCache.get(String(uid));
     return Boolean(u && (u.verified || u.isVerified));
 }
 
@@ -677,50 +612,141 @@ function getInlineVerifiedBadge(uid) {
     return isUserVerified(uid) ? VERIFIED_BADGE_SM_SVG : '';
 }
 
-/* ================= REAL FOLLOW SYSTEM (FIRESTORE) ================= */
+/* ================= ACTIVE SCREEN TIME TRACKER (INDEX & NOTIFICATION BILAN SINXRON) ================= */
+function getPeriodKeys(date = new Date()) {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+
+    const tmp = new Date(Date.UTC(yyyy, date.getMonth(), date.getDate()));
+    const dayNum = tmp.getUTCDay() || 7;
+    tmp.setUTCDate(tmp.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(tmp.getUTCFullYear(), 0, 1));
+    const weekNo = Math.ceil((((tmp - yearStart) / 86400000) + 1) / 7);
+    const ww = String(weekNo).padStart(2, '0');
+
+    return {
+        dailyKey: `daily_${yyyy}-${mm}-${dd}`,
+        weeklyKey: `weekly_${tmp.getUTCFullYear()}-W${ww}`,
+        monthlyKey: `monthly_${yyyy}-${mm}`
+    };
+}
+
+let activeSessionStart = null;
+let accumulatedSeconds = 0;
+let flushTimer = null;
+
+function isAppForeground() {
+    return document.visibilityState === 'visible' && document.hasFocus();
+}
+
+function resumeTimeCounting() {
+    if (!currentUser || activeSessionStart !== null) return;
+    if (isAppForeground()) activeSessionStart = Date.now();
+}
+
+function pauseAndCollectSeconds() {
+    if (activeSessionStart !== null) {
+        const elapsed = Math.floor((Date.now() - activeSessionStart) / 1000);
+        if (elapsed > 0) accumulatedSeconds += elapsed;
+        activeSessionStart = null;
+    }
+}
+
+async function flushUsageTimeToServer() {
+    pauseAndCollectSeconds();
+    if (!currentUser || accumulatedSeconds <= 0) {
+        resumeTimeCounting();
+        return;
+    }
+    const secondsToSend = accumulatedSeconds;
+    accumulatedSeconds = 0;
+    const { dailyKey, weeklyKey, monthlyKey } = getPeriodKeys();
+
+    try {
+        await setDoc(doc(db, USERS_COLLECTION, String(currentUser.userId)), {
+            [`usageStats.${dailyKey}`]: increment(secondsToSend),
+            [`usageStats.${weeklyKey}`]: increment(secondsToSend),
+            [`usageStats.${monthlyKey}`]: increment(secondsToSend),
+            totalActiveSeconds: increment(secondsToSend),
+            lastActiveAt: new Date().toISOString()
+        }, { merge: true });
+    } catch {
+        accumulatedSeconds += secondsToSend;
+    }
+    resumeTimeCounting();
+}
+
+function startActiveTimeTracker() {
+    if (!currentUser) return;
+    resumeTimeCounting();
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') resumeTimeCounting();
+        else flushUsageTimeToServer();
+    });
+    window.addEventListener('focus', resumeTimeCounting);
+    window.addEventListener('blur', flushUsageTimeToServer);
+    window.addEventListener('pagehide', flushUsageTimeToServer);
+    clearInterval(flushTimer);
+    flushTimer = setInterval(() => {
+        if (isAppForeground()) flushUsageTimeToServer();
+    }, 25000);
+}
+
+/* ================= REAL-TIME FOLLOW SYSTEM (FIRESTORE) ================= */
 const FollowStore = {
-    _cache: [],
-    initRealtime() {
-        onSnapshot(collection(db, FOLLOWS_COLLECTION), (snapshot) => {
+    _followers: [],
+    _following: [],
+    _isFollowingTarget: false,
+
+    initForProfile(targetId) {
+        const tId = String(targetId);
+
+        onSnapshot(query(collection(db, FOLLOWS_COLLECTION), where("targetId", "==", tId)), (snap) => {
             const arr = [];
-            snapshot.forEach(docSnap => arr.push({ id: docSnap.id, ...docSnap.data() }));
-            this._cache = arr;
+            snap.forEach(d => arr.push(String(d.data().followerId)));
+            this._followers = arr;
             updateFollowStatsUI();
         });
+
+        onSnapshot(query(collection(db, FOLLOWS_COLLECTION), where("followerId", "==", tId)), (snap) => {
+            const arr = [];
+            snap.forEach(d => arr.push(String(d.data().targetId)));
+            this._following = arr;
+            updateFollowStatsUI();
+        });
+
+        if (currentUser && String(currentUser.userId) !== tId) {
+            const relId = `${String(currentUser.userId)}_${tId}`;
+            onSnapshot(doc(db, FOLLOWS_COLLECTION, relId), (snap) => {
+                this._isFollowingTarget = snap.exists();
+                updateFollowStatsUI();
+            });
+        }
     },
-    isFollowing(followerId, targetId){
-        if (!followerId || !targetId) return false;
-        return this._cache.some(f => String(f.followerId) === String(followerId) && String(f.targetId) === String(targetId));
-    },
-    getFollowers(userId){
-        return this._cache
-            .filter(f => String(f.targetId) === String(userId))
-            .map(f => String(f.followerId));
-    },
-    getFollowing(userId){
-        return this._cache
-            .filter(f => String(f.followerId) === String(userId))
-            .map(f => String(f.targetId));
-    },
-    async toggle(followerId, targetId){
+
+    getFollowers() { return this._followers; },
+    getFollowing() { return this._following; },
+
+    async toggle(followerId, targetId) {
         if (!followerId || !targetId || String(followerId) === String(targetId)) return false;
         const docId = `${String(followerId)}_${String(targetId)}`;
-        const active = this.isFollowing(followerId, targetId);
+        const active = this._isFollowingTarget;
 
         if (active) {
-            this._cache = this._cache.filter(f => f.id !== docId);
+            this._isFollowingTarget = false;
             updateFollowStatsUI();
             await deleteDoc(doc(db, FOLLOWS_COLLECTION, docId)).catch(() => {});
             return false;
         } else {
+            this._isFollowingTarget = true;
+            updateFollowStatsUI();
             const entry = {
                 id: docId,
                 followerId: String(followerId),
                 targetId: String(targetId),
                 createdAt: new Date().toISOString()
             };
-            this._cache.unshift(entry);
-            updateFollowStatsUI();
             await setDoc(doc(db, FOLLOWS_COLLECTION, docId), entry).catch(() => {});
             pushNotification({
                 type: 'follow',
@@ -734,12 +760,12 @@ const FollowStore = {
     }
 };
 
-function pushNotification(notif){
+function pushNotification(notif) {
     const targetId = notif.recipientId || notif.toUserId;
     const senderId = notif.senderId || notif.fromUserId;
     if (!targetId || String(targetId) === String(senderId)) return;
     const notifId = 'n_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
-    setDoc(doc(db, "luz_notifications", notifId), {
+    setDoc(doc(db, NOTIFS_COLLECTION, notifId), {
         id: notifId,
         createdAt: new Date().toISOString(),
         isRead: false,
@@ -747,18 +773,13 @@ function pushNotification(notif){
     }).catch(() => {});
 }
 
-function updateFollowStatsUI(){
-    const targetId = profileOwner?.userId;
-    if (!targetId) return;
-    const followers = FollowStore.getFollowers(targetId);
-    const following = FollowStore.getFollowing(targetId);
-    document.getElementById('followersCount').textContent = followers.length;
-    document.getElementById('subsCount').textContent = following.length;
+function updateFollowStatsUI() {
+    document.getElementById('followersCount').textContent = FollowStore.getFollowers().length;
+    document.getElementById('subsCount').textContent = FollowStore.getFollowing().length;
 
     if (!isOwn && currentUser) {
         const subBtn = document.getElementById('subscribeBtn');
-        const active = FollowStore.isFollowing(currentUser.userId, targetId);
-        if (active) {
+        if (FollowStore._isFollowingTarget) {
             subBtn.classList.remove('primary');
             subBtn.innerHTML = `<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Obunadasiz`;
         } else {
@@ -767,7 +788,6 @@ function updateFollowStatsUI(){
         }
     }
 }
-
 
 /* ================= SCROLL ANIMATION (BANNER & AVATAR) ================= */
 (function initScrollEffects(){
@@ -803,407 +823,238 @@ function updateFollowStatsUI(){
     requestAnimationFrame(updateProgress);
 })();
 
-/* ================= FIRESTORE POST STORE ================= */
+/* ================= FIRESTORE LAZY POST & REPLY STORE ================= */
 const PostStore = {
-    _cache: [],
-    _isLoaded: false,
+    _userPosts: [],
+    _savedPostsList: [],
+    _repliesList: [],
+    _byId: new Map(),
+    _lastUserDoc: null,
+    _hasMoreUserPosts: true,
+    _isLoading: false,
 
-    initRealtime() {
-        const q = query(collection(db, POSTS_COLLECTION), orderBy("createdAt", "desc"));
-        onSnapshot(q, (snapshot) => {
-            const list = [];
-            snapshot.forEach(docSnap => list.push({ id: docSnap.id, ...docSnap.data() }));
-            this._cache = list;
-            this._isLoaded = true;
+    get(id) {
+        return this._byId.get(String(id)) || null;
+    },
 
-            if (currentUser) {
-                loadMyPosts();
+    _registerPosts(list) {
+        list.forEach(p => this._byId.set(String(p.id), p));
+    },
+
+    async loadUserPostsInitial(targetId) {
+        const tId = String(targetId);
+        this._isLoading = true;
+        showTabLoader(true);
+
+        try {
+            // Aniq postlar sonini serverdan olish
+            const countSnap = await getCountFromServer(query(collection(db, POSTS_COLLECTION), where("userId", "==", tId)));
+            document.getElementById('postsCount').textContent = countSnap.data().count || 0;
+
+            const q = query(
+                collection(db, POSTS_COLLECTION),
+                where("userId", "==", tId),
+                orderBy("createdAt", "desc"),
+                limit(BATCH_SIZE)
+            );
+            const snap = await getDocs(q);
+            const batch = [];
+            snap.forEach(d => batch.push({ id: d.id, ...d.data() }));
+
+            this._userPosts = batch;
+            this._registerPosts(batch);
+            this._lastUserDoc = snap.docs[snap.docs.length - 1] || null;
+            this._hasMoreUserPosts = snap.docs.length === BATCH_SIZE;
+
+            await UserCache.prefetch([tId]);
+        } catch (e) {
+            console.error("Postlarni yuklash xatosi:", e);
+            this._hasMoreUserPosts = false;
+        } finally {
+            this._isLoading = false;
+            showTabLoader(false);
+        }
+    },
+
+    async loadNextUserPostsPage(targetId) {
+        if (this._isLoading || !this._hasMoreUserPosts || !this._lastUserDoc) return;
+        const tId = String(targetId);
+        this._isLoading = true;
+        showTabLoader(true);
+
+        try {
+            const q = query(
+                collection(db, POSTS_COLLECTION),
+                where("userId", "==", tId),
+                orderBy("createdAt", "desc"),
+                startAfter(this._lastUserDoc),
+                limit(BATCH_SIZE)
+            );
+            const snap = await getDocs(q);
+            const batch = [];
+            snap.forEach(d => batch.push({ id: d.id, ...d.data() }));
+
+            this._userPosts.push(...batch);
+            this._registerPosts(batch);
+            this._lastUserDoc = snap.docs[snap.docs.length - 1] || this._lastUserDoc;
+            this._hasMoreUserPosts = snap.docs.length === BATCH_SIZE;
+
+            if (batch.length > 0 && (currentTab === 'posts' || currentTab === 'video')) {
+                switchTab(currentTab);
+            }
+        } catch (e) {
+            console.error("Keyingi sahifa xatosi:", e);
+        } finally {
+            this._isLoading = false;
+            showTabLoader(false);
+        }
+    },
+
+    listenUserPostsRealtime(targetId) {
+        const tId = String(targetId);
+        const q = query(
+            collection(db, POSTS_COLLECTION),
+            where("userId", "==", tId),
+            orderBy("createdAt", "desc"),
+            limit(BATCH_SIZE)
+        );
+        onSnapshot(q, (snap) => {
+            const topFresh = [];
+            snap.forEach(d => topFresh.push({ id: d.id, ...d.data() }));
+            const freshIds = new Set(topFresh.map(x => String(x.id)));
+            const older = this._userPosts.filter(x => !freshIds.has(String(x.id)));
+            this._userPosts = [...topFresh, ...older];
+            this._registerPosts(topFresh);
+
+            if (currentTab === 'posts' || currentTab === 'video') {
                 switchTab(currentTab);
             }
             if (detailOverlay?.classList.contains('show') && detailPost) {
                 refreshDetailFromStore();
                 if (commentDetailOverlay?.classList.contains('show')) refreshCommentDetailFromStore();
             }
-        });
+        }, () => {});
     },
 
-    all(){ return this._cache.slice(); },
-    byUser(uid){ if (!uid) return []; return this._cache.filter(p => String(p.userId) === String(uid)); },
-    get(id){ return this._cache.find(p => String(p.id) === String(id)) || null; },
+    async loadSavedPostsFromServer() {
+        const ids = [...savedPosts];
+        if (ids.length === 0) {
+            this._savedPostsList = [];
+            return;
+        }
+        showTabLoader(true);
+        try {
+            const snaps = await Promise.all(ids.map(pid => getDoc(doc(db, POSTS_COLLECTION, String(pid)))));
+            const fetched = [];
+            const authorIds = [];
+            snaps.forEach(s => {
+                if (s.exists()) {
+                    const data = { id: s.id, ...s.data() };
+                    fetched.push(data);
+                    if (data.userId) authorIds.push(data.userId);
+                }
+            });
+            await UserCache.prefetch(authorIds);
+            this._savedPostsList = fetched;
+            this._registerPosts(fetched);
+        } catch {
+            this._savedPostsList = [];
+        } finally {
+            showTabLoader(false);
+        }
+    },
 
-    async add(post){
+    listenUserReplies(targetId) {
+        const tId = String(targetId);
+        const q = query(
+            collection(db, REPLIES_COLLECTION),
+            where("userId", "==", tId),
+            orderBy("createdAt", "desc"),
+            limit(30)
+        );
+        onSnapshot(q, async (snap) => {
+            const arr = [];
+            snap.forEach(d => arr.push({ id: d.id, ...d.data() }));
+            this._repliesList = arr;
+            await UserCache.prefetch([tId]);
+            if (currentTab === 'answers') renderReplies();
+        }, () => {});
+    },
+
+    async add(post) {
         try {
             if (JSON.stringify(post).length > 950000) {
                 showToast("Fayl hajmi juda katta! Kichikroq rasm tanlang.");
                 return null;
             }
             await setDoc(doc(db, POSTS_COLLECTION, String(post.id)), post);
+            this._registerPosts([post]);
+            const countEl = document.getElementById('postsCount');
+            countEl.textContent = (parseInt(countEl.textContent || '0', 10) + 1);
             return post;
         } catch {
             showToast('Saqlashda xatolik');
             return null;
         }
     },
-    async remove(id){
-        this._cache = this._cache.filter(p => String(p.id) !== String(id));
+
+    async remove(id) {
+        const idStr = String(id);
+        this._userPosts = this._userPosts.filter(p => String(p.id) !== idStr);
+        this._savedPostsList = this._savedPostsList.filter(p => String(p.id) !== idStr);
+        this._byId.delete(idStr);
         try {
-            await deleteDoc(doc(db, POSTS_COLLECTION, String(id)));
+            await deleteDoc(doc(db, POSTS_COLLECTION, idStr));
+            const countEl = document.getElementById('postsCount');
+            countEl.textContent = Math.max(0, parseInt(countEl.textContent || '0', 10) - 1);
             return true;
         } catch {
             showToast("O'chirishda xatolik");
             return false;
         }
     },
-    async update(id, patch){
-        const i = this._cache.findIndex(p => String(p.id) === String(id));
-        if (i >= 0) this._cache[i] = Object.assign({}, this._cache[i], patch);
+
+    async update(id, patch) {
+        const idStr = String(id);
+        const existing = this._byId.get(idStr);
+        if (existing) {
+            const updated = Object.assign({}, existing, patch);
+            this._byId.set(idStr, updated);
+            const idx1 = this._userPosts.findIndex(p => String(p.id) === idStr);
+            if (idx1 >= 0) this._userPosts[idx1] = updated;
+            const idx2 = this._savedPostsList.findIndex(p => String(p.id) === idStr);
+            if (idx2 >= 0) this._savedPostsList[idx2] = updated;
+        }
         try {
-            await updateDoc(doc(db, POSTS_COLLECTION, String(id)), patch);
-            return this._cache[i] || null;
+            await updateDoc(doc(db, POSTS_COLLECTION, idStr), patch);
+            return this._byId.get(idStr) || null;
         } catch {
             return null;
         }
     }
 };
 
-/* ================= VIEW TRACKER ================= */
-const VIEW_LOG_KEY = 'luz_view_log_v1';
-const ViewTracker = {
-    _cache: null,
-    _load(){
-        if (this._cache !== null) return this._cache;
-        try {
-            const raw = localStorage.getItem(VIEW_LOG_KEY);
-            this._cache = raw ? JSON.parse(raw) : {};
-            if (!this._cache || typeof this._cache !== 'object') this._cache = {};
-        } catch { this._cache = {}; }
-        return this._cache;
-    },
-    _key(uid, pid){ return String(uid) + '::' + String(pid); },
-    hasViewed(uid, pid){ if (!uid || !pid) return false; return this._load()[this._key(uid, pid)] === true; },
-    record(uid, pid){
-        if (!uid || !pid) return false; const log = this._load(); const k = this._key(uid, pid);
-        if (log[k] === true) return false; log[k] = true; this._cache = log;
-        try { localStorage.setItem(VIEW_LOG_KEY, JSON.stringify(log)); } catch {} return true;
-    }
-};
-
-/* ================= HELPERS ================= */
-function escapeHtml(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
-function formatExactTime(dateInput){
-    const d = dateInput instanceof Date ? dateInput : new Date(dateInput); if (isNaN(d.getTime())) return '';
-    const diffSec = Math.floor((new Date() - d) / 1000);
-    if (diffSec < 5) return 'hozir'; if (diffSec < 60) return diffSec + ' soniya oldin';
-    const diffMin = Math.floor(diffSec / 60); if (diffMin < 60) return diffMin + ' daqiqa oldin';
-    const diffHour = Math.floor(diffMin / 60); if (diffHour < 24) return diffHour + ' soat oldin';
-    const diffDay = Math.floor(diffHour / 24); if (diffDay < 7) return diffDay + ' kun oldin';
-    const dd = String(d.getDate()).padStart(2,'0'), mm = String(d.getMonth()+1).padStart(2,'0'); return `${dd}.${mm}.${d.getFullYear()}`;
-}
-function avatarMarkup(user, cls){
-    const name = user ? getFullName(user) : 'U';
-    const init = (name.trim().charAt(0) || 'U').toUpperCase();
-    const photo = user?.photo_url;
-    if (photo) return `<img class="${cls}" src="${photo}" alt="${escapeHtml(init)}">`;
-    return `<div class="${cls.replace('-avatar','-avatar-initial')}">${init}</div>`;
-}
-function goToProfile(uid){
-    if (!uid) return;
-    if (currentUser && String(uid) === String(currentUser.userId)) window.location.href = 'profil.html';
-    else window.location.href = `profil.html?id=${encodeURIComponent(uid)}`;
-}
-let toastTimer;
-function showToast(msg){
-    const t = document.getElementById('toast'); if (!t) return;
-    t.textContent = msg; t.classList.add('show');
-    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
-}
-function compressImage(file, maxW = 800, quality = 0.72){
-    return new Promise((resolve, reject) => {
-        const img = new Image(); const url = URL.createObjectURL(file);
-        img.onload = () => {
-            URL.revokeObjectURL(url); let { width, height } = img;
-            if (width > maxW) { height = Math.round(height * maxW / width); width = maxW; }
-            const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
-            canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-            try { resolve(canvas.toDataURL('image/jpeg', quality)); } catch (e) { reject(e); }
-        }; img.onerror = reject; img.src = url;
-    });
-}
-
-/* ================= LAYK ================= */
-function isLiked(o){
-    if (!o || !currentUser) return false;
-    if (Array.isArray(o.likedBy)) return o.likedBy.includes(String(currentUser.userId));
-    return !!o.liked;
-}
-function toggleLikeObj(o){
-    const uid = String(currentUser.userId);
-    if (!Array.isArray(o.likedBy)) o.likedBy = [];
-    const i = o.likedBy.indexOf(uid);
-    if (i >= 0) o.likedBy.splice(i, 1); else o.likedBy.push(uid);
-    const now = o.likedBy.includes(uid);
-    o.likes = o.likedBy.length;
-    return now;
-}
-
-/* ================= IZOHLAR YORDAMCHISI ================= */
-function findComment(comments, id){
-    for (const c of (comments || [])) {
-        if (c.id === id) return { comment: c, parent: null, isReply: false, root: c };
-        const found = findInReplies(c, id, c); if (found) return found;
-    } return null;
-}
-function findInReplies(parent, id, root){
-    for (const r of (parent.replies || [])) {
-        if (r.id === id) return { comment: r, parent, isReply: true, root };
-        const found = findInReplies(r, id, root); if (found) return found;
-    } return null;
-}
-function makeCommentObj(text, parentId){
-    const me = DB.getCurrentUser() || currentUser;
-    return {
-        id: 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
-        userId: String(me.userId), user: getFullName(me), avatar: me.photo_url || null,
-        text, createdAt: new Date().toISOString(), likes: 0, likedBy: [], replies: [], parentId: parentId || null
-    };
-}
-async function addCommentToPost(postId, newComment, replyToId){
-    const post = PostStore.get(postId); if (!post) return null;
-    const commentsCopy = JSON.parse(JSON.stringify(post.comments || []));
-    if (!replyToId) {
-        newComment.parentId = null; commentsCopy.push(newComment);
-        await PostStore.update(postId, { comments: commentsCopy });
-        pushNotification({
-            type: 'comment',
-            recipientId: String(post.userId),
-            senderId: String(currentUser.userId),
-            senderName: getFullName(currentUser),
-            senderAvatar: currentUser.photo_url || null,
-            postId: post.id,
-            commentId: newComment.id
-        });
-        return { post, comment: newComment, parent: null };
-    }
-    const found = findComment(commentsCopy, replyToId); if (!found) return null;
-    newComment.parentId = replyToId; if (!found.comment.replies) found.comment.replies = [];
-    found.comment.replies.push(newComment);
-    await PostStore.update(postId, { comments: commentsCopy });
-    pushNotification({
-        type: 'reply',
-        recipientId: String(found.comment.userId || post.userId),
-        senderId: String(currentUser.userId),
-        senderName: getFullName(currentUser),
-        senderAvatar: currentUser.photo_url || null,
-        postId: post.id,
-        commentId: newComment.id
-    });
-    return { post, comment: newComment, parent: found.comment };
-}
-function pushMyReply(entry){ myReplies.unshift(entry); saveMyReplies(); }
-
-/* ================= ICONS ================= */
-const ICONS = {
-    like: `<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`,
-    comment: `<svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>`,
-    view: `<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`,
-    bookmark: `<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`,
-    share: `<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>`,
-    trash: `<svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>`
-};
-
-/* ================= BANNER VA PROFIL UI ================= */
-function applyBanner(bannerUrl) {
-    const bannerImg = document.getElementById('bannerImg');
-    const bannerDefault = document.getElementById('bannerDefault');
-    const cleanUrl = (typeof bannerUrl === 'string') ? bannerUrl.trim() : '';
-
-    if (cleanUrl) {
-        bannerImg.onload = () => {
-            bannerImg.style.display = 'block';
-            bannerDefault.style.display = 'none';
-        };
-        bannerImg.onerror = () => {
-            bannerImg.style.display = 'none';
-            bannerDefault.style.display = 'block';
-        };
-        bannerImg.src = cleanUrl;
-    } else {
-        bannerImg.removeAttribute('src');
-        bannerImg.style.display = 'none';
-        bannerDefault.style.display = 'block';
-    }
-}
-
-function renderProfileHeader(){
-    if (!currentUser) return;
-    let latestOwner = null;
-    if (isOwn) {
-        latestOwner = DB.getCurrentUser() || currentUser;
-    } else {
-        latestOwner = DB.getUserById(profileUserId) || profileOwner;
-        if (!latestOwner || latestOwner.firstName === 'Foydalanuvchi') {
-            const theirPost = PostStore.byUser(profileUserId)[0];
-            if (theirPost) {
-                latestOwner = {
-                    userId: profileUserId,
-                    firstName: theirPost.user || 'Foydalanuvchi',
-                    lastName: '',
-                    photo_url: theirPost.avatar || null,
-                    verified: !!theirPost.verified
-                };
-            }
-        }
-    }
-    if (!latestOwner) return;
-    profileOwner = latestOwner;
-
-    const verified = isUserVerified(latestOwner.userId, latestOwner);
-    const name = getFullName(latestOwner);
-    const uname = latestOwner.username ? '@' + latestOwner.username : `@id${latestOwner.userId}`;
-
-    document.getElementById('userName').textContent = name;
-    document.getElementById('stickyNameText').textContent = name;
-    document.getElementById('userStatus').textContent = uname;
-
-    const mainBadgeSlot = document.getElementById('mainBadgeSlot');
-    const stickyBadgeSlot = document.getElementById('stickyBadgeSlot');
-    if (verified) {
-        mainBadgeSlot.innerHTML = VERIFIED_BADGE_MAIN_SVG;
-        mainBadgeSlot.style.display = 'inline-flex';
-        stickyBadgeSlot.innerHTML = VERIFIED_BADGE_STICKY_SVG;
-    } else {
-        mainBadgeSlot.innerHTML = '';
-        mainBadgeSlot.style.display = 'none';
-        stickyBadgeSlot.innerHTML = '';
-    }
-
-    const bioEl = document.getElementById('userBio');
-    const bioText = (latestOwner.bio || '').trim();
-    if (bioText) {
-        bioEl.textContent = bioText;
-        bioEl.style.display = 'block';
-    } else {
-        bioEl.textContent = '';
-        bioEl.style.display = 'none';
-    }
-
-    const userPhotoEl = document.getElementById('userPhoto');
-    const userInitialEl = document.getElementById('userInitial');
-    if (latestOwner.photo_url) {
-        userPhotoEl.src = latestOwner.photo_url;
-        userPhotoEl.style.display = 'block';
-        userInitialEl.style.display = 'none';
-    } else {
-        userPhotoEl.style.display = 'none';
-        userInitialEl.textContent = (name.charAt(0) || 'U').toUpperCase();
-        userInitialEl.style.display = 'flex';
-    }
-
-    document.getElementById('composerAvatarSlot').innerHTML = avatarMarkup(currentUser, 'composer-avatar');
-    document.getElementById('navAvatarSlot').innerHTML = avatarMarkup(currentUser, 'nav-avatar');
-
-    if (isOwn) {
-        document.getElementById('ownProfileActions').style.display = 'flex';
-        document.getElementById('otherProfileActions').style.display = 'none';
-        document.getElementById('postBtn').style.display = 'inline-flex';
-    } else {
-        document.getElementById('ownProfileActions').style.display = 'none';
-        document.getElementById('otherProfileActions').style.display = 'flex';
-        document.getElementById('postBtn').style.display = 'none';
-    }
-
-    applyBanner(latestOwner.banner_url);
-    updateFollowStatsUI();
-}
-
-async function bootAppWithUser(user) {
-    currentUser = user;
-    isOwn = !profileUserId || String(profileUserId) === String(currentUser.userId);
-
-    if (isOwn) {
-        profileOwner = currentUser;
-    } else {
-        const cloudUser = await DB.fetchUserFromCloud(profileUserId);
-        profileOwner = cloudUser || DB.getUserById(profileUserId) || {
-            userId: String(profileUserId),
-            firstName: 'Foydalanuvchi',
-            lastName: ''
-        };
-    }
-
-    document.getElementById('tgIdGate').classList.remove('show');
-    renderProfileHeader();
-    loadSavedPosts();
-    loadMyReplies();
-    loadMyPosts();
-    switchTab('posts');
-
-    DB.initUsersRealtime();
-    PostStore.initRealtime();
-    FollowStore.initRealtime();
-}
-
-document.getElementById('avatarContainer').addEventListener('click', () => { if (!isOwn) goToProfile(profileOwner?.userId); });
-document.getElementById('profileNameRow').addEventListener('click', () => { if (!isOwn) goToProfile(profileOwner?.userId); });
-
-/* ================= FOLLOWS MODAL ================= */
-const followsOverlay = document.getElementById('followsOverlay');
-function openFollowsList(mode) {
-    const targetId = profileOwner?.userId;
-    if (!targetId) return;
-    const ids = mode === 'followers' ? FollowStore.getFollowers(targetId) : FollowStore.getFollowing(targetId);
-    document.getElementById('followsOverlayTitle').textContent = mode === 'followers' ? 'Obunachilar' : 'Obunalar';
-    const box = document.getElementById('followsListContainer');
-    box.innerHTML = '';
-
-    if (ids.length === 0) {
-        box.innerHTML = `<div class="empty-state" style="text-align:center;color:#71767b;padding:60px 20px;">${mode === 'followers' ? "Hali obunachilar yo'q" : "Hali obunalar yo'q"}</div>`;
-    } else {
-        ids.forEach(uid => {
-            const u = DB.getUserById(uid) || { userId: uid, firstName: 'ID', lastName: uid };
-            const row = document.createElement('div');
-            row.className = 'follow-user-row';
-            row.innerHTML = `
-                ${avatarMarkup(u, 'post-avatar')}
-                <div class="follow-user-info">
-                    <div class="follow-user-name">${escapeHtml(getFullName(u))}${getInlineVerifiedBadge(uid)}</div>
-                    <div class="follow-user-handle">${u.username ? '@' + escapeHtml(u.username) : '@id' + escapeHtml(uid)}</div>
+function showTabLoader(active) {
+    const loader = document.getElementById('tabLoader');
+    if (!loader) return;
+    if (active) {
+        if (!loader.innerHTML) {
+            loader.innerHTML = Array(3).fill(`
+                <div class="sk-post">
+                    <div class="sk-av sk-shimmer"></div>
+                    <div class="sk-col">
+                        <div class="sk-l1 sk-shimmer"></div>
+                        <div class="sk-l2 sk-shimmer"></div>
+                        <div class="sk-l3 sk-shimmer"></div>
+                    </div>
                 </div>
-            `;
-            row.addEventListener('click', () => goToProfile(uid));
-            box.appendChild(row);
-        });
+            `).join('');
+        }
+        loader.classList.add('active');
+    } else {
+        loader.classList.remove('active');
     }
-
-    followsOverlay.classList.add('show');
-    if (isTelegram) { try { tg.BackButton.onClick(closeFollowsList); tg.BackButton.show(); } catch {} }
 }
-function closeFollowsList() {
-    followsOverlay.classList.remove('show');
-    if (isTelegram) { try { tg.BackButton.onClick(goBack); } catch {} }
-}
-document.getElementById('followersStat').addEventListener('click', () => openFollowsList('followers'));
-document.getElementById('subsStat').addEventListener('click', () => openFollowsList('following'));
-
-/* ================= NAVIGATION ================= */
-function goBack(){ window.location.href = 'index.html'; }
-if (isTelegram) { try { tg.BackButton.show(); tg.BackButton.onClick(goBack); } catch {} }
-window.history.pushState({ page: 'profil' }, 'Profil', '');
-window.addEventListener('popstate', () => {
-    if (followsOverlay?.classList.contains('show')) closeFollowsList();
-    else if (commentDetailOverlay?.classList.contains('show')) closeCommentDetail();
-    else if (detailOverlay?.classList.contains('show')) closePostDetail();
-    else goBack();
-});
-
-/* ================= ACTION TUGMALAR ================= */
-document.getElementById('editBtn')?.addEventListener('click', () => { location.href = 'tahrirlash.html'; });
-document.getElementById('settingsBtn')?.addEventListener('click', () => { location.href = 'setting.html'; });
-document.getElementById('subscribeBtn')?.addEventListener('click', async () => {
-    if (!profileOwner || isOwn || !currentUser) return;
-    const subscribed = await FollowStore.toggle(currentUser.userId, profileOwner.userId);
-    showToast(subscribed ? "Obuna bo'ldingiz" : "Obuna bekor qilindi");
-});
 
 
 /* ================= POST VA TABS ================= */
@@ -1214,51 +1065,12 @@ const emptyIcons = {
     saved: `<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`
 };
 const texts = { posts: "Hali post yo'q", video: "Hali video yo'q", answers: "Hali javob yo'q", saved: "Hali saqlangan post yo'q" };
-let posts = [], savedPosts = new Set(), myReplies = [];
-
-function loadSavedPosts(){
-    try {
-        const raw = localStorage.getItem(SAVED_POSTS_KEY);
-        const arr = raw ? JSON.parse(raw) : [];
-        savedPosts = new Set(Array.isArray(arr) ? arr.map(String) : []);
-    } catch { savedPosts = new Set(); }
-}
-function saveSavedPosts(){
-    try { localStorage.setItem(SAVED_POSTS_KEY, JSON.stringify([...savedPosts])); } catch {}
-}
-
-function loadMyReplies(){
-    if (!currentUser) return;
-    try {
-        const raw = localStorage.getItem(REPLIES_KEY);
-        const all = raw ? JSON.parse(raw) : [];
-        const targetId = String(profileOwner?.userId || currentUser.userId);
-        myReplies = Array.isArray(all) ? all.filter(r => String(r.userId) === targetId) : [];
-    } catch { myReplies = []; }
-}
-function saveMyReplies(){
-    if (!currentUser) return;
-    try {
-        const raw = localStorage.getItem(REPLIES_KEY);
-        const existing = raw ? JSON.parse(raw) : [];
-        const targetId = String(currentUser.userId);
-        const others = Array.isArray(existing) ? existing.filter(r => String(r.userId) !== targetId) : [];
-        localStorage.setItem(REPLIES_KEY, JSON.stringify([...myReplies, ...others]));
-    } catch {}
-}
-
-function loadMyPosts(){
-    if (!currentUser) return;
-    const targetId = isOwn ? currentUser.userId : profileUserId;
-    posts = PostStore.byUser(targetId);
-    document.getElementById('postsCount').textContent = posts.length;
-}
 
 function countComments(p){
     let n = (p.comments || []).length; const walk = (arr) => arr.forEach(c => { n += (c.replies || []).length; if (c.replies) walk(c.replies); }); walk(p.comments || []); return n;
 }
 function handleShare(entity){
-    const link = location.origin + location.pathname + '?post=' + encodeURIComponent(entity.id);
+    const link = location.origin + '/index.html?post=' + encodeURIComponent(entity.id);
     if (navigator.share) navigator.share({ title: 'Post', url: link }).catch(() => {});
     else { try { navigator.clipboard?.writeText(link); } catch {} showToast('Havola nusxalandi'); }
 }
@@ -1293,13 +1105,26 @@ function buildPostActions(p){
     });
     const commBtn = createBtn(ICONS.comment, countComments(p), '', (e)=>{ e.stopPropagation(); openPostDetail(p); });
     const viewBtn = createBtn(ICONS.view, p.views||0, '', (e)=>{ e.stopPropagation(); }); viewBtn.style.cursor='default';
-    const saveBtn = createBtn(ICONS.bookmark, null, savedPosts.has(String(p.id))?'saved':'', (e)=>{
+    const saveBtn = createBtn(ICONS.bookmark, null, savedPosts.has(String(p.id))?'saved':'', async (e)=>{
         e.stopPropagation();
+        if (!currentUser) return;
         const key = String(p.id);
-        if (savedPosts.has(key)) { savedPosts.delete(key); saveBtn.classList.remove('saved'); showToast("Olib tashlandi"); }
-        else { savedPosts.add(key); saveBtn.classList.add('saved'); showToast("Saqlandi"); }
-        saveSavedPosts();
-        if (currentTab === 'saved') renderSaved();
+        const uid = String(currentUser.userId);
+        if (savedPosts.has(key)) {
+            savedPosts.delete(key);
+            saveBtn.classList.remove('saved');
+            showToast("Olib tashlandi");
+            await updateDoc(doc(db, USERS_COLLECTION, uid), { savedPosts: arrayRemove(key) }).catch(() => {});
+        } else {
+            savedPosts.add(key);
+            saveBtn.classList.add('saved');
+            showToast("Saqlandi");
+            await updateDoc(doc(db, USERS_COLLECTION, uid), { savedPosts: arrayUnion(key) }).catch(() => {});
+        }
+        if (currentTab === 'saved') {
+            await PostStore.loadSavedPostsFromServer();
+            renderSaved();
+        }
     });
     const shareBtn = createBtn(ICONS.share, null, '', (e)=>{ e.stopPropagation(); handleShare(p); });
 
@@ -1312,14 +1137,14 @@ function buildPostItem(p){
     item.style.gap = '10px';
     item.style.alignItems = 'flex-start';
 
-    const author = DB.getUserById(p.userId);
+    const author = UserCache.get(String(p.userId));
     const authorName = author ? getFullName(author) : p.user;
     const authorAvatar = author ? author.photo_url : p.avatar;
     const postInit = (authorName || 'U').trim().charAt(0).toUpperCase();
-    const av = authorAvatar ? `<img class="post-avatar" src="${authorAvatar}" alt="">` : `<div class="post-avatar-initial">${postInit}</div>`;
+    const av = authorAvatar ? `<img class="post-avatar" src="${authorAvatar}" alt="" loading="lazy">` : `<div class="post-avatar-initial">${postInit}</div>`;
     let media = '';
-    if (p.type === 'image' && p.image) media = `<img class="post-image" src="${p.image}" alt="">`;
-    else if (p.type === 'video' && p.image) media = `<video class="post-video" src="${p.image}" controls playsinline></video>`;
+    if (p.type === 'image' && p.image) media = `<img class="post-image" src="${p.image}" alt="" loading="lazy">`;
+    else if (p.type === 'video' && p.image) media = `<video class="post-video" src="${p.image}" controls playsinline preload="metadata"></video>`;
 
     const canDelete = currentUser && String(p.userId) === String(currentUser.userId);
 
@@ -1344,7 +1169,6 @@ function buildPostItem(p){
         item.querySelector('.post-del-btn')?.addEventListener('click', async (e) => {
             e.stopPropagation();
             await PostStore.remove(p.id);
-            loadMyPosts();
             switchTab(currentTab);
             showToast("Post o'chirildi");
         });
@@ -1354,19 +1178,17 @@ function buildPostItem(p){
 
     const io = new IntersectionObserver(entries => {
         entries.forEach(en => {
-            if (en.isIntersecting && !ViewTracker.hasViewed(currentUser?.userId, p.id)) {
+            if (en.isIntersecting && !viewedPostIds.has(String(p.id))) {
                 io.disconnect();
-                if (ViewTracker.record(currentUser?.userId, p.id)) {
-                    const fresh = PostStore.get(p.id);
-                    if (fresh) {
-                        const v = (fresh.views || 0) + 1;
-                        updateDoc(doc(db, POSTS_COLLECTION, String(p.id)), { views: increment(1) }).catch(() => {});
-                        item.querySelectorAll('.act-btn')[2].querySelector('.act-count').textContent = v;
-                    }
-                }
+                viewedPostIds.add(String(p.id));
+                const fresh = PostStore.get(p.id) || p;
+                const v = (fresh.views || 0) + 1;
+                updateDoc(doc(db, POSTS_COLLECTION, String(p.id)), { views: increment(1) }).catch(() => {});
+                item.querySelectorAll('.act-btn')[2].querySelector('.act-count').textContent = v;
             }
         });
-    }, { threshold: 0.5 }); io.observe(item);
+    }, { threshold: 0.5 });
+    io.observe(item);
 
     return item;
 }
@@ -1377,20 +1199,18 @@ function renderList(list, key){
     area.innerHTML = '<div class="feed" id="feed"></div>';
     list.forEach(p => document.getElementById('feed').appendChild(buildPostItem(p)));
 }
-function renderPosts(){ renderList(posts, 'posts'); }
-function renderVideos(){ renderList(posts.filter(p => p.type === 'video'), 'video'); }
-function renderSaved(){
-    const allSaved = PostStore.all().filter(p => savedPosts.has(String(p.id)));
-    renderList(allSaved, 'saved');
-}
+function renderPosts(){ renderList(PostStore._userPosts, 'posts'); }
+function renderVideos(){ renderList(PostStore._userPosts.filter(p => p.type === 'video'), 'video'); }
+function renderSaved(){ renderList(PostStore._savedPostsList, 'saved'); }
 function renderReplies(){
     const area = document.getElementById('contentArea');
-    if (myReplies.length === 0) { area.innerHTML = `<div class="empty-state"><div class="empty-icon">${emptyIcons.answers}</div><p>${texts.answers}</p></div>`; return; }
+    const list = PostStore._repliesList;
+    if (list.length === 0) { area.innerHTML = `<div class="empty-state"><div class="empty-icon">${emptyIcons.answers}</div><p>${texts.answers}</p></div>`; return; }
     area.innerHTML = '<div class="feed" id="feed"></div>';
-    myReplies.forEach(r => {
+    list.forEach(r => {
         const item = document.createElement('div'); item.className = 'post-item';
         item.style.display = 'flex'; item.style.gap = '10px'; item.style.alignItems = 'flex-start';
-        const author = DB.getUserById(r.userId);
+        const author = UserCache.get(String(r.userId));
         const rName = author ? getFullName(author) : r.user;
         const rAvatar = author ? author.photo_url : r.avatar;
         const init = (rName || 'U').trim().charAt(0).toUpperCase();
@@ -1405,20 +1225,41 @@ function renderReplies(){
                 <div class="post-text">${escapeHtml(r.text)}</div>
                 <div style="font-size:12px;color:#71767b;margin-top:8px;padding:8px;background:rgba(255,255,255,0.05);border-radius:8px">Javob berildi: "${escapeHtml(r.postText || 'post')}"</div>
             </div>`;
-        item.addEventListener('click', () => {
-            const p = PostStore.get(r.postId);
+        item.addEventListener('click', async () => {
+            let p = PostStore.get(r.postId);
+            if (!p && r.postId) {
+                const s = await getDoc(doc(db, POSTS_COLLECTION, String(r.postId)));
+                if (s.exists()) { p = { id: s.id, ...s.data() }; PostStore._registerPosts([p]); }
+            }
             if (p) openPostDetail(p);
         });
         document.getElementById('feed').appendChild(item);
     });
 }
+
 let currentTab = 'posts';
-function switchTab(k){
-    currentTab = k; document.querySelectorAll('.tab-item').forEach(t => t.classList.toggle('active', t.dataset.tab === k));
-    if (k === 'posts') renderPosts(); else if (k === 'video') renderVideos(); else if (k === 'answers') renderReplies(); else if (k === 'saved') renderSaved();
+async function switchTab(k){
+    currentTab = k;
+    document.querySelectorAll('.tab-item').forEach(t => t.classList.toggle('active', t.dataset.tab === k));
+    if (k === 'posts') renderPosts();
+    else if (k === 'video') renderVideos();
+    else if (k === 'answers') renderReplies();
+    else if (k === 'saved') {
+        await PostStore.loadSavedPostsFromServer();
+        renderSaved();
+    }
 }
 document.getElementById('tabsContainer').addEventListener('click', e => { const tab = e.target.closest('.tab-item'); if (tab) switchTab(tab.dataset.tab); });
 
+function initLazyTabObserver(targetId) {
+    const loader = document.getElementById('tabLoader');
+    const io = new IntersectionObserver((entries) => {
+        if (entries[0]?.isIntersecting && (currentTab === 'posts' || currentTab === 'video')) {
+            PostStore.loadNextUserPostsPage(targetId);
+        }
+    }, { rootMargin: '200px', threshold: 0.05 });
+    io.observe(loader);
+}
 
 /* ================= COMMENTS & POST DETAIL ================= */
 const detailOverlay = document.getElementById('detailOverlay'), detailInput = document.getElementById('detailInput'), detailSend = document.getElementById('detailSend');
@@ -1435,7 +1276,7 @@ document.getElementById('replyModeCancel').addEventListener('click', () => { rep
 
 function buildDetailComment(c, depth = 0, inCommentDetail = false){
     const thread = document.createElement('div'); thread.className = 'comment-thread' + (depth > 0 ? ' thread-nested' : ''); thread.dataset.cid = c.id;
-    const cAuthor = DB.getUserById(c.userId);
+    const cAuthor = UserCache.get(String(c.userId));
     const cName = cAuthor ? getFullName(cAuthor) : c.user;
     const cAvatar = cAuthor ? cAuthor.photo_url : c.avatar;
     const init = (cName || 'U').trim().charAt(0).toUpperCase();
@@ -1499,9 +1340,20 @@ function buildDetailComment(c, depth = 0, inCommentDetail = false){
     return thread;
 }
 
-function refreshDetailFromStore(){
+function collectCommentUserIds(comments, out = []) {
+    (comments || []).forEach(c => {
+        if (c.userId) out.push(c.userId);
+        if (c.replies) collectCommentUserIds(c.replies, out);
+    });
+    return out;
+}
+
+async function refreshDetailFromStore(){
     if (!detailPost) return;
-    const fresh = PostStore.get(detailPost.id); if (fresh) detailPost = fresh; renderDetailPost();
+    const fresh = PostStore.get(detailPost.id);
+    if (fresh) detailPost = fresh;
+    await UserCache.prefetch([detailPost.userId, ...collectCommentUserIds(detailPost.comments)]);
+    renderDetailPost();
     const clist = document.getElementById('detailCommentsList'); clist.innerHTML = '';
     document.getElementById('detailCommTitle').textContent = (detailPost.comments||[]).length ? `Izohlar (${countComments(detailPost)})` : 'Izohlar';
     (detailPost.comments||[]).forEach(c => clist.appendChild(buildDetailComment(c, 0, false)));
@@ -1509,7 +1361,7 @@ function refreshDetailFromStore(){
 
 function renderDetailPost(){
     if (!detailPost) return; const p = detailPost;
-    const author = DB.getUserById(p.userId);
+    const author = UserCache.get(String(p.userId));
     const pName = author ? getFullName(author) : p.user;
     const pAvatar = author ? author.photo_url : p.avatar;
     const postInit = (pName || 'U').trim().charAt(0).toUpperCase();
@@ -1535,15 +1387,19 @@ function renderDetailPost(){
     document.getElementById('detailActionsBar').appendChild(buildPostActions(p));
 }
 
-function openPostDetail(p){
-    detailPost = PostStore.get(p.id) || p; if (!detailPost.comments) detailPost.comments = [];
-    replyTargetId = null; refreshDetailFromStore(); updateDetailReplyModeUI();
-    detailOverlay.classList.add('show'); document.getElementById('detailScroll').scrollTop = 0;
+async function openPostDetail(p){
+    detailPost = PostStore.get(p.id) || p;
+    if (!detailPost.comments) detailPost.comments = [];
+    replyTargetId = null;
+    await refreshDetailFromStore();
+    updateDetailReplyModeUI();
+    detailOverlay.classList.add('show');
+    document.getElementById('detailScroll').scrollTop = 0;
     if (isTelegram) { try { tg.BackButton.onClick(closePostDetail); tg.BackButton.show(); } catch {} }
 }
 function closePostDetail(){
     detailOverlay.classList.remove('show'); detailPost = null; replyTargetId = null;
-    loadMyPosts(); switchTab(currentTab);
+    switchTab(currentTab);
     if (isTelegram) { try { tg.BackButton.onClick(goBack); } catch {} }
 }
 
@@ -1557,13 +1413,405 @@ detailSend.addEventListener('click', async () => {
     const newC = makeCommentObj(raw, replyTargetId);
     const res = await addCommentToPost(detailPost.id, newC, replyTargetId);
     if (res) {
-        pushMyReply({ id: newC.id, postId: detailPost.id, userId: String(currentUser.userId), user: newC.user, avatar: newC.avatar, text: newC.text, createdAt: newC.createdAt, postText: detailPost.text });
+        saveReplyToServer({
+            id: newC.id,
+            postId: detailPost.id,
+            userId: String(currentUser.userId),
+            user: newC.user,
+            avatar: newC.avatar,
+            text: newC.text,
+            createdAt: newC.createdAt,
+            postText: detailPost.text || ''
+        });
         replyTargetId = null; detailInput.value = ''; detailInput.style.height = 'auto';
         updateDetailReplyModeUI();
-        refreshDetailFromStore();
+        await refreshDetailFromStore();
     } else {
         detailSend.disabled = false;
     }
+});
+
+
+/* ================= NOTIFICATION BADGE SYNC (INDEX & NOTIFICATION BILAN BIR XIL) ================= */
+function updateNotificationBadge(unreadCount) {
+    const btn = document.getElementById('navNotifBtn');
+    if (!btn) return;
+    let badge = document.getElementById('notifBadge');
+    if (unreadCount > 0) {
+        if (!badge) {
+            badge = document.createElement('div');
+            badge.id = 'notifBadge';
+            badge.className = 'nav-badge';
+            btn.appendChild(badge);
+        }
+        badge.textContent = unreadCount > 49 ? '50+' : unreadCount;
+    } else if (badge) {
+        badge.remove();
+    }
+}
+
+function listenUnreadNotifications() {
+    if (!currentUser) return;
+    const q = query(
+        collection(db, NOTIFS_COLLECTION),
+        where("recipientId", "==", String(currentUser.userId)),
+        where("isRead", "==", false),
+        limit(50)
+    );
+    onSnapshot(q, (snap) => {
+        updateNotificationBadge(snap.size);
+    }, () => {});
+}
+
+/* ================= HELPERS ================= */
+function escapeHtml(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+function formatExactTime(dateInput){
+    const d = dateInput instanceof Date ? dateInput : new Date(dateInput); if (isNaN(d.getTime())) return '';
+    const diffSec = Math.floor((new Date() - d) / 1000);
+    if (diffSec < 5) return 'hozir'; if (diffSec < 60) return diffSec + ' soniya oldin';
+    const diffMin = Math.floor(diffSec / 60); if (diffMin < 60) return diffMin + ' daqiqa oldin';
+    const diffHour = Math.floor(diffMin / 60); if (diffHour < 24) return diffHour + ' soat oldin';
+    const diffDay = Math.floor(diffHour / 24); if (diffDay < 7) return diffDay + ' kun oldin';
+    const dd = String(d.getDate()).padStart(2,'0'), mm = String(d.getMonth()+1).padStart(2,'0'); return `${dd}.${mm}.${d.getFullYear()}`;
+}
+function avatarMarkup(user, cls){
+    const name = user ? getFullName(user) : 'U';
+    const init = (name.trim().charAt(0) || 'U').toUpperCase();
+    const photo = user?.photo_url;
+    if (photo) return `<img class="${cls}" src="${photo}" alt="${escapeHtml(init)}">`;
+    return `<div class="${cls.replace('-avatar','-avatar-initial')}">${init}</div>`;
+}
+async function goToProfile(uid){
+    if (!uid) return;
+    await flushUsageTimeToServer();
+    if (currentUser && String(uid) === String(currentUser.userId)) window.location.href = 'profil.html';
+    else window.location.href = `profil.html?id=${encodeURIComponent(uid)}`;
+}
+let toastTimer;
+function showToast(msg){
+    const t = document.getElementById('toast'); if (!t) return;
+    t.textContent = msg; t.classList.add('show');
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+}
+function compressImage(file, maxW = 800, quality = 0.72){
+    return new Promise((resolve, reject) => {
+        const img = new Image(); const url = URL.createObjectURL(file);
+        img.onload = () => {
+            URL.revokeObjectURL(url); let { width, height } = img;
+            if (width > maxW) { height = Math.round(height * maxW / width); width = maxW; }
+            const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
+            canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+            try { resolve(canvas.toDataURL('image/jpeg', quality)); } catch (e) { reject(e); }
+        }; img.onerror = reject; img.src = url;
+    });
+}
+
+/* ================= LAYK ================= */
+function isLiked(o){
+    if (!o || !currentUser) return false;
+    if (Array.isArray(o.likedBy)) return o.likedBy.includes(String(currentUser.userId));
+    return !!o.liked;
+}
+function toggleLikeObj(o){
+    const uid = String(currentUser.userId);
+    if (!Array.isArray(o.likedBy)) o.likedBy = [];
+    const i = o.likedBy.indexOf(uid);
+    if (i >= 0) o.likedBy.splice(i, 1); else o.likedBy.push(uid);
+    const now = o.likedBy.includes(uid);
+    o.likes = o.likedBy.length;
+    return now;
+}
+
+/* ================= IZOHLAR YORDAMCHISI ================= */
+function findComment(comments, id){
+    for (const c of (comments || [])) {
+        if (c.id === id) return { comment: c, parent: null, isReply: false, root: c };
+        const found = findInReplies(c, id, c); if (found) return found;
+    } return null;
+}
+function findInReplies(parent, id, root){
+    for (const r of (parent.replies || [])) {
+        if (r.id === id) return { comment: r, parent, isReply: true, root };
+        const found = findInReplies(r, id, root); if (found) return found;
+    } return null;
+}
+function makeCommentObj(text, parentId){
+    return {
+        id: 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+        userId: String(currentUser.userId), user: getFullName(currentUser), avatar: currentUser.photo_url || null,
+        text, createdAt: new Date().toISOString(), likes: 0, likedBy: [], replies: [], parentId: parentId || null
+    };
+}
+async function addCommentToPost(postId, newComment, replyToId){
+    let post = PostStore.get(postId);
+    if (!post) {
+        const s = await getDoc(doc(db, POSTS_COLLECTION, String(postId)));
+        if (s.exists()) { post = { id: s.id, ...s.data() }; PostStore._registerPosts([post]); }
+    }
+    if (!post) return null;
+
+    const commentsCopy = JSON.parse(JSON.stringify(post.comments || []));
+    if (!replyToId) {
+        newComment.parentId = null; commentsCopy.push(newComment);
+        await PostStore.update(postId, { comments: commentsCopy });
+        pushNotification({
+            type: 'comment',
+            recipientId: String(post.userId),
+            senderId: String(currentUser.userId),
+            senderName: getFullName(currentUser),
+            senderAvatar: currentUser.photo_url || null,
+            postId: post.id,
+            commentId: newComment.id
+        });
+        return { post, comment: newComment, parent: null };
+    }
+    const found = findComment(commentsCopy, replyToId); if (!found) return null;
+    newComment.parentId = replyToId; if (!found.comment.replies) found.comment.replies = [];
+    found.comment.replies.push(newComment);
+    await PostStore.update(postId, { comments: commentsCopy });
+    pushNotification({
+        type: 'reply',
+        recipientId: String(found.comment.userId || post.userId),
+        senderId: String(currentUser.userId),
+        senderName: getFullName(currentUser),
+        senderAvatar: currentUser.photo_url || null,
+        postId: post.id,
+        commentId: newComment.id
+    });
+    return { post, comment: newComment, parent: found.comment };
+}
+
+function saveReplyToServer(entry) {
+    setDoc(doc(db, REPLIES_COLLECTION, String(entry.id)), entry).catch(() => {});
+}
+
+/* ================= ICONS ================= */
+const ICONS = {
+    like: `<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`,
+    comment: `<svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>`,
+    view: `<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`,
+    bookmark: `<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`,
+    share: `<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>`,
+    trash: `<svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>`
+};
+
+/* ================= BANNER VA PROFIL UI ================= */
+function applyBanner(bannerUrl) {
+    const bannerImg = document.getElementById('bannerImg');
+    const bannerDefault = document.getElementById('bannerDefault');
+    const cleanUrl = (typeof bannerUrl === 'string') ? bannerUrl.trim() : '';
+
+    if (cleanUrl) {
+        bannerImg.onload = () => {
+            bannerImg.style.display = 'block';
+            bannerDefault.style.display = 'none';
+        };
+        bannerImg.onerror = () => {
+            bannerImg.style.display = 'none';
+            bannerDefault.style.display = 'block';
+        };
+        bannerImg.src = cleanUrl;
+    } else {
+        bannerImg.removeAttribute('src');
+        bannerImg.style.display = 'none';
+        bannerDefault.style.display = 'block';
+    }
+}
+
+function renderProfileHeader() {
+    if (!currentUser || !profileOwner) return;
+
+    const latestOwner = UserCache.get(String(profileOwner.userId)) || profileOwner;
+    profileOwner = latestOwner;
+
+    const verified = isUserVerified(latestOwner.userId, latestOwner);
+    const name = getFullName(latestOwner);
+    const uname = latestOwner.username ? '@' + latestOwner.username : `@id${latestOwner.userId}`;
+
+    document.getElementById('userName').textContent = name;
+    document.getElementById('stickyNameText').textContent = name;
+    document.getElementById('userStatus').textContent = uname;
+
+    const mainBadgeSlot = document.getElementById('mainBadgeSlot');
+    const stickyBadgeSlot = document.getElementById('stickyBadgeSlot');
+    if (verified) {
+        mainBadgeSlot.innerHTML = VERIFIED_BADGE_MAIN_SVG;
+        mainBadgeSlot.style.display = 'inline-flex';
+        stickyBadgeSlot.innerHTML = VERIFIED_BADGE_STICKY_SVG;
+    } else {
+        mainBadgeSlot.innerHTML = '';
+        mainBadgeSlot.style.display = 'none';
+        stickyBadgeSlot.innerHTML = '';
+    }
+
+    const bioEl = document.getElementById('userBio');
+    const bioText = (latestOwner.bio || '').trim();
+    if (bioText) {
+        bioEl.textContent = bioText;
+        bioEl.style.display = 'block';
+    } else {
+        bioEl.textContent = '';
+        bioEl.style.display = 'none';
+    }
+
+    const userPhotoEl = document.getElementById('userPhoto');
+    const userInitialEl = document.getElementById('userInitial');
+    if (latestOwner.photo_url) {
+        userPhotoEl.src = latestOwner.photo_url;
+        userPhotoEl.style.display = 'block';
+        userInitialEl.style.display = 'none';
+    } else {
+        userPhotoEl.style.display = 'none';
+        userInitialEl.textContent = (name.charAt(0) || 'U').toUpperCase();
+        userInitialEl.style.display = 'flex';
+    }
+
+    document.getElementById('composerAvatarSlot').innerHTML = avatarMarkup(currentUser, 'composer-avatar');
+    document.getElementById('navAvatarSlot').innerHTML = avatarMarkup(currentUser, 'nav-avatar');
+
+    if (isOwn) {
+        document.getElementById('ownProfileActions').style.display = 'flex';
+        document.getElementById('otherProfileActions').style.display = 'none';
+        document.getElementById('postBtn').style.display = 'inline-flex';
+    } else {
+        document.getElementById('ownProfileActions').style.display = 'none';
+        document.getElementById('otherProfileActions').style.display = 'flex';
+        document.getElementById('postBtn').style.display = 'none';
+    }
+
+    applyBanner(latestOwner.banner_url);
+    updateFollowStatsUI();
+}
+
+function listenProfileUsersRealtime(targetId) {
+    // Joriy foydalanuvchining savedPosts va profil o'zgarishlarini jonli kuzatish
+    onSnapshot(doc(db, USERS_COLLECTION, String(currentUser.userId)), (snap) => {
+        if (!snap.exists()) return;
+        const data = snap.data();
+        currentUser = { ...currentUser, ...data };
+        UserCache.set(String(currentUser.userId), currentUser);
+
+        const newSaved = new Set(Array.isArray(data.savedPosts) ? data.savedPosts.map(String) : []);
+        const changed = newSaved.size !== savedPosts.size || [...newSaved].some(id => !savedPosts.has(id));
+        savedPosts = newSaved;
+
+        if (isOwn) {
+            profileOwner = currentUser;
+            renderProfileHeader();
+        }
+        if (changed && currentTab === 'saved') {
+            PostStore.loadSavedPostsFromServer().then(() => renderSaved());
+        }
+    });
+
+    if (!isOwn && targetId) {
+        onSnapshot(doc(db, USERS_COLLECTION, String(targetId)), (snap) => {
+            if (!snap.exists()) return;
+            const data = snap.data();
+            profileOwner = { ...profileOwner, ...data };
+            UserCache.set(String(targetId), profileOwner);
+            renderProfileHeader();
+        });
+    }
+}
+
+async function bootAppWithUser(user) {
+    currentUser = user;
+    savedPosts = new Set(Array.isArray(user.savedPosts) ? user.savedPosts.map(String) : []);
+    const targetId = (profileUserId && String(profileUserId) !== String(currentUser.userId))
+        ? String(profileUserId)
+        : String(currentUser.userId);
+    isOwn = (targetId === String(currentUser.userId));
+
+    if (isOwn) {
+        profileOwner = currentUser;
+    } else {
+        const cloudUser = await UserCache.fetchOne(targetId);
+        profileOwner = cloudUser || {
+            userId: targetId,
+            firstName: 'Foydalanuvchi',
+            lastName: ''
+        };
+    }
+
+    document.getElementById('tgIdGate').classList.remove('show');
+    renderProfileHeader();
+    startActiveTimeTracker();
+    listenUnreadNotifications();
+    listenProfileUsersRealtime(targetId);
+    FollowStore.initForProfile(targetId);
+
+    await PostStore.loadUserPostsInitial(targetId);
+    switchTab('posts');
+    PostStore.listenUserPostsRealtime(targetId);
+    PostStore.listenUserReplies(targetId);
+    initLazyTabObserver(targetId);
+}
+
+document.getElementById('avatarContainer').addEventListener('click', () => { if (!isOwn) goToProfile(profileOwner?.userId); });
+document.getElementById('profileNameRow').addEventListener('click', () => { if (!isOwn) goToProfile(profileOwner?.userId); });
+
+/* ================= FOLLOWS MODAL (LAZY PREFETCH BILAN) ================= */
+const followsOverlay = document.getElementById('followsOverlay');
+async function openFollowsList(mode) {
+    const targetId = profileOwner?.userId;
+    if (!targetId) return;
+    const ids = mode === 'followers' ? FollowStore.getFollowers() : FollowStore.getFollowing();
+    document.getElementById('followsOverlayTitle').textContent = mode === 'followers' ? 'Obunachilar' : 'Obunalar';
+    const box = document.getElementById('followsListContainer');
+    box.innerHTML = '';
+
+    if (ids.length === 0) {
+        box.innerHTML = `<div class="empty-state" style="text-align:center;color:#71767b;padding:60px 20px;">${mode === 'followers' ? "Hali obunachilar yo'q" : "Hali obunalar yo'q"}</div>`;
+    } else {
+        await UserCache.prefetch(ids);
+        ids.forEach(uid => {
+            const u = UserCache.get(uid) || { userId: uid, firstName: 'ID', lastName: uid };
+            const row = document.createElement('div');
+            row.className = 'follow-user-row';
+            row.innerHTML = `
+                ${avatarMarkup(u, 'post-avatar')}
+                <div class="follow-user-info">
+                    <div class="follow-user-name">${escapeHtml(getFullName(u))}${getInlineVerifiedBadge(uid)}</div>
+                    <div class="follow-user-handle">${u.username ? '@' + escapeHtml(u.username) : '@id' + escapeHtml(uid)}</div>
+                </div>
+            `;
+            row.addEventListener('click', () => goToProfile(uid));
+            box.appendChild(row);
+        });
+    }
+
+    followsOverlay.classList.add('show');
+    if (isTelegram) { try { tg.BackButton.onClick(closeFollowsList); tg.BackButton.show(); } catch {} }
+}
+function closeFollowsList() {
+    followsOverlay.classList.remove('show');
+    if (isTelegram) { try { tg.BackButton.onClick(goBack); } catch {} }
+}
+document.getElementById('followersStat').addEventListener('click', () => openFollowsList('followers'));
+document.getElementById('subsStat').addEventListener('click', () => openFollowsList('following'));
+
+/* ================= NAVIGATION ================= */
+async function goBack(){
+    await flushUsageTimeToServer();
+    window.location.href = 'index.html';
+}
+if (isTelegram) { try { tg.BackButton.show(); tg.BackButton.onClick(goBack); } catch {} }
+window.history.pushState({ page: 'profil' }, 'Profil', '');
+window.addEventListener('popstate', () => {
+    if (followsOverlay?.classList.contains('show')) closeFollowsList();
+    else if (commentDetailOverlay?.classList.contains('show')) closeCommentDetail();
+    else if (detailOverlay?.classList.contains('show')) closePostDetail();
+    else goBack();
+});
+
+/* ================= ACTION TUGMALAR ================= */
+document.getElementById('editBtn')?.addEventListener('click', async () => { await flushUsageTimeToServer(); location.href = 'tahrirlash.html'; });
+document.getElementById('settingsBtn')?.addEventListener('click', async () => { await flushUsageTimeToServer(); location.href = 'setting.html'; });
+document.getElementById('subscribeBtn')?.addEventListener('click', async () => {
+    if (!profileOwner || isOwn || !currentUser) return;
+    const subscribed = await FollowStore.toggle(currentUser.userId, profileOwner.userId);
+    showToast(subscribed ? "Obuna bo'ldingiz" : "Obuna bekor qilindi");
 });
 
 
@@ -1661,17 +1909,27 @@ cdSend.addEventListener('click', async () => {
     const newC = makeCommentObj(raw, target);
     const res = await addCommentToPost(detailPost.id, newC, target);
     if (res) {
-        pushMyReply({ id: newC.id, postId: detailPost.id, userId: String(currentUser.userId), user: newC.user, avatar: newC.avatar, text: newC.text, createdAt: newC.createdAt, postText: detailPost.text });
+        saveReplyToServer({
+            id: newC.id,
+            postId: detailPost.id,
+            userId: String(currentUser.userId),
+            user: newC.user,
+            avatar: newC.avatar,
+            text: newC.text,
+            createdAt: newC.createdAt,
+            postText: detailPost.text || ''
+        });
         cdReplyTargetId = activeCommentId;
         cdInput.value = '';
         cdInput.style.height = 'auto';
         updateCdReplyModeUI();
         refreshCommentDetailFromStore();
-        refreshDetailFromStore();
+        await refreshDetailFromStore();
     } else {
         cdSend.disabled = false;
     }
 });
+
 
 /* ================= COMPOSER ================= */
 const composer = document.getElementById('composer'), compOverlay = document.getElementById('composerOverlay'), compInput = document.getElementById('composerInput'), compSubmit = document.getElementById('composerSubmit');
@@ -1731,7 +1989,7 @@ compSubmit.addEventListener('click', async () => {
     compSubmit.disabled = true;
     compSubmit.textContent = 'Yuklanmoqda...';
 
-    const me = DB.getCurrentUser() || currentUser;
+    const me = UserCache.get(String(currentUser.userId)) || currentUser;
     const added = await PostStore.add({
         id: 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
         userId: String(me.userId), user: getFullName(me), avatar: me.photo_url || null,
@@ -1755,47 +2013,32 @@ compSubmit.addEventListener('click', async () => {
     document.getElementById('previewImg').src = '';
     document.getElementById('previewVid').src = '';
     document.getElementById('composerPreview').classList.remove('show');
-    closeComposer(); loadMyPosts(); switchTab('posts');
+    closeComposer();
+    switchTab('posts');
     showToast('Post joylandi');
 });
 
 /* ================= QO'LDA TELEGRAM ID KIRITISH ================= */
-document.getElementById('tgIdManualSubmit').addEventListener('click', () => {
+document.getElementById('tgIdManualSubmit').addEventListener('click', async () => {
     const rawId = document.getElementById('tgIdManualInput').value.trim();
     if (!/^\d+$/.test(rawId)) {
         showToast("To'g'ri raqamli Telegram ID kiriting");
         return;
     }
-    const user = loginWithTelegramId({ id: rawId });
-    bootAppWithUser(user);
-});
-
-/* ================= SYNC VERIFIED BADGE, FOLLOWS & BANNER ================= */
-window.addEventListener('pageshow', () => {
-    if (!currentUser) return;
-    loadSavedPosts();
-    renderProfileHeader();
-    loadMyPosts();
-    switchTab(currentTab);
-});
-window.addEventListener('storage', (e) => {
-    if (!currentUser) return;
-    if (e.key === VERIFIED_KEY || e.key === DB._K) {
-        renderProfileHeader();
-        switchTab(currentTab);
-    }
-    if (e.key === SAVED_POSTS_KEY) {
-        loadSavedPosts();
-        if (currentTab === 'saved') renderSaved();
-    }
+    const user = await loginWithTelegramId({ id: rawId });
+    await bootAppWithUser(user);
 });
 
 /* ================= INIT ================= */
-if (currentUser) {
-    bootAppWithUser(currentUser);
-} else {
-    document.getElementById('tgIdGate').classList.add('show');
-}
+(async function bootstrap() {
+    const tgUser = extractTelegramUser();
+    if (tgUser && tgUser.id) {
+        const user = await loginWithTelegramId(tgUser);
+        await bootAppWithUser(user);
+    } else {
+        document.getElementById('tgIdGate').classList.add('show');
+    }
+})();
 </script>
 </body>
 </html>
