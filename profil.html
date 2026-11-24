@@ -1057,381 +1057,6 @@ function showTabLoader(active) {
 }
 
 
-/* ================= POST VA TABS ================= */
-const emptyIcons = {
-    posts: `<svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3.5"/><line x1="8" y1="9.5" x2="15" y2="9.5"/><line x1="8" y1="14" x2="12" y2="14"/></svg>`,
-    video: `<svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="14" rx="3"/><line x1="6" y1="3" x2="18" y2="3"/><polygon points="10.5 10 15.5 13 10.5 16 10.5 10" fill="currentColor" stroke="none"/></svg>`,
-    answers: `<svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>`,
-    saved: `<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`
-};
-const texts = { posts: "Hali post yo'q", video: "Hali video yo'q", answers: "Hali javob yo'q", saved: "Hali saqlangan post yo'q" };
-
-function countComments(p){
-    let n = (p.comments || []).length; const walk = (arr) => arr.forEach(c => { n += (c.replies || []).length; if (c.replies) walk(c.replies); }); walk(p.comments || []); return n;
-}
-function handleShare(entity){
-    const link = location.origin + '/index.html?post=' + encodeURIComponent(entity.id);
-    if (navigator.share) navigator.share({ title: 'Post', url: link }).catch(() => {});
-    else { try { navigator.clipboard?.writeText(link); } catch {} showToast('Havola nusxalandi'); }
-}
-
-function buildPostActions(p){
-    const actions = document.createElement('div'); actions.className = 'post-actions';
-    const createBtn = (icon, count, cls, clk) => {
-        const b = document.createElement('button'); b.className = 'act-btn ' + cls;
-        b.innerHTML = `${icon}<span class="act-count">${count!==null?count:''}</span>`;
-        if (clk) b.addEventListener('click', clk); return b;
-    };
-    const likeBtn = createBtn(ICONS.like, p.likes||0, isLiked(p)?'liked':'', async (e)=>{
-        e.stopPropagation();
-        const fresh = PostStore.get(p.id) || p;
-        const copy = { ...fresh, likedBy: [...(fresh.likedBy || [])] };
-        const liked = toggleLikeObj(copy);
-
-        likeBtn.classList.toggle('liked', liked);
-        likeBtn.querySelector('.act-count').textContent = copy.likes;
-
-        await PostStore.update(p.id, { likedBy: copy.likedBy, likes: copy.likes });
-        if (liked && currentUser) {
-            pushNotification({
-                type: 'like',
-                recipientId: String(p.userId),
-                senderId: String(currentUser.userId),
-                senderName: getFullName(currentUser),
-                senderAvatar: currentUser.photo_url || null,
-                postId: p.id
-            });
-        }
-    });
-    const commBtn = createBtn(ICONS.comment, countComments(p), '', (e)=>{ e.stopPropagation(); openPostDetail(p); });
-    const viewBtn = createBtn(ICONS.view, p.views||0, '', (e)=>{ e.stopPropagation(); }); viewBtn.style.cursor='default';
-    const saveBtn = createBtn(ICONS.bookmark, null, savedPosts.has(String(p.id))?'saved':'', async (e)=>{
-        e.stopPropagation();
-        if (!currentUser) return;
-        const key = String(p.id);
-        const uid = String(currentUser.userId);
-        if (savedPosts.has(key)) {
-            savedPosts.delete(key);
-            saveBtn.classList.remove('saved');
-            showToast("Olib tashlandi");
-            await updateDoc(doc(db, USERS_COLLECTION, uid), { savedPosts: arrayRemove(key) }).catch(() => {});
-        } else {
-            savedPosts.add(key);
-            saveBtn.classList.add('saved');
-            showToast("Saqlandi");
-            await updateDoc(doc(db, USERS_COLLECTION, uid), { savedPosts: arrayUnion(key) }).catch(() => {});
-        }
-        if (currentTab === 'saved') {
-            await PostStore.loadSavedPostsFromServer();
-            renderSaved();
-        }
-    });
-    const shareBtn = createBtn(ICONS.share, null, '', (e)=>{ e.stopPropagation(); handleShare(p); });
-
-    actions.append(likeBtn, commBtn, viewBtn, saveBtn, shareBtn); return actions;
-}
-
-function buildPostItem(p){
-    const item = document.createElement('div'); item.className = 'post-item'; item.dataset.id = p.id;
-    item.style.display = 'flex';
-    item.style.gap = '10px';
-    item.style.alignItems = 'flex-start';
-
-    const author = UserCache.get(String(p.userId));
-    const authorName = author ? getFullName(author) : p.user;
-    const authorAvatar = author ? author.photo_url : p.avatar;
-    const postInit = (authorName || 'U').trim().charAt(0).toUpperCase();
-    const av = authorAvatar ? `<img class="post-avatar" src="${authorAvatar}" alt="" loading="lazy">` : `<div class="post-avatar-initial">${postInit}</div>`;
-    let media = '';
-    if (p.type === 'image' && p.image) media = `<img class="post-image" src="${p.image}" alt="" loading="lazy">`;
-    else if (p.type === 'video' && p.image) media = `<video class="post-video" src="${p.image}" controls playsinline preload="metadata"></video>`;
-
-    const canDelete = currentUser && String(p.userId) === String(currentUser.userId);
-
-    item.innerHTML = `
-        <div style="flex-shrink:0;">${av}</div>
-        <div style="flex:1;min-width:0;">
-            <div class="post-head-row">
-                <div class="post-head-info">
-                    <div class="post-user">${escapeHtml(authorName)}${getInlineVerifiedBadge(p.userId)}</div>
-                    <div class="post-time">${escapeHtml(formatExactTime(p.createdAt || p.time))}</div>
-                </div>
-                ${canDelete ? `<button class="post-del-btn" title="O'chirish" aria-label="Postni o'chirish">${ICONS.trash}</button>` : ''}
-            </div>
-            ${p.text ? `<div class="post-text">${escapeHtml(p.text)}</div>` : ''}
-            ${media}
-            <div class="post-actions-slot"></div>
-        </div>
-    `;
-    item.querySelector('.post-actions-slot').appendChild(buildPostActions(p));
-
-    if (canDelete) {
-        item.querySelector('.post-del-btn')?.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            await PostStore.remove(p.id);
-            switchTab(currentTab);
-            showToast("Post o'chirildi");
-        });
-    }
-
-    item.addEventListener('click', (e) => { if (e.target.closest('.act-btn') || e.target.closest('.post-del-btn') || e.target.tagName === 'VIDEO') return; openPostDetail(p); });
-
-    const io = new IntersectionObserver(entries => {
-        entries.forEach(en => {
-            if (en.isIntersecting && !viewedPostIds.has(String(p.id))) {
-                io.disconnect();
-                viewedPostIds.add(String(p.id));
-                const fresh = PostStore.get(p.id) || p;
-                const v = (fresh.views || 0) + 1;
-                updateDoc(doc(db, POSTS_COLLECTION, String(p.id)), { views: increment(1) }).catch(() => {});
-                item.querySelectorAll('.act-btn')[2].querySelector('.act-count').textContent = v;
-            }
-        });
-    }, { threshold: 0.5 });
-    io.observe(item);
-
-    return item;
-}
-
-function renderList(list, key){
-    const area = document.getElementById('contentArea');
-    if (list.length === 0) { area.innerHTML = `<div class="empty-state"><div class="empty-icon">${emptyIcons[key]}</div><p>${texts[key]}</p></div>`; return; }
-    area.innerHTML = '<div class="feed" id="feed"></div>';
-    list.forEach(p => document.getElementById('feed').appendChild(buildPostItem(p)));
-}
-function renderPosts(){ renderList(PostStore._userPosts, 'posts'); }
-function renderVideos(){ renderList(PostStore._userPosts.filter(p => p.type === 'video'), 'video'); }
-function renderSaved(){ renderList(PostStore._savedPostsList, 'saved'); }
-function renderReplies(){
-    const area = document.getElementById('contentArea');
-    const list = PostStore._repliesList;
-    if (list.length === 0) { area.innerHTML = `<div class="empty-state"><div class="empty-icon">${emptyIcons.answers}</div><p>${texts.answers}</p></div>`; return; }
-    area.innerHTML = '<div class="feed" id="feed"></div>';
-    list.forEach(r => {
-        const item = document.createElement('div'); item.className = 'post-item';
-        item.style.display = 'flex'; item.style.gap = '10px'; item.style.alignItems = 'flex-start';
-        const author = UserCache.get(String(r.userId));
-        const rName = author ? getFullName(author) : r.user;
-        const rAvatar = author ? author.photo_url : r.avatar;
-        const init = (rName || 'U').trim().charAt(0).toUpperCase();
-        const av = rAvatar ? `<img class="post-avatar" src="${rAvatar}">` : `<div class="post-avatar-initial">${init}</div>`;
-        item.innerHTML = `
-            <div style="flex-shrink:0;">${av}</div>
-            <div style="flex:1;min-width:0;">
-                <div class="post-head-info">
-                    <div class="post-user">${escapeHtml(rName)}${getInlineVerifiedBadge(r.userId || currentUser?.userId)}</div>
-                    <div class="post-time">${escapeHtml(formatExactTime(r.createdAt))}</div>
-                </div>
-                <div class="post-text">${escapeHtml(r.text)}</div>
-                <div style="font-size:12px;color:#71767b;margin-top:8px;padding:8px;background:rgba(255,255,255,0.05);border-radius:8px">Javob berildi: "${escapeHtml(r.postText || 'post')}"</div>
-            </div>`;
-        item.addEventListener('click', async () => {
-            let p = PostStore.get(r.postId);
-            if (!p && r.postId) {
-                const s = await getDoc(doc(db, POSTS_COLLECTION, String(r.postId)));
-                if (s.exists()) { p = { id: s.id, ...s.data() }; PostStore._registerPosts([p]); }
-            }
-            if (p) openPostDetail(p);
-        });
-        document.getElementById('feed').appendChild(item);
-    });
-}
-
-let currentTab = 'posts';
-async function switchTab(k){
-    currentTab = k;
-    document.querySelectorAll('.tab-item').forEach(t => t.classList.toggle('active', t.dataset.tab === k));
-    if (k === 'posts') renderPosts();
-    else if (k === 'video') renderVideos();
-    else if (k === 'answers') renderReplies();
-    else if (k === 'saved') {
-        await PostStore.loadSavedPostsFromServer();
-        renderSaved();
-    }
-}
-document.getElementById('tabsContainer').addEventListener('click', e => { const tab = e.target.closest('.tab-item'); if (tab) switchTab(tab.dataset.tab); });
-
-function initLazyTabObserver(targetId) {
-    const loader = document.getElementById('tabLoader');
-    const io = new IntersectionObserver((entries) => {
-        if (entries[0]?.isIntersecting && (currentTab === 'posts' || currentTab === 'video')) {
-            PostStore.loadNextUserPostsPage(targetId);
-        }
-    }, { rootMargin: '200px', threshold: 0.05 });
-    io.observe(loader);
-}
-
-/* ================= COMMENTS & POST DETAIL ================= */
-const detailOverlay = document.getElementById('detailOverlay'), detailInput = document.getElementById('detailInput'), detailSend = document.getElementById('detailSend');
-let detailPost = null, replyTargetId = null;
-
-function updateDetailReplyModeUI(){
-    const bar = document.getElementById('replyModeBar'), island = document.getElementById('detailIsland');
-    if (!replyTargetId || !detailPost) { bar.style.display = 'none'; island.classList.remove('reply-mode'); return; }
-    const found = findComment(detailPost.comments || [], replyTargetId);
-    if (found) { document.getElementById('replyModeText').textContent = `↩ ${found.comment.user} ga javob`; bar.style.display = 'flex'; island.classList.add('reply-mode'); }
-    else { bar.style.display = 'none'; island.classList.remove('reply-mode'); }
-}
-document.getElementById('replyModeCancel').addEventListener('click', () => { replyTargetId = null; detailInput.value = ''; detailInput.style.height = 'auto'; updateDetailReplyModeUI(); });
-
-function buildDetailComment(c, depth = 0, inCommentDetail = false){
-    const thread = document.createElement('div'); thread.className = 'comment-thread' + (depth > 0 ? ' thread-nested' : ''); thread.dataset.cid = c.id;
-    const cAuthor = UserCache.get(String(c.userId));
-    const cName = cAuthor ? getFullName(cAuthor) : c.user;
-    const cAvatar = cAuthor ? cAuthor.photo_url : c.avatar;
-    const init = (cName || 'U').trim().charAt(0).toUpperCase();
-    const av = cAvatar ? `<img class="comment-avatar" src="${cAvatar}">` : `<div class="comment-avatar-initial">${init}</div>`;
-    const hasReplies = !inCommentDetail && c.replies && c.replies.length > 0;
-
-    const row = document.createElement('div'); row.className = 'comment-row';
-    row.innerHTML = `
-        <div class="comment-avatar-col">
-            ${av}
-            ${hasReplies ? '<div class="thread-line-down"></div>' : ''}
-        </div>
-        <div class="comment-content">
-            <div class="comment-head"><span class="comment-user">${escapeHtml(cName)}${getInlineVerifiedBadge(c.userId)}</span><span class="comment-time">${escapeHtml(formatExactTime(c.createdAt || c.time))}</span></div>
-            <div class="comment-text">${escapeHtml(c.text || '')}</div>
-        </div>
-    `;
-    const actions = document.createElement('div'); actions.className = 'comment-actions';
-    const likeBtn = document.createElement('button'); likeBtn.className = 'comment-act' + (isLiked(c)?' liked':''); likeBtn.innerHTML = `${ICONS.like}<span>${c.likes||0}</span>`;
-    likeBtn.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        toggleLikeObj(c);
-        refreshDetailFromStore();
-        if (inCommentDetail && activeCommentId) refreshCommentDetailFromStore();
-        await PostStore.update(detailPost.id, { comments: detailPost.comments });
-    });
-    const commBtn = document.createElement('button'); commBtn.className = 'comment-act'; commBtn.innerHTML = `${ICONS.comment}<span>${(c.replies||[]).length||''}</span>`;
-    commBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (inCommentDetail) {
-            cdReplyTargetId = c.id;
-            cdInput.focus();
-            updateCdReplyModeUI();
-        } else {
-            replyTargetId = c.id;
-            detailInput.focus();
-            updateDetailReplyModeUI();
-        }
-    });
-    const viewBtn = document.createElement('button'); viewBtn.className = 'comment-act'; viewBtn.innerHTML = `${ICONS.view}`; viewBtn.style.cursor = 'default';
-    viewBtn.addEventListener('click', (e) => e.stopPropagation());
-    const saveBtn = document.createElement('button'); saveBtn.className = 'comment-act'; saveBtn.innerHTML = `${ICONS.bookmark}`;
-    saveBtn.addEventListener('click', (e) => { e.stopPropagation(); saveBtn.classList.toggle('saved'); showToast(saveBtn.classList.contains('saved')?'Saqlandi':'Olib tashlandi'); });
-    const shareBtn = document.createElement('button'); shareBtn.className = 'comment-act'; shareBtn.innerHTML = `${ICONS.share}`;
-    shareBtn.addEventListener('click', (e) => { e.stopPropagation(); handleShare(c); });
-
-    actions.append(likeBtn, commBtn, viewBtn, saveBtn, shareBtn);
-    row.querySelector('.comment-content').appendChild(actions);
-    row.addEventListener('click', (e) => {
-        if (!e.target.closest('.comment-act') && (!inCommentDetail || c.id !== activeCommentId)) {
-            openCommentDetail(c.id);
-        }
-    });
-    thread.appendChild(row);
-
-    if (hasReplies) {
-        const repBox = document.createElement('div'); repBox.className = 'comment-replies';
-        c.replies.forEach(r => repBox.appendChild(buildDetailComment(r, depth + 1, false)));
-        thread.appendChild(repBox);
-    }
-    return thread;
-}
-
-function collectCommentUserIds(comments, out = []) {
-    (comments || []).forEach(c => {
-        if (c.userId) out.push(c.userId);
-        if (c.replies) collectCommentUserIds(c.replies, out);
-    });
-    return out;
-}
-
-async function refreshDetailFromStore(){
-    if (!detailPost) return;
-    const fresh = PostStore.get(detailPost.id);
-    if (fresh) detailPost = fresh;
-    await UserCache.prefetch([detailPost.userId, ...collectCommentUserIds(detailPost.comments)]);
-    renderDetailPost();
-    const clist = document.getElementById('detailCommentsList'); clist.innerHTML = '';
-    document.getElementById('detailCommTitle').textContent = (detailPost.comments||[]).length ? `Izohlar (${countComments(detailPost)})` : 'Izohlar';
-    (detailPost.comments||[]).forEach(c => clist.appendChild(buildDetailComment(c, 0, false)));
-}
-
-function renderDetailPost(){
-    if (!detailPost) return; const p = detailPost;
-    const author = UserCache.get(String(p.userId));
-    const pName = author ? getFullName(author) : p.user;
-    const pAvatar = author ? author.photo_url : p.avatar;
-    const postInit = (pName || 'U').trim().charAt(0).toUpperCase();
-    const av = pAvatar ? `<img class="detail-avatar" src="${pAvatar}">` : `<div class="detail-avatar-initial">${postInit}</div>`;
-    let media = '';
-    if (p.type === 'image' && p.image) media = `<img class="detail-image" src="${p.image}">`;
-    else if (p.type === 'video' && p.image) media = `<video class="detail-video" src="${p.image}" controls playsinline></video>`;
-
-    document.getElementById('detailPostBox').innerHTML = `
-        <div class="detail-post" style="display:flex;gap:10px;align-items:flex-start;">
-            <div style="flex-shrink:0;">${av}</div>
-            <div style="flex:1;min-width:0;">
-                <div style="display:flex;flex-direction:row;align-items:baseline;gap:6px;margin-bottom:6px;">
-                    <div class="detail-user">${escapeHtml(pName)}${getInlineVerifiedBadge(p.userId)}</div>
-                    <div class="detail-time">${escapeHtml(formatExactTime(p.createdAt))}</div>
-                </div>
-                ${p.text ? `<div class="detail-text">${escapeHtml(p.text)}</div>` : ''}
-                ${media}
-                <div id="detailActionsBar"></div>
-            </div>
-        </div>
-    `;
-    document.getElementById('detailActionsBar').appendChild(buildPostActions(p));
-}
-
-async function openPostDetail(p){
-    detailPost = PostStore.get(p.id) || p;
-    if (!detailPost.comments) detailPost.comments = [];
-    replyTargetId = null;
-    await refreshDetailFromStore();
-    updateDetailReplyModeUI();
-    detailOverlay.classList.add('show');
-    document.getElementById('detailScroll').scrollTop = 0;
-    if (isTelegram) { try { tg.BackButton.onClick(closePostDetail); tg.BackButton.show(); } catch {} }
-}
-function closePostDetail(){
-    detailOverlay.classList.remove('show'); detailPost = null; replyTargetId = null;
-    switchTab(currentTab);
-    if (isTelegram) { try { tg.BackButton.onClick(goBack); } catch {} }
-}
-
-detailInput.addEventListener('input', () => {
-    detailInput.style.height = 'auto'; detailInput.style.height = Math.min(detailInput.scrollHeight, 90) + 'px';
-    detailSend.disabled = detailInput.value.trim().length === 0;
-});
-detailSend.addEventListener('click', async () => {
-    const raw = detailInput.value.trim(); if (!raw || !detailPost || !currentUser) return;
-    detailSend.disabled = true;
-    const newC = makeCommentObj(raw, replyTargetId);
-    const res = await addCommentToPost(detailPost.id, newC, replyTargetId);
-    if (res) {
-        saveReplyToServer({
-            id: newC.id,
-            postId: detailPost.id,
-            userId: String(currentUser.userId),
-            user: newC.user,
-            avatar: newC.avatar,
-            text: newC.text,
-            createdAt: newC.createdAt,
-            postText: detailPost.text || ''
-        });
-        replyTargetId = null; detailInput.value = ''; detailInput.style.height = 'auto';
-        updateDetailReplyModeUI();
-        await refreshDetailFromStore();
-    } else {
-        detailSend.disabled = false;
-    }
-});
-
-
 /* ================= NOTIFICATION BADGE SYNC (INDEX & NOTIFICATION BILAN BIR XIL) ================= */
 function updateNotificationBadge(unreadCount) {
     const btn = document.getElementById('navNotifBtn');
@@ -1791,6 +1416,7 @@ function closeFollowsList() {
 document.getElementById('followersStat').addEventListener('click', () => openFollowsList('followers'));
 document.getElementById('subsStat').addEventListener('click', () => openFollowsList('following'));
 
+
 /* ================= NAVIGATION ================= */
 async function goBack(){
     await flushUsageTimeToServer();
@@ -1812,6 +1438,381 @@ document.getElementById('subscribeBtn')?.addEventListener('click', async () => {
     if (!profileOwner || isOwn || !currentUser) return;
     const subscribed = await FollowStore.toggle(currentUser.userId, profileOwner.userId);
     showToast(subscribed ? "Obuna bo'ldingiz" : "Obuna bekor qilindi");
+});
+
+/* ================= POST VA TABS ================= */
+const emptyIcons = {
+    posts: `<svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3.5"/><line x1="8" y1="9.5" x2="15" y2="9.5"/><line x1="8" y1="14" x2="12" y2="14"/></svg>`,
+    video: `<svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="14" rx="3"/><line x1="6" y1="3" x2="18" y2="3"/><polygon points="10.5 10 15.5 13 10.5 16 10.5 10" fill="currentColor" stroke="none"/></svg>`,
+    answers: `<svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>`,
+    saved: `<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`
+};
+const texts = { posts: "Hali post yo'q", video: "Hali video yo'q", answers: "Hali javob yo'q", saved: "Hali saqlangan post yo'q" };
+
+function countComments(p){
+    let n = (p.comments || []).length; const walk = (arr) => arr.forEach(c => { n += (c.replies || []).length; if (c.replies) walk(c.replies); }); walk(p.comments || []); return n;
+}
+function handleShare(entity){
+    const link = location.origin + '/index.html?post=' + encodeURIComponent(entity.id);
+    if (navigator.share) navigator.share({ title: 'Post', url: link }).catch(() => {});
+    else { try { navigator.clipboard?.writeText(link); } catch {} showToast('Havola nusxalandi'); }
+}
+
+function buildPostActions(p){
+    const actions = document.createElement('div'); actions.className = 'post-actions';
+    const createBtn = (icon, count, cls, clk) => {
+        const b = document.createElement('button'); b.className = 'act-btn ' + cls;
+        b.innerHTML = `${icon}<span class="act-count">${count!==null?count:''}</span>`;
+        if (clk) b.addEventListener('click', clk); return b;
+    };
+    const likeBtn = createBtn(ICONS.like, p.likes||0, isLiked(p)?'liked':'', async (e)=>{
+        e.stopPropagation();
+        const fresh = PostStore.get(p.id) || p;
+        const copy = { ...fresh, likedBy: [...(fresh.likedBy || [])] };
+        const liked = toggleLikeObj(copy);
+
+        likeBtn.classList.toggle('liked', liked);
+        likeBtn.querySelector('.act-count').textContent = copy.likes;
+
+        await PostStore.update(p.id, { likedBy: copy.likedBy, likes: copy.likes });
+        if (liked && currentUser) {
+            pushNotification({
+                type: 'like',
+                recipientId: String(p.userId),
+                senderId: String(currentUser.userId),
+                senderName: getFullName(currentUser),
+                senderAvatar: currentUser.photo_url || null,
+                postId: p.id
+            });
+        }
+    });
+    const commBtn = createBtn(ICONS.comment, countComments(p), '', (e)=>{ e.stopPropagation(); openPostDetail(p); });
+    const viewBtn = createBtn(ICONS.view, p.views||0, '', (e)=>{ e.stopPropagation(); }); viewBtn.style.cursor='default';
+    const saveBtn = createBtn(ICONS.bookmark, null, savedPosts.has(String(p.id))?'saved':'', async (e)=>{
+        e.stopPropagation();
+        if (!currentUser) return;
+        const key = String(p.id);
+        const uid = String(currentUser.userId);
+        if (savedPosts.has(key)) {
+            savedPosts.delete(key);
+            saveBtn.classList.remove('saved');
+            showToast("Olib tashlandi");
+            await updateDoc(doc(db, USERS_COLLECTION, uid), { savedPosts: arrayRemove(key) }).catch(() => {});
+        } else {
+            savedPosts.add(key);
+            saveBtn.classList.add('saved');
+            showToast("Saqlandi");
+            await updateDoc(doc(db, USERS_COLLECTION, uid), { savedPosts: arrayUnion(key) }).catch(() => {});
+        }
+        if (currentTab === 'saved') {
+            await PostStore.loadSavedPostsFromServer();
+            renderSaved();
+        }
+    });
+    const shareBtn = createBtn(ICONS.share, null, '', (e)=>{ e.stopPropagation(); handleShare(p); });
+
+    actions.append(likeBtn, commBtn, viewBtn, saveBtn, shareBtn); return actions;
+}
+
+function buildPostItem(p){
+    const item = document.createElement('div'); item.className = 'post-item'; item.dataset.id = p.id;
+    item.style.display = 'flex';
+    item.style.gap = '10px';
+    item.style.alignItems = 'flex-start';
+
+    const author = UserCache.get(String(p.userId));
+    const authorName = author ? getFullName(author) : p.user;
+    const authorAvatar = author ? author.photo_url : p.avatar;
+    const postInit = (authorName || 'U').trim().charAt(0).toUpperCase();
+    const av = authorAvatar ? `<img class="post-avatar" src="${authorAvatar}" alt="" loading="lazy">` : `<div class="post-avatar-initial">${postInit}</div>`;
+    let media = '';
+    if (p.type === 'image' && p.image) media = `<img class="post-image" src="${p.image}" alt="" loading="lazy">`;
+    else if (p.type === 'video' && p.image) media = `<video class="post-video" src="${p.image}" controls playsinline preload="metadata"></video>`;
+
+    const canDelete = currentUser && String(p.userId) === String(currentUser.userId);
+
+    item.innerHTML = `
+        <div style="flex-shrink:0;">${av}</div>
+        <div style="flex:1;min-width:0;">
+            <div class="post-head-row">
+                <div class="post-head-info">
+                    <div class="post-user">${escapeHtml(authorName)}${getInlineVerifiedBadge(p.userId)}</div>
+                    <div class="post-time">${escapeHtml(formatExactTime(p.createdAt || p.time))}</div>
+                </div>
+                ${canDelete ? `<button class="post-del-btn" title="O'chirish" aria-label="Postni o'chirish">${ICONS.trash}</button>` : ''}
+            </div>
+            ${p.text ? `<div class="post-text">${escapeHtml(p.text)}</div>` : ''}
+            ${media}
+            <div class="post-actions-slot"></div>
+        </div>
+    `;
+    item.querySelector('.post-actions-slot').appendChild(buildPostActions(p));
+
+    if (canDelete) {
+        item.querySelector('.post-del-btn')?.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            await PostStore.remove(p.id);
+            switchTab(currentTab);
+            showToast("Post o'chirildi");
+        });
+    }
+
+    item.addEventListener('click', (e) => { if (e.target.closest('.act-btn') || e.target.closest('.post-del-btn') || e.target.tagName === 'VIDEO') return; openPostDetail(p); });
+
+    const io = new IntersectionObserver(entries => {
+        entries.forEach(en => {
+            if (en.isIntersecting && !viewedPostIds.has(String(p.id))) {
+                io.disconnect();
+                viewedPostIds.add(String(p.id));
+                const fresh = PostStore.get(p.id) || p;
+                const v = (fresh.views || 0) + 1;
+                updateDoc(doc(db, POSTS_COLLECTION, String(p.id)), { views: increment(1) }).catch(() => {});
+                item.querySelectorAll('.act-btn')[2].querySelector('.act-count').textContent = v;
+            }
+        });
+    }, { threshold: 0.5 });
+    io.observe(item);
+
+    return item;
+}
+
+function renderList(list, key){
+    const area = document.getElementById('contentArea');
+    if (list.length === 0) { area.innerHTML = `<div class="empty-state"><div class="empty-icon">${emptyIcons[key]}</div><p>${texts[key]}</p></div>`; return; }
+    area.innerHTML = '<div class="feed" id="feed"></div>';
+    list.forEach(p => document.getElementById('feed').appendChild(buildPostItem(p)));
+}
+function renderPosts(){ renderList(PostStore._userPosts, 'posts'); }
+function renderVideos(){ renderList(PostStore._userPosts.filter(p => p.type === 'video'), 'video'); }
+function renderSaved(){ renderList(PostStore._savedPostsList, 'saved'); }
+function renderReplies(){
+    const area = document.getElementById('contentArea');
+    const list = PostStore._repliesList;
+    if (list.length === 0) { area.innerHTML = `<div class="empty-state"><div class="empty-icon">${emptyIcons.answers}</div><p>${texts.answers}</p></div>`; return; }
+    area.innerHTML = '<div class="feed" id="feed"></div>';
+    list.forEach(r => {
+        const item = document.createElement('div'); item.className = 'post-item';
+        item.style.display = 'flex'; item.style.gap = '10px'; item.style.alignItems = 'flex-start';
+        const author = UserCache.get(String(r.userId));
+        const rName = author ? getFullName(author) : r.user;
+        const rAvatar = author ? author.photo_url : r.avatar;
+        const init = (rName || 'U').trim().charAt(0).toUpperCase();
+        const av = rAvatar ? `<img class="post-avatar" src="${rAvatar}">` : `<div class="post-avatar-initial">${init}</div>`;
+        item.innerHTML = `
+            <div style="flex-shrink:0;">${av}</div>
+            <div style="flex:1;min-width:0;">
+                <div class="post-head-info">
+                    <div class="post-user">${escapeHtml(rName)}${getInlineVerifiedBadge(r.userId || currentUser?.userId)}</div>
+                    <div class="post-time">${escapeHtml(formatExactTime(r.createdAt))}</div>
+                </div>
+                <div class="post-text">${escapeHtml(r.text)}</div>
+                <div style="font-size:12px;color:#71767b;margin-top:8px;padding:8px;background:rgba(255,255,255,0.05);border-radius:8px">Javob berildi: "${escapeHtml(r.postText || 'post')}"</div>
+            </div>`;
+        item.addEventListener('click', async () => {
+            let p = PostStore.get(r.postId);
+            if (!p && r.postId) {
+                const s = await getDoc(doc(db, POSTS_COLLECTION, String(r.postId)));
+                if (s.exists()) { p = { id: s.id, ...s.data() }; PostStore._registerPosts([p]); }
+            }
+            if (p) openPostDetail(p);
+        });
+        document.getElementById('feed').appendChild(item);
+    });
+}
+
+let currentTab = 'posts';
+async function switchTab(k){
+    currentTab = k;
+    document.querySelectorAll('.tab-item').forEach(t => t.classList.toggle('active', t.dataset.tab === k));
+    if (k === 'posts') renderPosts();
+    else if (k === 'video') renderVideos();
+    else if (k === 'answers') renderReplies();
+    else if (k === 'saved') {
+        await PostStore.loadSavedPostsFromServer();
+        renderSaved();
+    }
+}
+document.getElementById('tabsContainer').addEventListener('click', e => { const tab = e.target.closest('.tab-item'); if (tab) switchTab(tab.dataset.tab); });
+
+function initLazyTabObserver(targetId) {
+    const loader = document.getElementById('tabLoader');
+    const io = new IntersectionObserver((entries) => {
+        if (entries[0]?.isIntersecting && (currentTab === 'posts' || currentTab === 'video')) {
+            PostStore.loadNextUserPostsPage(targetId);
+        }
+    }, { rootMargin: '200px', threshold: 0.05 });
+    io.observe(loader);
+}
+
+
+/* ================= COMMENTS & POST DETAIL ================= */
+const detailOverlay = document.getElementById('detailOverlay'), detailInput = document.getElementById('detailInput'), detailSend = document.getElementById('detailSend');
+let detailPost = null, replyTargetId = null;
+
+function updateDetailReplyModeUI(){
+    const bar = document.getElementById('replyModeBar'), island = document.getElementById('detailIsland');
+    if (!replyTargetId || !detailPost) { bar.style.display = 'none'; island.classList.remove('reply-mode'); return; }
+    const found = findComment(detailPost.comments || [], replyTargetId);
+    if (found) { document.getElementById('replyModeText').textContent = `↩ ${found.comment.user} ga javob`; bar.style.display = 'flex'; island.classList.add('reply-mode'); }
+    else { bar.style.display = 'none'; island.classList.remove('reply-mode'); }
+}
+document.getElementById('replyModeCancel').addEventListener('click', () => { replyTargetId = null; detailInput.value = ''; detailInput.style.height = 'auto'; updateDetailReplyModeUI(); });
+
+function buildDetailComment(c, depth = 0, inCommentDetail = false){
+    const thread = document.createElement('div'); thread.className = 'comment-thread' + (depth > 0 ? ' thread-nested' : ''); thread.dataset.cid = c.id;
+    const cAuthor = UserCache.get(String(c.userId));
+    const cName = cAuthor ? getFullName(cAuthor) : c.user;
+    const cAvatar = cAuthor ? cAuthor.photo_url : c.avatar;
+    const init = (cName || 'U').trim().charAt(0).toUpperCase();
+    const av = cAvatar ? `<img class="comment-avatar" src="${cAvatar}">` : `<div class="comment-avatar-initial">${init}</div>`;
+    const hasReplies = !inCommentDetail && c.replies && c.replies.length > 0;
+
+    const row = document.createElement('div'); row.className = 'comment-row';
+    row.innerHTML = `
+        <div class="comment-avatar-col">
+            ${av}
+            ${hasReplies ? '<div class="thread-line-down"></div>' : ''}
+        </div>
+        <div class="comment-content">
+            <div class="comment-head"><span class="comment-user">${escapeHtml(cName)}${getInlineVerifiedBadge(c.userId)}</span><span class="comment-time">${escapeHtml(formatExactTime(c.createdAt || c.time))}</span></div>
+            <div class="comment-text">${escapeHtml(c.text || '')}</div>
+        </div>
+    `;
+    const actions = document.createElement('div'); actions.className = 'comment-actions';
+    const likeBtn = document.createElement('button'); likeBtn.className = 'comment-act' + (isLiked(c)?' liked':''); likeBtn.innerHTML = `${ICONS.like}<span>${c.likes||0}</span>`;
+    likeBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        toggleLikeObj(c);
+        refreshDetailFromStore();
+        if (inCommentDetail && activeCommentId) refreshCommentDetailFromStore();
+        await PostStore.update(detailPost.id, { comments: detailPost.comments });
+    });
+    const commBtn = document.createElement('button'); commBtn.className = 'comment-act'; commBtn.innerHTML = `${ICONS.comment}<span>${(c.replies||[]).length||''}</span>`;
+    commBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (inCommentDetail) {
+            cdReplyTargetId = c.id;
+            cdInput.focus();
+            updateCdReplyModeUI();
+        } else {
+            replyTargetId = c.id;
+            detailInput.focus();
+            updateDetailReplyModeUI();
+        }
+    });
+    const viewBtn = document.createElement('button'); viewBtn.className = 'comment-act'; viewBtn.innerHTML = `${ICONS.view}`; viewBtn.style.cursor = 'default';
+    viewBtn.addEventListener('click', (e) => e.stopPropagation());
+    const saveBtn = document.createElement('button'); saveBtn.className = 'comment-act'; saveBtn.innerHTML = `${ICONS.bookmark}`;
+    saveBtn.addEventListener('click', (e) => { e.stopPropagation(); saveBtn.classList.toggle('saved'); showToast(saveBtn.classList.contains('saved')?'Saqlandi':'Olib tashlandi'); });
+    const shareBtn = document.createElement('button'); shareBtn.className = 'comment-act'; shareBtn.innerHTML = `${ICONS.share}`;
+    shareBtn.addEventListener('click', (e) => { e.stopPropagation(); handleShare(c); });
+
+    actions.append(likeBtn, commBtn, viewBtn, saveBtn, shareBtn);
+    row.querySelector('.comment-content').appendChild(actions);
+    row.addEventListener('click', (e) => {
+        if (!e.target.closest('.comment-act') && (!inCommentDetail || c.id !== activeCommentId)) {
+            openCommentDetail(c.id);
+        }
+    });
+    thread.appendChild(row);
+
+    if (hasReplies) {
+        const repBox = document.createElement('div'); repBox.className = 'comment-replies';
+        c.replies.forEach(r => repBox.appendChild(buildDetailComment(r, depth + 1, false)));
+        thread.appendChild(repBox);
+    }
+    return thread;
+}
+
+function collectCommentUserIds(comments, out = []) {
+    (comments || []).forEach(c => {
+        if (c.userId) out.push(c.userId);
+        if (c.replies) collectCommentUserIds(c.replies, out);
+    });
+    return out;
+}
+
+async function refreshDetailFromStore(){
+    if (!detailPost) return;
+    const fresh = PostStore.get(detailPost.id);
+    if (fresh) detailPost = fresh;
+    await UserCache.prefetch([detailPost.userId, ...collectCommentUserIds(detailPost.comments)]);
+    renderDetailPost();
+    const clist = document.getElementById('detailCommentsList'); clist.innerHTML = '';
+    document.getElementById('detailCommTitle').textContent = (detailPost.comments||[]).length ? `Izohlar (${countComments(detailPost)})` : 'Izohlar';
+    (detailPost.comments||[]).forEach(c => clist.appendChild(buildDetailComment(c, 0, false)));
+}
+
+function renderDetailPost(){
+    if (!detailPost) return; const p = detailPost;
+    const author = UserCache.get(String(p.userId));
+    const pName = author ? getFullName(author) : p.user;
+    const pAvatar = author ? author.photo_url : p.avatar;
+    const postInit = (pName || 'U').trim().charAt(0).toUpperCase();
+    const av = pAvatar ? `<img class="detail-avatar" src="${pAvatar}">` : `<div class="detail-avatar-initial">${postInit}</div>`;
+    let media = '';
+    if (p.type === 'image' && p.image) media = `<img class="detail-image" src="${p.image}">`;
+    else if (p.type === 'video' && p.image) media = `<video class="detail-video" src="${p.image}" controls playsinline></video>`;
+
+    document.getElementById('detailPostBox').innerHTML = `
+        <div class="detail-post" style="display:flex;gap:10px;align-items:flex-start;">
+            <div style="flex-shrink:0;">${av}</div>
+            <div style="flex:1;min-width:0;">
+                <div style="display:flex;flex-direction:row;align-items:baseline;gap:6px;margin-bottom:6px;">
+                    <div class="detail-user">${escapeHtml(pName)}${getInlineVerifiedBadge(p.userId)}</div>
+                    <div class="detail-time">${escapeHtml(formatExactTime(p.createdAt))}</div>
+                </div>
+                ${p.text ? `<div class="detail-text">${escapeHtml(p.text)}</div>` : ''}
+                ${media}
+                <div id="detailActionsBar"></div>
+            </div>
+        </div>
+    `;
+    document.getElementById('detailActionsBar').appendChild(buildPostActions(p));
+}
+
+async function openPostDetail(p){
+    detailPost = PostStore.get(p.id) || p;
+    if (!detailPost.comments) detailPost.comments = [];
+    replyTargetId = null;
+    await refreshDetailFromStore();
+    updateDetailReplyModeUI();
+    detailOverlay.classList.add('show');
+    document.getElementById('detailScroll').scrollTop = 0;
+    if (isTelegram) { try { tg.BackButton.onClick(closePostDetail); tg.BackButton.show(); } catch {} }
+}
+function closePostDetail(){
+    detailOverlay.classList.remove('show'); detailPost = null; replyTargetId = null;
+    switchTab(currentTab);
+    if (isTelegram) { try { tg.BackButton.onClick(goBack); } catch {} }
+}
+
+detailInput.addEventListener('input', () => {
+    detailInput.style.height = 'auto'; detailInput.style.height = Math.min(detailInput.scrollHeight, 90) + 'px';
+    detailSend.disabled = detailInput.value.trim().length === 0;
+});
+detailSend.addEventListener('click', async () => {
+    const raw = detailInput.value.trim(); if (!raw || !detailPost || !currentUser) return;
+    detailSend.disabled = true;
+    const newC = makeCommentObj(raw, replyTargetId);
+    const res = await addCommentToPost(detailPost.id, newC, replyTargetId);
+    if (res) {
+        saveReplyToServer({
+            id: newC.id,
+            postId: detailPost.id,
+            userId: String(currentUser.userId),
+            user: newC.user,
+            avatar: newC.avatar,
+            text: newC.text,
+            createdAt: newC.createdAt,
+            postText: detailPost.text || ''
+        });
+        replyTargetId = null; detailInput.value = ''; detailInput.style.height = 'auto';
+        updateDetailReplyModeUI();
+        await refreshDetailFromStore();
+    } else {
+        detailSend.disabled = false;
+    }
 });
 
 
