@@ -62,7 +62,7 @@
         .notif-item:active { background: rgba(255, 255, 255, 0.05); }
         .notif-item.unread { background: rgba(255, 255, 255, 0.06); }
 
-        /* Chap ustun: Kattalashtirilgan Avatar (50px) va uning burchagidagi Ikonka */
+        /* Chap ustun: Avatar (50px) va uning burchagidagi Ikonka */
         .notif-avatar-wrap {
             position: relative;
             flex-shrink: 0;
@@ -111,7 +111,7 @@
         .icon-follow { fill: #8e8e93; color: #8e8e93; }
         .icon-comment, .icon-reply { fill: none; stroke: #8e8e93; stroke-width: 2.3; stroke-linecap: round; stroke-linejoin: round; }
 
-        /* O'ng ustun: Ism + Tasdiqlash + Vaqt (yuqori qator) va Matn (pastda) */
+        /* O'ng ustun: Ism + Tasdiqlash + Vaqt va Matn */
         .notif-body { flex: 1; display: flex; flex-direction: column; min-width: 0; padding-top: 2px; }
         
         .notif-top-line {
@@ -148,7 +148,6 @@
             word-break: break-word; 
         }
 
-        /* Like / Comment / Reply matni (preview) */
         .notif-preview{
             font-size:15px;
             line-height:1.4;
@@ -162,12 +161,21 @@
             overflow:hidden;
         }
 
-        /* Empty & Error State */
+        /* Skeleton & Lazy Loader */
+        .notif-loader{display:none;flex-direction:column;width:100%}
+        .notif-loader.active{display:flex}
+        .sk-row{display:flex;gap:13px;padding:14px 16px;border-bottom:1px solid #1c1c1e}
+        .sk-shimmer{background:#161618;background-image:linear-gradient(110deg,#161618 0%,#161618 35%,#26262b 50%,#161618 65%,#161618 100%);background-size:250% 100%;animation:skWave 1.35s linear infinite}
+        @keyframes skWave{0%{background-position:100% 0}100%{background-position:-100% 0}}
+        .sk-av{width:50px;height:50px;border-radius:50%;flex-shrink:0}
+        .sk-col{flex:1;display:flex;flex-direction:column;gap:8px;padding-top:4px}
+        .sk-l1{width:55%;height:13px;border-radius:6px}
+        .sk-l2{width:85%;height:12px;border-radius:6px}
+
+        /* Empty State */
         .empty-container { display: none; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; text-align: center; margin-top: 20%; animation: fadeIn 0.4s ease-out; }
         .empty-title { font-size: 28px; font-weight: 800; margin-bottom: 8px; color: #e7e9ea; }
         .empty-text { color: #8e8e93; font-size: 15px; line-height: 1.5; max-width: 80%; }
-        .retry-btn { margin-top: 16px; padding: 10px 22px; border-radius: 100px; background: #1c1c1e; color: #fff; border: 1px solid rgba(255,255,255,0.14); font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; }
-        .retry-btn:active { transform: scale(.95); background: #2c2c2e; }
         
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -182,7 +190,18 @@
         .nav-avatar,.nav-avatar-initial{width:26px;height:26px;border-radius:50%;object-fit:cover}
         .nav-avatar-initial{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:linear-gradient(135deg,#3a3a3c 0%,#1c1c1e 100%);color:#fff}
         .nav-badge{position:absolute;top:2px;right:25%;background:#ff2d55;color:#fff;font-size:10px;font-weight:700;border-radius:10px;padding:2px 5px;min-width:16px;text-align:center;line-height:1;border:2px solid #1c1c1e;z-index:10}
-        .toast{position:fixed;left:50%;bottom:120px;transform:translateX(-50%) translateY(20px);background:rgba(28,28,30,0.9);backdrop-filter:blur(10px);color:#fff;padding:12px 24px;border-radius:16px;font-size:14px;font-weight:500;z-index:1000;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;box-shadow:0 8px 30px rgba(0,0,0,.6);border:1px solid rgba(255,255,255,0.1);max-width:80%;text-align:center}
+
+        /* Action Sheet (Tasdiqlash oynasi) */
+        .sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);z-index:700;opacity:0;pointer-events:none;transition:opacity .2s}
+        .sheet-overlay.show{opacity:1;pointer-events:auto}
+        .action-sheet{position:fixed;left:50%;bottom:0;transform:translate(-50%,100%);width:100%;max-width:420px;background:#1c1c1e;border-radius:26px 26px 0 0;border:1px solid #2c2c2e;border-bottom:none;z-index:701;padding:16px 16px calc(24px + env(safe-area-inset-bottom));transition:transform .3s cubic-bezier(.34,1.2,.64,1);display:flex;flex-direction:column;gap:8px}
+        .action-sheet.show{transform:translate(-50%,0)}
+        .sheet-handle{width:36px;height:4px;background:#3a3a3c;border-radius:2px;margin:0 auto 8px}
+        .sheet-btn{width:100%;padding:15px 16px;background:#2c2c2e;border:none;border-radius:16px;color:#fff;font-size:15px;font-weight:600;text-align:center;cursor:pointer}
+        .sheet-btn.danger{color:#ff453a}
+        .sheet-btn.cancel{background:#141415;color:#8e8e93;margin-top:4px}
+
+        .toast{position:fixed;left:50%;bottom:120px;transform:translateX(-50%) translateY(20px);background:rgba(28,28,30,0.95);backdrop-filter:blur(10px);color:#fff;padding:12px 22px;border-radius:16px;font-size:14px;font-weight:500;z-index:1000;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;border:1px solid rgba(255,255,255,0.12);max-width:85%;text-align:center}
         .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
     </style>
 </head>
@@ -202,12 +221,21 @@
     </header>
 
     <div class="notif-list" id="notifList"></div>
+    <div class="notif-loader" id="notifLoader" aria-hidden="true"></div>
 
     <main class="empty-container" id="emptyState">
-        <h2 class="empty-title" id="emptyTitle">Hech narsa yo'q</h2>
-        <p class="empty-text" id="emptyText">Barcha layklar, izohlar va obunalar haqidagi xabarlar shu yerda paydo boʻladi.</p>
-        <button class="retry-btn" id="retryBtn" style="display:none">Qayta urinish</button>
+        <h2 class="empty-title">Hech narsa yo'q</h2>
+        <p class="empty-text">Barcha layklar, izohlar va obunalar haqidagi xabarlar shu yerda paydo boʻladi.</p>
     </main>
+</div>
+
+<!-- TASDIQLASH OYNASI -->
+<div class="sheet-overlay" id="sheetOverlay"></div>
+<div class="action-sheet" id="actionSheet">
+    <div class="sheet-handle"></div>
+    <div style="text-align:center;color:#8e8e93;font-size:13px;padding:6px 0 10px">Barcha bildirishnomalarni o'chirishni tasdiqlaysizmi?</div>
+    <button class="sheet-btn danger" id="confirmClearBtn">Ha, barchasi o'chirilsin</button>
+    <button class="sheet-btn cancel" id="sheetCancelBtn">Bekor qilish</button>
 </div>
 
 <!-- OROLCHA NAVIGATSIYA -->
@@ -223,574 +251,686 @@
 <div class="toast" id="toast"></div>
 
 <script type="module">
-/* ================= FIREBASE (INDEX.HTML BILAN SINXRON) ================= */
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, doc, getDoc, updateDoc, deleteDoc,
-  onSnapshot, query, where, limit, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { getAuth, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    /* ================= FIREBASE SDK IMPORT & INIT (INDEX.HTML BILAN BIR XIL) ================= */
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { 
+        getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc,
+        query, orderBy, limit, startAfter, where, increment, onSnapshot, writeBatch
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const firebaseConfig = {
-    apiKey: "AIzaSyD0gBUJNcrgvvntcrfKK7Ky8t6_9Qb96Io",
-    authDomain: "bilimilova-64833.firebaseapp.com",
-    databaseURL: "https://bilimilova-64833-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "bilimilova-64833",
-    storageBucket: "bilimilova-64833.firebasestorage.app",
-    messagingSenderId: "890689414502",
-    appId: "1:890689414502:web:8141d7aab413495c0c14a7",
-    measurementId: "G-ZBC8X1VVMZ"
-};
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
+    const firebaseConfig = {
+        apiKey: "AIzaSyD0gBUJNcrgvvntcrfKK7Ky8t6_9Qb96Io",
+        authDomain: "bilimilova-64833.firebaseapp.com",
+        databaseURL: "https://bilimilova-64833-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "bilimilova-64833",
+        storageBucket: "bilimilova-64833.firebasestorage.app",
+        messagingSenderId: "890689414502",
+        appId: "1:890689414502:web:8141d7aab413495c0c14a7",
+        measurementId: "G-ZBC8X1VVMZ"
+    };
 
-const POSTS_COLLECTION = "luz_posts";
-const USERS_COLLECTION = "luz_users";
-const NOTIFS_COLLECTION = "luz_notifications";
-const AUTH_URL = "https://REGION-bilimilova-64833.cloudfunctions.net/tgAuth";
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const POSTS_COLLECTION = "luz_posts";
+    const USERS_COLLECTION = "luz_users";
+    const NOTIFS_COLLECTION = "luz_notifications";
 
-function withTimeout(p, ms = 8000){
-    return Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
-}
+    const NOTIF_BATCH_SIZE = 20;
 
-/* ================= TELEGRAM & BACK NAVIGATION ================= */
-const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
+    /* ================= SYSTEM & BACK NAVIGATION ================= */
+    const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
 
-function goBackPage() {
-    if (window.history.length > 1 && document.referrer) {
-        window.history.back();
-    } else {
-        window.location.href = 'index.html';
-    }
-}
-
-if (tg) {
-    try {
-        tg.ready();
-        tg.expand();
-        if (tg.requestFullscreen) tg.requestFullscreen();
-        if (tg.setHeaderColor) tg.setHeaderColor('#000000');
-        if (tg.setBackgroundColor) tg.setBackgroundColor('#000000');
-        if (tg.BackButton) {
-            tg.BackButton.show();
-            tg.BackButton.onClick(goBackPage);
+    function goBackPage() {
+        flushUsageTimeToServer();
+        if (window.history.length > 1 && document.referrer) {
+            window.history.back();
+        } else {
+            window.location.href = 'index.html';
         }
-    } catch (e) {}
-}
-
-window.addEventListener('popstate', () => {
-    if (document.referrer) window.location.href = document.referrer;
-    else window.location.href = 'index.html';
-});
-
-async function ensureAuth(){
-    if (!tg?.initData || AUTH_URL.includes('REGION')) return;
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 8000);
-    try {
-        const r = await fetch(AUTH_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ initData: tg.initData }),
-            signal: controller.signal
-        });
-        clearTimeout(timer);
-        if (!r.ok) return;
-        const { token } = await r.json();
-        await withTimeout(signInWithCustomToken(auth, token), 8000);
-    } catch {
-        clearTimeout(timer);
     }
-}
 
-/* ================= SESSION & USER CACHE ================= */
-const VERIFIED_KEY = 'luz_verified_badge';
-const VERIFIED_BADGE_SM_SVG = `<svg class="verified-badge-sm" viewBox="0 0 24 24" aria-label="Tasdiqlangan"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" fill="#ffffff" stroke="none"></path><path d="m9 12 2 2 4-4" fill="none" stroke="#000000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>`;
+    if (tg) {
+        try {
+            tg.ready(); 
+            tg.expand();
+            if (tg.requestFullscreen) tg.requestFullscreen();
+            if (tg.setHeaderColor) tg.setHeaderColor('#000000');
+            if (tg.setBackgroundColor) tg.setBackgroundColor('#000000');
+            if (tg.BackButton) {
+                tg.BackButton.show();
+                tg.BackButton.onClick(goBackPage);
+            }
+        } catch (e) {}
+    }
 
-function getLocalUsers() {
-    try { const a = JSON.parse(localStorage.getItem('luz_users')); return Array.isArray(a) ? a : []; } catch { return []; }
-}
+    const VERIFIED_BADGE_SM_SVG = `<svg class="verified-badge-sm" viewBox="0 0 24 24" aria-label="Tasdiqlangan"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" fill="#ffffff" stroke="none"></path><path d="m9 12 2 2 4-4" fill="none" stroke="#000000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>`;
 
-function resolveCurrentUser() {
-    const users = getLocalUsers();
-    if (tg?.initDataUnsafe?.user) {
-        const realId = String(tg.initDataUnsafe.user.id);
-        const existing = users.find(u => String(u.userId) === realId);
-        if (existing) return existing;
+    /* ================= LAZY CACHES (FOYDALANUVCHILAR VA POSTLAR) ================= */
+    const UserCache = {
+        _map: new Map(),
+        _pending: new Map(),
+        get(uid) { return this._map.get(String(uid)) || null; },
+        set(uid, data) { if (uid && data) this._map.set(String(uid), data); },
+        async fetchOne(uid) {
+            const idStr = String(uid || '');
+            if (!idStr) return null;
+            if (this._map.has(idStr)) return this._map.get(idStr);
+            if (this._pending.has(idStr)) return this._pending.get(idStr);
+            const p = getDoc(doc(db, USERS_COLLECTION, idStr))
+                .then(s => {
+                    this._pending.delete(idStr);
+                    if (s.exists()) { this._map.set(idStr, s.data()); return s.data(); }
+                    return null;
+                })
+                .catch(() => { this._pending.delete(idStr); return null; });
+            this._pending.set(idStr, p);
+            return p;
+        },
+        async prefetch(uids) {
+            const unique = [...new Set(uids.map(String).filter(id => id && !this._map.has(id)))];
+            if (unique.length) await Promise.all(unique.map(id => this.fetchOne(id)));
+        }
+    };
+
+    const PostCache = {
+        _map: new Map(),
+        _pending: new Map(),
+        get(pid) { return this._map.get(String(pid)) || null; },
+        async fetchOne(pid) {
+            const idStr = String(pid || '');
+            if (!idStr) return null;
+            if (this._map.has(idStr)) return this._map.get(idStr);
+            if (this._pending.has(idStr)) return this._pending.get(idStr);
+            const p = getDoc(doc(db, POSTS_COLLECTION, idStr))
+                .then(s => {
+                    this._pending.delete(idStr);
+                    if (s.exists()) { const d = { id: s.id, ...s.data() }; this._map.set(idStr, d); return d; }
+                    this._map.set(idStr, null);
+                    return null;
+                })
+                .catch(() => { this._pending.delete(idStr); return null; });
+            this._pending.set(idStr, p);
+            return p;
+        },
+        async prefetch(pids) {
+            const unique = [...new Set(pids.map(String).filter(id => id && !this._map.has(id)))];
+            if (unique.length) await Promise.all(unique.map(id => this.fetchOne(id)));
+        }
+    };
+
+    /* ================= SESSION & SERVER-SIDE USER INIT ================= */
+    let currentUser = null;
+
+    function updateNavAvatar() {
+        const cu = currentUser || {};
+        const cuInit = escapeHtml((cu.firstName || 'L').charAt(0).toUpperCase());
+        const slot = document.getElementById('navAvatarSlot');
+        if (slot) {
+            slot.innerHTML = cu.photo_url 
+                ? `<img class="nav-avatar" src="${escapeHtml(cu.photo_url)}" alt="">` 
+                : `<div class="nav-avatar-initial">${cuInit}</div>`;
+        }
+    }
+
+    async function initSessionFromServer() {
+        if (!(tg && tg.initDataUnsafe && tg.initDataUnsafe.user)) {
+            updateNavAvatar();
+            return;
+        }
+        const tU = tg.initDataUnsafe.user;
+        const realId = String(tU.id);
+        const nowIso = new Date().toISOString();
+
+        try {
+            const snap = await getDoc(doc(db, USERS_COLLECTION, realId));
+            const existing = snap.exists() ? snap.data() : null;
+            currentUser = {
+                ...(existing || {}),
+                userId: realId,
+                firstName: (existing?.isEdited && existing?.firstName) ? existing.firstName : (tU.first_name || ''),
+                lastName: (existing?.isEdited && existing?.lastName !== undefined) ? existing.lastName : (tU.last_name || ''),
+                username: (existing?.isEdited && existing?.username) ? existing.username : (tU.username || ''),
+                photo_url: (existing?.isEdited && existing?.photo_url) ? existing.photo_url : (tU.photo_url || existing?.photo_url || null),
+                verified: Boolean(existing?.verified || existing?.isVerified)
+            };
+            UserCache.set(realId, currentUser);
+            setDoc(doc(db, USERS_COLLECTION, realId), { lastActiveAt: nowIso }, { merge: true }).catch(() => {});
+        } catch {
+            currentUser = {
+                userId: realId,
+                firstName: tU.first_name || '',
+                lastName: tU.last_name || '',
+                photo_url: tU.photo_url || null
+            };
+        }
+
+        updateNavAvatar();
+        startActiveTimeTracker();
+    }
+
+    
+    /* ================= ACTIVE SCREEN TIME TRACKER (UZLUKSIZ VAQT HISOBLAGICH) ================= */
+    function getPeriodKeys(date = new Date()) {
+        const yyyy = date.getFullYear();
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const dd = String(date.getDate()).padStart(2, '0');
+
+        const tmp = new Date(Date.UTC(yyyy, date.getMonth(), date.getDate()));
+        const dayNum = tmp.getUTCDay() || 7;
+        tmp.setUTCDate(tmp.getUTCDate() + 4 - dayNum);
+        const yearStart = new Date(Date.UTC(tmp.getUTCFullYear(), 0, 1));
+        const weekNo = Math.ceil((((tmp - yearStart) / 86400000) + 1) / 7);
+        const ww = String(weekNo).padStart(2, '0');
+
         return {
-            userId: realId,
-            firstName: tg.initDataUnsafe.user.first_name || '',
-            lastName: tg.initDataUnsafe.user.last_name || '',
-            photo_url: tg.initDataUnsafe.user.photo_url || null
+            dailyKey: `daily_${yyyy}-${mm}-${dd}`,
+            weeklyKey: `weekly_${tmp.getUTCFullYear()}-W${ww}`,
+            monthlyKey: `monthly_${yyyy}-${mm}`
         };
     }
-    const id = localStorage.getItem('luz_current_user');
-    if (id) {
-        const found = users.find(u => String(u.userId) === String(id));
-        if (found) return found;
+
+    let activeSessionStart = null;
+    let accumulatedSeconds = 0;
+    let flushTimer = null;
+
+    function isAppForeground() {
+        return document.visibilityState === 'visible' && document.hasFocus();
     }
-    return users.find(u => !String(u.userId).startsWith('mehmon_')) || users[0] || null;
-}
 
-const currentUser = resolveCurrentUser();
-const isGuest = !currentUser || !currentUser.userId || String(currentUser.userId).startsWith('mehmon_');
-
-/* UID bo'yicha kesh + Request Deduplication */
-const UserCache = {
-    _map: new Map(),
-    _inFlight: new Map(),
-    get(uid) {
-        const id = String(uid || '');
-        if (this._map.has(id)) return this._map.get(id);
-        const local = getLocalUsers().find(u => String(u.userId) === id);
-        return local || null;
-    },
-    fetch(uid) {
-        const id = String(uid || '');
-        if (!id || id.startsWith('mehmon_')) return Promise.resolve(null);
-        if (this._map.has(id)) return Promise.resolve(this._map.get(id));
-        if (this._inFlight.has(id)) return this._inFlight.get(id);
-
-        const p = withTimeout(getDoc(doc(db, USERS_COLLECTION, id)), 8000)
-            .then(snap => {
-                if (snap.exists()) {
-                    const d = snap.data();
-                    this._map.set(id, {
-                        userId: id,
-                        firstName: d.firstName || '',
-                        lastName: d.lastName || '',
-                        photo_url: d.photo_url || null,
-                        verified: Boolean(d.verified || d.isVerified)
-                    });
-                } else {
-                    this._map.set(id, { _missing: true, userId: id });
-                }
-                return this._map.get(id);
-            })
-            .catch(() => null)
-            .finally(() => this._inFlight.delete(id));
-
-        this._inFlight.set(id, p);
-        return p;
-    },
-    async hydrate(uids) {
-        const unique = [...new Set((uids || []).map(String))].filter(id => id && !id.startsWith('mehmon_') && !this._map.has(id));
-        if (!unique.length) return;
-        await Promise.allSettled(unique.map(id => this.fetch(id)));
-        renderNotifications();
+    function resumeTimeCounting() {
+        if (!currentUser || activeSessionStart !== null) return;
+        if (isAppForeground()) activeSessionStart = Date.now();
     }
-};
 
-/* Post va Izoh preview matnlari keshi (ham yangi subcollection, ham eski post.comments) */
-const PreviewCache = {
-    _posts: new Map(),
-    _comments: new Map(),
-    _inFlight: new Map(),
+    function pauseAndCollectSeconds() {
+        if (activeSessionStart !== null) {
+            const elapsed = Math.floor((Date.now() - activeSessionStart) / 1000);
+            if (elapsed > 0) accumulatedSeconds += elapsed;
+            activeSessionStart = null;
+        }
+    }
 
-    getPost(pid) { return this._posts.get(String(pid)) || null; },
-    getComment(pid, cid) { return this._comments.get(`${pid}::${cid}`) || null; },
+    async function flushUsageTimeToServer() {
+        pauseAndCollectSeconds();
+        if (!currentUser || accumulatedSeconds <= 0) {
+            resumeTimeCounting();
+            return;
+        }
+        const secondsToSend = accumulatedSeconds;
+        accumulatedSeconds = 0;
+        const { dailyKey, weeklyKey, monthlyKey } = getPeriodKeys();
 
-    fetchPost(pid) {
-        const id = String(pid || '');
-        if (!id) return Promise.resolve(null);
-        if (this._posts.has(id)) return Promise.resolve(this._posts.get(id));
-        const key = 'p::' + id;
-        if (this._inFlight.has(key)) return this._inFlight.get(key);
+        try {
+            await setDoc(doc(db, USERS_COLLECTION, String(currentUser.userId)), {
+                [`usageStats.${dailyKey}`]: increment(secondsToSend),
+                [`usageStats.${weeklyKey}`]: increment(secondsToSend),
+                [`usageStats.${monthlyKey}`]: increment(secondsToSend),
+                totalActiveSeconds: increment(secondsToSend),
+                lastActiveAt: new Date().toISOString()
+            }, { merge: true });
+        } catch {
+            accumulatedSeconds += secondsToSend;
+        }
+        resumeTimeCounting();
+    }
 
-        const p = withTimeout(getDoc(doc(db, POSTS_COLLECTION, id)), 8000)
-            .then(snap => {
-                const data = snap.exists() ? { id: snap.id, ...snap.data() } : { _missing: true };
-                this._posts.set(id, data);
-                return data;
-            })
-            .catch(() => null)
-            .finally(() => this._inFlight.delete(key));
-
-        this._inFlight.set(key, p);
-        return p;
-    },
-
-    fetchComment(pid, cid) {
-        const pId = String(pid || ''), cId = String(cid || '');
-        if (!pId || !cId) return Promise.resolve(null);
-        const ck = `${pId}::${cId}`;
-        if (this._comments.has(ck)) return Promise.resolve(this._comments.get(ck));
-        const fk = 'c::' + ck;
-        if (this._inFlight.has(fk)) return this._inFlight.get(fk);
-
-        const p = withTimeout(getDoc(doc(db, POSTS_COLLECTION, pId, 'comments', cId)), 8000)
-            .then(snap => {
-                const data = snap.exists() ? { id: snap.id, ...snap.data() } : { _missing: true };
-                this._comments.set(ck, data);
-                return data;
-            })
-            .catch(() => null)
-            .finally(() => this._inFlight.delete(fk));
-
-        this._inFlight.set(fk, p);
-        return p;
-    },
-
-    async hydrateForNotifs(notifs) {
-        const tasks = [];
-        const seen = new Set();
-        notifs.forEach(n => {
-            if (n.postId && !this._posts.has(String(n.postId)) && !seen.has('p:' + n.postId)) {
-                seen.add('p:' + n.postId);
-                tasks.push(this.fetchPost(n.postId));
-            }
-            if ((n.type === 'comment' || n.type === 'reply') && n.postId && n.commentId) {
-                const ck = `${n.postId}::${n.commentId}`;
-                if (!this._comments.has(ck) && !seen.has('c:' + ck)) {
-                    seen.add('c:' + ck);
-                    tasks.push(this.fetchComment(n.postId, n.commentId));
-                }
-            }
+    function startActiveTimeTracker() {
+        if (!currentUser) return;
+        resumeTimeCounting();
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') resumeTimeCounting();
+            else flushUsageTimeToServer();
         });
-        if (!tasks.length) return;
-        await Promise.allSettled(tasks);
-        renderNotifications();
+        window.addEventListener('focus', resumeTimeCounting);
+        window.addEventListener('blur', flushUsageTimeToServer);
+        window.addEventListener('pagehide', flushUsageTimeToServer);
+        clearInterval(flushTimer);
+        flushTimer = setInterval(() => {
+            if (isAppForeground()) flushUsageTimeToServer();
+        }, 25000);
     }
-};
 
-function getFreshSenderInfo(sender) {
-    const u = UserCache.get(sender.id);
-    if (u && !u._missing) {
-        const fullName = [u.firstName, u.lastName].filter(Boolean).join(' ').trim();
-        return {
-            id: sender.id,
-            name: fullName || sender.name || 'Foydalanuvchi',
-            avatar: u.photo_url !== undefined ? u.photo_url : sender.avatar
-        };
+    /* ================= HELPERS ================= */
+    let toastTimer;
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        if (!t) return;
+        t.textContent = msg;
+        t.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
     }
-    return sender;
-}
 
-function updateNavAvatar() {
-    const cu = currentUser || {};
-    const cuInit = (cu.firstName || 'F').charAt(0).toUpperCase();
-    const slot = document.getElementById('navAvatarSlot');
-    if (slot) {
-        slot.innerHTML = cu.photo_url 
-            ? `<img class="nav-avatar" src="${escapeHtml(cu.photo_url)}" alt="">` 
-            : `<div class="nav-avatar-initial">${escapeHtml(cuInit)}</div>`;
+    function getFreshSenderInfo(sender) {
+        const freshUser = UserCache.get(String(sender.id));
+        if (freshUser) {
+            const fullName = [freshUser.firstName, freshUser.lastName].filter(Boolean).join(' ').trim();
+            return {
+                id: sender.id,
+                name: fullName || sender.name || 'Foydalanuvchi',
+                avatar: freshUser.photo_url !== undefined ? freshUser.photo_url : sender.avatar
+            };
+        }
+        return sender;
     }
-}
 
-function isUserVerified(uid) {
-    if (!uid) return false;
-    if (String(uid) === String(currentUser?.userId)) {
-        const saved = localStorage.getItem(VERIFIED_KEY);
-        if (saved !== null) return saved === '1';
+    function isUserVerified(uid) {
+        if (!uid) return false;
+        const u = UserCache.get(String(uid));
+        return Boolean(u && (u.verified || u.isVerified));
     }
-    const u = UserCache.get(uid);
-    return Boolean(u && !u._missing && (u.verified || u.isVerified));
-}
 
-function getInlineVerifiedBadge(uid) {
-    return isUserVerified(uid) ? VERIFIED_BADGE_SM_SVG : '';
-}
-
-/* ================= HELPERS ================= */
-let toastTimer;
-function showToast(msg){
-    const t = document.getElementById('toast'); if (!t) return;
-    t.textContent = msg; t.classList.add('show');
-    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
-}
-
-function formatExactTime(dateInput){
-    const d = new Date(dateInput); if (isNaN(d.getTime())) return '';
-    const diffSec = Math.floor((new Date() - d) / 1000);
-    if (diffSec < 5) return 'hozir';
-    if (diffSec < 60) return diffSec + ' soniya oldin';
-    const diffMin = Math.floor(diffSec / 60); if (diffMin < 60) return diffMin + ' daqiqa';
-    const diffHour = Math.floor(diffMin / 60); if (diffHour < 24) return diffHour + ' soat';
-    const diffDay = Math.floor(diffHour / 24); if (diffDay < 7) return diffDay + ' kun';
-    const dd = String(d.getDate()).padStart(2,'0'), mm = String(d.getMonth()+1).padStart(2,'0'); return `${dd}.${mm}`;
-}
-
-function escapeHtml(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
-
-const COMMENT_REPLY_SVG = `<svg viewBox="0 0 24 24" class="icon-reply"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>`;
-
-const ICONS_SVG = {
-    like: `<svg viewBox="0 0 24 24" class="icon-like"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`,
-    follow: `<svg viewBox="0 0 24 24" class="icon-follow"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`,
-    comment: COMMENT_REPLY_SVG,
-    reply: COMMENT_REPLY_SVG
-};
-
-const TEXT_MAP = {
-    like: "",
-    follow: "sizga Obuna boʻldi",
-    comment: "",
-    reply: "izohingizga javob yozdi"
-};
-
-function findLegacyCommentById(list, id){
-    for (const c of (list || [])) {
-        if (String(c.id) === String(id)) return c;
-        const r = findLegacyCommentById(c.replies, id);
-        if (r) return r;
+    function getInlineVerifiedBadge(uid) {
+        return isUserVerified(uid) ? VERIFIED_BADGE_SM_SVG : '';
     }
-    return null;
-}
 
-function getPreviewText(n){
-    if (!n.postId) return '';
-    const post = PreviewCache.getPost(n.postId);
+    function formatExactTime(dateInput){
+        const d = new Date(dateInput); if (isNaN(d.getTime())) return '';
+        const diffSec = Math.floor((new Date() - d) / 1000);
+        if (diffSec < 5) return 'hozir';
+        if (diffSec < 60) return diffSec + ' soniya oldin';
+        const diffMin = Math.floor(diffSec / 60); if (diffMin < 60) return diffMin + ' daqiqa';
+        const diffHour = Math.floor(diffMin / 60); if (diffHour < 24) return diffHour + ' soat';
+        const diffDay = Math.floor(diffHour / 24); if (diffDay < 7) return diffDay + ' kun';
+        const dd = String(d.getDate()).padStart(2,'0'), mm = String(d.getMonth()+1).padStart(2,'0'); return `${dd}.${mm}`;
+    }
 
-    if (n.type === 'like' && !n.commentId) {
-        if (!post || post._missing) return '';
-        if (post.text) return post.text;
-        if (post.type === 'image') return '📷 Rasm';
-        if (post.type === 'video') return '🎥 Video';
+    function escapeHtml(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+    const COMMENT_REPLY_SVG = `<svg viewBox="0 0 24 24" class="icon-reply"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>`;
+
+    const ICONS_SVG = {
+        like: `<svg viewBox="0 0 24 24" class="icon-like"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`,
+        follow: `<svg viewBox="0 0 24 24" class="icon-follow"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`,
+        comment: COMMENT_REPLY_SVG,
+        reply: COMMENT_REPLY_SVG
+    };
+
+    const TEXT_MAP = {
+        like: "",
+        follow: "sizga Obuna boʻldi",
+        comment: "",
+        reply: "izohingizga javob yozdi"
+    };
+
+    function findCommentById(list, id){
+        for (const c of (list || [])) {
+            if (String(c.id) === String(id)) return c;
+            const r = findCommentById(c.replies, id);
+            if (r) return r;
+        }
+        return null;
+    }
+
+    function getPreviewText(n){
+        if (!n.postId) return '';
+        const post = PostCache.get(n.postId);
+        if (!post) return '';
+        if (n.type === 'like') {
+            if (post.text) return post.text;
+            if (post.type === 'image') return '📷 Rasm';
+            if (post.type === 'video') return '🎥 Video';
+            return '';
+        }
+        if (n.type === 'comment' || n.type === 'reply') {
+            const c = findCommentById(post.comments, n.commentId);
+            return c ? (c.text || '') : '';
+        }
         return '';
     }
-    if (n.commentId) {
-        // 1. Yangi subcollection izohidan qidirish
-        const subC = PreviewCache.getComment(n.postId, n.commentId);
-        if (subC && !subC._missing && subC.text) return subC.text;
-        // 2. Eski post.comments massividan qidirish (migratsiya mosligi)
-        if (post && !post._missing && Array.isArray(post.comments)) {
-            const legacyC = findLegacyCommentById(post.comments, n.commentId);
-            if (legacyC && legacyC.text) return legacyC.text;
-        }
-    }
-    return '';
-}
 
-/* ================= REAL-TIME FIRESTORE NOTIFICATIONS ================= */
-let myNotifs = [];
-let notifUnsubscribe = null;
-let loadStatus = 'loading'; // 'loading' | 'ready' | 'error'
+    /* ================= LAZY LOADING & REAL-TIME SYNC STORE ================= */
+    const NotifStore = {
+        _items: [],
+        _lastDoc: null,
+        _hasMore: true,
+        _isLoading: false,
+        _isLoaded: false,
 
-function subscribeNotifications() {
-    if (notifUnsubscribe) { notifUnsubscribe(); notifUnsubscribe = null; }
-    if (isGuest) {
-        loadStatus = 'ready';
-        myNotifs = [];
-        renderNotifications();
-        return;
-    }
-
-    loadStatus = 'loading';
-    const uid = String(currentUser.userId);
-    const q = query(
-        collection(db, NOTIFS_COLLECTION),
-        where("recipientId", "==", uid),
-        limit(100)
-    );
-
-    notifUnsubscribe = onSnapshot(q, (snap) => {
-        const list = [];
-        snap.forEach(d => list.push({ id: d.id, ...d.data() }));
-        myNotifs = list;
-        loadStatus = 'ready';
-        renderNotifications();
-
-        // Faqat kerakli mualliflar va post/izoh previewlarini keshlab yuklash
-        UserCache.hydrate(list.map(n => n.senderId));
-        PreviewCache.hydrateForNotifs(list);
-    }, (err) => {
-        console.error("Bildirishnomalar xatosi:", err);
-        loadStatus = 'error';
-        renderNotifications();
-    });
-}
-
-function buildGroups(notifs){
-    const sorted = notifs.slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    const map = new Map();
-    const groups = [];
-
-    sorted.forEach(n => {
-        const rawSender = { id: n.senderId, name: n.senderName, avatar: n.senderAvatar };
-        const sender = getFreshSenderInfo(rawSender);
-
-        if ((n.type === 'like' && !n.commentId) || n.type === 'follow') {
-            const key = n.type === 'like' ? 'like::' + String(n.postId) : 'follow';
-            let g = map.get(key);
-            if (!g) {
-                g = { type: n.type, first: n, ids: [], senders: [], latest: n.createdAt, unread: false };
-                map.set(key, g);
-                groups.push(g);
-            }
-            g.ids.push(n.id);
-            if (!n.isRead) g.unread = true;
-            if (!g.senders.some(s => String(s.id) === String(sender.id))) g.senders.push(sender);
-        } else {
-            groups.push({ type: n.type, first: n, ids: [n.id], senders: [sender], latest: n.createdAt, unread: !n.isRead });
-        }
-    });
-    return groups;
-}
-
-function buildAvatarsHtml(senders){
-    return senders.slice(0, 3).map(s => {
-        const init = escapeHtml((s.name || 'F').trim().charAt(0).toUpperCase());
-        return s.avatar ? `<img class="notif-avatar" src="${escapeHtml(s.avatar)}" alt="">` : `<div class="notif-avatar-initial">${init}</div>`;
-    }).join('');
-}
-
-function renderNotifications() {
-    updateNavAvatar();
-    const list = document.getElementById('notifList');
-    const emptyState = document.getElementById('emptyState');
-    const emptyTitle = document.getElementById('emptyTitle');
-    const emptyText = document.getElementById('emptyText');
-    const retryBtn = document.getElementById('retryBtn');
-
-    list.innerHTML = '';
-
-    if (loadStatus === 'error' && myNotifs.length === 0) {
-        emptyTitle.textContent = "Yuklashda xatolik";
-        emptyText.textContent = "Ma'lumotlarni yuklashda xatolik. Qayta urinib ko'ring.";
-        retryBtn.style.display = 'inline-block';
-        emptyState.style.display = 'flex';
-        updateNotificationBadge();
-        return;
-    }
-
-    retryBtn.style.display = 'none';
-
-    if (loadStatus === 'loading' && myNotifs.length === 0) {
-        emptyState.style.display = 'none';
-        return;
-    }
-
-    if (myNotifs.length === 0) {
-        emptyTitle.textContent = "Hech narsa yo'q";
-        emptyText.textContent = isGuest
-            ? "Bildirishnomalarni ko'rish uchun ilovani Telegram orqali oching."
-            : "Barcha layklar, izohlar va obunalar haqidagi xabarlar shu yerda paydo boʻladi.";
-        emptyState.style.display = 'flex';
-    } else {
-        emptyState.style.display = 'none';
-        buildGroups(myNotifs).forEach(g => {
-            const n = g.first;
-            const topSender = g.senders[0];
-            const othersCount = g.senders.length - 1;
-            const item = document.createElement('div');
-            item.className = `notif-item ${g.unread ? 'unread' : ''}`;
-            
-            const actionText = n.commentId && g.type === 'like'
-                ? "izohingizni yoqtirdi"
-                : (TEXT_MAP[g.type] || '');
-            const preview = getPreviewText(n);
-            
-            item.innerHTML = `
-                <div class="notif-avatar-wrap">
-                    <div class="notif-avatars">${buildAvatarsHtml(g.senders)}</div>
-                    <div class="notif-type-badge">${ICONS_SVG[g.type] || ''}</div>
-                </div>
-                <div class="notif-body">
-                    <div class="notif-top-line">
-                        <span class="notif-sender-name">${escapeHtml(topSender.name)}</span>
-                        ${getInlineVerifiedBadge(topSender.id)}
-                        ${othersCount > 0 ? `<span class="notif-others">va yana ${othersCount} kishi</span>` : ''}
-                        <span class="notif-time">${formatExactTime(g.latest)}</span>
+        initSkeleton() {
+            const loader = document.getElementById('notifLoader');
+            loader.innerHTML = Array(4).fill(`
+                <div class="sk-row">
+                    <div class="sk-av sk-shimmer"></div>
+                    <div class="sk-col">
+                        <div class="sk-l1 sk-shimmer"></div>
+                        <div class="sk-l2 sk-shimmer"></div>
                     </div>
-                    ${actionText ? `<div class="notif-action-text">${actionText}</div>` : ''}
-                    ${preview ? `<div class="notif-preview">${escapeHtml(preview)}</div>` : ''}
                 </div>
-            `;
-            
-            item.addEventListener('click', () => {
-                if (g.unread) {
-                    // Optimistik yangilash va Firestore'da isRead = true qilish
-                    myNotifs.forEach(x => { if (g.ids.includes(x.id)) x.isRead = true; });
-                    item.classList.remove('unread');
-                    updateNotificationBadge();
+            `).join('');
+        },
 
-                    const batch = writeBatch(db);
-                    g.ids.forEach(id => batch.update(doc(db, NOTIFS_COLLECTION, String(id)), { isRead: true }));
-                    batch.commit().catch(() => {});
+        async loadInitial() {
+            if (!currentUser || this._isLoading) return;
+            this._isLoading = true;
+            const loader = document.getElementById('notifLoader');
+            loader.classList.add('active');
+
+            try {
+                const q = query(
+                    collection(db, NOTIFS_COLLECTION),
+                    where("recipientId", "==", String(currentUser.userId)),
+                    orderBy("createdAt", "desc"),
+                    limit(NOTIF_BATCH_SIZE)
+                );
+                const snap = await getDocs(q);
+                const batch = [];
+                snap.forEach(d => batch.push({ id: d.id, ...d.data() }));
+
+                this._items = batch;
+                this._lastDoc = snap.docs[snap.docs.length - 1] || null;
+                this._hasMore = snap.docs.length === NOTIF_BATCH_SIZE;
+                this._isLoaded = true;
+
+                await this._prefetchDependencies(batch);
+                renderNotifications();
+            } catch (err) {
+                console.error("Bildirishnomalarni yuklash xatosi:", err);
+                this._isLoaded = true;
+                this._hasMore = false;
+                renderNotifications();
+            } finally {
+                this._isLoading = false;
+                if (!this._hasMore) loader.classList.remove('active');
+            }
+        },
+
+        async loadNextPage() {
+            if (!currentUser || this._isLoading || !this._hasMore || !this._lastDoc) return;
+            this._isLoading = true;
+
+            try {
+                const q = query(
+                    collection(db, NOTIFS_COLLECTION),
+                    where("recipientId", "==", String(currentUser.userId)),
+                    orderBy("createdAt", "desc"),
+                    startAfter(this._lastDoc),
+                    limit(NOTIF_BATCH_SIZE)
+                );
+                const snap = await getDocs(q);
+                const batch = [];
+                snap.forEach(d => batch.push({ id: d.id, ...d.data() }));
+
+                this._items.push(...batch);
+                this._lastDoc = snap.docs[snap.docs.length - 1] || this._lastDoc;
+                this._hasMore = snap.docs.length === NOTIF_BATCH_SIZE;
+
+                if (batch.length > 0) {
+                    await this._prefetchDependencies(batch);
+                    renderNotifications();
                 }
-                
-                if (g.type === 'follow') {
-                    if (g.senders.length === 1) {
-                        window.location.href = `profil.html?id=${encodeURIComponent(n.senderId)}`;
-                    }
-                } else if (n.postId) {
-                    let url = `index.html?post=${encodeURIComponent(n.postId)}`;
-                    if (n.commentId) url += `&comment=${encodeURIComponent(n.commentId)}`;
-                    window.location.href = url;
+            } catch (err) {
+                console.error("Keyingi sahifa xatosi:", err);
+            } finally {
+                this._isLoading = false;
+                if (!this._hasMore) {
+                    document.getElementById('notifLoader').classList.remove('active');
                 }
-            });
-            
-            list.appendChild(item);
-        });
-    }
-    updateNotificationBadge();
-}
+            }
+        },
 
-/* ================= ACTIONS ================= */
-document.getElementById('retryBtn').addEventListener('click', () => subscribeNotifications());
+        async _prefetchDependencies(items) {
+            const senderIds = items.map(n => n.senderId).filter(Boolean);
+            const postIds = items.map(n => n.postId).filter(Boolean);
+            await Promise.all([
+                UserCache.prefetch(senderIds),
+                PostCache.prefetch(postIds)
+            ]);
+        },
 
-document.getElementById('markReadBtn').addEventListener('click', async () => {
-    if (isGuest) return;
-    const unreadItems = myNotifs.filter(n => !n.isRead);
-    if (!unreadItems.length) return;
+        listenRealtimeSync() {
+            if (!currentUser) return;
+            const uid = String(currentUser.userId);
 
-    unreadItems.forEach(n => { n.isRead = true; });
-    renderNotifications();
+            // Yangi bildirishnomalar kelganda yoki index.html dan o'zgarganda jonli sinxronlash
+            const latestQ = query(
+                collection(db, NOTIFS_COLLECTION),
+                where("recipientId", "==", uid),
+                orderBy("createdAt", "desc"),
+                limit(NOTIF_BATCH_SIZE)
+            );
 
-    try {
-        const batch = writeBatch(db);
-        unreadItems.forEach(n => batch.update(doc(db, NOTIFS_COLLECTION, String(n.id)), { isRead: true }));
-        await withTimeout(batch.commit(), 8000);
-        showToast("Barchasi o'qilgan deb belgilandi");
-    } catch {
-        showToast("Saqlanmadi: internetni tekshiring");
-    }
-});
+            onSnapshot(latestQ, async (snap) => {
+                if (!this._isLoaded) return;
+                const freshTop = [];
+                snap.forEach(d => freshTop.push({ id: d.id, ...d.data() }));
 
-document.getElementById('clearBtn').addEventListener('click', async () => {
-    if (isGuest || !myNotifs.length) return;
-    if (!confirm("Barcha bildirishnomalar o'chirilsinmi?")) return;
+                const freshIds = new Set(freshTop.map(x => x.id));
+                const olderItems = this._items.filter(x => !freshIds.has(x.id));
+                this._items = [...freshTop, ...olderItems];
 
-    const toDelete = myNotifs.slice();
-    myNotifs = [];
-    renderNotifications();
+                await this._prefetchDependencies(freshTop);
+                renderNotifications();
+            }, () => {});
 
-    try {
-        const batch = writeBatch(db);
-        toDelete.forEach(n => batch.delete(doc(db, NOTIFS_COLLECTION, String(n.id))));
-        await withTimeout(batch.commit(), 8000);
-        showToast("Bildirishnomalar o'chirildi");
-    } catch {
-        myNotifs = toDelete;
-        renderNotifications();
-        showToast("O'chirishda xatolik yuz berdi");
-    }
-});
+            // O'qilmagan bildirishnomalar soni (index.html bilan sinxron badge)
+            const unreadQ = query(
+                collection(db, NOTIFS_COLLECTION),
+                where("recipientId", "==", uid),
+                where("isRead", "==", false),
+                limit(50)
+            );
 
-function updateNotificationBadge() {
-    const btn = document.getElementById('navNotifBtn'); if (!btn) return;
-    const unreadCount = myNotifs.filter(n => !n.isRead).length;
-    let badge = document.getElementById('notifBadge');
-    if (unreadCount > 0) {
-        if (!badge) {
-            badge = document.createElement('div');
-            badge.id = 'notifBadge';
-            badge.className = 'nav-badge';
-            btn.appendChild(badge);
+            onSnapshot(unreadQ, (snap) => {
+                updateNotificationBadge(snap.size);
+            }, () => {});
         }
-        badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
-    } else if (badge) {
-        badge.remove();
+    };
+
+    function buildGroups(myNotifs){
+        const sorted = myNotifs.slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        const map = new Map();
+        const groups = [];
+
+        sorted.forEach(n => {
+            const rawSender = { id: n.senderId, name: n.senderName, avatar: n.senderAvatar };
+            const sender = getFreshSenderInfo(rawSender);
+
+            if (n.type === 'like' || n.type === 'follow') {
+                const key = n.type === 'like' ? 'like::' + String(n.postId) : 'follow';
+                let g = map.get(key);
+                if (!g) {
+                    g = { type: n.type, first: n, ids: [], senders: [], latest: n.createdAt, unread: false };
+                    map.set(key, g);
+                    groups.push(g);
+                }
+                g.ids.push(n.id);
+                if (!n.isRead) g.unread = true;
+                if (!g.senders.some(s => String(s.id) === String(sender.id))) g.senders.push(sender);
+            } else {
+                groups.push({ type: n.type, first: n, ids: [n.id], senders: [sender], latest: n.createdAt, unread: !n.isRead });
+            }
+        });
+        return groups;
     }
-}
 
-window.addEventListener('pagehide', () => {
-    if (notifUnsubscribe) notifUnsubscribe();
-});
+    function buildAvatarsHtml(senders){
+        return senders.slice(0, 3).map(s => {
+            const init = escapeHtml((s.name || 'F').trim().charAt(0).toUpperCase());
+            return s.avatar
+                ? `<img class="notif-avatar" src="${escapeHtml(s.avatar)}" alt="" loading="lazy">`
+                : `<div class="notif-avatar-initial">${init}</div>`;
+        }).join('');
+    }
 
-/* ================= INIT ================= */
-updateNavAvatar();
-subscribeNotifications();
-ensureAuth();
+    function renderNotifications() {
+        updateNavAvatar();
+        const list = document.getElementById('notifList');
+        const emptyState = document.getElementById('emptyState');
+
+        if (!currentUser || !currentUser.userId) {
+            list.innerHTML = '';
+            emptyState.style.display = 'flex';
+            return;
+        }
+
+        const myNotifs = NotifStore._items;
+        list.innerHTML = '';
+
+        if (myNotifs.length === 0) {
+            emptyState.style.display = 'flex';
+        } else {
+            emptyState.style.display = 'none';
+            const fragment = document.createDocumentFragment();
+
+            buildGroups(myNotifs).forEach(g => {
+                const n = g.first;
+                const topSender = g.senders[0];
+                const othersCount = g.senders.length - 1;
+                const item = document.createElement('div');
+                item.className = `notif-item ${g.unread ? 'unread' : ''}`;
+                
+                const actionText = TEXT_MAP[g.type] || '';
+                const preview = getPreviewText(n);
+                
+                item.innerHTML = `
+                    <div class="notif-avatar-wrap">
+                        <div class="notif-avatars">${buildAvatarsHtml(g.senders)}</div>
+                        <div class="notif-type-badge">${ICONS_SVG[g.type] || ''}</div>
+                    </div>
+                    <div class="notif-body">
+                        <div class="notif-top-line">
+                            <span class="notif-sender-name">${escapeHtml(topSender.name)}</span>
+                            ${getInlineVerifiedBadge(topSender.id)}
+                            ${othersCount > 0 ? `<span class="notif-others">va yana ${othersCount} kishi</span>` : ''}
+                            <span class="notif-time">${escapeHtml(formatExactTime(g.latest))}</span>
+                        </div>
+                        ${actionText ? `<div class="notif-action-text">${escapeHtml(actionText)}</div>` : ''}
+                        ${preview ? `<div class="notif-preview">${escapeHtml(preview)}</div>` : ''}
+                    </div>
+                `;
+                
+                item.addEventListener('click', async () => {
+                    if (g.unread) {
+                        item.classList.remove('unread');
+                        NotifStore._items.forEach(x => { if (g.ids.includes(x.id)) x.isRead = true; });
+                        const batch = writeBatch(db);
+                        g.ids.forEach(id => batch.update(doc(db, NOTIFS_COLLECTION, String(id)), { isRead: true }));
+                        batch.commit().catch(() => {});
+                    }
+                    
+                    await flushUsageTimeToServer();
+                    if (g.type === 'follow') {
+                        if (g.senders.length === 1) window.location.href = `profil.html?id=${encodeURIComponent(n.senderId)}`;
+                    } else if (n.postId) {
+                        let targetUrl = `index.html?post=${encodeURIComponent(n.postId)}`;
+                        if (n.commentId) targetUrl += `&comment=${encodeURIComponent(n.commentId)}`;
+                        window.location.href = targetUrl;
+                    }
+                });
+                
+                fragment.appendChild(item);
+            });
+
+            list.appendChild(fragment);
+        }
+    }
+
+    function updateNotificationBadge(unreadCount) {
+        const btn = document.getElementById('navNotifBtn');
+        if (!btn) return;
+        let badge = document.getElementById('notifBadge');
+        if (unreadCount > 0) {
+            if (!badge) {
+                badge = document.createElement('div');
+                badge.id = 'notifBadge';
+                badge.className = 'nav-badge';
+                btn.appendChild(badge);
+            }
+            badge.textContent = unreadCount > 49 ? '50+' : unreadCount;
+        } else if (badge) {
+            badge.remove();
+        }
+    }
+
+    /* ================= LAZY SCROLL OBSERVER ================= */
+    function initLazyNotifObserver() {
+        const loader = document.getElementById('notifLoader');
+        const io = new IntersectionObserver((entries) => {
+            if (entries[0]?.isIntersecting && !NotifStore._isLoading && NotifStore._hasMore) {
+                NotifStore.loadNextPage();
+            }
+        }, { rootMargin: '150px', threshold: 0.05 });
+        io.observe(loader);
+    }
+
+    
+    /* ================= ACTIONS (BARCHASINI O'QISH / O'CHIRISH) ================= */
+    document.getElementById('markReadBtn').addEventListener('click', async () => {
+        if (!currentUser) return;
+        const uid = String(currentUser.userId);
+        try {
+            const q = query(
+                collection(db, NOTIFS_COLLECTION),
+                where("recipientId", "==", uid),
+                where("isRead", "==", false)
+            );
+            const snap = await getDocs(q);
+            if (snap.empty) {
+                showToast("O'qilmagan xabarlar yo'q");
+                return;
+            }
+            const batch = writeBatch(db);
+            snap.forEach(d => batch.update(d.ref, { isRead: true }));
+            await batch.commit();
+
+            NotifStore._items.forEach(n => { n.isRead = true; });
+            renderNotifications();
+            showToast("Barchasi o'qilgan deb belgilandi");
+        } catch {
+            showToast("Xatolik yuz berdi");
+        }
+    });
+
+    const sheetOverlay = document.getElementById('sheetOverlay');
+    const actionSheet = document.getElementById('actionSheet');
+    function closeSheet() {
+        sheetOverlay.classList.remove('show');
+        actionSheet.classList.remove('show');
+    }
+    sheetOverlay.addEventListener('click', closeSheet);
+    document.getElementById('sheetCancelBtn').addEventListener('click', closeSheet);
+
+    document.getElementById('clearBtn').addEventListener('click', () => {
+        if (!currentUser || NotifStore._items.length === 0) return;
+        sheetOverlay.classList.add('show');
+        actionSheet.classList.add('show');
+    });
+
+    document.getElementById('confirmClearBtn').addEventListener('click', async () => {
+        closeSheet();
+        if (!currentUser) return;
+        const uid = String(currentUser.userId);
+        try {
+            const q = query(collection(db, NOTIFS_COLLECTION), where("recipientId", "==", uid));
+            const snap = await getDocs(q);
+            if (!snap.empty) {
+                const batch = writeBatch(db);
+                snap.forEach(d => batch.delete(d.ref));
+                await batch.commit();
+            }
+            NotifStore._items = [];
+            NotifStore._hasMore = false;
+            renderNotifications();
+            showToast("Barcha bildirishnomalar o'chirildi");
+        } catch {
+            showToast("O'chirishda xatolik yuz berdi");
+        }
+    });
+
+    /* ================= BOOTSTRAP ================= */
+    (async function bootstrap() {
+        NotifStore.initSkeleton();
+        await initSessionFromServer();
+        if (currentUser) {
+            await NotifStore.loadInitial();
+            NotifStore.listenRealtimeSync();
+            initLazyNotifObserver();
+        } else {
+            document.getElementById('notifLoader').classList.remove('active');
+            document.getElementById('emptyState').style.display = 'flex';
+        }
+    })();
 </script>
 </body>
 </html>
