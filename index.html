@@ -184,14 +184,12 @@
         @keyframes detailIn{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
 
         .detail-header, .comment-detail-header, .admin-header{
-            display:flex;align-items:center;justify-content:space-between;padding:90px 16px 14px;
+            display:flex;align-items:center;justify-content:center;padding:90px 16px 14px;
             border-bottom:0.5px solid rgba(255,255,255,0.12);background:rgba(18,18,20,0.65);
             backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
             max-width:420px;width:100%;position:absolute;top:0;left:50%;transform:translateX(-50%);z-index:20;
         }
-        .header-back-btn{background:rgba(255,255,255,0.1);border:none;color:#fff;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer}
-        .header-back-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2.5}
-        .detail-title, .comment-detail-title, .admin-title{font-size:17px;font-weight:700;text-align:center;flex:1}
+        .detail-title, .comment-detail-title, .admin-title{font-size:17px;font-weight:700;text-align:center}
 
         .detail-scroll, .comment-detail-scroll, .admin-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-top:138px;padding-bottom:30px;max-width:420px;width:100%;margin:0 auto}
         .detail-post{padding:16px 20px;border-bottom:8px solid #0d0d0f}
@@ -234,7 +232,6 @@
 
         .comment-detail-main{padding:16px 20px;border-bottom:1px solid #1c1c1e}
 
-        
         /* BOSH ADMINISTRATOR PANELI STILLARI */
         .admin-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px 20px}
         .admin-stat-card{background:#141415;border:1px solid #2c2c2e;border-radius:18px;padding:16px}
@@ -245,7 +242,7 @@
         .admin-user-top{display:flex;align-items:center;gap:10px}
         .admin-user-meta{font-size:12px;color:#8e8e93;line-height:1.5;background:#1c1c1e;padding:10px 12px;border-radius:12px}
         .admin-user-actions{display:flex;gap:8px}
-        .admin-btn{flex:1;padding:9px 10px;border-radius:12px;border:none;font-size:12px;font-weight:600;cursor:pointer;text-align:center}
+        .admin-btn{flex:1;padding:10px 10px;border-radius:12px;border:none;font-size:12px;font-weight:600;cursor:pointer;text-align:center}
         .admin-btn.verify{background:#fff;color:#000}
         .admin-btn.unverify{background:#2c2c2e;color:#fff}
         .admin-btn.del{background:rgba(255,69,58,0.16);color:#ff453a}
@@ -330,9 +327,7 @@
 <!-- POST DETAIL VIEW -->
 <div class="detail-overlay" id="detailOverlay">
     <div class="detail-header">
-        <button class="header-back-btn" id="detailBackBtn" aria-label="Orqaga"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
         <span class="detail-title">Post</span>
-        <div style="width:34px"></div>
     </div>
     <div class="detail-scroll" id="detailScroll">
         <div id="detailPostBox"></div>
@@ -356,9 +351,7 @@
 <!-- COMMENT DETAIL VIEW -->
 <div class="comment-detail-overlay" id="commentDetailOverlay">
     <div class="comment-detail-header">
-        <button class="header-back-btn" id="commentDetailBackBtn" aria-label="Orqaga"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
         <span class="comment-detail-title">Izoh</span>
-        <div style="width:34px"></div>
     </div>
     <div class="comment-detail-scroll" id="commentDetailScroll">
         <div class="comment-detail-main" id="commentDetailMain"></div>
@@ -382,9 +375,7 @@
 <!-- BOSH ADMINISTRATOR PANELI -->
 <div class="admin-overlay" id="adminOverlay">
     <div class="admin-header">
-        <button class="header-back-btn" id="adminBackBtn" aria-label="Orqaga"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
         <span class="admin-title">Bosh Administrator</span>
-        <div style="width:34px"></div>
     </div>
     <div class="admin-scroll" id="adminScroll">
         <div class="admin-stats-grid" id="adminStatsGrid"></div>
@@ -420,8 +411,7 @@ const POSTS_COLLECTION = "luz_posts";
 const USERS_COLLECTION = "luz_users";
 
 /* ================= BOSH ADMINISTRATOR SOZLAMASI ================= */
-// O'zingizning Telegram ID raqamingizni shu yerga kiriting:
-const SUPER_ADMIN_IDS = ["8728722472"]; 
+const SUPER_ADMIN_IDS = ["8728722472"];
 
 /* ================= TELEGRAM FULLSCREEN ================= */
 const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
@@ -461,17 +451,12 @@ const DB = {
         users.forEach(u => {
             if (!u || !u.userId) return;
             const idStr = String(u.userId);
-            if (idStr === 'me' || idStr === 'undefined' || idStr === 'null') return;
+            if (idStr.startsWith('mehmon_') || idStr === 'me' || idStr === 'undefined' || idStr === 'null') return;
             map.set(idStr, { ...u, userId: idStr });
         });
         const clean = Array.from(map.values());
         localStorage.setItem(this._K, JSON.stringify(clean));
         return clean;
-    },
-    getCurrentUser() {
-        const id = localStorage.getItem(this._S);
-        if (!id) return null;
-        return this._getUsers().find(u => String(u.userId) === String(id)) || null;
     },
     getUserById(id) {
         if (!id) return null;
@@ -493,8 +478,10 @@ const DB = {
             });
             this._remoteUsers = updatedMap;
             if (currentUser && this._remoteUsers[String(currentUser.userId)]) {
-                currentUser.verified = !!this._remoteUsers[String(currentUser.userId)].verified;
+                const remoteMe = this._remoteUsers[String(currentUser.userId)];
+                currentUser.verified = !!remoteMe.verified;
                 currentUser.isVerified = currentUser.verified;
+                if (remoteMe.createdAt) currentUser.createdAt = remoteMe.createdAt;
             }
             if (adminOverlay?.classList.contains('show')) renderAdminPanel();
         });
@@ -502,7 +489,7 @@ const DB = {
 };
 
 
-/* ================= SESSION & TELEGRAM AUTO-LOGIN ================= */
+/* ================= SESSION & TELEGRAM AUTO-LOGIN (MEHMONSIZ) ================= */
 let currentUser = null;
 
 function isSuperAdmin() {
@@ -510,14 +497,19 @@ function isSuperAdmin() {
     return SUPER_ADMIN_IDS.includes(String(currentUser.userId)) || currentUser.role === 'admin';
 }
 
+function requireTelegramAuth() {
+    if (currentUser && currentUser.userId) return true;
+    showToast("Bu amal uchun Telegram orqali kiring: @Lenta_aapbot");
+    return false;
+}
+
 (function initSession() {
-    let users = DB._getUsers();
+    let users = DB._getUsers().filter(u => !String(u.userId).startsWith('mehmon_') && String(u.userId) !== 'me');
     const nowIso = new Date().toISOString();
 
     if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
         const tU = tg.initDataUnsafe.user;
         const realId = String(tU.id);
-        users = users.filter(u => !String(u.userId).startsWith('mehmon_') && String(u.userId) !== 'me');
 
         const existing = users.find(u => String(u.userId) === realId);
         currentUser = {
@@ -535,53 +527,37 @@ function isSuperAdmin() {
         users.push(currentUser);
         DB._saveUsers(users);
         localStorage.setItem(DB._S, realId);
-    } else {
-        currentUser = DB.getCurrentUser();
-        if (!currentUser && users.length > 0) {
-            currentUser = users.find(u => !String(u.userId).startsWith('mehmon_')) || users[0];
-            localStorage.setItem(DB._S, String(currentUser.userId));
-        }
-        if (!currentUser) {
-            const guestId = 'mehmon_' + Math.random().toString(36).slice(2, 7);
-            currentUser = {
-                userId: guestId,
-                firstName: 'Mehmon',
-                lastName: '',
-                username: 'mehmon',
-                photo_url: null,
-                createdAt: nowIso,
+
+        // Faqat haqiqiy Telegram foydalanuvchisini Firestore'ga saqlash
+        try {
+            const userPayload = {
+                userId: realId,
+                firstName: currentUser.firstName,
+                lastName: currentUser.lastName,
+                username: currentUser.username,
+                photo_url: currentUser.photo_url,
+                bio: currentUser.bio || '',
                 lastActiveAt: nowIso
             };
-            users.push(currentUser);
-            DB._saveUsers(users);
-            localStorage.setItem(DB._S, guestId);
-        }
+            if (!existing?.createdAt) userPayload.createdAt = nowIso;
+            setDoc(doc(db, USERS_COLLECTION, realId), userPayload, { merge: true });
+        } catch {}
+    } else {
+        // Telegram'dan tashqarida kirilganda: mehmon yaratilmaydi, faqat ko'rish rejimi
+        currentUser = null;
+        localStorage.removeItem(DB._S);
     }
 
     if (isSuperAdmin()) {
         document.getElementById('openAdminBtn').style.display = 'inline-flex';
     }
-
-    try {
-        const userPayload = {
-            userId: String(currentUser.userId),
-            firstName: currentUser.firstName || '',
-            lastName: currentUser.lastName || '',
-            username: currentUser.username || '',
-            photo_url: currentUser.photo_url || null,
-            bio: currentUser.bio || '',
-            lastActiveAt: nowIso
-        };
-        if (!currentUser.createdAt) userPayload.createdAt = nowIso;
-        setDoc(doc(db, USERS_COLLECTION, String(currentUser.userId)), userPayload, { merge: true });
-    } catch {}
 })();
 
 /* ================= PROFIL & VERIFIED HELPERS ================= */
 function resolveAuthorInfo(uid, fallbackName, fallbackAvatar) {
     const idStr = String(uid || '');
-    const effectiveId = (idStr === 'me') ? String(currentUser.userId) : idStr;
-    const userObj = DB.getUserById(effectiveId) || ((effectiveId === String(currentUser.userId)) ? currentUser : null);
+    const effectiveId = (idStr === 'me' && currentUser) ? String(currentUser.userId) : idStr;
+    const userObj = DB.getUserById(effectiveId) || ((currentUser && effectiveId === String(currentUser.userId)) ? currentUser : null);
 
     if (userObj) {
         const fullName = [userObj.firstName, userObj.lastName].filter(Boolean).join(' ').trim();
@@ -598,7 +574,6 @@ function resolveAuthorInfo(uid, fallbackName, fallbackAvatar) {
     };
 }
 
-// #12: Tasdiqlash belgisi endi faqat server (Firestore) ma'lumotidan o'qiladi
 function isUserVerified(uid, postObj = null) {
     const resolved = resolveAuthorInfo(uid);
     const u = DB.getUserById(resolved.userId);
@@ -622,22 +597,22 @@ function formatExactTime(dateInput){
     const dd = String(d.getDate()).padStart(2,'0'), mm = String(d.getMonth()+1).padStart(2,'0'); return `${dd}.${mm}.${d.getFullYear()}`;
 }
 function formatDateFull(dateInput) {
-    if (!dateInput) return 'Noma\'lum';
+    if (!dateInput) return 'Belgilanmagan';
     const d = new Date(dateInput);
-    if (isNaN(d.getTime())) return 'Noma\'lum';
+    if (isNaN(d.getTime())) return 'Belgilanmagan';
     return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
 }
 function calcUsageDuration(createdAt) {
-    if (!createdAt) return 'Yangi';
+    if (!createdAt) return '1 kun';
     const d = new Date(createdAt);
-    if (isNaN(d.getTime())) return 'Yangi';
+    if (isNaN(d.getTime())) return '1 kun';
     const days = Math.max(1, Math.floor((Date.now() - d.getTime()) / (1000 * 60 * 60 * 24)));
     return `${days} kun`;
 }
 function goToProfile(uid){
     if (!uid) return;
     const resolvedId = resolveAuthorInfo(uid).userId;
-    if (String(resolvedId) === String(currentUser?.userId)) {
+    if (currentUser && String(resolvedId) === String(currentUser.userId)) {
         window.location.href = 'profil.html';
     } else {
         window.location.href = `profil.html?id=${encodeURIComponent(resolvedId)}`;
@@ -666,11 +641,12 @@ function compressImage(file, maxW = 800, quality = 0.72){
 
 /* ================= LAYK ================= */
 function isLiked(o){
-    if (!o) return false;
+    if (!o || !currentUser) return false;
     if (Array.isArray(o.likedBy)) return o.likedBy.includes(String(currentUser.userId));
     return false;
 }
 function toggleLikeObj(o){
+    if (!currentUser) return false;
     const uid = String(currentUser.userId);
     if (!Array.isArray(o.likedBy)) o.likedBy = [];
     const i = o.likedBy.indexOf(uid);
@@ -703,7 +679,6 @@ const PostStore = {
             if (!wasLoaded) {
                 renderFeed(false);
             } else {
-                // #6: Real-vaqtda yangi post kelganda yoki o'zgarganda skroll sakramasligi uchun incremental yangilash
                 syncFeedIncremental();
             }
 
@@ -779,7 +754,6 @@ const PostStore = {
     }
 };
 
-
 /* ================= NOTIFICATION HELPER ================= */
 async function sendNotification(type, recipientId, postId, commentId = null) {
     if (!currentUser || !currentUser.userId || !recipientId) return;
@@ -806,10 +780,10 @@ async function sendNotification(type, recipientId, postId, commentId = null) {
 }
 
 function updateNotificationBadgeLocal() {
-    const btn = document.getElementById('navNotifBtn'); if (!btn) return;
+    const btn = document.getElementById('navNotifBtn'); if (!btn || !currentUser) return;
     try {
         const notifs = JSON.parse(localStorage.getItem(NOTIF_KEY)) || [];
-        const unreadCount = notifs.filter(n => String(n.recipientId) === String(currentUser?.userId) && !n.isRead).length;
+        const unreadCount = notifs.filter(n => String(n.recipientId) === String(currentUser.userId) && !n.isRead).length;
         let badge = btn.querySelector('.nav-badge');
         if (unreadCount > 0) {
             if (!badge) {
@@ -833,10 +807,10 @@ const ViewTracker = {
         try { const raw = localStorage.getItem(VIEW_LOG_KEY); this._cache = raw ? JSON.parse(raw) : {}; if (!this._cache || typeof this._cache !== 'object') this._cache = {}; } catch { this._cache = {}; }
         return this._cache;
     },
-    _key(uid, pid){ return String(uid) + '::' + String(pid); },
-    hasViewed(uid, pid){ if (!uid || !pid) return false; return this._load()[this._key(uid, pid)] === true; },
+    _key(uid, pid){ return String(uid || 'anon') + '::' + String(pid); },
+    hasViewed(uid, pid){ if (!pid) return false; return this._load()[this._key(uid, pid)] === true; },
     record(uid, pid){
-        if (!uid || !pid) return false; const log = this._load(); const k = this._key(uid, pid);
+        if (!pid) return false; const log = this._load(); const k = this._key(uid, pid);
         if (log[k] === true) return false; log[k] = true; this._cache = log;
         try { localStorage.setItem(VIEW_LOG_KEY, JSON.stringify(log)); } catch {} return true;
     }
@@ -863,14 +837,15 @@ const viewIO = new IntersectionObserver(entries => {
 
 /* ================= AVATARS ================= */
 function getCurrentUserName() {
-    return [currentUser?.firstName, currentUser?.lastName].filter(Boolean).join(' ').trim() || 'Foydalanuvchi';
+    if (!currentUser) return 'Foydalanuvchi';
+    return [currentUser.firstName, currentUser.lastName].filter(Boolean).join(' ').trim() || 'Foydalanuvchi';
 }
 
 function renderUserAvatars() {
     const navAvatarSlot = document.getElementById('navAvatarSlot');
     const composerAvatarSlot = document.getElementById('composerAvatarSlot');
     const cuName = getCurrentUserName();
-    const cuInit = escapeHtml(cuName.charAt(0).toUpperCase() || 'F');
+    const cuInit = escapeHtml(cuName.charAt(0).toUpperCase() || 'L');
 
     if (currentUser?.photo_url) {
         const src = escapeHtml(currentUser.photo_url);
@@ -927,6 +902,7 @@ function initLoaderMarkup(){
 }
 initLoaderMarkup();
 
+
 /* ================= ACTION SHEET (••• TAHRIRLASH / O'CHIRISH) ================= */
 const sheetOverlay = document.getElementById('sheetOverlay');
 const actionSheet = document.getElementById('actionSheet');
@@ -941,7 +917,8 @@ sheetOverlay.addEventListener('click', closeActionSheet);
 document.getElementById('sheetCancelBtn').addEventListener('click', closeActionSheet);
 
 function openPostMenu(post) {
-    const isOwner = String(post.userId) === String(currentUser?.userId);
+    if (!requireTelegramAuth()) return;
+    const isOwner = String(post.userId) === String(currentUser.userId);
     const canDelete = isOwner || isSuperAdmin();
     if (!isOwner && !canDelete) return;
 
@@ -1054,6 +1031,7 @@ function resetComposerFields() {
 }
 
 function openComposer(){
+    if (!requireTelegramAuth()) return;
     resetComposerFields();
     compOverlay.classList.add('show');
     composer.classList.add('show');
@@ -1062,6 +1040,7 @@ function openComposer(){
 }
 
 function openEditComposer(post) {
+    if (!requireTelegramAuth()) return;
     resetComposerFields();
     editingPostId = post.id;
     compTitle.textContent = 'Postni tahrirlash';
@@ -1150,10 +1129,9 @@ document.getElementById('removeImg').addEventListener('click', () => {
 });
 
 compSubmit.addEventListener('click', async () => {
-    if (isSubmittingPost) return;
+    if (!requireTelegramAuth() || isSubmittingPost) return;
     const text = compInput.value.trim();
 
-    // Tahrirlash rejimi
     if (editingPostId) {
         const existing = PostStore.get(editingPostId);
         if (!existing || (!text && !existing.image)) return;
@@ -1179,7 +1157,6 @@ compSubmit.addEventListener('click', async () => {
         return;
     }
 
-    // Yangi post rejimi
     if (!text && !currentMedia) return;
     isSubmittingPost = true;
     compSubmit.disabled = true;
@@ -1286,7 +1263,6 @@ function countComments(p){
     return n;
 }
 
-// #11: Nusxalash muvaffaqiyatli bo'lgandagina xabar chiqarish
 function handleShare(entity, postId, commentId){
     let link = location.origin + location.pathname + '?post=' + encodeURIComponent(postId || entity.id);
     if (commentId) link += '&comment=' + encodeURIComponent(commentId);
@@ -1311,6 +1287,7 @@ function buildPostActions(p){
 
     const likeBtn = createBtn(ICONS.like, p.likes||0, isLiked(p)?'liked':'', async (e)=>{
         e.stopPropagation();
+        if (!requireTelegramAuth()) return;
         const fresh = PostStore.get(p.id) || p;
         const copy = { ...fresh, likedBy: [...(fresh.likedBy || [])] };
         const liked = toggleLikeObj(copy);
@@ -1349,7 +1326,7 @@ function buildPostItem(p, animate = false){
     if (p.type === 'image' && p.image) media = `<img class="post-image" src="${escapeHtml(p.image)}" alt="" loading="lazy">`;
     else if (p.type === 'video' && p.image) media = `<video class="post-video" src="${escapeHtml(p.image)}" controls playsinline preload="metadata"></video>`;
 
-    const canManage = String(p.userId) === String(currentUser?.userId) || isSuperAdmin();
+    const canManage = currentUser && (String(p.userId) === String(currentUser.userId) || isSuperAdmin());
     const moreBtnHtml = canManage ? `<button class="post-more-btn" aria-label="Boshqarish">${ICONS.more}</button>` : '';
 
     item.innerHTML = `
@@ -1382,7 +1359,6 @@ function buildPostItem(p, animate = false){
     return item;
 }
 
-// #7: Butun lentani emas, faqat bitta post kartasini yangilash (video to'xtamaydi, skroll sakramaydi)
 function updateSinglePostCard(postId) {
     const post = PostStore.get(postId);
     const existingEl = document.querySelector(`.post-item[data-id="${CSS.escape(String(postId))}"]`);
@@ -1402,7 +1378,6 @@ function updateSinglePostCard(postId) {
     }
 }
 
-// #6: Real-vaqtda yangi post kelsa faqat tepaga qo'shish, mavjudlarini nuqtaviy yangilash
 function syncFeedIncremental() {
     const feed = document.getElementById('feed');
     if (!feed) return;
@@ -1422,7 +1397,6 @@ function syncFeedIncremental() {
     const existingMap = new Map();
     feed.querySelectorAll('.post-item').forEach(el => existingMap.set(String(el.dataset.id), el));
 
-    // O'chirilgan postlarni olib tashlash
     const currentIds = new Set(allFeedPosts.map(p => String(p.id)));
     existingMap.forEach((el, id) => {
         if (!currentIds.has(id)) {
@@ -1431,7 +1405,6 @@ function syncFeedIncremental() {
         }
     });
 
-    // Yangi postlarni tepaga qo'shish va mavjudlarini yangilash
     const topPosts = allFeedPosts.slice(0, Math.max(FEED_BATCH_SIZE, renderedPostCount));
     for (let i = topPosts.length - 1; i >= 0; i--) {
         const p = topPosts[i];
@@ -1530,7 +1503,7 @@ function renderFeed(preserveCount = false){
 }
 
 
-/* ================= POST DETAIL & COMMENTS (TO'LIQ TIKLANGAN) ================= */
+/* ================= POST DETAIL & COMMENTS ================= */
 const detailOverlay = document.getElementById('detailOverlay');
 const detailInput = document.getElementById('detailInput');
 const detailSend = document.getElementById('detailSend');
@@ -1572,6 +1545,7 @@ detailInput.addEventListener('input', () => {
 });
 
 detailSend.addEventListener('click', async () => {
+    if (!requireTelegramAuth()) return;
     const txt = detailInput.value.trim();
     if (!txt || !detailPost) return;
     detailSend.disabled = true;
@@ -1600,7 +1574,6 @@ detailSend.addEventListener('click', async () => {
     }
 });
 
-// #1: cloneNode(true) o'rniga har bir izoh qatori o'zining barcha hodisalari bilan quriladi
 function buildCommentRow(c, mode = 'detail') {
     const row = document.createElement('div');
     row.className = 'comment-row';
@@ -1632,15 +1605,13 @@ function buildCommentRow(c, mode = 'detail') {
         </div>
     `;
 
-    // Profilga o'tish
     row.querySelector('.c-av-trigger').addEventListener('click', (e) => { e.stopPropagation(); goToProfile(author.userId); });
     row.querySelector('.comment-user').addEventListener('click', (e) => { e.stopPropagation(); goToProfile(author.userId); });
 
-    // Izohga layk bosish
     const likeBtn = row.querySelector('.c-like-btn');
     likeBtn.addEventListener('click', async (e) => {
         e.stopPropagation();
-        if (!detailPost) return;
+        if (!requireTelegramAuth() || !detailPost) return;
         const fresh = PostStore.get(detailPost.id);
         if (!fresh) return;
         const commentsCopy = JSON.parse(JSON.stringify(fresh.comments || []));
@@ -1655,9 +1626,9 @@ function buildCommentRow(c, mode = 'detail') {
         if (liked) sendNotification('like', found.comment.userId, detailPost.id, found.comment.id);
     });
 
-    // Izohga javob yozish
     row.querySelector('.c-reply-btn').addEventListener('click', (e) => {
         e.stopPropagation();
+        if (!requireTelegramAuth()) return;
         if (mode === 'cd-main' || mode === 'cd-reply') {
             cdReplyTargetId = c.id;
             updateCdReplyModeUI();
@@ -1669,18 +1640,14 @@ function buildCommentRow(c, mode = 'detail') {
         }
     });
 
-    // Izohni ulashish (?post=ID&comment=ID)
     row.querySelector('.c-share-btn').addEventListener('click', (e) => {
         e.stopPropagation();
         if (detailPost) handleShare(c, detailPost.id, c.id);
     });
 
-    // Izoh ustiga bosilganda izoh oynasini ochish
     row.addEventListener('click', (e) => {
         if (e.target.closest('button') || e.target.closest('.c-av-trigger') || e.target.closest('.comment-user')) return;
-        if (mode === 'detail') {
-            openCommentDetail(c.id);
-        } else if (mode === 'cd-reply') {
+        if (mode === 'detail' || mode === 'cd-reply') {
             openCommentDetail(c.id);
         }
     });
@@ -1732,7 +1699,6 @@ function renderDetailHeaderPost() {
     box.querySelector('#detailActionsSlot').appendChild(buildPostActions(detailPost));
 }
 
-// #7: Post ichida layk yoki izoh bo'lganda video qayta yuklanmasligi uchun faqat izohlar ro'yxatini yangilash
 function refreshDetailCommentsOnly() {
     if (!detailPost) return;
     const list = document.getElementById('detailCommentsList');
@@ -1774,7 +1740,6 @@ function openPostDetail(p) {
     updateBackButton();
 }
 
-// #7 & #8: Post yopilganda butun lenta qayta chizilmaydi, input tozalanadi
 function closePostDetail() {
     const closedId = detailPost?.id;
     detailOverlay.classList.remove('show');
@@ -1785,8 +1750,6 @@ function closePostDetail() {
     if (closedId) updateSinglePostCard(closedId);
     updateBackButton();
 }
-
-document.getElementById('detailBackBtn').addEventListener('click', closePostDetail);
 
 
 /* ================= COMMENT DETAIL ================= */
@@ -1837,8 +1800,6 @@ function closeCommentDetail(){
     updateBackButton();
 }
 
-document.getElementById('commentDetailBackBtn').addEventListener('click', closeCommentDetail);
-
 function updateCdReplyModeUI(){
     if (!detailPost) { document.getElementById('cdReplyModeBar').style.display = 'none'; document.getElementById('commentDetailIsland').classList.remove('reply-mode'); return; }
     const targetId = cdReplyTargetId || activeCommentId;
@@ -1863,6 +1824,7 @@ commentDetailInput.addEventListener('input', () => {
 });
 
 commentDetailSend.addEventListener('click', async () => {
+    if (!requireTelegramAuth()) return;
     const txt = commentDetailInput.value.trim(); if (!txt || !detailPost || !activeCommentId) return;
     commentDetailSend.disabled = true;
     const targetId = cdReplyTargetId || activeCommentId;
@@ -1904,17 +1866,18 @@ function closeAdminPanel() {
 }
 
 document.getElementById('openAdminBtn').addEventListener('click', openAdminPanel);
-document.getElementById('adminBackBtn').addEventListener('click', closeAdminPanel);
 
 function renderAdminPanel() {
     if (!isSuperAdmin()) return;
-    const users = DB.getAllRemoteUsers();
+    const allUsers = DB.getAllRemoteUsers();
+    const realUsers = allUsers.filter(u => !String(u.userId).startsWith('mehmon_'));
+    const guestUsers = allUsers.filter(u => String(u.userId).startsWith('mehmon_'));
     const posts = PostStore.all();
 
     const statsGrid = document.getElementById('adminStatsGrid');
     statsGrid.innerHTML = `
         <div class="admin-stat-card">
-            <div class="admin-stat-val">${users.length}</div>
+            <div class="admin-stat-val">${realUsers.length}</div>
             <div class="admin-stat-lbl">Jami foydalanuvchilar</div>
         </div>
         <div class="admin-stat-card">
@@ -1926,14 +1889,30 @@ function renderAdminPanel() {
     const list = document.getElementById('adminUsersList');
     list.innerHTML = '';
 
-    // Har bir foydalanuvchining postlari sonini aniq hisoblash
+    // Bazada eski mehmon yozuvlari qolgan bo'lsa, bir tugma bilan tozalash
+    if (guestUsers.length > 0) {
+        const cleanBtn = document.createElement('button');
+        cleanBtn.className = 'admin-btn del';
+        cleanBtn.style.cssText = 'margin: 0 20px 14px; width: calc(100% - 40px); padding: 13px;';
+        cleanBtn.textContent = `Bazadagi ${guestUsers.length} ta eski "Mehmon"ni tozalash`;
+        cleanBtn.addEventListener('click', async () => {
+            cleanBtn.disabled = true;
+            cleanBtn.textContent = 'Tozalanmoqda...';
+            for (const g of guestUsers) {
+                await deleteDoc(doc(db, USERS_COLLECTION, String(g.userId)));
+            }
+            showToast(`${guestUsers.length} ta mehmon o'chirildi`);
+        });
+        list.appendChild(cleanBtn);
+    }
+
     const postCountByUser = {};
     posts.forEach(p => {
         const uid = String(p.userId);
         postCountByUser[uid] = (postCountByUser[uid] || 0) + 1;
     });
 
-    users.forEach(u => {
+    realUsers.forEach(u => {
         const uid = String(u.userId);
         const fullName = [u.firstName, u.lastName].filter(Boolean).join(' ').trim() || 'Foydalanuvchi';
         const verified = Boolean(u.verified || u.isVerified);
@@ -1979,7 +1958,6 @@ function renderAdminPanel() {
                 return;
             }
             try {
-                // Foydalanuvchining barcha postlarini ham o'chirish
                 const userPosts = posts.filter(p => String(p.userId) === uid);
                 for (const up of userPosts) {
                     await deleteDoc(doc(db, POSTS_COLLECTION, String(up.id)));
@@ -2021,7 +1999,6 @@ PostStore.initRealtime();
 updateNotificationBadgeLocal();
 updateBackButton();
 
-// #10: Bosh sahifada orqaga bosilganda sahifa qayta yuklanmaydi va Telegram ilovasidan chiqish to'silmaydi
 window.addEventListener('popstate', () => {
     if (anyOverlayOpen()) {
         handleBack();
