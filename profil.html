@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="uz">
 <head>
@@ -78,7 +79,7 @@ body{display:flex;justify-content:center;align-items:flex-start;min-height:100vh
 .empty-icon svg{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
 /* Skeleton Loader */
-.tab-loader{display:none;flex-direction:column;width:100%;padding:8px 0}
+.tab-loader{display:none;flex-direction:column;width:100%;padding:8px 20px}
 .tab-loader.active{display:flex}
 .sk-post{display:flex;gap:10px;padding:16px 0;border-bottom:1px solid rgba(255,255,255,0.06)}
 .sk-shimmer{background:#161618;background-image:linear-gradient(110deg,#161618 0%,#161618 35%,#26262b 50%,#161618 65%,#161618 100%);background-size:250% 100%;animation:skWave 1.35s linear infinite}
@@ -192,6 +193,10 @@ body{display:flex;justify-content:center;align-items:flex-start;min-height:100vh
 .detail-overlay.show,.comment-detail-overlay.show,.follows-overlay.show{display:flex}
 @keyframes detailIn{from{opacity:0;transform:translateY(100%)}to{opacity:1;transform:translateY(0)}}
 .detail-header,.comment-detail-header{display:flex;align-items:center;justify-content:center;gap:12px;padding:16px;padding-top:calc(16px + env(safe-area-inset-top));border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(20px);max-width:480px;width:100%;margin:0 auto;position:sticky;top:0;z-index:10}
+
+/* Obunachilar / Obunalar sahifasi sarlavhasi 90px pastga tushirildi */
+.follows-overlay .detail-header{padding-top:calc(90px + env(safe-area-inset-top))}
+
 .detail-title,.comment-detail-title{font-size:17px;font-weight:600;text-align:center}
 .detail-scroll,.comment-detail-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:20px;max-width:480px;width:100%;margin:0 auto}
 .detail-post{padding:16px;border-bottom:8px solid #0a0a0a}
@@ -443,8 +448,8 @@ body{display:flex;justify-content:center;align-items:flex-start;min-height:100vh
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
     getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc,
-    onSnapshot, query, orderBy, where, limit, startAfter, increment,
-    arrayUnion, arrayRemove, getCountFromServer
+    onSnapshot, query, where, limit, increment,
+    arrayUnion, arrayRemove
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -515,7 +520,7 @@ const UserCache = {
 };
 
 
-/* ================= IN-MEMORY SESSION (NO LOCALSTORAGE FOR DATA) ================= */
+/* ================= IN-MEMORY SESSION ================= */
 let currentUser = null;
 let savedPosts = new Set();
 let viewedPostIds = new Set();
@@ -612,7 +617,7 @@ function getInlineVerifiedBadge(uid) {
     return isUserVerified(uid) ? VERIFIED_BADGE_SM_SVG : '';
 }
 
-/* ================= ACTIVE SCREEN TIME TRACKER (INDEX & NOTIFICATION BILAN SINXRON) ================= */
+/* ================= ACTIVE SCREEN TIME TRACKER ================= */
 function getPeriodKeys(date = new Date()) {
     const yyyy = date.getFullYear();
     const mm = String(date.getMonth() + 1).padStart(2, '0');
@@ -693,7 +698,7 @@ function startActiveTimeTracker() {
     }, 25000);
 }
 
-/* ================= REAL-TIME FOLLOW SYSTEM (FIRESTORE) ================= */
+/* ================= REAL-TIME FOLLOW SYSTEM ================= */
 const FollowStore = {
     _followers: [],
     _following: [],
@@ -823,15 +828,27 @@ function updateFollowStatsUI() {
     requestAnimationFrame(updateProgress);
 })();
 
-/* ================= FIRESTORE LAZY POST & REPLY STORE ================= */
+
+/* ================= FIRESTORE POST & REPLY STORE (INDEKSIZ XAVFSIZ SOROV) ================= */
+function sortByCreatedAtDesc(arr) {
+    return arr.sort((a, b) => {
+        const ta = new Date(a.createdAt || a.time || 0).getTime() || 0;
+        const tb = new Date(b.createdAt || b.time || 0).getTime() || 0;
+        return tb - ta;
+    });
+}
+
 const PostStore = {
-    _userPosts: [],
+    _allUserPosts: [],
+    _visibleCount: BATCH_SIZE,
     _savedPostsList: [],
     _repliesList: [],
     _byId: new Map(),
-    _lastUserDoc: null,
-    _hasMoreUserPosts: true,
     _isLoading: false,
+
+    get _userPosts() {
+        return this._allUserPosts.slice(0, this._visibleCount);
+    },
 
     get(id) {
         return this._byId.get(String(id)) || null;
@@ -847,66 +864,36 @@ const PostStore = {
         showTabLoader(true);
 
         try {
-            // Aniq postlar sonini serverdan olish
-            const countSnap = await getCountFromServer(query(collection(db, POSTS_COLLECTION), where("userId", "==", tId)));
-            document.getElementById('postsCount').textContent = countSnap.data().count || 0;
-
+            // Composite index talab qilmaydigan to'g'ridan-to'g'ri query
             const q = query(
                 collection(db, POSTS_COLLECTION),
-                where("userId", "==", tId),
-                orderBy("createdAt", "desc"),
-                limit(BATCH_SIZE)
+                where("userId", "==", tId)
             );
             const snap = await getDocs(q);
-            const batch = [];
-            snap.forEach(d => batch.push({ id: d.id, ...d.data() }));
+            const all = [];
+            snap.forEach(d => all.push({ id: d.id, ...d.data() }));
+            sortByCreatedAtDesc(all);
 
-            this._userPosts = batch;
-            this._registerPosts(batch);
-            this._lastUserDoc = snap.docs[snap.docs.length - 1] || null;
-            this._hasMoreUserPosts = snap.docs.length === BATCH_SIZE;
+            this._allUserPosts = all;
+            this._visibleCount = BATCH_SIZE;
+            this._registerPosts(all);
 
+            document.getElementById('postsCount').textContent = all.length;
             await UserCache.prefetch([tId]);
         } catch (e) {
             console.error("Postlarni yuklash xatosi:", e);
-            this._hasMoreUserPosts = false;
+            this._allUserPosts = [];
         } finally {
             this._isLoading = false;
             showTabLoader(false);
         }
     },
 
-    async loadNextUserPostsPage(targetId) {
-        if (this._isLoading || !this._hasMoreUserPosts || !this._lastUserDoc) return;
-        const tId = String(targetId);
-        this._isLoading = true;
-        showTabLoader(true);
-
-        try {
-            const q = query(
-                collection(db, POSTS_COLLECTION),
-                where("userId", "==", tId),
-                orderBy("createdAt", "desc"),
-                startAfter(this._lastUserDoc),
-                limit(BATCH_SIZE)
-            );
-            const snap = await getDocs(q);
-            const batch = [];
-            snap.forEach(d => batch.push({ id: d.id, ...d.data() }));
-
-            this._userPosts.push(...batch);
-            this._registerPosts(batch);
-            this._lastUserDoc = snap.docs[snap.docs.length - 1] || this._lastUserDoc;
-            this._hasMoreUserPosts = snap.docs.length === BATCH_SIZE;
-
-            if (batch.length > 0 && (currentTab === 'posts' || currentTab === 'video')) {
-                switchTab(currentTab);
-            }
-        } catch (e) {
-            console.error("Keyingi sahifa xatosi:", e);
-        } finally {
-            this._isLoading = false;
-            showTabLoader(false);
+    loadNextUserPostsPage() {
+        if (this._isLoading || this._visibleCount >= this._allUserPosts.length) return;
+        this._visibleCount += BATCH_SIZE;
+        if (currentTab === 'posts' || currentTab === 'video') {
+            switchTab(currentTab);
         }
     },
 
@@ -914,17 +901,16 @@ const PostStore = {
         const tId = String(targetId);
         const q = query(
             collection(db, POSTS_COLLECTION),
-            where("userId", "==", tId),
-            orderBy("createdAt", "desc"),
-            limit(BATCH_SIZE)
+            where("userId", "==", tId)
         );
         onSnapshot(q, (snap) => {
-            const topFresh = [];
-            snap.forEach(d => topFresh.push({ id: d.id, ...d.data() }));
-            const freshIds = new Set(topFresh.map(x => String(x.id)));
-            const older = this._userPosts.filter(x => !freshIds.has(String(x.id)));
-            this._userPosts = [...topFresh, ...older];
-            this._registerPosts(topFresh);
+            const all = [];
+            snap.forEach(d => all.push({ id: d.id, ...d.data() }));
+            sortByCreatedAtDesc(all);
+
+            this._allUserPosts = all;
+            this._registerPosts(all);
+            document.getElementById('postsCount').textContent = all.length;
 
             if (currentTab === 'posts' || currentTab === 'video') {
                 switchTab(currentTab);
@@ -968,14 +954,13 @@ const PostStore = {
         const tId = String(targetId);
         const q = query(
             collection(db, REPLIES_COLLECTION),
-            where("userId", "==", tId),
-            orderBy("createdAt", "desc"),
-            limit(30)
+            where("userId", "==", tId)
         );
         onSnapshot(q, async (snap) => {
             const arr = [];
             snap.forEach(d => arr.push({ id: d.id, ...d.data() }));
-            this._repliesList = arr;
+            sortByCreatedAtDesc(arr);
+            this._repliesList = arr.slice(0, 40);
             await UserCache.prefetch([tId]);
             if (currentTab === 'answers') renderReplies();
         }, () => {});
@@ -989,8 +974,6 @@ const PostStore = {
             }
             await setDoc(doc(db, POSTS_COLLECTION, String(post.id)), post);
             this._registerPosts([post]);
-            const countEl = document.getElementById('postsCount');
-            countEl.textContent = (parseInt(countEl.textContent || '0', 10) + 1);
             return post;
         } catch {
             showToast('Saqlashda xatolik');
@@ -1000,13 +983,12 @@ const PostStore = {
 
     async remove(id) {
         const idStr = String(id);
-        this._userPosts = this._userPosts.filter(p => String(p.id) !== idStr);
+        this._allUserPosts = this._allUserPosts.filter(p => String(p.id) !== idStr);
         this._savedPostsList = this._savedPostsList.filter(p => String(p.id) !== idStr);
         this._byId.delete(idStr);
         try {
             await deleteDoc(doc(db, POSTS_COLLECTION, idStr));
-            const countEl = document.getElementById('postsCount');
-            countEl.textContent = Math.max(0, parseInt(countEl.textContent || '0', 10) - 1);
+            document.getElementById('postsCount').textContent = this._allUserPosts.length;
             return true;
         } catch {
             showToast("O'chirishda xatolik");
@@ -1020,8 +1002,8 @@ const PostStore = {
         if (existing) {
             const updated = Object.assign({}, existing, patch);
             this._byId.set(idStr, updated);
-            const idx1 = this._userPosts.findIndex(p => String(p.id) === idStr);
-            if (idx1 >= 0) this._userPosts[idx1] = updated;
+            const idx1 = this._allUserPosts.findIndex(p => String(p.id) === idStr);
+            if (idx1 >= 0) this._allUserPosts[idx1] = updated;
             const idx2 = this._savedPostsList.findIndex(p => String(p.id) === idStr);
             if (idx2 >= 0) this._savedPostsList[idx2] = updated;
         }
@@ -1056,8 +1038,7 @@ function showTabLoader(active) {
     }
 }
 
-
-/* ================= NOTIFICATION BADGE SYNC (INDEX & NOTIFICATION BILAN BIR XIL) ================= */
+/* ================= NOTIFICATION BADGE SYNC ================= */
 function updateNotificationBadge(unreadCount) {
     const btn = document.getElementById('navNotifBtn');
     if (!btn) return;
@@ -1220,6 +1201,7 @@ const ICONS = {
     trash: `<svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>`
 };
 
+
 /* ================= BANNER VA PROFIL UI ================= */
 function applyBanner(bannerUrl) {
     const bannerImg = document.getElementById('bannerImg');
@@ -1309,7 +1291,6 @@ function renderProfileHeader() {
 }
 
 function listenProfileUsersRealtime(targetId) {
-    // Joriy foydalanuvchining savedPosts va profil o'zgarishlarini jonli kuzatish
     onSnapshot(doc(db, USERS_COLLECTION, String(currentUser.userId)), (snap) => {
         if (!snap.exists()) return;
         const data = snap.data();
@@ -1370,13 +1351,13 @@ async function bootAppWithUser(user) {
     switchTab('posts');
     PostStore.listenUserPostsRealtime(targetId);
     PostStore.listenUserReplies(targetId);
-    initLazyTabObserver(targetId);
+    initLazyTabObserver();
 }
 
 document.getElementById('avatarContainer').addEventListener('click', () => { if (!isOwn) goToProfile(profileOwner?.userId); });
 document.getElementById('profileNameRow').addEventListener('click', () => { if (!isOwn) goToProfile(profileOwner?.userId); });
 
-/* ================= FOLLOWS MODAL (LAZY PREFETCH BILAN) ================= */
+/* ================= FOLLOWS MODAL ================= */
 const followsOverlay = document.getElementById('followsOverlay');
 async function openFollowsList(mode) {
     const targetId = profileOwner?.userId;
@@ -1416,7 +1397,6 @@ function closeFollowsList() {
 document.getElementById('followersStat').addEventListener('click', () => openFollowsList('followers'));
 document.getElementById('subsStat').addEventListener('click', () => openFollowsList('following'));
 
-
 /* ================= NAVIGATION ================= */
 async function goBack(){
     await flushUsageTimeToServer();
@@ -1440,6 +1420,7 @@ document.getElementById('subscribeBtn')?.addEventListener('click', async () => {
     showToast(subscribed ? "Obuna bo'ldingiz" : "Obuna bekor qilindi");
 });
 
+
 /* ================= POST VA TABS ================= */
 const emptyIcons = {
     posts: `<svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3.5"/><line x1="8" y1="9.5" x2="15" y2="9.5"/><line x1="8" y1="14" x2="12" y2="14"/></svg>`,
@@ -1453,8 +1434,9 @@ function countComments(p){
     let n = (p.comments || []).length; const walk = (arr) => arr.forEach(c => { n += (c.replies || []).length; if (c.replies) walk(c.replies); }); walk(p.comments || []); return n;
 }
 function handleShare(entity){
-    const link = location.origin + '/index.html?post=' + encodeURIComponent(entity.id);
-    if (navigator.share) navigator.share({ title: 'Post', url: link }).catch(() => {});
+    const targetId = detailPost ? detailPost.id : entity.id;
+    const link = 'https://t.me/Lenta_aapbot?start=' + encodeURIComponent(targetId);
+    if (navigator.share) navigator.share({ title: 'L.uz', url: link }).catch(() => {});
     else { try { navigator.clipboard?.writeText(link); } catch {} showToast('Havola nusxalandi'); }
 }
 
@@ -1634,14 +1616,12 @@ async function switchTab(k){
 }
 document.getElementById('tabsContainer').addEventListener('click', e => { const tab = e.target.closest('.tab-item'); if (tab) switchTab(tab.dataset.tab); });
 
-function initLazyTabObserver(targetId) {
-    const loader = document.getElementById('tabLoader');
-    const io = new IntersectionObserver((entries) => {
-        if (entries[0]?.isIntersecting && (currentTab === 'posts' || currentTab === 'video')) {
-            PostStore.loadNextUserPostsPage(targetId);
+function initLazyTabObserver() {
+    window.addEventListener('scroll', () => {
+        if ((currentTab === 'posts' || currentTab === 'video') && (window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 300)) {
+            PostStore.loadNextUserPostsPage();
         }
-    }, { rootMargin: '200px', threshold: 0.05 });
-    io.observe(loader);
+    }, { passive: true });
 }
 
 
@@ -1930,7 +1910,6 @@ cdSend.addEventListener('click', async () => {
         cdSend.disabled = false;
     }
 });
-
 
 /* ================= COMPOSER ================= */
 const composer = document.getElementById('composer'), compOverlay = document.getElementById('composerOverlay'), compInput = document.getElementById('composerInput'), compSubmit = document.getElementById('composerSubmit');
