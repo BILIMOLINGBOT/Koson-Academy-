@@ -875,20 +875,22 @@ const PostStore = {
         }
     },
 
-    async update(id, patch) {
-        const i = this._items.findIndex(p => String(p.id) === String(id));
-        if (i >= 0) {
-            this._items[i] = Object.assign({}, this._items[i], patch);
+    // PostStore.update ichida tuzatish:
+async update(id, patch) {
+    const i = this._items.findIndex(p => String(p.id) === String(id));
+    if (i >= 0) {
+        this._items[i] = Object.assign({}, this._items[i], patch);
+    }
+    try {
+        await updateDoc(doc(db, POSTS_COLLECTION, String(id)), patch);
+        if (i >= 0) return this._items[i];
+        if (detailPost && String(detailPost.id) === String(id)) {
+            return Object.assign({}, detailPost, patch);
         }
-        try {
-            await updateDoc(doc(db, POSTS_COLLECTION, String(id)), patch);
-            return this._items[i] || null;
-        } catch (err) {
-            console.error("Yangilashda xatolik:", err);
-            showToast("Saqlanmadi: internet aloqasini tekshiring");
-            return null;
-        }
-    },
+        return patch;
+    } catch (err) { ... }
+}
+
 
     async remove(id) {
         const target = this.get(id);
