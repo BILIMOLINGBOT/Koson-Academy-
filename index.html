@@ -1,1124 +1,2136 @@
 <!DOCTYPE html>
-<html lang="uz" class="dark">
+<html lang="uz">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>L.uz — Lenta</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    :root {
-      color-scheme: dark;
-    }
-    * {
-      -webkit-tap-highlight-color: transparent;
-      box-sizing: border-box;
-    }
-    body {
-      background-color: #000000;
-      color: #ffffff;
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
-      margin: 0;
-      padding-bottom: calc(96px + env(safe-area-inset-bottom));
-      overflow-x: hidden;
-    }
-    .frosted-header {
-      background: rgba(0, 0, 0, 0.78);
-      backdrop-filter: blur(22px);
-      -webkit-backdrop-filter: blur(22px);
-    }
-    .island-nav {
-      background: rgba(24, 24, 27, 0.85);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      bottom: calc(14px + env(safe-area-inset-bottom));
-    }
-    .no-scrollbar::-webkit-scrollbar {
-      display: none;
-    }
-    .no-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-    @keyframes pulse-subtle {
-      0%, 100% { opacity: 0.45; }
-      50% { opacity: 0.9; }
-    }
-    .skeleton {
-      animation: pulse-subtle 1.4s ease-in-out infinite;
-      background: #18181b;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Uy - L.uz</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-tap-highlight-color:transparent}
+        html,body{background:#000!important;color:#fff;overscroll-behavior-y:none}
+        body{display:flex;justify-content:center;min-height:100vh;-webkit-font-smoothing:antialiased}
+
+        .mobile-container{width:100%;max-width:420px;padding:0 0 140px 0;display:flex;flex-direction:column}
+
+        /* Header */
+        .modern-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 90px 20px 14px 20px;
+            background: rgba(18, 18, 20, 0.55);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border-bottom: 0.5px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .brand-title {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #ffffff 0%, #a1a1aa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0;
+        }
+
+        .admin-trigger-btn {
+            display: none;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 7px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.15s, background 0.15s;
+        }
+        .admin-trigger-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.2); }
+
+        .verified-badge-sm{width:15px;height:15px;flex-shrink:0;display:inline-block;vertical-align:middle;margin-left:4px}
+
+        .feed{width:100%;display:flex;flex-direction:column;padding-bottom:8px;gap:0}
+
+        /* POST STILI */
+        .post-item{width:100%;padding:16px 20px;text-align:left;cursor:pointer;transition:background .15s ease;background:transparent;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;gap:10px;align-items:flex-start}
+        .post-item.animate-in{animation:postIn .35s cubic-bezier(.34,1.2,.64,1) both}
+        .post-item:active{background:rgba(255,255,255,0.03)}
+        @keyframes postIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+        .post-avatar,.post-avatar-initial{width:42px;height:42px;border-radius:50%;flex-shrink:0;cursor:pointer}
+        .post-avatar{object-fit:cover;background:#1c1c1e}
+        .post-avatar-initial{background:linear-gradient(135deg,#3a3a3c 0%,#1c1c1e 100%);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;color:#fff;text-transform:uppercase}
+        .post-head-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:3px}
+        .post-head-info{display:flex;align-items:baseline;gap:6px;min-width:0;flex:1}
+        .post-user{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;display:inline-flex;align-items:center}
+        .post-user:active{opacity:.7}
+        .post-time{font-size:13px;color:#8e8e93;flex-shrink:0}
+        
+        .post-more-btn{background:none;border:none;color:#8e8e93;padding:4px 8px;border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s,color .15s}
+        .post-more-btn:active{background:rgba(255,255,255,0.1);color:#fff}
+        .post-more-btn svg{width:18px;height:18px;fill:currentColor}
+
+        .post-text{font-size:15px;line-height:1.45;color:#f2f2f7;white-space:pre-wrap;word-break:break-word;margin-bottom:12px}
+
+        .post-image, .post-video, .detail-image, .detail-video{
+            width:100%;
+            border-radius:16px;
+            margin-bottom:12px;
+            display:block;
+            max-height:80vh;
+            object-fit:cover;
+            border:0.5px solid rgba(255,255,255,0.1);
+            background:#000;
+        }
+
+        .post-actions{display:flex;align-items:center;justify-content:space-between;gap:4px;padding-top:4px}
+        .act-btn{background:none;border:none;display:flex;align-items:center;gap:6px;color:#8e8e93;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;padding:10px 6px;transition:transform .15s ease,color .2s ease;flex:1;justify-content:center;border-radius:12px}
+        .act-btn:active{transform:scale(.88);background:rgba(255,255,255,.05)}
+        .act-btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:fill .2s ease,stroke .2s ease,transform .2s cubic-bezier(.34,1.56,.64,1);flex-shrink:0}
+        .act-count{font-variant-numeric:tabular-nums;font-size:13px;min-width:14px;text-align:left}
+        .act-btn.liked{color:#ff2d55}
+        .act-btn.liked svg{fill:#ff2d55;stroke:#ff2d55;animation:likePop .35s cubic-bezier(.34,1.56,.64,1)}
+        @keyframes likePop{0%{transform:scale(1)}40%{transform:scale(1.35)}100%{transform:scale(1)}}
+        .act-btn.saved{color:#fff}
+        .act-btn.saved svg{fill:#fff;stroke:#fff;animation:likePop .35s cubic-bezier(.34,1.56,.64,1)}
+
+        .empty{text-align:center;color:#8e8e93;padding:60px 20px;font-size:15px;line-height:1.6}
+
+        /* POST TUGMASI VA COMPOSER */
+        .post-btn{position:fixed;right:20px;bottom:calc(96px + env(safe-area-inset-bottom));z-index:40;display:inline-flex;align-items:center;gap:10px;padding:14px 26px;background:linear-gradient(135deg,#fff 0%,#e5e5e5 100%);color:#000;border:none;border-radius:100px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;user-select:none;box-shadow:0 8px 24px rgba(255,255,255,.15),0 2px 8px rgba(0,0,0,.4);transition:transform .2s}
+        .post-btn:active{transform:scale(.94)}
+        .post-btn svg{width:18px;height:18px;stroke:#000;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+
+        .composer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:600;opacity:0;pointer-events:none;transition:opacity .25s}
+        .composer-overlay.show{opacity:1;pointer-events:auto}
+        .composer{position:fixed;left:50%;bottom:0;transform:translate(-50%,100%);width:100%;max-width:420px;background:#141415;border-radius:32px 32px 0 0;border:1px solid #2c2c2e;border-bottom:none;z-index:601;padding:24px 20px calc(24px + env(safe-area-inset-bottom));transition:transform .35s cubic-bezier(.34,1.2,.64,1);box-shadow:0 -10px 60px rgba(0,0,0,.9)}
+        .composer.show{transform:translate(-50%,0)}
+        .composer-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+        .composer-title{font-size:17px;font-weight:700}
+        .composer-close{background:#2c2c2e;border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#8e8e93}
+        .composer-close svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5}
+        .composer-body{display:flex;gap:12px;margin-bottom:16px}
+        .composer-avatar,.composer-avatar-initial{width:40px;height:40px;border-radius:50%;flex-shrink:0}
+        .composer-avatar{object-fit:cover;background:#1c1c1e}
+        .composer-avatar-initial{background:linear-gradient(135deg,#3a3a3c 0%,#1c1c1e 100%);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff}
+        .composer-input{flex:1;background:transparent;border:none;outline:none;color:#fff;font-size:16px;font-family:inherit;resize:none;min-height:44px;max-height:160px;line-height:1.4;padding-top:10px}
+        .composer-preview{position:relative;width:100%;border-radius:16px;overflow:hidden;margin-bottom:16px;display:none;border:1px solid #2c2c2e}
+        .composer-preview.show{display:block}
+        .composer-preview img,.composer-preview video{width:100%;max-height:240px;object-fit:cover;display:block}
+        .composer-preview .remove-img{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.7);border:none;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer}
+        .composer-preview .remove-img svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.5}
+        .composer-actions{display:flex;justify-content:space-between;align-items:center;gap:10px}
+        .composer-attach-group{display:flex;gap:8px}
+        .composer-attach{background:#2c2c2e;border:none;border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff}
+        .composer-attach svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2}
+        .composer-submit{background:linear-gradient(135deg,#fff 0%,#e5e5e5 100%);color:#000;border:none;border-radius:100px;padding:12px 28px;font-size:15px;font-weight:700;cursor:pointer}
+        .composer-submit:disabled{opacity:.4;cursor:not-allowed}
+
+        /* ACTION SHEET */
+        .sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);z-index:700;opacity:0;pointer-events:none;transition:opacity .2s}
+        .sheet-overlay.show{opacity:1;pointer-events:auto}
+        .action-sheet{position:fixed;left:50%;bottom:0;transform:translate(-50%,100%);width:100%;max-width:420px;background:#1c1c1e;border-radius:26px 26px 0 0;border:1px solid #2c2c2e;border-bottom:none;z-index:701;padding:16px 16px calc(24px + env(safe-area-inset-bottom));transition:transform .3s cubic-bezier(.34,1.2,.64,1);display:flex;flex-direction:column;gap:8px}
+        .action-sheet.show{transform:translate(-50%,0)}
+        .sheet-handle{width:36px;height:4px;background:#3a3a3c;border-radius:2px;margin:0 auto 8px}
+        .sheet-btn{width:100%;padding:15px 16px;background:#2c2c2e;border:none;border-radius:16px;color:#fff;font-size:15px;font-weight:600;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;transition:background .15s}
+        .sheet-btn:active{background:#3a3a3c}
+        .sheet-btn.danger{color:#ff453a}
+        .sheet-btn.cancel{justify-content:center;background:#141415;color:#8e8e93;margin-top:4px}
+        .sheet-btn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2}
+
+        /* SKELETON LOADER */
+        .feed-loader{display:none;flex-direction:column;width:100%}
+        .feed-loader.active{display:flex}
+        .sk-card{display:flex;gap:12px;padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.05)}
+        .sk-shimmer{background:#161618;background-image:linear-gradient(110deg,#161618 0%,#161618 35%,#26262b 50%,#161618 65%,#161618 100%);background-size:250% 100%;animation:skWave 1.35s linear infinite}
+        @keyframes skWave{0%{background-position:100% 0}100%{background-position:-100% 0}}
+        .sk-avatar{width:42px;height:42px;border-radius:50%;flex-shrink:0}
+        .sk-main{flex:1;display:flex;flex-direction:column;gap:10px}
+        .sk-head{display:flex;gap:8px}
+        .sk-name{width:112px;height:13px;border-radius:7px}
+        .sk-time{width:52px;height:11px;border-radius:6px}
+        .sk-line{height:12px;border-radius:6px}
+        .sk-line.w-95{width:95%}
+        .sk-line.w-80{width:80%}
+        .sk-line.w-55{width:55%}
+        .sk-media{width:100%;height:160px;border-radius:16px}
+        .sk-status-pill{margin:16px auto 22px;display:inline-flex;align-items:center;gap:8px;padding:7px 15px;border-radius:20px;background:rgba(28,28,30,0.8);border:1px solid rgba(255,255,255,0.08);color:#8e8e93;font-size:12px}
+        .sk-spinner{width:14px;height:14px;border:2px solid rgba(255,255,255,0.16);border-top-color:#fff;border-radius:50%;animation:spinLoader .7s linear infinite}
+        @keyframes spinLoader{to{transform:rotate(360deg)}}
+
+        /* ISLAND NAVIGATSIYA */
+        .bottom-nav{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:380px;background:rgba(28,28,30,0.85);backdrop-filter:blur(25px);-webkit-backdrop-filter:blur(25px);border:1px solid rgba(255,255,255,0.1);border-radius:40px;z-index:50;box-shadow:0 10px 40px rgba(0,0,0,0.6);padding:6px 12px}
+        .bottom-nav-inner{display:flex;justify-content:space-between;align-items:center;width:100%}
+        .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;text-decoration:none;color:#8e8e93;position:relative}
+        .nav-btn svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2}
+        .nav-active{color:#fff}
+        .nav-label{font-size:10px;font-weight:600}
+        .nav-avatar,.nav-avatar-initial{width:26px;height:26px;border-radius:50%;object-fit:cover}
+        .nav-avatar-initial{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:#2c2c2e;color:#fff}
+        .nav-badge{position:absolute;top:2px;right:25%;background:#ff2d55;color:#fff;font-size:10px;font-weight:700;border-radius:10px;padding:2px 5px;min-width:16px;text-align:center;border:2px solid #1c1c1e}
+
+        /* DETAIL & ADMIN OVERLAYS */
+        .detail-overlay, .comment-detail-overlay, .admin-overlay{position:fixed;inset:0;background:#000;z-index:500;display:none;flex-direction:column;animation:detailIn .28s cubic-bezier(.34,1.2,.64,1) both}
+        .detail-overlay.show, .comment-detail-overlay.show, .admin-overlay.show{display:flex}
+        .comment-detail-overlay{z-index:520}
+        .admin-overlay{z-index:550}
+        @keyframes detailIn{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
+
+        .detail-header, .comment-detail-header, .admin-header{
+            display:flex;align-items:center;justify-content:center;padding:90px 16px 14px;
+            border-bottom:0.5px solid rgba(255,255,255,0.12);background:rgba(18,18,20,0.65);
+            backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+            max-width:420px;width:100%;position:absolute;top:0;left:50%;transform:translateX(-50%);z-index:20;
+        }
+        .detail-title, .comment-detail-title, .admin-title{font-size:17px;font-weight:700;text-align:center}
+
+        .detail-scroll, .comment-detail-scroll, .admin-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-top:138px;padding-bottom:30px;max-width:420px;width:100%;margin:0 auto}
+        .detail-post{padding:16px 20px;border-bottom:8px solid #0d0d0f}
+        .detail-text{font-size:16px;line-height:1.5;color:#f2f2f7;white-space:pre-wrap;word-break:break-word;margin-bottom:16px}
+
+        .detail-comments-title{padding:18px 20px 12px;font-size:14px;font-weight:700;color:#fff}
+        .detail-comments-list, .comment-detail-replies{padding:0 20px;display:flex;flex-direction:column;gap:12px}
+
+        /* IZOHLAR & JAVOBLAR */
+        .comment-thread{display:flex;flex-direction:column;position:relative}
+        .comment-row{display:flex;gap:10px;cursor:pointer;padding:6px 0;align-items:stretch}
+        .comment-avatar-col{display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:38px}
+        .comment-avatar,.comment-avatar-initial{width:38px;height:38px;border-radius:50%;flex-shrink:0;cursor:pointer;object-fit:cover;background:#1c1c1e}
+        .comment-avatar-initial{display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff}
+        .thread-line-down{width:2px;background:#2c2c2e;flex:1;margin-top:4px;min-height:16px}
+        .comment-content{flex:1;min-width:0;padding-bottom:6px}
+        .comment-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:2px}
+        .comment-user{font-size:14px;font-weight:600;display:inline-flex;align-items:center}
+        .comment-time{font-size:12px;color:#8e8e93}
+        .comment-text{font-size:14px;line-height:1.45;color:#e5e5ea;word-break:break-word;white-space:pre-wrap;margin-bottom:6px}
+        .comment-actions{display:flex;gap:4px;align-items:center}
+        .comment-act{background:none;border:none;color:#8e8e93;font-size:12px;font-weight:500;cursor:pointer;padding:6px 10px;display:inline-flex;align-items:center;gap:5px;border-radius:10px}
+        .comment-act:active{background:rgba(255,255,255,0.08)}
+        .comment-act svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2}
+        .comment-act.liked{color:#ff2d55}
+        .comment-act.liked svg{fill:#ff2d55;stroke:#ff2d55}
+        .comment-replies{padding-left:16px;border-left:1.5px solid #2c2c2e;margin-left:18px;display:flex;flex-direction:column;gap:8px}
+
+        .reply-mode-bar{display:flex;align-items:center;gap:8px;padding:10px 16px;background:#1c1c1e;border-top:1px solid #2c2c2e;font-size:13px;color:#fff;font-weight:600;max-width:420px;width:100%;margin:0 auto}
+        .reply-mode-bar span{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .reply-mode-bar button{background:rgba(255,255,255,.12);border:none;color:#fff;font-size:12px;font-weight:600;cursor:pointer;padding:6px 12px;border-radius:14px}
+
+        .detail-input-bar{padding:10px 16px calc(12px + env(safe-area-inset-bottom));background:#000;max-width:420px;width:100%;margin:0 auto}
+        .detail-island{display:flex;gap:10px;align-items:flex-end;background:#1c1c1e;border-radius:26px;padding:6px 6px 6px 16px;border:1px solid #2c2c2e}
+        .detail-island.reply-mode{border-color:#fff}
+        .detail-input{flex:1;background:transparent;border:none;color:#fff;font-size:15px;font-family:inherit;resize:none;outline:none;max-height:90px;line-height:1.4;padding:8px 0}
+        .detail-send{background:#fff;color:#000;border:none;border-radius:50%;width:36px;height:36px;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer}
+        .detail-send:disabled{opacity:.35;cursor:not-allowed}
+        .detail-send svg{width:17px;height:17px;stroke:#000;fill:none;stroke-width:2.5}
+
+        .comment-detail-main{padding:16px 20px;border-bottom:1px solid #1c1c1e}
+
+        /* BOSH ADMINISTRATOR PANELI STILLARI */
+        .admin-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px 20px}
+        .admin-stat-card{background:#141415;border:1px solid #2c2c2e;border-radius:18px;padding:16px}
+        .admin-stat-val{font-size:24px;font-weight:800;color:#fff;margin-bottom:4px}
+        .admin-stat-lbl{font-size:12px;color:#8e8e93}
+        .admin-section-title{padding:12px 20px 8px;font-size:14px;font-weight:700;color:#8e8e93;text-transform:uppercase;letter-spacing:0.5px}
+        .admin-user-card{margin:0 20px 10px;background:#141415;border:1px solid #2c2c2e;border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:10px}
+        .admin-user-top{display:flex;align-items:center;gap:10px}
+        .admin-user-meta{font-size:12px;color:#a1a1aa;line-height:1.65;background:#1c1c1e;padding:10px 12px;border-radius:12px}
+        .admin-time-pills{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.08)}
+        .admin-time-pill{background:#141415;padding:6px 8px;border-radius:8px;text-align:center}
+        .admin-time-pill span{display:block;font-size:10px;color:#8e8e93}
+        .admin-time-pill b{font-size:12px;color:#fff}
+        .admin-user-actions{display:flex;gap:8px}
+        .admin-btn{flex:1;padding:10px 10px;border-radius:12px;border:none;font-size:12px;font-weight:600;cursor:pointer;text-align:center}
+        .admin-btn.verify{background:#fff;color:#000}
+        .admin-btn.unverify{background:#2c2c2e;color:#fff}
+        .admin-btn.del{background:rgba(255,69,58,0.16);color:#ff453a}
+        .admin-load-more{margin:8px 20px 24px;width:calc(100% - 40px);padding:13px;background:#1c1c1e;color:#fff;border:1px solid #2c2c2e;border-radius:14px;font-size:13px;font-weight:600;cursor:pointer}
+
+        .toast{position:fixed;left:50%;bottom:120px;transform:translateX(-50%) translateY(20px);background:rgba(28,28,30,0.95);backdrop-filter:blur(10px);color:#fff;padding:12px 22px;border-radius:16px;font-size:14px;font-weight:500;z-index:1000;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;border:1px solid rgba(255,255,255,0.12);max-width:85%;text-align:center}
+        .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    </style>
 </head>
-<body class="bg-black text-white antialiased selection:bg-white selection:text-black">
+<body>
 
-  <!-- Dynamic Toast -->
-  <div id="toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-[100] pointer-events-none opacity-0 -translate-y-3 transition-all duration-200">
-    <div id="toast-text" class="px-4 py-2 rounded-full bg-zinc-900/95 border border-white/15 text-xs font-medium text-white shadow-2xl backdrop-blur-xl"></div>
-  </div>
-
-  <!-- Sticky Frosted Header -->
-  <header class="sticky top-0 z-40 frosted-header border-b border-white/[0.08]">
-    <div class="max-w-xl mx-auto px-4 pt-3 pb-2 flex items-center justify-between">
-      <a href="profil.html" class="w-8 h-8 rounded-full overflow-hidden bg-zinc-900 border border-white/10 flex items-center justify-center shrink-0">
-        <img id="header-avatar" src="" alt="Profil" class="w-full h-full object-cover hidden" />
-        <span id="header-avatar-fallback" class="text-xs font-semibold text-zinc-400">L</span>
-      </a>
-
-      <button id="scroll-top-btn" type="button" class="text-lg font-bold tracking-tight text-white active:opacity-70 transition">
-        L.uz
-      </button>
-
-      <button id="refresh-btn" type="button" aria-label="Yangilash" class="w-8 h-8 rounded-full flex items-center justify-center text-zinc-400 hover:text-white active:scale-90 transition">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-        </svg>
-      </button>
-    </div>
-
-    <!-- Feed Tabs -->
-    <div class="max-w-xl mx-auto grid grid-cols-2 text-sm font-medium">
-      <button id="tab-all" type="button" class="py-2.5 text-center text-white relative transition">
-        Barchasi
-        <span id="tab-all-indicator" class="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-[2px] bg-white rounded-full"></span>
-      </button>
-      <button id="tab-following" type="button" class="py-2.5 text-center text-zinc-500 relative transition">
-        Obunalar
-        <span id="tab-following-indicator" class="hidden absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-[2px] bg-white rounded-full"></span>
-      </button>
-    </div>
-  </header>
-
-  <!-- Main Feed -->
-  <main class="max-w-xl mx-auto">
-    <div id="feed-container" class="divide-y divide-white/[0.08]">
-      <!-- Initial Skeletons -->
-      <div class="p-4 flex gap-3">
-        <div class="w-10 h-10 rounded-full skeleton shrink-0"></div>
-        <div class="flex-1 space-y-2.5">
-          <div class="h-3.5 w-32 rounded skeleton"></div>
-          <div class="h-3.5 w-full rounded skeleton"></div>
-          <div class="h-3.5 w-3/4 rounded skeleton"></div>
-        </div>
-      </div>
-      <div class="p-4 flex gap-3">
-        <div class="w-10 h-10 rounded-full skeleton shrink-0"></div>
-        <div class="flex-1 space-y-2.5">
-          <div class="h-3.5 w-28 rounded skeleton"></div>
-          <div class="h-3.5 w-5/6 rounded skeleton"></div>
-          <div class="h-40 w-full rounded-2xl skeleton"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Pagination Sentinel & Controls -->
-    <div id="pagination-area" class="py-8 px-4 flex flex-col items-center justify-center text-center">
-      <div id="page-spinner" class="hidden w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
-      <button id="load-more-btn" type="button" class="hidden px-4 py-2 rounded-full bg-zinc-900 border border-white/10 text-xs font-medium text-zinc-300 active:scale-95 transition">
-        Yana yuklash
-      </button>
-      <p id="end-of-feed" class="hidden text-xs text-zinc-600">Barcha postlar ko‘rsatildi</p>
-    </div>
-  </main>
-
-  <!-- Floating Island Bottom Navigation (No Xabar button) -->
-  <nav aria-label="Asosiy navigatsiya" class="fixed left-1/2 -translate-x-1/2 z-40 island-nav border border-white/[0.12] rounded-full px-3 py-2 shadow-[0_8px_32px_rgba(0,0,0,0.85)] flex items-center gap-2">
-    <a href="index.html" aria-label="Lenta" class="w-11 h-11 rounded-full flex items-center justify-center text-white bg-white/10 transition">
-      <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M11.47 3.84a.75.75 0 011.06 0l8.69 8.69a.75.75 0 101.06-1.06l-8.689-8.69a2.25 2.25 0 00-3.182 0l-8.69 8.69a.75.75 0 001.061 1.06l8.69-8.69z" />
-        <path d="M12 5.432l8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 01-.75-.75v-4.5a.75.75 0 00-.75-.75h-3a.75.75 0 00-.75.75V21a.75.75 0 01-.75.75H5.625a1.875 1.875 0 01-1.875-1.875v-6.198a2.29 2.29 0 00.091-.086L12 5.43z" />
-      </svg>
-    </a>
-
-    <a href="search.html" aria-label="Qidiruv" class="w-11 h-11 rounded-full flex items-center justify-center text-zinc-400 hover:text-white active:scale-90 transition">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
-      </svg>
-    </a>
-
-    <button id="open-create-btn" type="button" aria-label="Yangi post" class="w-11 h-11 rounded-full bg-white text-black flex items-center justify-center shadow-md active:scale-90 transition">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-      </svg>
-    </button>
-
-    <a href="notification.html" aria-label="Bildirishnomalar" class="relative w-11 h-11 rounded-full flex items-center justify-center text-zinc-400 hover:text-white active:scale-90 transition">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
-      </svg>
-      <span id="notif-badge" class="hidden absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-white ring-2 ring-zinc-900"></span>
-    </a>
-
-    <a href="profil.html" aria-label="Profil" class="w-11 h-11 rounded-full flex items-center justify-center text-zinc-400 hover:text-white active:scale-90 transition">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-      </svg>
-    </a>
-  </nav>
-
-  <!-- Create Post Modal -->
-  <div id="create-modal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex flex-col justify-end sm:justify-center">
-    <div class="bg-zinc-950 border-t sm:border border-white/15 w-full max-w-xl mx-auto rounded-t-3xl sm:rounded-3xl p-4 pb-8 shadow-2xl">
-      <div class="flex items-center justify-between pb-3 border-b border-white/[0.08]">
-        <button id="close-create-btn" type="button" class="text-sm text-zinc-400 hover:text-white px-2 py-1">
-          Bekor qilish
+<div class="mobile-container">
+    <header class="modern-header">
+        <h1 class="brand-title">Lenta</h1>
+        <button class="admin-trigger-btn" id="openAdminBtn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Admin
         </button>
-        <span class="text-sm font-semibold">Yangi post</span>
-        <button id="submit-post-btn" type="button" disabled class="px-4 py-1.5 rounded-full bg-white text-black text-xs font-semibold disabled:opacity-35 active:scale-95 transition">
-          Joylashtirish
+    </header>
+
+    <div class="feed" id="feed"></div>
+    <div class="feed-loader" id="feedLoader" aria-hidden="true"></div>
+</div>
+
+<!-- POST YOZISH TUGMASI -->
+<button class="post-btn" id="postBtn" aria-label="Post yozish">
+    <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Post
+</button>
+
+<!-- POST COMPOSER -->
+<div class="composer-overlay" id="composerOverlay"></div>
+<div class="composer" id="composer">
+    <div class="composer-header">
+        <span class="composer-title" id="composerTitle">Yangi post</span>
+        <button class="composer-close" id="composerClose" aria-label="Yopish">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
-      </div>
-
-      <div class="pt-4 flex gap-3">
-        <div class="w-9 h-9 rounded-full bg-zinc-900 border border-white/10 overflow-hidden shrink-0 flex items-center justify-center">
-          <img id="composer-avatar" src="" alt="" class="w-full h-full object-cover hidden" />
-          <span id="composer-avatar-fallback" class="text-xs font-semibold text-zinc-400">L</span>
-        </div>
-        <div class="flex-1">
-          <textarea id="post-text-input" rows="4" maxlength="1000" placeholder="Nimalar haqida o‘ylayapsiz?" class="w-full bg-transparent text-[15px] text-white placeholder-zinc-600 resize-none focus:outline-none leading-relaxed"></textarea>
-
-          <!-- Media Preview -->
-          <div id="media-preview-box" class="hidden relative mt-2 rounded-2xl overflow-hidden border border-white/10 bg-zinc-900">
-            <img id="media-preview-img" src="" alt="Tanlangan rasm" class="w-full max-h-64 object-cover" />
-            <button id="remove-media-btn" type="button" aria-label="Rasmni olib tashlash" class="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/75 text-white flex items-center justify-center border border-white/15">
-              ✕
+    </div>
+    <div class="composer-body">
+        <div id="composerAvatarSlot"></div>
+        <textarea class="composer-input" id="composerInput" placeholder="Nima haqida o'ylayapsiz?" rows="2"></textarea>
+    </div>
+    <div class="composer-preview" id="composerPreview">
+        <img id="previewImg" src="" alt="Preview" style="display:none">
+        <video id="previewVid" src="" controls playsinline style="display:none"></video>
+        <button class="remove-img" id="removeImg" aria-label="O'chirish">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+    </div>
+    <div class="composer-actions">
+        <div class="composer-attach-group" id="composerAttachGroup">
+            <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
+            <input type="file" id="videoInput" accept="video/mp4,video/webm" hidden>
+            <button class="composer-attach" id="attachBtn" aria-label="Rasm yuklash">
+                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
             </button>
-          </div>
-
-          <!-- Optional Image URL Input -->
-          <div id="url-input-box" class="hidden mt-2">
-            <input id="post-url-input" type="url" placeholder="https://... rasm havolasini kiriting" class="w-full bg-zinc-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-white/30" />
-          </div>
-
-          <div class="mt-3 pt-3 border-t border-white/[0.06] flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <label class="cursor-pointer px-3 py-1.5 rounded-full bg-zinc-900 border border-white/10 text-xs text-zinc-300 flex items-center gap-1.5 active:scale-95 transition">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-                </svg>
-                <span>Rasm</span>
-                <input id="post-file-input" type="file" accept="image/*" class="hidden" />
-              </label>
-
-              <button id="toggle-url-btn" type="button" class="px-3 py-1.5 rounded-full bg-zinc-900 border border-white/10 text-xs text-zinc-400 active:scale-95 transition">
-                URL
-              </button>
-            </div>
-
-            <span id="char-counter" class="text-[11px] text-zinc-500">0 / 1000</span>
-          </div>
+            <button class="composer-attach" id="attachVideoBtn" aria-label="Video yuklash">
+                <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+            </button>
         </div>
-      </div>
+        <button class="composer-submit" id="composerSubmit" disabled>Yuborish</button>
     </div>
-  </div>
+</div>
 
-  <!-- Comments Bottom Sheet -->
-  <div id="comments-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex flex-col justify-end">
-    <div id="comments-backdrop" class="flex-1"></div>
-    <div class="bg-zinc-950 border-t border-white/15 w-full max-w-xl mx-auto rounded-t-3xl h-[78vh] flex flex-col shadow-2xl">
-      <div class="px-4 py-3 border-b border-white/[0.08] flex items-center justify-between shrink-0">
-        <span class="w-8"></span>
-        <span class="text-sm font-semibold">Kommentariyalar</span>
-        <button id="close-comments-btn" type="button" class="w-8 h-8 rounded-full bg-zinc-900 text-zinc-400 flex items-center justify-center text-xs">
-          ✕
-        </button>
-      </div>
+<!-- ACTION SHEET -->
+<div class="sheet-overlay" id="sheetOverlay"></div>
+<div class="action-sheet" id="actionSheet">
+    <div class="sheet-handle"></div>
+    <div id="actionSheetButtons"></div>
+    <button class="sheet-btn cancel" id="sheetCancelBtn">Bekor qilish</button>
+</div>
 
-      <div id="comments-list" class="flex-1 overflow-y-auto divide-y divide-white/[0.06] px-4"></div>
-
-      <form id="comment-form" class="p-3 border-t border-white/[0.08] bg-black flex items-center gap-2 shrink-0 pb-[calc(12px+env(safe-area-inset-bottom))]">
-        <input id="comment-input" type="text" maxlength="1000" placeholder="Kommentariya yozing..." class="flex-1 bg-zinc-900 border border-white/10 rounded-full px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-white/30" />
-        <button id="send-comment-btn" type="submit" class="px-4 py-2.5 rounded-full bg-white text-black text-xs font-semibold active:scale-95 transition">
-          Yuborish
-        </button>
-      </form>
+<!-- OROLCHA NAVIGATSIYA -->
+<nav class="bottom-nav">
+    <div class="bottom-nav-inner">
+        <a href="index.html" class="nav-btn nav-active"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span class="nav-label">Uy</span></a>
+        <a href="notification.html" class="nav-btn nav-inactive" id="navNotifBtn"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg><span class="nav-label">Bildirishnoma</span></a>
+        <a href="qidiruv.html" class="nav-btn nav-inactive"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span class="nav-label">Qidiruv</span></a>
+        <a href="profil.html" class="nav-btn nav-inactive" id="navProfileLink"><span id="navAvatarSlot"></span><span class="nav-label">Profil</span></a>
     </div>
-  </div>
+</nav>
 
-  <script type="module">
-    import {
-      db,
-      tg,
-      ensureAuth,
-      getCurrentTgUser,
-      toggleLike,
-      toggleSave,
-      recordUniqueView,
-      escapeHTML,
-      formatTimeAgo
-    } from "./firebase-core.js";
-
-    import {
-      collection,
-      doc,
-      getDoc,
-      getDocs,
-      addDoc,
-      updateDoc,
-      deleteDoc,
-      query,
-      where,
-      orderBy,
-      limit,
-      startAfter,
-      serverTimestamp,
-      increment
-    } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
-
-    // --- STATE ---
-    const PAGE_SIZE = 15;
-    let currentUser = null;
-    let currentUserProfile = null;
-    let activeTab = "all"; // "all" | "following"
-    let lastVisibleDoc = null;
-    let isFetching = false;
-    let hasMorePosts = true;
-    const renderedPostIds = new Set();
-
-    let selectedMediaDataUrl = "";
-    let activeCommentPost = null;
-
-    // --- DOM ELEMENTS ---
-    const feedContainer = document.getElementById("feed-container");
-    const pageSpinner = document.getElementById("page-spinner");
-    const loadMoreBtn = document.getElementById("load-more-btn");
-    const endOfFeed = document.getElementById("end-of-feed");
-    const paginationArea = document.getElementById("pagination-area");
-
-    const createModal = document.getElementById("create-modal");
-    const postTextInput = document.getElementById("post-text-input");
-    const postFileInput = document.getElementById("post-file-input");
-    const postUrlInput = document.getElementById("post-url-input");
-    const urlInputBox = document.getElementById("url-input-box");
-    const mediaPreviewBox = document.getElementById("media-preview-box");
-    const mediaPreviewImg = document.getElementById("media-preview-img");
-    const submitPostBtn = document.getElementById("submit-post-btn");
-    const charCounter = document.getElementById("char-counter");
-
-    const commentsModal = document.getElementById("comments-modal");
-    const commentsList = document.getElementById("comments-list");
-    const commentForm = document.getElementById("comment-form");
-    const commentInput = document.getElementById("comment-input");
-
-    // --- HELPERS ---
-    function showToast(msg) {
-      const toast = document.getElementById("toast");
-      const text = document.getElementById("toast-text");
-      text.textContent = msg;
-      toast.classList.remove("opacity-0", "-translate-y-3");
-      toast.classList.add("opacity-100", "translate-y-0");
-      clearTimeout(window.__toastTimer);
-      window.__toastTimer = setTimeout(() => {
-        toast.classList.remove("opacity-100", "translate-y-0");
-        toast.classList.add("opacity-0", "-translate-y-3");
-      }, 2400);
-    }
-
-    function safeUrl(url) {
-      if (!url || typeof url !== "string") return "";
-      const trimmed = url.trim();
-      if (
-        trimmed.startsWith("https://") ||
-        trimmed.startsWith("http://") ||
-        trimmed.startsWith("data:image/")
-      ) {
-        return trimmed;
-      }
-      return "";
-    }
-
-    function updateBackButton() {
-      if (!tg?.BackButton) return;
-      const modalOpen =
-        !createModal.classList.contains("hidden") ||
-        !commentsModal.classList.contains("hidden");
-      if (modalOpen) {
-        tg.BackButton.show();
-      } else {
-        tg.BackButton.hide();
-      }
-    }
-
-    if (tg?.BackButton) {
-      tg.BackButton.onClick(() => {
-        if (!commentsModal.classList.contains("hidden")) {
-          closeCommentsModal();
-        } else if (!createModal.classList.contains("hidden")) {
-          closeCreateModal();
-        }
-      });
-    }
-
-    // --- UNIQUE VIEW OBSERVER ---
-    const viewedInSession = new Set();
-    const viewObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const postId = entry.target.dataset.postId;
-            viewObserver.unobserve(entry.target);
-            if (postId && !viewedInSession.has(postId)) {
-              viewedInSession.add(postId);
-              recordUniqueView(postId).catch(() => {});
-            }
-          }
-        });
-      },
-      { threshold: 0.55 }
-    );
-
-    // --- PAGINATION OBSERVER ---
-    const pageObserver = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMorePosts && !isFetching) {
-          loadNextPage();
-        }
-      },
-      { rootMargin: "250px" }
-    );
-
-    
-    // --- RENDER POST CARD ---
-    function createPostElement(post, isLiked, isSaved) {
-      const article = document.createElement("article");
-      article.className = "p-4 hover:bg-white/[0.015] transition";
-      article.dataset.postId = post.id;
-
-      const authorName = escapeHTML(post.authorName || "Foydalanuvchi");
-      const authorUsername = post.authorUsername ? `@${escapeHTML(post.authorUsername)}` : "";
-      const timeStr = formatTimeAgo(post.createdAt);
-      const avatarSrc = safeUrl(post.authorPhoto);
-      const mediaSrc = safeUrl(post.mediaUrl);
-      const initial = authorName.charAt(0).toUpperCase() || "U";
-
-      const canDelete =
-        currentUser &&
-        (String(post.authorId) === currentUser.tgId || currentUserProfile?.isAdmin === true);
-
-      const verifiedBadge = post.authorVerified
-        ? `<svg class="w-3.5 h-3.5 text-white inline-block ml-1 shrink-0" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M8.603 3.799A4.49 4.49 0 0112 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 013.498 1.307 4.491 4.491 0 011.307 3.497A4.49 4.49 0 0121.75 12a4.49 4.49 0 01-1.549 3.397 4.491 4.491 0 01-1.307 3.497 4.491 4.491 0 01-3.497 1.307A4.49 4.49 0 0112 21.75a4.49 4.49 0 01-3.397-1.549 4.49 4.49 0 01-3.498-1.306 4.491 4.491 0 01-1.307-3.498A4.49 4.49 0 012.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 011.307-3.497 4.49 4.49 0 013.497-1.307zm7.007 6.387a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" />
-          </svg>`
-        : "";
-
-      article.innerHTML = `
-        <div class="flex gap-3">
-          <a href="profil.html?id=${encodeURIComponent(post.authorId)}" class="w-10 h-10 rounded-full bg-zinc-900 border border-white/10 overflow-hidden shrink-0 flex items-center justify-center">
-            ${
-              avatarSrc
-                ? `<img src="${avatarSrc}" alt="${authorName}" loading="lazy" class="w-full h-full object-cover" />`
-                : `<span class="text-sm font-semibold text-zinc-400">${initial}</span>`
-            }
-          </a>
-
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center justify-between gap-2">
-              <div class="flex items-center gap-1.5 min-w-0">
-                <a href="profil.html?id=${encodeURIComponent(post.authorId)}" class="text-[14px] font-semibold text-white truncate flex items-center">
-                  ${authorName}${verifiedBadge}
-                </a>
-                ${authorUsername ? `<span class="text-xs text-zinc-500 truncate">${authorUsername}</span>` : ""}
-                <span class="text-xs text-zinc-600">·</span>
-                <span class="text-xs text-zinc-500 shrink-0">${timeStr}</span>
-              </div>
-
-              ${
-                canDelete
-                  ? `<button type="button" data-action="delete" class="text-zinc-600 hover:text-red-400 p-1 rounded-lg transition" aria-label="O'chirish">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                      </svg>
-                    </button>`
-                  : ""
-              }
-            </div>
-
-            ${
-              post.text
-                ? `<p class="mt-1.5 text-[15px] text-zinc-100 leading-relaxed whitespace-pre-wrap break-words">${escapeHTML(post.text)}</p>`
-                : ""
-            }
-
-            ${
-              mediaSrc
-                ? `<div class="mt-3 rounded-2xl overflow-hidden border border-white/10 bg-zinc-950">
-                    <img src="${mediaSrc}" alt="Post rasmi" loading="lazy" class="w-full max-h-[420px] object-cover" />
-                  </div>`
-                : ""
-            }
-
-            <!-- Action Bar -->
-            <div class="mt-3 flex items-center justify-between max-w-sm text-zinc-500">
-              <!-- Comment -->
-              <button type="button" data-action="comment" class="flex items-center gap-1.5 text-xs hover:text-white active:scale-95 transition py-1">
-                <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785A5.969 5.969 0 006 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337z" />
-                </svg>
-                <span data-role="comment-count">${Number(post.commentsCount || 0)}</span>
-              </button>
-
-              <!-- Like -->
-              <button type="button" data-action="like" data-liked="${isLiked ? "1" : "0"}" class="flex items-center gap-1.5 text-xs ${isLiked ? "text-rose-500" : "hover:text-rose-400"} active:scale-95 transition py-1">
-                <svg class="w-[18px] h-[18px]" fill="${isLiked ? "currentColor" : "none"}" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
-                </svg>
-                <span data-role="like-count">${Number(post.likesCount || 0)}</span>
-              </button>
-
-              <!-- Views -->
-              <div class="flex items-center gap-1.5 text-xs text-zinc-600 py-1">
-                <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
-                </svg>
-                <span>${Number(post.viewsCount || 0)}</span>
-              </div>
-
-              <!-- Save -->
-              <button type="button" data-action="save" data-saved="${isSaved ? "1" : "0"}" class="flex items-center gap-1 text-xs ${isSaved ? "text-white" : "hover:text-white"} active:scale-95 transition py-1" aria-label="Saqlash">
-                <svg class="w-[18px] h-[18px]" fill="${isSaved ? "currentColor" : "none"}" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
-                </svg>
-              </button>
-            </div>
-          </div>
+<!-- POST DETAIL VIEW -->
+<div class="detail-overlay" id="detailOverlay">
+    <div class="detail-header">
+        <span class="detail-title">Post</span>
+    </div>
+    <div class="detail-scroll" id="detailScroll">
+        <div id="detailPostBox"></div>
+        <div class="detail-comments-title" id="detailCommTitle">Izohlar</div>
+        <div class="detail-comments-list" id="detailCommentsList"></div>
+    </div>
+    <div class="reply-mode-bar" id="replyModeBar" style="display:none">
+        <span id="replyModeText"></span>
+        <button id="replyModeCancel">Bekor qilish</button>
+    </div>
+    <div class="detail-input-bar">
+        <div class="detail-island" id="detailIsland">
+            <textarea class="detail-input" id="detailInput" placeholder="Izoh yozish..." rows="1"></textarea>
+            <button class="detail-send" id="detailSend" disabled>
+                <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
         </div>
-      `;
+    </div>
+</div>
 
-      // Bind incremental interactions directly on the card
-      const likeBtn = article.querySelector('[data-action="like"]');
-      likeBtn.addEventListener("click", async () => {
-        if (!currentUser) return showToast("Avtorizatsiya kutilmoqda...");
-        const wasLiked = likeBtn.dataset.liked === "1";
-        const countEl = likeBtn.querySelector('[data-role="like-count"]');
-        const svg = likeBtn.querySelector("svg");
-        const currentCount = Number(countEl.textContent) || 0;
+<!-- COMMENT DETAIL VIEW -->
+<div class="comment-detail-overlay" id="commentDetailOverlay">
+    <div class="comment-detail-header">
+        <span class="comment-detail-title">Izoh</span>
+    </div>
+    <div class="comment-detail-scroll" id="commentDetailScroll">
+        <div class="comment-detail-main" id="commentDetailMain"></div>
+        <div class="detail-comments-title">Javoblar</div>
+        <div class="comment-detail-replies" id="commentDetailReplies"></div>
+    </div>
+    <div class="reply-mode-bar" id="cdReplyModeBar" style="display:none">
+        <span id="cdReplyModeText"></span>
+        <button id="cdReplyModeCancel">Bekor qilish</button>
+    </div>
+    <div class="detail-input-bar">
+        <div class="detail-island" id="commentDetailIsland">
+            <textarea class="detail-input" id="commentDetailInput" placeholder="Javob yozish..." rows="1"></textarea>
+            <button class="detail-send" id="commentDetailSend" disabled>
+                <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+        </div>
+    </div>
+</div>
 
-        // Optimistic UI update
-        const nextLiked = !wasLiked;
-        likeBtn.dataset.liked = nextLiked ? "1" : "0";
-        likeBtn.classList.toggle("text-rose-500", nextLiked);
-        likeBtn.classList.toggle("hover:text-rose-400", !nextLiked);
-        svg.setAttribute("fill", nextLiked ? "currentColor" : "none");
-        countEl.textContent = String(Math.max(0, currentCount + (nextLiked ? 1 : -1)));
+<!-- BOSH ADMINISTRATOR PANELI -->
+<div class="admin-overlay" id="adminOverlay">
+    <div class="admin-header">
+        <span class="admin-title">Bosh Administrator</span>
+    </div>
+    <div class="admin-scroll" id="adminScroll">
+        <div class="admin-stats-grid" id="adminStatsGrid"></div>
+        <div class="admin-section-title">Foydalanuvchilar va Kanallar</div>
+        <div id="adminUsersList"></div>
+        <button class="admin-load-more" id="adminLoadMoreBtn" style="display:none">Yana yuklash</button>
+    </div>
+</div>
 
-        try {
-          await toggleLike(post.id, post.authorId, post.text || "Rasm");
-        } catch (err) {
-          // Rollback on failure
-          likeBtn.dataset.liked = wasLiked ? "1" : "0";
-          likeBtn.classList.toggle("text-rose-500", wasLiked);
-          svg.setAttribute("fill", wasLiked ? "currentColor" : "none");
-          countEl.textContent = String(currentCount);
-          showToast("Layk bosishda xatolik");
-        }
-      });
+<div class="toast" id="toast"></div>
 
-      const saveBtn = article.querySelector('[data-action="save"]');
-      saveBtn.addEventListener("click", async () => {
-        if (!currentUser) return showToast("Avtorizatsiya kutilmoqda...");
-        const wasSaved = saveBtn.dataset.saved === "1";
-        const svg = saveBtn.querySelector("svg");
-        const nextSaved = !wasSaved;
+<script type="module">
+/* ================= FIREBASE SDK IMPORT & INIT ================= */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { 
+    getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc,
+    query, orderBy, limit, startAfter, where, increment, arrayUnion, arrayRemove,
+    getCountFromServer, onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-        saveBtn.dataset.saved = nextSaved ? "1" : "0";
-        saveBtn.classList.toggle("text-white", nextSaved);
-        svg.setAttribute("fill", nextSaved ? "currentColor" : "none");
+const firebaseConfig = {
+    apiKey: "AIzaSyD0gBUJNcrgvvntcrfKK7Ky8t6_9Qb96Io",
+    authDomain: "bilimilova-64833.firebaseapp.com",
+    databaseURL: "https://bilimilova-64833-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "bilimilova-64833",
+    storageBucket: "bilimilova-64833.firebasestorage.app",
+    messagingSenderId: "890689414502",
+    appId: "1:890689414502:web:8141d7aab413495c0c14a7",
+    measurementId: "G-ZBC8X1VVMZ"
+};
 
-        try {
-          await toggleSave(post.id);
-          showToast(nextSaved ? "Saqlandi" : "Saqlanganlardan olindi");
-        } catch {
-          saveBtn.dataset.saved = wasSaved ? "1" : "0";
-          saveBtn.classList.toggle("text-white", wasSaved);
-          svg.setAttribute("fill", wasSaved ? "currentColor" : "none");
-          showToast("Saqlashda xatolik");
-        }
-      });
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const POSTS_COLLECTION = "luz_posts";
+const USERS_COLLECTION = "luz_users";
+const NOTIFS_COLLECTION = "luz_notifications";
 
-      const commentBtn = article.querySelector('[data-action="comment"]');
-      commentBtn.addEventListener("click", () => {
-        openCommentsModal(post, article.querySelector('[data-role="comment-count"]'));
-      });
+/* ================= BOSH ADMINISTRATOR SOZLAMASI ================= */
+const SUPER_ADMIN_IDS = ["8728722472"];
 
-      const deleteBtn = article.querySelector('[data-action="delete"]');
-      if (deleteBtn) {
-        deleteBtn.addEventListener("click", async () => {
-          if (!confirm("Ushbu postni o‘chirmoqchimisiz?")) return;
-          try {
-            await deleteDoc(doc(db, "posts", post.id));
-            if (String(post.authorId) === currentUser?.tgId) {
-              await updateDoc(doc(db, "users", currentUser.tgId), {
-                postsCount: increment(-1)
-              }).catch(() => {});
-            }
-            article.remove();
-            renderedPostIds.delete(post.id);
-            showToast("Post o‘chirildi");
-          } catch {
-            showToast("O‘chirishga ruxsat yo‘q");
-          }
-        });
-      }
+/* ================= TELEGRAM FULLSCREEN ================= */
+const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
+if (tg) {
+    try {
+        tg.ready();
+        tg.expand();
+        if (tg.requestFullscreen) tg.requestFullscreen();
+        if (tg.setHeaderColor) tg.setHeaderColor('#000000');
+        if (tg.setBackgroundColor) tg.setBackgroundColor('#000000');
+    } catch {}
+}
 
-      viewObserver.observe(article);
-      return article;
-    }
+/* ================= KONSTANTALAR ================= */
+const MAX_VIDEO_SIZE = 700 * 1024;
+const FEED_BATCH_SIZE = 15;
+const ADMIN_BATCH_SIZE = 15;
 
-    // --- FETCH PAGINATED FEED ---
-    async function loadNextPage(reset = false) {
-      if (isFetching) return;
-      if (!reset && !hasMorePosts) return;
+const VERIFIED_BADGE_SM_SVG = `<svg class="verified-badge-sm" viewBox="0 0 24 24" aria-label="Tasdiqlangan"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" fill="#ffffff" stroke="none"></path><path d="m9 12 2 2 4-4" fill="none" stroke="#000000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>`;
 
-      isFetching = true;
-      pageSpinner.classList.remove("hidden");
-      loadMoreBtn.classList.add("hidden");
-      endOfFeed.classList.add("hidden");
+/* ================= USER CACHE (ON-DEMAND / LAZY FETCH) ================= */
+const UserCache = {
+    _map: new Map(),
+    _pending: new Map(),
 
-      if (reset) {
-        lastVisibleDoc = null;
-        hasMorePosts = true;
-        renderedPostIds.clear();
-        feedContainer.innerHTML = "";
-      }
+    get(uid) {
+        return this._map.get(String(uid)) || null;
+    },
 
-      try {
-        let q;
-        if (activeTab === "following") {
-          if (!currentUser) {
-            renderEmptyState("Obunalarni ko‘rish uchun Telegram orqali kiring.");
-            hasMorePosts = false;
-            return;
-          }
-          const followsSnap = await getDocs(
-            query(collection(db, "follows"), where("followerId", "==", currentUser.tgId))
-          );
-          const followingIds = followsSnap.docs.map((d) => String(d.data().followingId));
+    set(uid, data) {
+        if (!uid || !data) return;
+        this._map.set(String(uid), data);
+    },
 
-          if (followingIds.length === 0) {
-            renderEmptyState("Hali hech kimga obuna bo‘lmagansiz.");
-            hasMorePosts = false;
-            return;
-          }
+    async fetchOne(uid) {
+        const idStr = String(uid || '');
+        if (!idStr || idStr.startsWith('mehmon_')) return null;
+        if (this._map.has(idStr)) return this._map.get(idStr);
+        if (this._pending.has(idStr)) return this._pending.get(idStr);
 
-          const targetIds = followingIds.slice(0, 30);
-          q = lastVisibleDoc
-            ? query(
-                collection(db, "posts"),
-                where("authorId", "in", targetIds),
-                orderBy("createdAt", "desc"),
-                startAfter(lastVisibleDoc),
-                limit(PAGE_SIZE)
-              )
-            : query(
-                collection(db, "posts"),
-                where("authorId", "in", targetIds),
-                orderBy("createdAt", "desc"),
-                limit(PAGE_SIZE)
-              );
-        } else {
-          q = lastVisibleDoc
-            ? query(
-                collection(db, "posts"),
-                orderBy("createdAt", "desc"),
-                startAfter(lastVisibleDoc),
-                limit(PAGE_SIZE)
-              )
-            : query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(PAGE_SIZE));
-        }
-
-        const snap = await getDocs(q);
-
-        if (snap.empty) {
-          hasMorePosts = false;
-          if (renderedPostIds.size === 0) {
-            renderEmptyState("Hozircha postlar yo‘q. Birinchi bo‘lib yozing!");
-          } else {
-            endOfFeed.classList.remove("hidden");
-          }
-          return;
-        }
-
-        lastVisibleDoc = snap.docs[snap.docs.length - 1];
-        if (snap.docs.length < PAGE_SIZE) {
-          hasMorePosts = false;
-        }
-
-        const posts = snap.docs
-          .map((d) => ({ id: d.id, ...d.data() }))
-          .filter((p) => !renderedPostIds.has(p.id));
-
-        // Batch check liked & saved status for this page
-        const statusMap = new Map();
-        if (currentUser && posts.length > 0) {
-          await Promise.all(
-            posts.map(async (p) => {
-              const [likeSnap, saveSnap] = await Promise.all([
-                getDoc(doc(db, "likes", `${p.id}_${currentUser.tgId}`)).catch(() => null),
-                getDoc(doc(db, "saves", `${p.id}_${currentUser.tgId}`)).catch(() => null)
-              ]);
-              statusMap.set(p.id, {
-                liked: Boolean(likeSnap?.exists()),
-                saved: Boolean(saveSnap?.exists())
-              });
+        const promise = getDoc(doc(db, USERS_COLLECTION, idStr))
+            .then(snap => {
+                this._pending.delete(idStr);
+                if (snap.exists()) {
+                    const d = snap.data();
+                    this._map.set(idStr, d);
+                    return d;
+                }
+                return null;
             })
-          );
-        }
+            .catch(() => {
+                this._pending.delete(idStr);
+                return null;
+            });
 
-        const fragment = document.createDocumentFragment();
-        posts.forEach((post) => {
-          renderedPostIds.add(post.id);
-          const st = statusMap.get(post.id) || { liked: false, saved: false };
-          fragment.appendChild(createPostElement(post, st.liked, st.saved));
-        });
+        this._pending.set(idStr, promise);
+        return promise;
+    },
 
-        feedContainer.appendChild(fragment);
-
-        if (hasMorePosts) {
-          loadMoreBtn.classList.remove("hidden");
-        } else {
-          endOfFeed.classList.remove("hidden");
-        }
-      } catch (err) {
-        console.error("Lentani yuklashda xato:", err);
-        if (renderedPostIds.size === 0) {
-          renderEmptyState("Ma’lumotlarni yuklashda xatolik yuz berdi. Qayta urinib ko‘ring.");
-        } else {
-          loadMoreBtn.classList.remove("hidden");
-        }
-      } finally {
-        isFetching = false;
-        pageSpinner.classList.add("hidden");
-      }
+    async prefetchForPosts(posts) {
+        const uniqueUids = [...new Set(posts.map(p => String(p.userId)).filter(id => id && !this._map.has(id)))];
+        if (uniqueUids.length === 0) return;
+        await Promise.all(uniqueUids.map(id => this.fetchOne(id)));
     }
+};
 
-    function renderEmptyState(message) {
-      feedContainer.innerHTML = `
-        <div class="py-20 px-6 text-center">
-          <p class="text-sm text-zinc-500">${escapeHTML(message)}</p>
-        </div>
-      `;
-    }
 
-    // --- TAB SWITCHING ---
-    const tabAll = document.getElementById("tab-all");
-    const tabFollowing = document.getElementById("tab-following");
-    const tabAllInd = document.getElementById("tab-all-indicator");
-    const tabFollowingInd = document.getElementById("tab-following-indicator");
+/* ================= SESSION & SERVER-SIDE USER INIT ================= */
+let currentUser = null;
+let savedPostIds = new Set();
+let viewedPostIds = new Set();
 
-    function switchTab(tab) {
-      if (activeTab === tab) return;
-      activeTab = tab;
+function isSuperAdmin() {
+    if (!currentUser) return false;
+    return SUPER_ADMIN_IDS.includes(String(currentUser.userId)) || currentUser.role === 'admin';
+}
 
-      if (tab === "all") {
-        tabAll.classList.replace("text-zinc-500", "text-white");
-        tabFollowing.classList.replace("text-white", "text-zinc-500");
-        tabAllInd.classList.remove("hidden");
-        tabFollowingInd.classList.add("hidden");
-      } else {
-        tabFollowing.classList.replace("text-zinc-500", "text-white");
-        tabAll.classList.replace("text-white", "text-zinc-500");
-        tabFollowingInd.classList.remove("hidden");
-        tabAllInd.classList.add("hidden");
-      }
+function requireTelegramAuth() {
+    if (currentUser && currentUser.userId) return true;
+    showToast("Bu amal uchun Telegram orqali kiring: @Lenta_aapbot");
+    return false;
+}
 
-      loadNextPage(true);
-    }
-
-    tabAll.addEventListener("click", () => switchTab("all"));
-    tabFollowing.addEventListener("click", () => switchTab("following"));
-
-    
-    // --- CREATE POST MODAL ---
-    function openCreateModal() {
-      if (!currentUser) {
-        showToast("Post yozish uchun Telegram orqali kiring");
+async function initSessionFromServer() {
+    if (!(tg && tg.initDataUnsafe && tg.initDataUnsafe.user)) {
+        currentUser = null;
+        renderUserAvatars();
         return;
-      }
-      createModal.classList.remove("hidden");
-      updateBackButton();
-      setTimeout(() => postTextInput.focus(), 60);
     }
 
-    function closeCreateModal() {
-      createModal.classList.add("hidden");
-      updateBackButton();
+    const tU = tg.initDataUnsafe.user;
+    const realId = String(tU.id);
+    const nowIso = new Date().toISOString();
+    const userRef = doc(db, USERS_COLLECTION, realId);
+
+    try {
+        const snap = await getDoc(userRef);
+        const existing = snap.exists() ? snap.data() : null;
+
+        currentUser = {
+            ...(existing || {}),
+            userId: realId,
+            firstName: (existing?.isEdited && existing?.firstName) ? existing.firstName : (tU.first_name || ''),
+            lastName: (existing?.isEdited && existing?.lastName !== undefined) ? existing.lastName : (tU.last_name || ''),
+            username: (existing?.isEdited && existing?.username) ? existing.username : (tU.username || ''),
+            photo_url: (existing?.isEdited && existing?.photo_url) ? existing.photo_url : (tU.photo_url || existing?.photo_url || null),
+            createdAt: existing?.createdAt || nowIso,
+            lastActiveAt: nowIso,
+            verified: Boolean(existing?.verified || existing?.isVerified),
+            savedPosts: Array.isArray(existing?.savedPosts) ? existing.savedPosts : [],
+            viewedPosts: Array.isArray(existing?.viewedPosts) ? existing.viewedPosts : []
+        };
+
+        savedPostIds = new Set(currentUser.savedPosts.map(String));
+        viewedPostIds = new Set(currentUser.viewedPosts.map(String));
+        UserCache.set(realId, currentUser);
+
+        const payload = {
+            userId: realId,
+            firstName: currentUser.firstName,
+            lastName: currentUser.lastName,
+            username: currentUser.username,
+            photo_url: currentUser.photo_url,
+            lastActiveAt: nowIso
+        };
+        if (!existing?.createdAt) payload.createdAt = nowIso;
+
+        await setDoc(userRef, payload, { merge: true });
+    } catch (err) {
+        console.error("Foydalanuvchi sessiyasi xatosi:", err);
+        currentUser = {
+            userId: realId,
+            firstName: tU.first_name || '',
+            lastName: tU.last_name || '',
+            username: tU.username || '',
+            photo_url: tU.photo_url || null,
+            createdAt: nowIso
+        };
     }
 
-    function updateSubmitState() {
-      const len = postTextInput.value.length;
-      charCounter.textContent = `${len} / 1000`;
-      const hasContent =
-        postTextInput.value.trim().length > 0 ||
-        Boolean(selectedMediaDataUrl) ||
-        Boolean(safeUrl(postUrlInput.value));
-      submitPostBtn.disabled = !hasContent;
+    if (isSuperAdmin()) {
+        document.getElementById('openAdminBtn').style.display = 'inline-flex';
     }
 
-    document.getElementById("open-create-btn").addEventListener("click", openCreateModal);
-    document.getElementById("close-create-btn").addEventListener("click", closeCreateModal);
+    renderUserAvatars();
+    startActiveTimeTracker();
+    listenUnreadNotifications();
+}
 
-    postTextInput.addEventListener("input", updateSubmitState);
-    postUrlInput.addEventListener("input", () => {
-      const valid = safeUrl(postUrlInput.value);
-      if (valid) {
-        selectedMediaDataUrl = "";
-        mediaPreviewImg.src = valid;
-        mediaPreviewBox.classList.remove("hidden");
-      } else if (!selectedMediaDataUrl) {
-        mediaPreviewBox.classList.add("hidden");
-      }
-      updateSubmitState();
+/* ================= ACTIVE SCREEN TIME TRACKER (KUNLIK / HAFTALIK / OYLIK) ================= */
+function getPeriodKeys(date = new Date()) {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+
+    // ISO hafta raqamini hisoblash
+    const tmp = new Date(Date.UTC(yyyy, date.getMonth(), date.getDate()));
+    const dayNum = tmp.getUTCDay() || 7;
+    tmp.setUTCDate(tmp.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(tmp.getUTCFullYear(), 0, 1));
+    const weekNo = Math.ceil((((tmp - yearStart) / 86400000) + 1) / 7);
+    const ww = String(weekNo).padStart(2, '0');
+
+    return {
+        dailyKey: `daily_${yyyy}-${mm}-${dd}`,
+        weeklyKey: `weekly_${tmp.getUTCFullYear()}-W${ww}`,
+        monthlyKey: `monthly_${yyyy}-${mm}`
+    };
+}
+
+let activeSessionStart = null;
+let accumulatedSeconds = 0;
+let flushTimer = null;
+
+function isAppForeground() {
+    return document.visibilityState === 'visible' && document.hasFocus();
+}
+
+function resumeTimeCounting() {
+    if (!currentUser || activeSessionStart !== null) return;
+    if (isAppForeground()) {
+        activeSessionStart = Date.now();
+    }
+}
+
+function pauseAndCollectSeconds() {
+    if (activeSessionStart !== null) {
+        const elapsed = Math.floor((Date.now() - activeSessionStart) / 1000);
+        if (elapsed > 0) {
+            accumulatedSeconds += elapsed;
+        }
+        activeSessionStart = null;
+    }
+}
+
+async function flushUsageTimeToServer() {
+    pauseAndCollectSeconds();
+    if (!currentUser || accumulatedSeconds <= 0) {
+        resumeTimeCounting();
+        return;
+    }
+
+    const secondsToSend = accumulatedSeconds;
+    accumulatedSeconds = 0;
+    const { dailyKey, weeklyKey, monthlyKey } = getPeriodKeys();
+
+    try {
+        await setDoc(doc(db, USERS_COLLECTION, String(currentUser.userId)), {
+            [`usageStats.${dailyKey}`]: increment(secondsToSend),
+            [`usageStats.${weeklyKey}`]: increment(secondsToSend),
+            [`usageStats.${monthlyKey}`]: increment(secondsToSend),
+            totalActiveSeconds: increment(secondsToSend),
+            lastActiveAt: new Date().toISOString()
+        }, { merge: true });
+    } catch (e) {
+        // Internet uzilsa yig'ilgan vaqt yo'qolmaydi, keyingi safar qo'shiladi
+        accumulatedSeconds += secondsToSend;
+    }
+
+    resumeTimeCounting();
+}
+
+function startActiveTimeTracker() {
+    if (!currentUser) return;
+    resumeTimeCounting();
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            resumeTimeCounting();
+        } else {
+            flushUsageTimeToServer();
+        }
     });
 
-    document.getElementById("toggle-url-btn").addEventListener("click", () => {
-      urlInputBox.classList.toggle("hidden");
-    });
+    window.addEventListener('focus', resumeTimeCounting);
+    window.addEventListener('blur', flushUsageTimeToServer);
+    window.addEventListener('pagehide', flushUsageTimeToServer);
 
-    document.getElementById("remove-media-btn").addEventListener("click", () => {
-      selectedMediaDataUrl = "";
-      postUrlInput.value = "";
-      postFileInput.value = "";
-      mediaPreviewImg.src = "";
-      mediaPreviewBox.classList.add("hidden");
-      updateSubmitState();
-    });
+    // Har 25 soniyada faol vaqtni serverga saqlab borish (sahifa almashganda ham davom etadi)
+    clearInterval(flushTimer);
+    flushTimer = setInterval(() => {
+        if (isAppForeground()) {
+            flushUsageTimeToServer();
+        }
+    }, 25000);
+}
 
-    // Compress image on canvas so it stays lightweight (<220KB)
-    postFileInput.addEventListener("change", (e) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
+function formatDurationSeconds(sec) {
+    const s = Math.max(0, Number(sec) || 0);
+    if (s < 60) return `${s} son`;
+    const mins = Math.floor(s / 60);
+    if (mins < 60) return `${mins} daq`;
+    const hours = Math.floor(mins / 60);
+    const remMins = mins % 60;
+    return remMins > 0 ? `${hours} s ${remMins} daq` : `${hours} soat`;
+}
 
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        const img = new Image();
+/* ================= PROFIL & VERIFIED HELPERS ================= */
+function resolveAuthorInfo(uid, fallbackName, fallbackAvatar) {
+    const idStr = String(uid || '');
+    const userObj = UserCache.get(idStr) || ((currentUser && idStr === String(currentUser.userId)) ? currentUser : null);
+
+    if (userObj) {
+        const fullName = [userObj.firstName, userObj.lastName].filter(Boolean).join(' ').trim();
+        return {
+            userId: String(userObj.userId),
+            name: fullName || fallbackName || 'Foydalanuvchi',
+            avatar: userObj.photo_url || fallbackAvatar || null
+        };
+    }
+    return {
+        userId: idStr,
+        name: fallbackName || 'Foydalanuvchi',
+        avatar: fallbackAvatar || null
+    };
+}
+
+function isUserVerified(uid, postObj = null) {
+    const u = UserCache.get(String(uid));
+    if (u) return Boolean(u.verified || u.isVerified);
+    return Boolean(postObj && postObj.verified);
+}
+
+function getInlineVerifiedBadge(uid, postObj = null) {
+    return isUserVerified(uid, postObj) ? VERIFIED_BADGE_SM_SVG : '';
+}
+
+/* ================= HELPERS ================= */
+function escapeHtml(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+function formatExactTime(dateInput){
+    const d = dateInput instanceof Date ? dateInput : new Date(dateInput); if (isNaN(d.getTime())) return '';
+    const diffSec = Math.floor((new Date() - d) / 1000);
+    if (diffSec < 5) return 'hozir'; if (diffSec < 60) return diffSec + ' soniya oldin';
+    const diffMin = Math.floor(diffSec / 60); if (diffMin < 60) return diffMin + ' daqiqa oldin';
+    const diffHour = Math.floor(diffMin / 60); if (diffHour < 24) return diffHour + ' soat oldin';
+    const diffDay = Math.floor(diffHour / 24); if (diffDay < 7) return diffDay + ' kun oldin';
+    const dd = String(d.getDate()).padStart(2,'0'), mm = String(d.getMonth()+1).padStart(2,'0'); return `${dd}.${mm}.${d.getFullYear()}`;
+}
+function formatDateFull(dateInput) {
+    if (!dateInput) return 'Belgilanmagan';
+    const d = new Date(dateInput);
+    if (isNaN(d.getTime())) return 'Belgilanmagan';
+    return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
+}
+function goToProfile(uid){
+    if (!uid) return;
+    flushUsageTimeToServer();
+    if (currentUser && String(uid) === String(currentUser.userId)) {
+        window.location.href = 'profil.html';
+    } else {
+        window.location.href = `profil.html?id=${encodeURIComponent(uid)}`;
+    }
+}
+let toastTimer;
+function showToast(msg){
+    const t = document.getElementById('toast'); if (!t) return;
+    t.textContent = msg; t.classList.add('show');
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+}
+function compressImage(file, maxW = 800, quality = 0.72){
+    return new Promise((resolve, reject) => {
+        const img = new Image(); const url = URL.createObjectURL(file);
         img.onload = () => {
-          const MAX_W = 1080;
-          let w = img.width;
-          let h = img.height;
-          if (w > MAX_W) {
-            h = Math.round((h * MAX_W) / w);
-            w = MAX_W;
-          }
-          const canvas = document.createElement("canvas");
-          canvas.width = w;
-          canvas.height = h;
-          const ctx = canvas.getContext("2d");
-          ctx.drawImage(img, 0, 0, w, h);
-          selectedMediaDataUrl = canvas.toDataURL("image/jpeg", 0.75);
-          postUrlInput.value = "";
-          urlInputBox.classList.add("hidden");
-          mediaPreviewImg.src = selectedMediaDataUrl;
-          mediaPreviewBox.classList.remove("hidden");
-          updateSubmitState();
+            URL.revokeObjectURL(url); let { width, height } = img;
+            if (width > maxW) { height = Math.round(height * maxW / width); width = maxW; }
+            const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
+            canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+            try { resolve(canvas.toDataURL('image/jpeg', quality)); } catch (e) { reject(e); }
         };
-        img.src = ev.target.result;
-      };
-      reader.readAsDataURL(file);
+        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Rasm formati qo'llab-quvvatlanmaydi (HEIC/buzilgan fayl)")); };
+        img.src = url;
     });
+}
 
-    submitPostBtn.addEventListener("click", async () => {
-      if (!currentUser || submitPostBtn.disabled) return;
+/* ================= LAYK ================= */
+function isLiked(o){
+    if (!o || !currentUser) return false;
+    if (Array.isArray(o.likedBy)) return o.likedBy.includes(String(currentUser.userId));
+    return false;
+}
+function toggleLikeObj(o){
+    if (!currentUser) return false;
+    const uid = String(currentUser.userId);
+    if (!Array.isArray(o.likedBy)) o.likedBy = [];
+    const i = o.likedBy.indexOf(uid);
+    if (i >= 0) o.likedBy.splice(i, 1); else o.likedBy.push(uid);
+    const now = o.likedBy.includes(uid);
+    o.likes = o.likedBy.length;
+    return now;
+}
 
-      const text = postTextInput.value.trim();
-      const mediaUrl = selectedMediaDataUrl || safeUrl(postUrlInput.value);
-      if (!text && !mediaUrl) return;
+/* ================= LAZY LOADING FIRESTORE POST STORE ================= */
+const PostStore = {
+    _items: [],
+    _lastDoc: null,
+    _hasMore: true,
+    _isLoading: false,
+    _isLoaded: false,
+    _hasError: false,
 
-      submitPostBtn.disabled = true;
-      submitPostBtn.textContent = "Yuklanmoqda...";
+    all() { return this._items; },
+    get(id) { return this._items.find(p => String(p.id) === String(id)) || null; },
 
-      try {
-        const authorName =
-          [currentUserProfile?.firstName || currentUser.firstName, currentUserProfile?.lastName || currentUser.lastName]
-            .filter(Boolean)
-            .join(" ") || "Foydalanuvchi";
-
-        const newPostData = {
-          authorId: currentUser.tgId,
-          authorName,
-          authorUsername: currentUserProfile?.username || currentUser.username || "",
-          authorPhoto: currentUserProfile?.photoUrl || currentUser.photoUrl || "",
-          authorVerified: Boolean(currentUserProfile?.isVerified),
-          text,
-          mediaUrl: mediaUrl || "",
-          mediaType: mediaUrl ? "image" : "",
-          likesCount: 0,
-          commentsCount: 0,
-          viewsCount: 0,
-          savesCount: 0,
-          createdAt: serverTimestamp()
-        };
-
-        const docRef = await addDoc(collection(db, "posts"), newPostData);
-
-        await updateDoc(doc(db, "users", currentUser.tgId), {
-          postsCount: increment(1)
-        }).catch(() => {});
-
-        // Reset composer
-        postTextInput.value = "";
-        postUrlInput.value = "";
-        postFileInput.value = "";
-        selectedMediaDataUrl = "";
-        mediaPreviewBox.classList.add("hidden");
-        urlInputBox.classList.add("hidden");
-        updateSubmitState();
-        closeCreateModal();
-
-        // Incremental prepend to DOM without reloading feed
-        if (renderedPostIds.size === 0) {
-          feedContainer.innerHTML = "";
-        }
-        renderedPostIds.add(docRef.id);
-        const card = createPostElement(
-          { id: docRef.id, ...newPostData, createdAt: new Date() },
-          false,
-          false
-        );
-        feedContainer.prepend(card);
-        showToast("Post joylandi");
-      } catch (err) {
-        console.error("Post joylashda xato:", err);
-        showToast("Post joylashda xatolik yuz berdi");
-      } finally {
-        submitPostBtn.textContent = "Joylashtirish";
-        updateSubmitState();
-      }
-    });
-
-    // --- COMMENTS SUBCOLLECTION SHEET ---
-    async function openCommentsModal(post, counterEl) {
-      activeCommentPost = { post, counterEl };
-      commentsModal.classList.remove("hidden");
-      updateBackButton();
-      commentsList.innerHTML = `<div class="py-12 text-center text-xs text-zinc-500">Yuklanmoqda...</div>`;
-
-      try {
-        const q = query(
-          collection(db, "posts", post.id, "comments"),
-          orderBy("createdAt", "asc"),
-          limit(60)
-        );
-        const snap = await getDocs(q);
-
-        if (snap.empty) {
-          commentsList.innerHTML = `<div class="py-14 text-center text-xs text-zinc-500">Hali kommentariyalar yo‘q. Birinchi bo‘ling!</div>`;
-          return;
-        }
-
-        commentsList.innerHTML = "";
-        snap.docs.forEach((d) => {
-          commentsList.appendChild(renderCommentItem(post, d.id, d.data()));
-        });
-      } catch (err) {
-        console.error("Kommentariyalar xatosi:", err);
-        commentsList.innerHTML = `<div class="py-12 text-center text-xs text-red-400">Kommentariyalarni yuklab bo‘lmadi</div>`;
-      }
-    }
-
-    function renderCommentItem(post, commentId, c) {
-      const row = document.createElement("div");
-      row.className = "py-3 flex gap-2.5";
-
-      const name = escapeHTML(c.authorName || "Foydalanuvchi");
-      const avatar = safeUrl(c.authorPhoto);
-      const canDelete =
-        currentUser &&
-        (String(c.authorId) === currentUser.tgId ||
-          String(post.authorId) === currentUser.tgId ||
-          currentUserProfile?.isAdmin === true);
-
-      row.innerHTML = `
-        <a href="profil.html?id=${encodeURIComponent(c.authorId)}" class="w-8 h-8 rounded-full bg-zinc-900 border border-white/10 overflow-hidden shrink-0 flex items-center justify-center">
-          ${
-            avatar
-              ? `<img src="${avatar}" alt="${name}" class="w-full h-full object-cover" />`
-              : `<span class="text-xs font-semibold text-zinc-400">${name.charAt(0).toUpperCase()}</span>`
-          }
-        </a>
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center justify-between gap-2">
-            <div class="flex items-center gap-1.5 min-w-0">
-              <span class="text-xs font-semibold text-white truncate">${name}</span>
-              <span class="text-[11px] text-zinc-500">${formatTimeAgo(c.createdAt)}</span>
-            </div>
-            ${
-              canDelete
-                ? `<button type="button" data-del-comment class="text-[11px] text-zinc-600 hover:text-red-400">O‘chirish</button>`
-                : ""
+    async fetchById(id) {
+        const cached = this.get(id);
+        if (cached) return cached;
+        try {
+            const snap = await getDoc(doc(db, POSTS_COLLECTION, String(id)));
+            if (snap.exists()) {
+                const post = { id: snap.id, ...snap.data() };
+                await UserCache.fetchOne(post.userId);
+                return post;
             }
-          </div>
-          <p class="mt-1 text-[13px] text-zinc-200 break-words leading-snug">${escapeHTML(c.text)}</p>
-        </div>
-      `;
+        } catch {}
+        return null;
+    },
 
-      const delBtn = row.querySelector("[data-del-comment]");
-      if (delBtn) {
-        delBtn.addEventListener("click", async () => {
-          try {
-            await deleteDoc(doc(db, "posts", post.id, "comments", commentId));
-            await updateDoc(doc(db, "posts", post.id), {
-              commentsCount: increment(-1)
+    async loadInitial() {
+        if (this._isLoading) return;
+        this._isLoading = true;
+        this._hasError = false;
+
+        try {
+            const q = query(
+                collection(db, POSTS_COLLECTION),
+                orderBy("createdAt", "desc"),
+                limit(FEED_BATCH_SIZE)
+            );
+            const snap = await getDocs(q);
+            const batch = [];
+            snap.forEach(d => batch.push({ id: d.id, ...d.data() }));
+
+            this._items = batch;
+            this._lastDoc = snap.docs[snap.docs.length - 1] || null;
+            this._hasMore = snap.docs.length === FEED_BATCH_SIZE;
+            this._isLoaded = true;
+
+            await UserCache.prefetchForPosts(batch);
+            renderInitialFeed();
+        } catch (err) {
+            console.error("Postlarni yuklashda xato:", err);
+            this._isLoaded = true;
+            this._hasError = true;
+            renderInitialFeed();
+        } finally {
+            this._isLoading = false;
+        }
+    },
+
+    async loadNextPage() {
+        if (this._isLoading || !this._hasMore || !this._lastDoc) return [];
+        this._isLoading = true;
+
+        try {
+            const q = query(
+                collection(db, POSTS_COLLECTION),
+                orderBy("createdAt", "desc"),
+                startAfter(this._lastDoc),
+                limit(FEED_BATCH_SIZE)
+            );
+            const snap = await getDocs(q);
+            const batch = [];
+            snap.forEach(d => batch.push({ id: d.id, ...d.data() }));
+
+            this._items.push(...batch);
+            this._lastDoc = snap.docs[snap.docs.length - 1] || this._lastDoc;
+            this._hasMore = snap.docs.length === FEED_BATCH_SIZE;
+
+            await UserCache.prefetchForPosts(batch);
+            return batch;
+        } catch (err) {
+            console.error("Keyingi sahifani yuklashda xato:", err);
+            return [];
+        } finally {
+            this._isLoading = false;
+        }
+    },
+
+    async add(post) {
+        try {
+            const approxSize = JSON.stringify(post).length;
+            if (approxSize > 950000) {
+                showToast("Fayl hajmi juda katta! Kichikroq rasm tanlang.");
+                return null;
+            }
+            await setDoc(doc(db, POSTS_COLLECTION, String(post.id)), post);
+            updateDoc(doc(db, USERS_COLLECTION, String(post.userId)), { postsCount: increment(1) }).catch(() => {});
+            this._items.unshift(post);
+            return post;
+        } catch (err) {
+            console.error("Post saqlashda xatolik:", err);
+            showToast("Postni saqlab bo'lmadi: internetni tekshiring");
+            return null;
+        }
+    },
+
+    async update(id, patch) {
+        const i = this._items.findIndex(p => String(p.id) === String(id));
+        if (i >= 0) {
+            this._items[i] = Object.assign({}, this._items[i], patch);
+        }
+        try {
+            await updateDoc(doc(db, POSTS_COLLECTION, String(id)), patch);
+            return this._items[i] || null;
+        } catch (err) {
+            console.error("Yangilashda xatolik:", err);
+            showToast("Saqlanmadi: internet aloqasini tekshiring");
+            return null;
+        }
+    },
+
+    async remove(id) {
+        const target = this.get(id);
+        try {
+            await deleteDoc(doc(db, POSTS_COLLECTION, String(id)));
+            if (target?.userId) {
+                updateDoc(doc(db, USERS_COLLECTION, String(target.userId)), { postsCount: increment(-1) }).catch(() => {});
+            }
+            this._items = this._items.filter(p => String(p.id) !== String(id));
+            return true;
+        } catch (err) {
+            console.error("O'chirishda xatolik:", err);
+            showToast("Postni o'chirib bo'lmadi");
+            return false;
+        }
+    }
+};
+
+
+/* ================= NOTIFICATION (100% SERVER) ================= */
+async function sendNotification(type, recipientId, postId, commentId = null) {
+    if (!currentUser || !currentUser.userId || !recipientId) return;
+    if (String(recipientId) === String(currentUser.userId)) return;
+
+    const notifId = 'n_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+    const newNotif = {
+        id: notifId,
+        type: type,
+        recipientId: String(recipientId),
+        senderId: String(currentUser.userId),
+        senderName: getCurrentUserName(),
+        senderAvatar: currentUser.photo_url || null,
+        postId: String(postId),
+        commentId: commentId ? String(commentId) : null,
+        createdAt: new Date().toISOString(),
+        isRead: false
+    };
+
+    try {
+        await setDoc(doc(db, NOTIFS_COLLECTION, notifId), newNotif);
+    } catch {}
+}
+
+function listenUnreadNotifications() {
+    if (!currentUser) return;
+    const btn = document.getElementById('navNotifBtn');
+    if (!btn) return;
+
+    const q = query(
+        collection(db, NOTIFS_COLLECTION),
+        where("recipientId", "==", String(currentUser.userId)),
+        where("isRead", "==", false),
+        limit(50)
+    );
+
+    onSnapshot(q, (snap) => {
+        const count = snap.size;
+        let badge = btn.querySelector('.nav-badge');
+        if (count > 0) {
+            if (!badge) {
+                badge = document.createElement('div');
+                badge.className = 'nav-badge';
+                btn.appendChild(badge);
+            }
+            badge.textContent = count > 49 ? '50+' : count;
+        } else if (badge) {
+            badge.remove();
+        }
+    }, () => {});
+}
+
+/* ================= VIEW TRACKER (SERVER-SIDE) ================= */
+const viewIO = new IntersectionObserver(entries => {
+    entries.forEach(en => {
+        if (!en.isIntersecting) return;
+        const el = en.target;
+        viewIO.unobserve(el);
+        const pid = String(el.dataset.id);
+        if (!pid || viewedPostIds.has(pid)) return;
+
+        viewedPostIds.add(pid);
+        const fresh = PostStore.get(pid);
+        if (fresh) {
+            fresh.views = (fresh.views || 0) + 1;
+            const cnt = el.querySelectorAll('.act-btn')[2]?.querySelector('.act-count');
+            if (cnt) cnt.textContent = fresh.views;
+        }
+
+        updateDoc(doc(db, POSTS_COLLECTION, pid), { views: increment(1) }).catch(() => {});
+        if (currentUser) {
+            updateDoc(doc(db, USERS_COLLECTION, String(currentUser.userId)), {
+                viewedPosts: arrayUnion(pid)
             }).catch(() => {});
-            row.remove();
-            if (activeCommentPost?.counterEl) {
-              const cur = Number(activeCommentPost.counterEl.textContent) || 0;
-              activeCommentPost.counterEl.textContent = String(Math.max(0, cur - 1));
+        }
+    });
+}, { threshold: 0.5 });
+
+/* ================= AVATARS ================= */
+function getCurrentUserName() {
+    if (!currentUser) return 'Foydalanuvchi';
+    return [currentUser.firstName, currentUser.lastName].filter(Boolean).join(' ').trim() || 'Foydalanuvchi';
+}
+
+function renderUserAvatars() {
+    const navAvatarSlot = document.getElementById('navAvatarSlot');
+    const composerAvatarSlot = document.getElementById('composerAvatarSlot');
+    const cuName = getCurrentUserName();
+    const cuInit = escapeHtml(cuName.charAt(0).toUpperCase() || 'L');
+
+    if (currentUser?.photo_url) {
+        const src = escapeHtml(currentUser.photo_url);
+        navAvatarSlot.innerHTML = `<img class="nav-avatar" src="${src}" alt="${cuInit}">`;
+        composerAvatarSlot.innerHTML = `<img class="composer-avatar" src="${src}" alt="${cuInit}">`;
+    } else {
+        navAvatarSlot.innerHTML = `<div class="nav-avatar-initial">${cuInit}</div>`;
+        composerAvatarSlot.innerHTML = `<div class="composer-avatar-initial">${cuInit}</div>`;
+    }
+}
+renderUserAvatars();
+
+/* ================= ICONS ================= */
+const ICONS = {
+    like: `<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`,
+    comment: `<svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>`,
+    view: `<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`,
+    bookmark: `<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`,
+    share: `<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>`,
+    more: `<svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>`,
+    edit: `<svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`,
+    trash: `<svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>`
+};
+
+/* ================= SKELETON LOADER ================= */
+function buildSkeletonCardHTML(withMedia = false){
+    return `
+        <div class="sk-card">
+            <div class="sk-avatar sk-shimmer"></div>
+            <div class="sk-main">
+                <div class="sk-head">
+                    <div class="sk-name sk-shimmer"></div>
+                    <div class="sk-time sk-shimmer"></div>
+                </div>
+                <div class="sk-line w-95 sk-shimmer"></div>
+                <div class="sk-line ${withMedia ? 'w-55' : 'w-80'} sk-shimmer"></div>
+                ${withMedia ? '<div class="sk-media sk-shimmer"></div>' : ''}
+            </div>
+        </div>
+    `;
+}
+
+function initLoaderMarkup(){
+    const loader = document.getElementById('feedLoader');
+    if (!loader) return;
+    loader.innerHTML = `
+        ${buildSkeletonCardHTML(false)}
+        ${buildSkeletonCardHTML(true)}
+        <div class="sk-status-pill">
+            <div class="sk-spinner"></div>
+            <span>Yuklanmoqda...</span>
+        </div>
+    `;
+}
+initLoaderMarkup();
+
+/* ================= ACTION SHEET ================= */
+const sheetOverlay = document.getElementById('sheetOverlay');
+const actionSheet = document.getElementById('actionSheet');
+const actionSheetButtons = document.getElementById('actionSheetButtons');
+
+function closeActionSheet() {
+    sheetOverlay.classList.remove('show');
+    actionSheet.classList.remove('show');
+    updateBackButton();
+}
+sheetOverlay.addEventListener('click', closeActionSheet);
+document.getElementById('sheetCancelBtn').addEventListener('click', closeActionSheet);
+
+function openPostMenu(post) {
+    if (!requireTelegramAuth()) return;
+    const isOwner = String(post.userId) === String(currentUser.userId);
+    const canDelete = isOwner || isSuperAdmin();
+    if (!isOwner && !canDelete) return;
+
+    actionSheetButtons.innerHTML = '';
+
+    if (isOwner) {
+        const editBtn = document.createElement('button');
+        editBtn.className = 'sheet-btn';
+        editBtn.innerHTML = `${ICONS.edit}<span>Postni tahrirlash</span>`;
+        editBtn.addEventListener('click', () => {
+            closeActionSheet();
+            openEditComposer(post);
+        });
+        actionSheetButtons.appendChild(editBtn);
+    }
+
+    if (canDelete) {
+        const delBtn = document.createElement('button');
+        delBtn.className = 'sheet-btn danger';
+        delBtn.innerHTML = `${ICONS.trash}<span>Postni o'chirish</span>`;
+        delBtn.addEventListener('click', () => {
+            closeActionSheet();
+            confirmDeletePost(post);
+        });
+        actionSheetButtons.appendChild(delBtn);
+    }
+
+    sheetOverlay.classList.add('show');
+    actionSheet.classList.add('show');
+    updateBackButton();
+}
+
+function confirmDeletePost(post) {
+    actionSheetButtons.innerHTML = '';
+    const title = document.createElement('div');
+    title.style.cssText = 'text-align:center;color:#8e8e93;font-size:13px;padding:6px 0 10px';
+    title.textContent = 'Ushbu postni butunlay o\'chirishni tasdiqlaysizmi?';
+    actionSheetButtons.appendChild(title);
+
+    const confirmBtn = document.createElement('button');
+    confirmBtn.className = 'sheet-btn danger';
+    confirmBtn.style.justifyContent = 'center';
+    confirmBtn.textContent = 'Ha, o\'chirilsin';
+    confirmBtn.addEventListener('click', async () => {
+        closeActionSheet();
+        const ok = await PostStore.remove(post.id);
+        if (ok) {
+            const card = document.querySelector(`.post-item[data-id="${CSS.escape(String(post.id))}"]`);
+            if (card) card.remove();
+            if (detailPost && String(detailPost.id) === String(post.id)) closePostDetail();
+            showToast('Post o\'chirildi');
+        }
+    });
+    actionSheetButtons.appendChild(confirmBtn);
+
+    sheetOverlay.classList.add('show');
+    actionSheet.classList.add('show');
+    updateBackButton();
+}
+
+/* ================= BACK BUTTON ================= */
+function anyOverlayOpen(){
+    return !!(actionSheet.classList.contains('show') ||
+              adminOverlay.classList.contains('show') ||
+              commentDetailOverlay.classList.contains('show') ||
+              detailOverlay.classList.contains('show') ||
+              composer.classList.contains('show'));
+}
+function updateBackButton(){
+    if (!tg?.BackButton) return;
+    try { anyOverlayOpen() ? tg.BackButton.show() : tg.BackButton.hide(); } catch {}
+}
+function handleBack(){
+    if (actionSheet.classList.contains('show')) { closeActionSheet(); return true; }
+    if (adminOverlay.classList.contains('show')) { closeAdminPanel(); return true; }
+    if (commentDetailOverlay.classList.contains('show')) { closeCommentDetail(); return true; }
+    if (detailOverlay.classList.contains('show')) { closePostDetail(); return true; }
+    if (composer.classList.contains('show')) { closeComposer(); return true; }
+    return false;
+}
+if (tg?.BackButton) { try { tg.BackButton.onClick(handleBack); tg.BackButton.hide(); } catch {} }
+
+
+/* ================= COMPOSER ================= */
+const composer = document.getElementById('composer');
+const compOverlay = document.getElementById('composerOverlay');
+const compTitle = document.getElementById('composerTitle');
+const compInput = document.getElementById('composerInput');
+const compSubmit = document.getElementById('composerSubmit');
+const fileInput = document.getElementById('fileInput');
+const videoInput = document.getElementById('videoInput');
+let currentMedia = null;
+let editingPostId = null;
+let isSubmittingPost = false;
+
+function resetComposerFields() {
+    editingPostId = null;
+    compTitle.textContent = 'Yangi post';
+    compSubmit.textContent = 'Yuborish';
+    compInput.value = '';
+    compInput.style.height = 'auto';
+    currentMedia = null;
+    fileInput.value = '';
+    videoInput.value = '';
+    document.getElementById('previewImg').src = '';
+    document.getElementById('previewVid').src = '';
+    document.getElementById('composerPreview').classList.remove('show');
+    document.getElementById('composerAttachGroup').style.display = 'flex';
+    compSubmit.disabled = true;
+}
+
+function openComposer(){
+    if (!requireTelegramAuth()) return;
+    resetComposerFields();
+    compOverlay.classList.add('show');
+    composer.classList.add('show');
+    updateBackButton();
+    setTimeout(() => compInput.focus(), 300);
+}
+
+function openEditComposer(post) {
+    if (!requireTelegramAuth()) return;
+    resetComposerFields();
+    editingPostId = post.id;
+    compTitle.textContent = 'Postni tahrirlash';
+    compSubmit.textContent = 'Saqlash';
+    compInput.value = post.text || '';
+    compInput.style.height = 'auto';
+    compInput.style.height = Math.min(compInput.scrollHeight, 160) + 'px';
+    document.getElementById('composerAttachGroup').style.display = 'none';
+    compSubmit.disabled = compInput.value.trim().length === 0 && !post.image;
+    compOverlay.classList.add('show');
+    composer.classList.add('show');
+    updateBackButton();
+    setTimeout(() => compInput.focus(), 300);
+}
+
+function closeComposer(){
+    compOverlay.classList.remove('show');
+    composer.classList.remove('show');
+    compInput.blur();
+    updateBackButton();
+}
+
+document.getElementById('postBtn').addEventListener('click', openComposer);
+document.getElementById('composerClose').addEventListener('click', closeComposer);
+compOverlay.addEventListener('click', closeComposer);
+
+document.getElementById('attachBtn').addEventListener('click', () => fileInput.click());
+document.getElementById('attachVideoBtn').addEventListener('click', () => videoInput.click());
+
+compInput.addEventListener('input', () => {
+    compInput.style.height = 'auto';
+    compInput.style.height = Math.min(compInput.scrollHeight, 160) + 'px';
+    const hasExistingMedia = editingPostId ? Boolean(PostStore.get(editingPostId)?.image) : false;
+    compSubmit.disabled = !(compInput.value.trim().length > 0 || currentMedia || hasExistingMedia);
+});
+
+fileInput.addEventListener('change', async e => {
+    const file = e.target.files[0]; if (!file) return;
+    if (file.name.toLowerCase().endsWith('.heic') || file.type === 'image/heic') {
+        showToast("HEIC formati qo'llab-quvvatlanmaydi. JPG yoki PNG tanlang.");
+        fileInput.value = '';
+        return;
+    }
+    try {
+        const data = await compressImage(file);
+        currentMedia = { data, type: 'image' };
+        document.getElementById('previewImg').src = data;
+        document.getElementById('previewImg').style.display = 'block';
+        document.getElementById('previewVid').style.display = 'none';
+        document.getElementById('composerPreview').classList.add('show');
+        compSubmit.disabled = false;
+    } catch (err) {
+        showToast(err.message || "Rasmni yuklab bo'lmadi");
+        fileInput.value = '';
+    }
+});
+
+videoInput.addEventListener('change', e => {
+    const file = e.target.files[0]; if (!file) return;
+    if (file.size > MAX_VIDEO_SIZE) { 
+        showToast("Video juda katta (Maksimum 700KB)"); 
+        videoInput.value = ''; 
+        return; 
+    }
+    const reader = new FileReader();
+    reader.onload = ev => {
+        currentMedia = { data: ev.target.result, type: 'video' };
+        document.getElementById('previewVid').src = currentMedia.data;
+        document.getElementById('previewVid').style.display = 'block';
+        document.getElementById('previewImg').style.display = 'none';
+        document.getElementById('composerPreview').classList.add('show');
+        compSubmit.disabled = false;
+    };
+    reader.onerror = () => showToast("Videoni o'qishda xatolik");
+    reader.readAsDataURL(file);
+});
+
+document.getElementById('removeImg').addEventListener('click', () => {
+    currentMedia = null;
+    fileInput.value = '';
+    videoInput.value = '';
+    document.getElementById('previewImg').src = '';
+    document.getElementById('previewVid').src = '';
+    document.getElementById('composerPreview').classList.remove('show');
+    compSubmit.disabled = compInput.value.trim().length === 0;
+});
+
+compSubmit.addEventListener('click', async () => {
+    if (!requireTelegramAuth() || isSubmittingPost) return;
+    const text = compInput.value.trim();
+
+    if (editingPostId) {
+        const existing = PostStore.get(editingPostId);
+        if (!existing || (!text && !existing.image)) return;
+        isSubmittingPost = true;
+        compSubmit.disabled = true;
+        compSubmit.textContent = 'Saqlanmoqda...';
+
+        const updated = await PostStore.update(editingPostId, { text, editedAt: new Date().toISOString() });
+        isSubmittingPost = false;
+        if (updated) {
+            updateSinglePostCard(editingPostId);
+            if (detailPost && String(detailPost.id) === String(editingPostId)) {
+                detailPost = updated;
+                renderDetailHeaderPost();
             }
-          } catch {
-            showToast("O‘chirishda xatolik");
-          }
-        });
-      }
-
-      return row;
+            closeComposer();
+            resetComposerFields();
+            showToast('Post yangilandi');
+        } else {
+            compSubmit.disabled = false;
+            compSubmit.textContent = 'Saqlash';
+        }
+        return;
     }
 
-    function closeCommentsModal() {
-      commentsModal.classList.add("hidden");
-      activeCommentPost = null;
-      updateBackButton();
+    if (!text && !currentMedia) return;
+    isSubmittingPost = true;
+    compSubmit.disabled = true;
+    compSubmit.textContent = 'Yuklanmoqda...';
+
+    const newPost = {
+        id: 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+        userId: String(currentUser.userId),
+        user: getCurrentUserName(),
+        avatar: currentUser?.photo_url || null,
+        verified: isUserVerified(currentUser.userId),
+        createdAt: new Date().toISOString(),
+        text,
+        image: currentMedia ? currentMedia.data : null,
+        type: currentMedia ? currentMedia.type : 'text',
+        likes: 0,
+        likedBy: [],
+        views: 0,
+        comments: []
+    };
+
+    const added = await PostStore.add(newPost);
+    isSubmittingPost = false;
+    compSubmit.textContent = 'Yuborish';
+
+    if (!added) {
+        compSubmit.disabled = false;
+        return;
     }
 
-    document.getElementById("close-comments-btn").addEventListener("click", closeCommentsModal);
-    document.getElementById("comments-backdrop").addEventListener("click", closeCommentsModal);
+    const feed = document.getElementById('feed');
+    if (feed.querySelector('.empty')) feed.innerHTML = '';
+    feed.insertBefore(buildPostItem(added, true), feed.firstChild);
 
-    commentForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (!currentUser || !activeCommentPost) return;
+    resetComposerFields();
+    closeComposer();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    showToast('Post joylandi');
+});
 
-      const text = commentInput.value.trim();
-      if (!text) return;
 
-      const { post, counterEl } = activeCommentPost;
-      const sendBtn = document.getElementById("send-comment-btn");
-      sendBtn.disabled = true;
+/* ================= COMMENT HELPERS ================= */
+function findComment(comments, id){
+    for (const c of (comments || [])) {
+        if (String(c.id) === String(id)) return { comment: c, parent: null, isReply: false, root: c };
+        const found = findInReplies(c, id, c); if (found) return found;
+    } return null;
+}
+function findInReplies(parent, id, root){
+    for (const r of (parent.replies || [])) {
+        if (String(r.id) === String(id)) return { comment: r, parent, isReply: true, root };
+        const found = findInReplies(r, id, root); if (found) return found;
+    } return null;
+}
+function makeCommentObj(text, parentId){
+    return {
+        id: 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+        userId: String(currentUser.userId),
+        user: getCurrentUserName(),
+        avatar: currentUser.photo_url || null,
+        verified: isUserVerified(currentUser.userId),
+        text,
+        createdAt: new Date().toISOString(),
+        likes: 0,
+        likedBy: [],
+        replies: [],
+        parentId: parentId || null
+    };
+}
+async function addCommentToPost(postId, newComment, replyToId){
+    const post = PostStore.get(postId) || await PostStore.fetchById(postId);
+    if (!post) return null;
+    const commentsCopy = JSON.parse(JSON.stringify(post.comments || []));
+    
+    if (!replyToId) {
+        newComment.parentId = null; 
+        commentsCopy.push(newComment);
+        const ok = await PostStore.update(postId, { comments: commentsCopy });
+        return ok ? { post: ok, comment: newComment, parent: null } : null;
+    }
+    const found = findComment(commentsCopy, replyToId); if (!found) return null;
+    newComment.parentId = replyToId; 
+    if (!found.comment.replies) found.comment.replies = [];
+    found.comment.replies.push(newComment); 
+    const ok = await PostStore.update(postId, { comments: commentsCopy });
+    return ok ? { post: ok, comment: newComment, parent: found.comment } : null;
+}
 
-      try {
-        const authorName =
-          [currentUserProfile?.firstName || currentUser.firstName, currentUserProfile?.lastName || currentUser.lastName]
-            .filter(Boolean)
-            .join(" ") || "Foydalanuvchi";
+/* ================= POST RENDER & LAZY INFINITE SCROLL ================= */
+let feedScrollObserver = null;
 
-        const commentData = {
-          authorId: currentUser.tgId,
-          authorName,
-          authorUsername: currentUserProfile?.username || currentUser.username || "",
-          authorPhoto: currentUserProfile?.photoUrl || currentUser.photoUrl || "",
-          text,
-          replyToId: "",
-          createdAt: serverTimestamp()
-        };
+function countComments(p){
+    let n = (p.comments || []).length;
+    const walk = (arr) => arr.forEach(c => { n += (c.replies || []).length; if (c.replies) walk(c.replies); });
+    walk(p.comments || []);
+    return n;
+}
 
-        const cRef = await addDoc(collection(db, "posts", post.id, "comments"), commentData);
+function handleShare(entity, postId, commentId){
+    let link = location.origin + location.pathname + '?post=' + encodeURIComponent(postId || entity.id);
+    if (commentId) link += '&comment=' + encodeURIComponent(commentId);
+    if (navigator.share) {
+        navigator.share({ title: 'L.uz', url: link }).catch(() => {});
+    } else if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(link)
+            .then(() => showToast('Havola nusxalandi'))
+            .catch(() => showToast('Havolani nusxalab bo\'lmadi'));
+    } else {
+        showToast('Havolani nusxalab bo\'lmadi');
+    }
+}
 
-        await updateDoc(doc(db, "posts", post.id), {
-          commentsCount: increment(1)
-        });
+function buildPostActions(p){
+    const actions = document.createElement('div'); actions.className = 'post-actions';
+    const createBtn = (icon, count, cls, clk) => {
+        const b = document.createElement('button'); b.className = 'act-btn ' + cls;
+        b.innerHTML = `${icon}<span class="act-count">${count!==null?count:''}</span>`;
+        if (clk) b.addEventListener('click', clk); return b;
+    };
 
-        if (String(post.authorId) !== currentUser.tgId) {
-          await addDoc(collection(db, "luz_notifications"), {
-            toUserId: String(post.authorId),
-            fromUserId: currentUser.tgId,
-            fromName: authorName,
-            fromPhoto: commentData.authorPhoto,
-            type: "comment",
-            postId: post.id,
-            previewText: text.slice(0, 60),
-            isRead: false,
-            createdAt: serverTimestamp()
-          }).catch(() => {});
-        }
+    const likeBtn = createBtn(ICONS.like, p.likes||0, isLiked(p)?'liked':'', async (e)=>{
+        e.stopPropagation();
+        if (!requireTelegramAuth()) return;
+        const fresh = PostStore.get(p.id) || p;
+        const copy = { ...fresh, likedBy: [...(fresh.likedBy || [])] };
+        const liked = toggleLikeObj(copy);
+        
+        likeBtn.classList.toggle('liked', liked); 
+        likeBtn.querySelector('.act-count').textContent = copy.likes;
 
-        if (commentsList.querySelector(".text-center")) {
-          commentsList.innerHTML = "";
-        }
-        commentsList.appendChild(
-          renderCommentItem(post, cRef.id, { ...commentData, createdAt: new Date() })
-        );
-        commentsList.scrollTop = commentsList.scrollHeight;
-
-        if (counterEl) {
-          counterEl.textContent = String((Number(counterEl.textContent) || 0) + 1);
-        }
-        commentInput.value = "";
-      } catch (err) {
-        console.error("Kommentariya yuborish xatosi:", err);
-        showToast("Kommentariya yuborilmadi");
-      } finally {
-        sendBtn.disabled = false;
-      }
+        await PostStore.update(p.id, { likes: copy.likes, likedBy: copy.likedBy });
+        if (liked) sendNotification('like', fresh.userId, fresh.id);
     });
 
-    // --- UNREAD NOTIFICATIONS BADGE ---
-    async function checkUnreadNotifications() {
-      if (!currentUser) return;
-      try {
-        const q = query(
-          collection(db, "luz_notifications"),
-          where("toUserId", "==", currentUser.tgId),
-          where("isRead", "==", false),
-          limit(1)
-        );
+    const commBtn = createBtn(ICONS.comment, countComments(p), '', (e)=>{ e.stopPropagation(); openPostDetail(p); });
+    const viewBtn = createBtn(ICONS.view, p.views||0, '', (e)=>{ e.stopPropagation(); }); viewBtn.style.cursor='default';
+    
+    const pidStr = String(p.id);
+    const saveBtn = createBtn(ICONS.bookmark, null, savedPostIds.has(pidStr)?'saved':'', async (e)=>{
+        e.stopPropagation();
+        if (!requireTelegramAuth()) return;
+        const uRef = doc(db, USERS_COLLECTION, String(currentUser.userId));
+        if (savedPostIds.has(pidStr)) {
+            savedPostIds.delete(pidStr);
+            saveBtn.classList.remove('saved');
+            showToast("Olib tashlandi");
+            updateDoc(uRef, { savedPosts: arrayRemove(pidStr) }).catch(() => {});
+        } else {
+            savedPostIds.add(pidStr);
+            saveBtn.classList.add('saved');
+            showToast("Saqlandi");
+            updateDoc(uRef, { savedPosts: arrayUnion(pidStr) }).catch(() => {});
+        }
+    });
+    const shareBtn = createBtn(ICONS.share, null, '', (e)=>{ e.stopPropagation(); handleShare(p); });
+
+    actions.append(likeBtn, commBtn, viewBtn, saveBtn, shareBtn); return actions;
+}
+
+function buildPostItem(p, animate = false){
+    const item = document.createElement('div');
+    item.className = 'post-item' + (animate ? ' animate-in' : '');
+    item.dataset.id = p.id;
+
+    const author = resolveAuthorInfo(p.userId, p.user, p.avatar);
+    const postInit = escapeHtml(author.name.charAt(0).toUpperCase());
+    const av = author.avatar ? `<img class="post-avatar" src="${escapeHtml(author.avatar)}" alt="" loading="lazy">` : `<div class="post-avatar-initial">${postInit}</div>`;
+
+    let media = '';
+    if (p.type === 'image' && p.image) media = `<img class="post-image" src="${escapeHtml(p.image)}" alt="" loading="lazy">`;
+    else if (p.type === 'video' && p.image) media = `<video class="post-video" src="${escapeHtml(p.image)}" controls playsinline preload="metadata"></video>`;
+
+    const canManage = currentUser && (String(p.userId) === String(currentUser.userId) || isSuperAdmin());
+    const moreBtnHtml = canManage ? `<button class="post-more-btn" aria-label="Boshqarish">${ICONS.more}</button>` : '';
+
+    item.innerHTML = `
+        <div style="flex-shrink: 0;" class="post-avatar-wrapper">${av}</div>
+        <div style="flex: 1; min-width: 0;">
+            <div class="post-head-row">
+                <div class="post-head-info">
+                    <div class="post-user">${escapeHtml(author.name)}${getInlineVerifiedBadge(author.userId, p)}</div>
+                    <div class="post-time">${escapeHtml(formatExactTime(p.createdAt || p.time))}</div>
+                </div>
+                ${moreBtnHtml}
+            </div>
+            ${p.text ? `<div class="post-text">${escapeHtml(p.text)}</div>` : ''}
+            ${media}
+            <div class="post-actions-slot"></div>
+        </div>
+    `;
+
+    item.querySelector('.post-actions-slot').appendChild(buildPostActions(p));
+
+    item.querySelector('.post-avatar-wrapper').addEventListener('click', (e) => { e.stopPropagation(); goToProfile(author.userId); });
+    item.querySelector('.post-user').addEventListener('click', (e) => { e.stopPropagation(); goToProfile(author.userId); });
+    const moreBtn = item.querySelector('.post-more-btn');
+    if (moreBtn) {
+        moreBtn.addEventListener('click', (e) => { e.stopPropagation(); openPostMenu(p); });
+    }
+    item.addEventListener('click', (e) => { if (e.target.closest('.act-btn') || e.target.closest('.post-more-btn') || e.target.tagName === 'VIDEO') return; openPostDetail(p); });
+
+    viewIO.observe(item);
+    return item;
+}
+
+function updateSinglePostCard(postId) {
+    const post = PostStore.get(postId);
+    const existingEl = document.querySelector(`.post-item[data-id="${CSS.escape(String(postId))}"]`);
+    if (!post || !existingEl) return;
+
+    const textEl = existingEl.querySelector('.post-text');
+    if (post.text) {
+        if (textEl) textEl.textContent = post.text;
+    } else if (textEl) {
+        textEl.remove();
+    }
+
+    const slot = existingEl.querySelector('.post-actions-slot');
+    if (slot) {
+        slot.innerHTML = '';
+        slot.appendChild(buildPostActions(post));
+    }
+}
+
+function initLazyFeedObserver(){
+    if (feedScrollObserver) { feedScrollObserver.disconnect(); feedScrollObserver = null; }
+    const loader = document.getElementById('feedLoader');
+    if (!PostStore._hasMore) {
+        loader.classList.remove('active');
+        return;
+    }
+
+    loader.classList.add('active');
+    feedScrollObserver = new IntersectionObserver(async (entries) => {
+        const entry = entries[0];
+        if (entry && entry.isIntersecting && !PostStore._isLoading && PostStore._hasMore) {
+            const nextBatch = await PostStore.loadNextPage();
+            if (nextBatch.length > 0) {
+                const feed = document.getElementById('feed');
+                const fragment = document.createDocumentFragment();
+                nextBatch.forEach(p => fragment.appendChild(buildPostItem(p, true)));
+                feed.appendChild(fragment);
+            }
+            if (!PostStore._hasMore) {
+                loader.classList.remove('active');
+                if (feedScrollObserver) { feedScrollObserver.disconnect(); feedScrollObserver = null; }
+            }
+        }
+    }, { root: null, rootMargin: '160px', threshold: 0.05 });
+
+    feedScrollObserver.observe(loader);
+}
+
+function renderInitialFeed(){
+    const feed = document.getElementById('feed');
+    const loader = document.getElementById('feedLoader');
+
+    if (!PostStore._isLoaded) {
+        feed.innerHTML = buildSkeletonCardHTML(false) + buildSkeletonCardHTML(true) + buildSkeletonCardHTML(false);
+        return;
+    }
+
+    if (PostStore._hasError) {
+        loader.classList.remove('active');
+        feed.innerHTML = '<div class="empty">Server bilan bog\'lanib bo\'lmadi.<br>Internet aloqasini tekshirib, sahifani yangilang.</div>';
+        return;
+    }
+
+    const initialPosts = PostStore.all();
+    viewIO.disconnect();
+    feed.innerHTML = '';
+
+    if (initialPosts.length === 0) {
+        loader.classList.remove('active');
+        feed.innerHTML = '<div class="empty">Hali post yo\'q.<br>Pastdagi "+ Post" tugmasi orqali birinchi postni yarating.</div>';
+        return;
+    }
+
+    const fragment = document.createDocumentFragment();
+    initialPosts.forEach(p => fragment.appendChild(buildPostItem(p, true)));
+    feed.appendChild(fragment);
+
+    initLazyFeedObserver();
+}
+
+
+/* ================= POST DETAIL & COMMENTS ================= */
+const detailOverlay = document.getElementById('detailOverlay');
+const detailInput = document.getElementById('detailInput');
+const detailSend = document.getElementById('detailSend');
+const replyModeBar = document.getElementById('replyModeBar');
+const replyModeCancel = document.getElementById('replyModeCancel');
+
+let detailPost = null;
+let detailReplyTargetId = null;
+
+function updateDetailReplyUI() {
+    if (!detailPost || !detailReplyTargetId) {
+        replyModeBar.style.display = 'none';
+        document.getElementById('detailIsland').classList.remove('reply-mode');
+        detailInput.placeholder = 'Izoh yozish...';
+        return;
+    }
+    const found = findComment(detailPost.comments || [], detailReplyTargetId);
+    if (found) {
+        const author = resolveAuthorInfo(found.comment.userId, found.comment.user, found.comment.avatar);
+        document.getElementById('replyModeText').textContent = `↩ ${author.name} ga javob`;
+        replyModeBar.style.display = 'flex';
+        document.getElementById('detailIsland').classList.add('reply-mode');
+        detailInput.placeholder = `${author.name} ga javob...`;
+    } else {
+        detailReplyTargetId = null;
+        updateDetailReplyUI();
+    }
+}
+
+replyModeCancel.addEventListener('click', () => {
+    detailReplyTargetId = null;
+    updateDetailReplyUI();
+});
+
+detailInput.addEventListener('input', () => {
+    detailInput.style.height = 'auto';
+    detailInput.style.height = Math.min(detailInput.scrollHeight, 90) + 'px';
+    detailSend.disabled = detailInput.value.trim().length === 0;
+});
+
+detailSend.addEventListener('click', async () => {
+    if (!requireTelegramAuth()) return;
+    const txt = detailInput.value.trim();
+    if (!txt || !detailPost) return;
+    detailSend.disabled = true;
+
+    const newComm = makeCommentObj(txt, detailReplyTargetId);
+    const res = await addCommentToPost(detailPost.id, newComm, detailReplyTargetId);
+
+    if (res) {
+        detailPost = res.post;
+        if (detailReplyTargetId && res.parent) {
+            sendNotification('reply', res.parent.userId, detailPost.id, newComm.id);
+        } else {
+            sendNotification('comment', detailPost.userId, detailPost.id, newComm.id);
+        }
+
+        detailInput.value = '';
+        detailInput.style.height = 'auto';
+        detailReplyTargetId = null;
+        updateDetailReplyUI();
+        refreshDetailCommentsOnly();
+        updateSinglePostCard(detailPost.id);
+        showToast(newComm.parentId ? 'Javob qo\'shildi' : 'Izoh qo\'shildi');
+    } else {
+        detailSend.disabled = false;
+    }
+});
+
+function buildCommentRow(c, mode = 'detail') {
+    const row = document.createElement('div');
+    row.className = 'comment-row';
+
+    const author = resolveAuthorInfo(c.userId, c.user, c.avatar);
+    const init = escapeHtml(author.name.charAt(0).toUpperCase());
+    const avHtml = author.avatar
+        ? `<img class="comment-avatar" src="${escapeHtml(author.avatar)}" alt="">`
+        : `<div class="comment-avatar-initial">${init}</div>`;
+
+    const hasReplies = Array.isArray(c.replies) && c.replies.length > 0 && mode === 'detail';
+
+    row.innerHTML = `
+        <div class="comment-avatar-col">
+            <div class="c-av-trigger">${avHtml}</div>
+            ${hasReplies ? '<div class="thread-line-down"></div>' : ''}
+        </div>
+        <div class="comment-content">
+            <div class="comment-head">
+                <span class="comment-user">${escapeHtml(author.name)}${getInlineVerifiedBadge(author.userId, c)}</span>
+                <span class="comment-time">${escapeHtml(formatExactTime(c.createdAt))}</span>
+            </div>
+            <div class="comment-text">${escapeHtml(c.text)}</div>
+            <div class="comment-actions">
+                <button class="comment-act c-like-btn ${isLiked(c) ? 'liked' : ''}">${ICONS.like}<span>${c.likes || 0}</span></button>
+                <button class="comment-act c-reply-btn">${ICONS.comment}<span>${(c.replies || []).length || ''}</span></button>
+                <button class="comment-act c-share-btn">${ICONS.share}</button>
+            </div>
+        </div>
+    `;
+
+    row.querySelector('.c-av-trigger').addEventListener('click', (e) => { e.stopPropagation(); goToProfile(author.userId); });
+    row.querySelector('.comment-user').addEventListener('click', (e) => { e.stopPropagation(); goToProfile(author.userId); });
+
+    const likeBtn = row.querySelector('.c-like-btn');
+    likeBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        if (!requireTelegramAuth() || !detailPost) return;
+        const commentsCopy = JSON.parse(JSON.stringify(detailPost.comments || []));
+        const found = findComment(commentsCopy, c.id);
+        if (!found) return;
+
+        const liked = toggleLikeObj(found.comment);
+        likeBtn.classList.toggle('liked', liked);
+        likeBtn.querySelector('span').textContent = found.comment.likes;
+
+        const updated = await PostStore.update(detailPost.id, { comments: commentsCopy });
+        if (updated) detailPost = updated;
+        if (liked) sendNotification('like', found.comment.userId, detailPost.id, found.comment.id);
+    });
+
+    row.querySelector('.c-reply-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!requireTelegramAuth()) return;
+        if (mode === 'cd-main' || mode === 'cd-reply') {
+            cdReplyTargetId = c.id;
+            updateCdReplyModeUI();
+            commentDetailInput.focus();
+        } else {
+            detailReplyTargetId = c.id;
+            updateDetailReplyUI();
+            detailInput.focus();
+        }
+    });
+
+    row.querySelector('.c-share-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (detailPost) handleShare(c, detailPost.id, c.id);
+    });
+
+    row.addEventListener('click', (e) => {
+        if (e.target.closest('button') || e.target.closest('.c-av-trigger') || e.target.closest('.comment-user')) return;
+        if (mode === 'detail' || mode === 'cd-reply') {
+            openCommentDetail(c.id);
+        }
+    });
+
+    return row;
+}
+
+function renderCommentThread(c) {
+    const thread = document.createElement('div');
+    thread.className = 'comment-thread';
+    thread.appendChild(buildCommentRow(c, 'detail'));
+
+    if (Array.isArray(c.replies) && c.replies.length > 0) {
+        const repBox = document.createElement('div');
+        repBox.className = 'comment-replies';
+        c.replies.forEach(r => repBox.appendChild(renderCommentThread(r)));
+        thread.appendChild(repBox);
+    }
+    return thread;
+}
+
+function renderDetailHeaderPost() {
+    if (!detailPost) return;
+    const box = document.getElementById('detailPostBox');
+    const author = resolveAuthorInfo(detailPost.userId, detailPost.user, detailPost.avatar);
+    const init = escapeHtml(author.name.charAt(0).toUpperCase());
+    const av = author.avatar ? `<img class="post-avatar" src="${escapeHtml(author.avatar)}" alt="">` : `<div class="post-avatar-initial">${init}</div>`;
+
+    let media = '';
+    if (detailPost.type === 'image' && detailPost.image) media = `<img class="detail-image" src="${escapeHtml(detailPost.image)}" alt="">`;
+    else if (detailPost.type === 'video' && detailPost.image) media = `<video class="detail-video" src="${escapeHtml(detailPost.image)}" controls playsinline></video>`;
+
+    box.innerHTML = `
+        <div class="detail-post">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+                <div class="d-av-link">${av}</div>
+                <div class="post-head-info">
+                    <div class="post-user d-user-link">${escapeHtml(author.name)}${getInlineVerifiedBadge(author.userId, detailPost)}</div>
+                    <div class="post-time">${escapeHtml(formatExactTime(detailPost.createdAt))}</div>
+                </div>
+            </div>
+            ${detailPost.text ? `<div class="detail-text">${escapeHtml(detailPost.text)}</div>` : ''}
+            ${media}
+            <div id="detailActionsSlot"></div>
+        </div>
+    `;
+    box.querySelector('.d-av-link').addEventListener('click', () => goToProfile(author.userId));
+    box.querySelector('.d-user-link').addEventListener('click', () => goToProfile(author.userId));
+    box.querySelector('#detailActionsSlot').appendChild(buildPostActions(detailPost));
+}
+
+function refreshDetailCommentsOnly() {
+    if (!detailPost) return;
+    const list = document.getElementById('detailCommentsList');
+    const title = document.getElementById('detailCommTitle');
+    const comments = detailPost.comments || [];
+    title.textContent = `Izohlar (${countComments(detailPost)})`;
+    list.innerHTML = '';
+
+    if (comments.length === 0) {
+        list.innerHTML = '<div style="color:#8e8e93;font-size:14px;padding:12px 0">Hali izohlar yo\'q. Birinchi bo\'lib fikr bildiring.</div>';
+    } else {
+        comments.forEach(c => list.appendChild(renderCommentThread(c)));
+    }
+
+    const slot = document.getElementById('detailActionsSlot');
+    if (slot) {
+        slot.innerHTML = '';
+        slot.appendChild(buildPostActions(detailPost));
+    }
+
+    if (commentDetailOverlay.classList.contains('show') && activeCommentId) {
+        renderCommentDetail();
+    }
+}
+
+function openPostDetail(p) {
+    detailPost = PostStore.get(p.id) || p;
+    detailReplyTargetId = null;
+    detailInput.value = '';
+    detailInput.style.height = 'auto';
+    detailSend.disabled = true;
+
+    renderDetailHeaderPost();
+    refreshDetailCommentsOnly();
+    updateDetailReplyUI();
+
+    detailOverlay.classList.add('show');
+    document.getElementById('detailScroll').scrollTop = 0;
+    updateBackButton();
+}
+
+function closePostDetail() {
+    const closedId = detailPost?.id;
+    detailOverlay.classList.remove('show');
+    detailInput.value = '';
+    detailInput.style.height = 'auto';
+    detailReplyTargetId = null;
+    detailPost = null;
+    if (closedId) updateSinglePostCard(closedId);
+    updateBackButton();
+}
+
+
+/* ================= COMMENT DETAIL ================= */
+const commentDetailOverlay = document.getElementById('commentDetailOverlay');
+const cdReplyModeCancel = document.getElementById('cdReplyModeCancel');
+const commentDetailInput = document.getElementById('commentDetailInput');
+const commentDetailSend = document.getElementById('commentDetailSend');
+let activeCommentId = null;
+let cdReplyTargetId = null;
+
+function renderCommentDetail(){
+    if (!detailPost || !activeCommentId) return;
+    const found = findComment(detailPost.comments || [], activeCommentId);
+    if (!found) { closeCommentDetail(); return; }
+    const main = document.getElementById('commentDetailMain');
+    main.innerHTML = '';
+    main.appendChild(buildCommentRow(found.comment, 'cd-main'));
+    const reps = document.getElementById('commentDetailReplies'); reps.innerHTML = '';
+    (found.comment.replies || []).forEach(r => reps.appendChild(buildCommentRow(r, 'cd-reply')));
+}
+
+function openCommentDetail(cid){
+    if (!detailPost) return;
+    const found = findComment(detailPost.comments || [], cid); if (!found) return;
+    activeCommentId = cid;
+    cdReplyTargetId = null;
+    commentDetailInput.value = '';
+    commentDetailInput.style.height = 'auto';
+    commentDetailSend.disabled = true;
+
+    renderCommentDetail();
+    commentDetailOverlay.classList.add('show');
+    document.getElementById('commentDetailScroll').scrollTop = 0;
+    updateCdReplyModeUI();
+    updateBackButton();
+}
+
+function closeCommentDetail(){
+    commentDetailOverlay.classList.remove('show');
+    commentDetailInput.value = '';
+    commentDetailInput.style.height = 'auto';
+    activeCommentId = null;
+    cdReplyTargetId = null;
+    if (detailPost) refreshDetailCommentsOnly();
+    updateBackButton();
+}
+
+function updateCdReplyModeUI(){
+    if (!detailPost) { document.getElementById('cdReplyModeBar').style.display = 'none'; document.getElementById('commentDetailIsland').classList.remove('reply-mode'); return; }
+    const targetId = cdReplyTargetId || activeCommentId;
+    const found = targetId ? findComment(detailPost.comments || [], targetId) : null;
+    if (found) {
+        const author = resolveAuthorInfo(found.comment.userId, found.comment.user, found.comment.avatar);
+        document.getElementById('cdReplyModeText').textContent = `↩ ${author.name} ga javob`;
+        document.getElementById('cdReplyModeBar').style.display = 'flex';
+        document.getElementById('commentDetailIsland').classList.add('reply-mode');
+    } else {
+        document.getElementById('cdReplyModeBar').style.display = 'none';
+        document.getElementById('commentDetailIsland').classList.remove('reply-mode');
+    }
+}
+cdReplyModeCancel.addEventListener('click', () => {
+    if (cdReplyTargetId) { cdReplyTargetId = null; updateCdReplyModeUI(); }
+    else closeCommentDetail();
+});
+commentDetailInput.addEventListener('input', () => {
+    commentDetailInput.style.height = 'auto'; commentDetailInput.style.height = Math.min(commentDetailInput.scrollHeight, 90) + 'px';
+    commentDetailSend.disabled = commentDetailInput.value.trim().length === 0;
+});
+
+commentDetailSend.addEventListener('click', async () => {
+    if (!requireTelegramAuth()) return;
+    const txt = commentDetailInput.value.trim(); if (!txt || !detailPost || !activeCommentId) return;
+    commentDetailSend.disabled = true;
+    const targetId = cdReplyTargetId || activeCommentId;
+    const newReply = makeCommentObj(txt, targetId);
+    const res = await addCommentToPost(detailPost.id, newReply, targetId);
+    if (res) {
+        detailPost = res.post;
+        const parentFound = findComment(detailPost.comments, targetId);
+        if (parentFound && parentFound.comment) {
+            sendNotification('reply', parentFound.comment.userId, detailPost.id, newReply.id);
+        }
+
+        commentDetailInput.value = ''; commentDetailInput.style.height = 'auto';
+        cdReplyTargetId = null;
+        renderCommentDetail();
+        refreshDetailCommentsOnly();
+        updateSinglePostCard(detailPost.id);
+        updateCdReplyModeUI();
+        showToast('Javob qo\'shildi');
+    } else {
+        commentDetailSend.disabled = false;
+    }
+});
+
+/* ================= BOSH ADMINISTRATOR PANELI (LAZY LOADING) ================= */
+const adminOverlay = document.getElementById('adminOverlay');
+const adminLoadMoreBtn = document.getElementById('adminLoadMoreBtn');
+let adminLastUserDoc = null;
+let adminHasMoreUsers = true;
+let adminIsLoadingUsers = false;
+
+async function openAdminPanel() {
+    if (!isSuperAdmin()) return;
+    await flushUsageTimeToServer();
+    adminOverlay.classList.add('show');
+    updateBackButton();
+    await loadAdminPanelInitial();
+}
+function closeAdminPanel() {
+    adminOverlay.classList.remove('show');
+    updateBackButton();
+}
+
+document.getElementById('openAdminBtn').addEventListener('click', openAdminPanel);
+adminLoadMoreBtn.addEventListener('click', loadAdminUsersNextPage);
+
+async function loadAdminPanelInitial() {
+    const statsGrid = document.getElementById('adminStatsGrid');
+    const list = document.getElementById('adminUsersList');
+    statsGrid.innerHTML = `<div class="admin-stat-card"><div class="admin-stat-val">...</div><div class="admin-stat-lbl">Foydalanuvchilar</div></div><div class="admin-stat-card"><div class="admin-stat-val">...</div><div class="admin-stat-lbl">Jami postlar</div></div>`;
+    list.innerHTML = '<div style="text-align:center;color:#8e8e93;padding:24px;font-size:13px">Yuklanmoqda...</div>';
+    adminLoadMoreBtn.style.display = 'none';
+    adminLastUserDoc = null;
+    adminHasMoreUsers = true;
+
+    try {
+        // Serverning o'zidan aniq sonlarni barcha ma'lumotlarni yuklamasdan olish
+        const [usersCountSnap, postsCountSnap] = await Promise.all([
+            getCountFromServer(collection(db, USERS_COLLECTION)),
+            getCountFromServer(collection(db, POSTS_COLLECTION))
+        ]);
+
+        statsGrid.innerHTML = `
+            <div class="admin-stat-card">
+                <div class="admin-stat-val">${usersCountSnap.data().count}</div>
+                <div class="admin-stat-lbl">Jami foydalanuvchilar</div>
+            </div>
+            <div class="admin-stat-card">
+                <div class="admin-stat-val">${postsCountSnap.data().count}</div>
+                <div class="admin-stat-lbl">Jami postlar</div>
+            </div>
+        `;
+    } catch {
+        statsGrid.innerHTML = '';
+    }
+
+    list.innerHTML = '';
+    await loadAdminUsersNextPage();
+}
+
+async function loadAdminUsersNextPage() {
+    if (adminIsLoadingUsers || !adminHasMoreUsers) return;
+    adminIsLoadingUsers = true;
+    adminLoadMoreBtn.textContent = 'Yuklanmoqda...';
+    adminLoadMoreBtn.disabled = true;
+
+    try {
+        const q = adminLastUserDoc
+            ? query(collection(db, USERS_COLLECTION), orderBy("lastActiveAt", "desc"), startAfter(adminLastUserDoc), limit(ADMIN_BATCH_SIZE))
+            : query(collection(db, USERS_COLLECTION), orderBy("lastActiveAt", "desc"), limit(ADMIN_BATCH_SIZE));
+
         const snap = await getDocs(q);
-        const badge = document.getElementById("notif-badge");
-        if (!snap.empty) {
-          badge.classList.remove("hidden");
-        } else {
-          badge.classList.add("hidden");
+        adminLastUserDoc = snap.docs[snap.docs.length - 1] || adminLastUserDoc;
+        adminHasMoreUsers = snap.docs.length === ADMIN_BATCH_SIZE;
+
+        const list = document.getElementById('adminUsersList');
+        const { dailyKey, weeklyKey, monthlyKey } = getPeriodKeys();
+
+        for (const dSnap of snap.docs) {
+            const u = dSnap.data();
+            const uid = String(u.userId || dSnap.id);
+            const fullName = [u.firstName, u.lastName].filter(Boolean).join(' ').trim() || 'Foydalanuvchi';
+            let verified = Boolean(u.verified || u.isVerified);
+            const regDate = formatDateFull(u.createdAt);
+
+            // Kunlik, haftalik va oylik faol vaqtlarni o'qish
+            const stats = u.usageStats || {};
+            const dailySec = stats[dailyKey] || 0;
+            const weeklySec = stats[weeklyKey] || 0;
+            const monthlySec = stats[monthlyKey] || 0;
+
+            // Foydalanuvchining aniq postlar sonini serverdan olish
+            let userPostsCount = typeof u.postsCount === 'number' ? u.postsCount : 0;
+            try {
+                const pCountSnap = await getCountFromServer(query(collection(db, POSTS_COLLECTION), where("userId", "==", uid)));
+                userPostsCount = pCountSnap.data().count;
+            } catch {}
+
+            const card = document.createElement('div');
+            card.className = 'admin-user-card';
+            card.innerHTML = `
+                <div class="admin-user-top">
+                    <div style="flex:1;min-width:0">
+                        <div class="post-user admin-u-name">${escapeHtml(fullName)}${verified ? VERIFIED_BADGE_SM_SVG : ''}</div>
+                        <div class="post-time">ID: ${escapeHtml(uid)} ${u.username ? '• @' + escapeHtml(u.username) : ''}</div>
+                    </div>
+                </div>
+                <div class="admin-user-meta">
+                    <div>Ro'yxatdan o'tgan sana: <b>${escapeHtml(regDate)}</b></div>
+                    <div>Yozgan postlari soni: <b>${userPostsCount} ta</b></div>
+                    <div class="admin-time-pills">
+                        <div class="admin-time-pill"><span>Bugun</span><b>${formatDurationSeconds(dailySec)}</b></div>
+                        <div class="admin-time-pill"><span>Shu hafta</span><b>${formatDurationSeconds(weeklySec)}</b></div>
+                        <div class="admin-time-pill"><span>Shu oy</span><b>${formatDurationSeconds(monthlySec)}</b></div>
+                    </div>
+                </div>
+                <div class="admin-user-actions">
+                    <button class="admin-btn ${verified ? 'unverify' : 'verify'}" data-act="toggle-verify">
+                        ${verified ? 'Tasdiqni olib tashlash' : 'Tasdiqlash belgisi berish'}
+                    </button>
+                    <button class="admin-btn del" data-act="delete-user">Kanalni o'chirish</button>
+                </div>
+            `;
+
+            const verifyBtn = card.querySelector('[data-act="toggle-verify"]');
+            verifyBtn.addEventListener('click', async () => {
+                verified = !verified;
+                try {
+                    await updateDoc(doc(db, USERS_COLLECTION, uid), { verified, isVerified: verified });
+                    UserCache.set(uid, { ...u, verified, isVerified: verified });
+                    verifyBtn.className = `admin-btn ${verified ? 'unverify' : 'verify'}`;
+                    verifyBtn.textContent = verified ? 'Tasdiqni olib tashlash' : 'Tasdiqlash belgisi berish';
+                    card.querySelector('.admin-u-name').innerHTML = `${escapeHtml(fullName)}${verified ? VERIFIED_BADGE_SM_SVG : ''}`;
+                    showToast(verified ? 'Tasdiqlash belgisi berildi' : 'Tasdiqlash belgisi olib tashlandi');
+                } catch {
+                    verified = !verified;
+                    showToast('Xatolik yuz berdi');
+                }
+            });
+
+            card.querySelector('[data-act="delete-user"]').addEventListener('click', async () => {
+                if (uid === String(currentUser.userId)) {
+                    showToast('O\'zingizni o\'chira olmaysiz');
+                    return;
+                }
+                try {
+                    const userPostsSnap = await getDocs(query(collection(db, POSTS_COLLECTION), where("userId", "==", uid)));
+                    for (const up of userPostsSnap.docs) {
+                        await deleteDoc(doc(db, POSTS_COLLECTION, up.id));
+                    }
+                    await deleteDoc(doc(db, USERS_COLLECTION, uid));
+                    card.remove();
+                    showToast('Kanal va uning barcha postlari o\'chirildi');
+                } catch {
+                    showToast('O\'chirishda xatolik yuz berdi');
+                }
+            });
+
+            list.appendChild(card);
         }
-      } catch {
-        // Silent fail if index not yet created
-      }
+
+        adminLoadMoreBtn.style.display = adminHasMoreUsers ? 'block' : 'none';
+        adminLoadMoreBtn.textContent = 'Yana yuklash';
+        adminLoadMoreBtn.disabled = false;
+    } catch (e) {
+        console.error(e);
+        adminLoadMoreBtn.style.display = 'none';
+    } finally {
+        adminIsLoadingUsers = false;
     }
+}
 
-    // --- HEADER & CONTROLS ---
-    document.getElementById("scroll-top-btn").addEventListener("click", () => {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    });
-
-    document.getElementById("refresh-btn").addEventListener("click", () => {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      loadNextPage(true);
-      checkUnreadNotifications();
-    });
-
-    loadMoreBtn.addEventListener("click", () => loadNextPage(false));
-
-    // --- BOOTSTRAP ---
-    async function init() {
-      currentUser = (await ensureAuth()) || getCurrentTgUser();
-
-      if (currentUser) {
-        const userSnap = await getDoc(doc(db, "users", currentUser.tgId)).catch(() => null);
-        if (userSnap?.exists()) {
-          currentUserProfile = userSnap.data();
+/* ================= INIT & NAVIGATION ================= */
+async function checkUrlParams() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlPostId = urlParams.get('post');
+    const urlCommentId = urlParams.get('comment');
+    if (urlPostId) {
+        const targetPost = await PostStore.fetchById(urlPostId);
+        if (targetPost) {
+            openPostDetail(targetPost);
+            if (urlCommentId && findComment(detailPost.comments || [], urlCommentId)) {
+                openCommentDetail(urlCommentId);
+            }
         }
-
-        const photo = safeUrl(currentUserProfile?.photoUrl || currentUser.photoUrl);
-        const initial = (currentUser.firstName || "L").charAt(0).toUpperCase();
-
-        if (photo) {
-          const hImg = document.getElementById("header-avatar");
-          hImg.src = photo;
-          hImg.classList.remove("hidden");
-          document.getElementById("header-avatar-fallback").classList.add("hidden");
-
-          const cImg = document.getElementById("composer-avatar");
-          cImg.src = photo;
-          cImg.classList.remove("hidden");
-          document.getElementById("composer-avatar-fallback").classList.add("hidden");
-        } else {
-          document.getElementById("header-avatar-fallback").textContent = initial;
-          document.getElementById("composer-avatar-fallback").textContent = initial;
-        }
-      }
-
-      await loadNextPage(true);
-      pageObserver.observe(paginationArea);
-      checkUnreadNotifications();
     }
+}
 
-    init();
-  </script>
+(async function bootstrap() {
+    renderInitialFeed();
+    await initSessionFromServer();
+    await PostStore.loadInitial();
+    await checkUrlParams();
+    updateBackButton();
+})();
+
+window.addEventListener('popstate', () => {
+    if (anyOverlayOpen()) {
+        handleBack();
+    }
+});
+</script>
 </body>
 </html>
