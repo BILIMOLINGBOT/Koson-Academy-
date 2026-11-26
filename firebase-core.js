@@ -5,18 +5,54 @@ import {
   signInWithCustomToken,
   signInAnonymously
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-import {
-  getFirestore,
-  doc,
-  getDoc,
-  setDoc,
-  updateDoc,
-  deleteDoc,
-  addDoc,
-  collection,
-  serverTimestamp,
-  increment
-} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+import { writeBatch, doc, getDoc, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+const pendingActions = new Set(); // Double-tap himoyasi
+
+export async function toggleLike(postId, postAuthorId, previewText = "") {
+  await ensureAuth();
+  const me = getCurrentTgUser();
+  if (!me) return false;
+
+  const lockKey = `like_${postId}`;
+  if (pendingActions.has(lockKey)) return null;
+  pendingActions.add(lockKey);
+
+  try {
+    const likeRef = doc(db, "likes", `${postId}_${me.tgId}`);
+    const postRef = doc(db, "posts", postId);
+    const snap = await getDoc(likeRef);
+    const batch = writeBatch(db);
+
+    if (snap.exists()) {
+      batch.delete(likeRef);
+      batch.update(postRef, { likesCount: increment(-1) });
+      await batch.commit();
+      return false;
+    } else {
+      batch.set(likeRef, { postId, userId: me.tgId, createdAt: serverTimestamp() });
+      batch.update(postRef, { likesCount: increment(1) });
+      await batch.commit();
+      // Notification alohida yuboriladi (asosiy like operatsiyasini bloklamasligi uchun)
+      if (postAuthorId && String(postAuthorId) !== me.tgId) {
+        addDoc(collection(db, "luz_notifications"), {
+          toUserId: String(postAuthorId),
+          fromUserId: me.tgId,
+          fromName: me.firstName,
+          fromPhoto: me.photoUrl,
+          type: "like",
+          postId,
+          previewText: previewText.slice(0, 60),
+          isRead: false,
+          createdAt: serverTimestamp()
+        }).catch(console.error);
+      }
+      return true;
+    }
+  } finally {
+    pendingActions.delete(lockKey);
+  }
+}
 
 // 1. Firebase konfiguratsiyasi (O'zingizning Firebase loyihangiz qiymatlarini qo'ying)
 
@@ -233,7 +269,8 @@ export function escapeHTML(str = "") {
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 export function formatTimeAgo(ts) {
