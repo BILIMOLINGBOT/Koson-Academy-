@@ -19,13 +19,18 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
 // 1. Firebase konfiguratsiyasi (O'zingizning Firebase loyihangiz qiymatlarini qo'ying)
+
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyD0gBUJNcrgvvntcrfKK7Ky8t6_9Qb96Io",
+  authDomain: "bilimilova-64833.firebaseapp.com",
+  databaseURL: "https://bilimilova-64833-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "bilimilova-64833",
+  storageBucket: "bilimilova-64833.firebasestorage.app",
+  messagingSenderId: "890689414502",
+  appId: "1:890689414502:web:8141d7aab413495c0c14a7",
+  measurementId: "G-ZBC8X1VVMZ"
+};
+
 };
 
 const AUTH_API_URL = "/api/auth"; // Vercel Custom Token endpoint
