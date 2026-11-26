@@ -31,7 +31,6 @@ const firebaseConfig = {
   measurementId: "G-ZBC8X1VVMZ"
 };
 
-};
 
 const AUTH_API_URL = "/api/auth"; // Vercel Custom Token endpoint
 
