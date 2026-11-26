@@ -753,21 +753,38 @@ const PostStore = {
     }
 };
 
-/* ================= NOTIFICATION HELPER ================= */
-async function sendNotification(type, recipientId, postId, commentId = null) {
-    if (!currentUser || !currentUser.userId || !recipientId) return;
-    const targetId = resolveAuthorInfo(recipientId).userId;
-    if (String(targetId) === String(currentUser.userId)) return;
+import {
+    collection,
+    doc,
+    setDoc,
+    query,
+    where,
+    onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    const notifId = 'n_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+/* ================= NOTIFICATION HELPER ================= */
+async function sendNotification(type, recipientId, postId = null, commentId = null) {
+    if (!currentUser?.userId || !recipientId) return;
+
+    // resolveAuthorInfo undefined qaytarsa ham xato bermasligi uchun himoya
+    const resolved = typeof resolveAuthorInfo === "function" ? resolveAuthorInfo(recipientId) : null;
+    const targetId = resolved?.userId || recipientId;
+
+    // O'ziga o'zi bildirishnoma yubormaslik
+    if (!targetId || String(targetId) === String(currentUser.userId)) return;
+
+    // Eskirgan .substr() o'rniga .substring() ishlatildi
+    const notifId = `n_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+
     const newNotif = {
         id: notifId,
-        type: type,
+        type: String(type),
         recipientId: String(targetId),
         senderId: String(currentUser.userId),
-        senderName: getCurrentUserName(),
+        senderName: typeof getCurrentUserName === "function" ? getCurrentUserName() : (currentUser.name || "Foydalanuvchi"),
         senderAvatar: currentUser.photo_url || null,
-        postId: String(postId),
+        // postId bo'sh bo'lsa "null" matniga aylanib ketmasligi uchun
+        postId: postId ? String(postId) : null,
         commentId: commentId ? String(commentId) : null,
         createdAt: new Date().toISOString(),
         isRead: false
@@ -775,27 +792,55 @@ async function sendNotification(type, recipientId, postId, commentId = null) {
 
     try {
         await setDoc(doc(db, "luz_notifications", notifId), newNotif);
-    } catch {}
+    } catch (error) {
+        console.error("Bildirishnoma yuborishda xatolik:", error);
+    }
 }
 
-function updateNotificationBadgeLocal() {
-    const btn = document.getElementById('navNotifBtn'); if (!btn || !currentUser) return;
-    try {
-        const notifs = JSON.parse(localStorage.getItem(NOTIF_KEY)) || [];
-        const unreadCount = notifs.filter(n => String(n.recipientId) === String(currentUser.userId) && !n.isRead).length;
-        let badge = btn.querySelector('.nav-badge');
-        if (unreadCount > 0) {
-            if (!badge) {
-                badge = document.createElement('div');
-                badge.className = 'nav-badge';
-                btn.appendChild(badge);
+/* ================= REALTIME BADGE LISTENER ================= */
+let unsubscribeNotifBadge = null;
+
+function initNotifBadgeRealtime() {
+    // Qayta chaqirilganda eski listenerni o'chirish (xotira sizishini oldini oladi)
+    if (typeof unsubscribeNotifBadge === "function") {
+        unsubscribeNotifBadge();
+        unsubscribeNotifBadge = null;
+    }
+
+    if (!currentUser?.userId) return;
+
+    const q = query(
+        collection(db, "luz_notifications"),
+        where("recipientId", "==", String(currentUser.userId)),
+        where("isRead", "==", false)
+    );
+
+    unsubscribeNotifBadge = onSnapshot(
+        q,
+        (snap) => {
+            const btn = document.getElementById("navNotifBtn");
+            if (!btn) return;
+
+            let badge = btn.querySelector(".nav-badge");
+            const unreadCount = snap.size;
+
+            if (unreadCount > 0) {
+                if (!badge) {
+                    badge = document.createElement("div");
+                    badge.className = "nav-badge";
+                    btn.appendChild(badge);
+                }
+                badge.textContent = unreadCount > 99 ? "99+" : String(unreadCount);
+            } else if (badge) {
+                badge.remove();
             }
-            badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
-        } else if (badge) {
-            badge.remove();
+        },
+        (error) => {
+            console.error("Bildirishnomalarni kuzatishda xatolik:", error);
         }
-    } catch(e){}
+    );
 }
+
 
 /* ================= VIEW TRACKER ================= */
 const VIEW_LOG_KEY = 'luz_view_log_v1';
