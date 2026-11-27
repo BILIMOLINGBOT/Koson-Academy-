@@ -546,7 +546,6 @@ const DB = {
         });
     }
 };
-
 /* ================= SESSION & TELEGRAM AUTO-LOGIN ================= */
 let currentUser = null;
 
@@ -556,13 +555,15 @@ function isSuperAdmin() {
 }
 
 (function initSession() {
-    let users = DB._getUsers();
+    let users = DB._getUsers().filter(
+        u => u && u.userId && !String(u.userId).startsWith('mehmon_') && String(u.userId) !== 'me'
+    );
+    DB._saveUsers(users);
     const nowIso = new Date().toISOString();
 
     if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
         const tU = tg.initDataUnsafe.user;
         const realId = String(tU.id);
-        users = users.filter(u => !String(u.userId).startsWith('mehmon_') && String(u.userId) !== 'me');
 
         const existing = users.find(u => String(u.userId) === realId);
         currentUser = {
@@ -581,26 +582,15 @@ function isSuperAdmin() {
         DB._saveUsers(users);
         localStorage.setItem(DB._S, realId);
     } else {
-        currentUser = DB.getCurrentUser();
-        if (!currentUser && users.length > 0) {
-            currentUser = users.find(u => !String(u.userId).startsWith('mehmon_')) || users[0];
-            localStorage.setItem(DB._S, String(currentUser.userId));
-        }
-        if (!currentUser) {
-            const guestId = 'mehmon_' + Math.random().toString(36).slice(2, 7);
-            currentUser = {
-                userId: guestId,
-                firstName: 'Mehmon',
-                lastName: '',
-                username: 'mehmon',
-                photo_url: null,
-                createdAt: nowIso,
-                lastActiveAt: nowIso
-            };
-            users.push(currentUser);
-            DB._saveUsers(users);
-            localStorage.setItem(DB._S, guestId);
-        }
+        const savedUser = DB.getCurrentUser();
+        currentUser = (savedUser && !String(savedUser.userId).startsWith('mehmon_')) ? savedUser : null;
+    }
+
+    if (!currentUser) {
+        localStorage.removeItem(DB._S);
+        const postBtn = document.getElementById('postBtn');
+        if (postBtn) postBtn.style.display = 'none';
+        return;
     }
 
     if (isSuperAdmin()) {
